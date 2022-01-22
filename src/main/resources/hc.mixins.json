@@ -1,0 +1,24 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "ru.hollowhorizon.hc.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "hc.refmap.json",
+  "mixins": [
+    "HollowModEditor",
+    "MixinIngameMenuScreen",
+    "MixinItemStack",
+    "MixinLevelRenderer",
+    "MixinLocateCommand",
+    "MixinRenderItems",
+    "MixinRenderTypeBuffers",
+    "MixinServerWorldInfo",
+    "SimpleReloadableResourceManagerMixin",
+    "StructureBlockMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

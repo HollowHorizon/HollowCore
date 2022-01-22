@@ -1,0 +1,22 @@
+{
+  "hc.gui.event_list": "Event List",
+  "hc.gui.event_list.no_dialogues": "There are no events at this time...",
+
+  "hc.texturepack.info": "Textures For Hollow Core Mod from config!",
+
+  "key.categories.mod.hc": "Hollow Core Keys",
+
+  "key.hc.event_list": "Event List Key",
+
+  "hollowcore.gui.dialogues.save": "Save",
+  "hollowcore.gui.dialogues.disable_main_hero": "Main Hero Voice: ",
+  "hollowcore.gui.yes": "Enabled",
+  "hollowcore.gui.no": "Disabled",
+
+  "hollowcore.gui.save_handler": "Сохранение",
+  "hollowcore.gui.save_handler.save": "Сохранить",
+  "hollowcore.gui.save_handler.load": "Загрузить",
+  "hollowcore.gui.save_handler.empty": "Пусто",
+  "hollowcore.gui.save_handler.message_1": "Выберите сохранение: ",
+  "hollowcore.gui.save_handler.message_2": "Вы выбрале "
+}

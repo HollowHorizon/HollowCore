@@ -1,0 +1,19 @@
+{
+  "targets":
+  [
+    "swap"
+  ],
+  "passes":
+  [
+    {
+      "name": "hc:square_overlay",
+      "intarget": "minecraft:main",
+      "outtarget": "swap"
+    },
+    {
+      "name": "blit",
+      "intarget": "swap",
+      "outtarget": "minecraft:main"
+    }
+  ]
+}

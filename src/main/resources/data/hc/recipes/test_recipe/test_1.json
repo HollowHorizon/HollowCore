@@ -1,0 +1,11 @@
+{
+  "type": "hc:test_recipe",
+  "ingredient": [
+    {
+      "item": "minecraft:glowstone"
+    }
+  ],
+  "experience": 0,
+  "cookingtime": 0,
+  "result": "minecraft:leather"
+}
