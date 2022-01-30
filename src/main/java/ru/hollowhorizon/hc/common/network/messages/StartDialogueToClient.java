@@ -9,8 +9,8 @@ import net.minecraftforge.fml.LogicalSidedProvider;
 import net.minecraftforge.fml.network.NetworkEvent;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.client.screens.DialogueScreen;
-import ru.hollowhorizon.hc.common.dialogues.HollowDialogue;
-import ru.hollowhorizon.hc.common.handlers.DialogueHandler;
+import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
+import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -34,7 +34,7 @@ public class StartDialogueToClient {
         try {
             String regName = buf.readUtf();
 
-            retval.dialogue = DialogueHandler.get(regName);
+            retval.dialogue = GUIDialogueHandler.get(regName);
 
         } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
             HollowCore.LOGGER.warn("Exception while reading AirStrikeMessageToServer: " + e);
@@ -72,7 +72,7 @@ public class StartDialogueToClient {
     }
 
     public void encode(PacketBuffer buf) {
-        String regName = DialogueHandler.getRegName(dialogue);
+        String regName = GUIDialogueHandler.getRegName(dialogue);
 
         if (!messageIsValid || regName == null) return;
 

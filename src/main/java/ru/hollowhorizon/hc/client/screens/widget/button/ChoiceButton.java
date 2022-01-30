@@ -20,9 +20,8 @@ public class ChoiceButton extends Button {
     int height;
     public int choice;
     ITextComponent text;
-    String regName;
 
-    public ChoiceButton(int x, int y, int width, int height, ITextComponent text, IPressable onPress, int choice, String regName) {
+    public ChoiceButton(int x, int y, int width, int height, ITextComponent text, IPressable onPress, int choice) {
         super(x, y, width, height, text, onPress);
         this.width = width;
         this.height = height;
@@ -30,7 +29,10 @@ public class ChoiceButton extends Button {
         this.y = y;
         this.text = text;
         this.choice = choice;
-        this.regName = regName;
+    }
+
+    public ITextComponent getText() {
+        return text;
     }
 
     @Override

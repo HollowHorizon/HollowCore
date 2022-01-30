@@ -9,8 +9,8 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import ru.hollowhorizon.hc.common.dialogues.HollowDialogue;
-import ru.hollowhorizon.hc.common.handlers.DialogueHandler;
+import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
+import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
 import ru.hollowhorizon.hc.common.handlers.InGameDialogueHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.network.messages.ParticleSendToClient;
@@ -37,24 +37,25 @@ public class HollowCommands {
             })));
         }
 
-        for (HollowDialogue dialogue : DialogueHandler.getAll()) {
-            dialogues.then(Commands.literal(Objects.requireNonNull(DialogueHandler.getRegName(dialogue))).executes((command) -> {
-                DialogueHandler.start(command.getSource().getPlayerOrException(), dialogue);
+        for (HollowDialogue dialogue : GUIDialogueHandler.getAll()) {
+            dialogues.then(Commands.literal(Objects.requireNonNull(GUIDialogueHandler.getRegName(dialogue))).executes((command) -> {
+                GUIDialogueHandler.start(command.getSource().getPlayerOrException(), dialogue);
                 return Command.SINGLE_SUCCESS;
             }).then(Commands.argument("player", EntityArgument.players()).executes((command) -> {
                 for (ServerPlayerEntity p : EntityArgument.getPlayers(command, "player")) {
-                    DialogueHandler.start(p, dialogue);
+                    GUIDialogueHandler.start(p, dialogue);
                 }
                 return Command.SINGLE_SUCCESS;
             }).then(Commands.argument("isWindow", BoolArgumentType.bool()).executes((command) -> {
                 for (ServerPlayerEntity p : EntityArgument.getPlayers(command, "player")) {
                     if (BoolArgumentType.getBool(command, "isWindow")) {
-                        DialogueHandler.start(p, dialogue);
+                        GUIDialogueHandler.start(p, dialogue);
                     } else {
-                        new InGameDialogueHandler(dialogue, p);
+                        InGameDialogueHandler.start(p, dialogue);
                     }
                 }
                 return Command.SINGLE_SUCCESS;
+
             }))));
         }
 

@@ -5,6 +5,4 @@ import ru.hollowhorizon.hc.api.recipes.HollowRecipeSerializer;
 import ru.hollowhorizon.hc.api.registy.HollowRegister;
 
 public class ModRecipeSerializers {
-    @HollowRegister
-    public static final HollowRecipeSerializer<HollowRecipe> test_recipe = new HollowRecipeSerializer<>(TestRecipe::new);
-}
+ }

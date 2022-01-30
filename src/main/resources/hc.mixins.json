@@ -12,6 +12,7 @@
     "MixinLocateCommand",
     "MixinRenderItems",
     "MixinRenderTypeBuffers",
+    "MixinResourceLoadProgressGui",
     "MixinServerWorldInfo",
     "SimpleReloadableResourceManagerMixin",
     "StructureBlockMixin"

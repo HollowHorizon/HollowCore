@@ -30,11 +30,11 @@ import ru.hollowhorizon.hc.client.utils.HollowPack;
 import ru.hollowhorizon.hc.client.utils.ResourcePackAdapter;
 import ru.hollowhorizon.hc.common.animations.CutsceneHandler;
 import ru.hollowhorizon.hc.common.animations.CutsceneStartHandler;
-import ru.hollowhorizon.hc.common.dialogues.DialogueBuilder;
-import ru.hollowhorizon.hc.common.dialogues.IHollowDialogue;
+import ru.hollowhorizon.hc.common.story.dialogues.DialogueBuilder;
+import ru.hollowhorizon.hc.common.story.dialogues.IHollowDialogue;
 import ru.hollowhorizon.hc.common.events.action.ActionStorage;
 import ru.hollowhorizon.hc.common.events.action.HollowAction;
-import ru.hollowhorizon.hc.common.handlers.DialogueHandler;
+import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
 import ru.hollowhorizon.hc.common.objects.blocks.IBlockProperties;
 import ru.hollowhorizon.hc.common.objects.items.HollowArmor;
 import ru.hollowhorizon.hc.common.story.HollowStoryHandler;
@@ -165,7 +165,7 @@ public class HollowModProcessor {
 
                                     if (IHollowDialogue.class.isAssignableFrom(containerClass)) {
                                         IHollowDialogue dialogue = (IHollowDialogue) containerClass.getConstructor().newInstance();
-                                        DialogueHandler.register(dialogue.getName(), dialogue.build(new DialogueBuilder()));
+                                        GUIDialogueHandler.register(dialogue.getName(), dialogue.build(DialogueBuilder.create()));
                                     } else if (HollowStoryHandler.class.isAssignableFrom(containerClass))
                                         StoryRegistry.register((Class<? extends HollowStoryHandler>) containerClass);
                                     else if (CutsceneHandler.class.isAssignableFrom(containerClass)) {
@@ -256,6 +256,7 @@ public class HollowModProcessor {
         PARTICLES.register(FMLJavaModLoadingContext.get().getModEventBus());
 
         ResourcePackAdapter.registerResourcePack(HollowPack.getPackInstance());
+
     }
 
     public static Field findField(Class<?> clazz, String fieldName) {

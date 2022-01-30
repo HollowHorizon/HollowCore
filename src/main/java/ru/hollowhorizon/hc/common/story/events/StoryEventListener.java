@@ -41,9 +41,9 @@ public class StoryEventListener {
     }
 
     public static void startLoreNoUpdate(String name, ServerPlayerEntity playerEntity) {
-
+        HollowCore.LOGGER.info("start: "+name);
         if (handler.containsKey(name)) {
-
+            HollowCore.LOGGER.info("true: ");
             try {
                 HollowStoryHandler lore = handler.get(name).getConstructor().newInstance();
 

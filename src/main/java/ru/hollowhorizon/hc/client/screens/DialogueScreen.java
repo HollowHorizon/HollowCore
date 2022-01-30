@@ -19,13 +19,15 @@ import org.lwjgl.opengl.GL14;
 import ru.hollowhorizon.hc.client.screens.widget.VolumeWidget;
 import ru.hollowhorizon.hc.client.screens.widget.button.BaseButton;
 import ru.hollowhorizon.hc.client.screens.widget.button.ChoiceButton;
-import ru.hollowhorizon.hc.client.sounds.HollowSoundPlayer;
+import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
 import ru.hollowhorizon.hc.client.utils.TextHelper;
-import ru.hollowhorizon.hc.common.dialogues.DialogueIterator;
-import ru.hollowhorizon.hc.common.dialogues.HollowDialogue;
-import ru.hollowhorizon.hc.common.handlers.DialogueHandler;
+import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
+import ru.hollowhorizon.hc.common.network.messages.DialogueChoiceToServer;
 import ru.hollowhorizon.hc.common.network.messages.DialogueEndToServer;
+import ru.hollowhorizon.hc.common.story.dialogues.ChoiceTextComponent;
+import ru.hollowhorizon.hc.common.story.dialogues.DialogueIterator;
+import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
 
 import javax.annotation.Nonnull;
 import java.text.SimpleDateFormat;
@@ -33,7 +35,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 
@@ -43,77 +44,132 @@ public class DialogueScreen extends Screen {
     public final VolumeWidget volumeWidget = new VolumeWidget(10, 0, 40, 10);
     private final int guiScale;
     private final String dialogueName;
-    public DialogueIterator dialogues;
+    public DialogueIterator iterator;
     public String text;
     public String nextText;
     public ITextComponent characterName = new StringTextComponent("???");
     public ResourceLocation BG;
+    public int dialogueTicks;
     public int stringTicks = 0;
     public int overlayAnimationTicks = 0;
     public int stringAnimationTicks = 0;
     public boolean isButtonsCreated = false;
     public boolean isLineEnded = true;
     public Entity[] CHARACTERS;
-    private Consumer<Entity>[] actions;
-    private HollowSoundPlayer lastSound;
+    private ChoiceTextComponent buttonChoice;
+    private boolean isFirstTake = true;
+    private Consumer<DialogueScreen> action;
 
     public DialogueScreen(HollowDialogue dialogue) {
+
         super(new SelectorTextComponent("DIALOGUE_SCREEN"));
         this.guiScale = Minecraft.getInstance().options.guiScale;
         Minecraft.getInstance().options.guiScale = 4;
         Minecraft.getInstance().options.hideGui = true;
         Minecraft.getInstance().resizeDisplay();
-        this.dialogueName = DialogueHandler.getRegName(dialogue);
-        this.dialogues = dialogue.iterator();
+        this.dialogueName = GUIDialogueHandler.getRegName(dialogue);
+        this.iterator = dialogue.iterator();
         updateStrings();
     }
 
     public void updateStrings() {
-        if (dialogues.hasNext() && (text == null || stringTicks == text.length())) {
+        if (iterator.hasNext() && (text == null || stringTicks == text.length())) {
             if (!isLineEnded) return;
+
             isButtonsCreated = false;
             isLineEnded = false;
-            HollowDialogue.DialogueComponent<?> component = dialogues.next();
 
-            if (component.getText() != null) {
-                if (text == null)
-                    text = component.getText().getString().replaceAll("%PLAYER%", Minecraft.getInstance().player.getGameProfile().getName());
-                else
-                    nextText = component.getText().getString().replaceAll("%PLAYER%", Minecraft.getInstance().player.getGameProfile().getName());
-            }
+            iterator.processDialogueComponent(
+                    (textComponent) -> {
+                        ITextComponent dialogueText = textComponent.getText();
+                        ITextComponent dialogueCharacterName = textComponent.getCharacterName();
+                        ResourceLocation dialogueBG = textComponent.getBG();
+                        Entity[] entities = textComponent.getCharacters();
+                        Consumer<DialogueScreen> action = textComponent.getAction();
+                        String sound = textComponent.getAudio();
 
-            if (component.getCharacterName() != null) {
-                if (component.getCharacterName().getContents().equals("%PLAYER%") && Minecraft.getInstance().player != null) {
-                    characterName = new StringTextComponent(Minecraft.getInstance().player.getGameProfile().getName());
-                } else if (component.getCharacterName().getContents().equals("%NULL%")) {
-                    characterName = new StringTextComponent("");
-                } else {
-                    characterName = component.getCharacterName().copy().append(": ");
-                }
-            } else {
-                characterName = new StringTextComponent("");
-            }
-            if (component.getBG() != null) {
-                BG = component.getBG();
-            }
-            if (component.getCharacters() != null) {
-                CHARACTERS = component.getCharacters();
-            }
-            if (component.getAudio() != null) {
-                if (lastSound != null) {
-                    //lastSound.stop();
-                }
-                //lastSound = new HollowSoundPlayer(new URL("https://github.com/HollowHorizon/MTRSounds/blob/main/"+component.getAudio()+"?raw=true").openStream());
-                lastSound.play();
+                        //обрабатываем текст
+                        if (dialogueText != null) {
+                            assert Minecraft.getInstance().player != null;
+                            if (text == null) {
+                                text = dialogueText.getString().replaceAll("%PLAYER%", Minecraft.getInstance().player.getGameProfile().getName());
+                            } else
+                                nextText = dialogueText.getString().replaceAll("%PLAYER%", Minecraft.getInstance().player.getGameProfile().getName());
+                        }
 
-            }
-            if (component.getAction() != null) {
-                actions = (Consumer<Entity>[]) component.getAction();
-            }
-        } else if (isLineEnded && dialogues.getChoices() == null) {
+                        //обрабатываем имя персонажа
+                        if (dialogueCharacterName != null) {
+                            if (dialogueCharacterName.getString().equals("%PLAYER%") && Minecraft.getInstance().player != null) {
+                                characterName = new StringTextComponent(Minecraft.getInstance().player.getGameProfile().getName());
+                            } else if (dialogueCharacterName.getString().equals("%NULL%")) {
+                                characterName = new StringTextComponent("");
+                            } else {
+                                characterName = dialogueCharacterName.copy().append(": ");
+                            }
+                        } else {
+                            characterName = new StringTextComponent("");
+                        }
+
+                        //обрабатываем задний фон
+                        if (dialogueBG != null) {
+                            BG = dialogueBG;
+                        }
+
+                        //обрабатываем мобов
+                        if (entities != null) {
+                            CHARACTERS = entities;
+                        }
+
+                        //обрабатываем действия
+                        if (action != null) {
+                            this.action = action;
+                        }
+
+                        //обрабатываем аудио
+                        if (sound != null) {
+                            HollowJavaUtils.nothing();
+                            //TODO: ЗВУКИ ДОБАВЬ!
+                        }
+
+                        dialogueTicks = textComponent.getAutoSkip();
+                    },
+                    (choiceComponent) -> {
+                        if (isFirstTake) {
+                            isFirstTake = false;
+                        } else {
+                            if (buttonChoice != null) {
+                                iterator.makeChoice(choiceComponent, buttonChoice);
+                                NetworkHandler.sendMessageToServer(new DialogueChoiceToServer(dialogueName + "_" + buttonChoice.getRegName()));
+                                buttonChoice = null;
+                                updateStrings();
+                            }
+                        }
+                    },
+                    (effectComponent) -> {
+                    }
+            );
+
+
+        } else if (isLineEnded && !iterator.hasNext()) {
             onClose();
         } else if (stringTicks != text.length()) {
             stringTicks = text.length();
+        }
+    }
+
+    @Override
+    public void tick() {
+        if (dialogueTicks == -2) {
+            if (stringTicks == text.length()) {
+                updateStrings();
+            }
+        } else if (dialogueTicks > -1) {
+            if (dialogueTicks > 0) dialogueTicks--;
+            else {
+                if (stringTicks == text.length()) {
+                    updateStrings();
+                }
+            }
         }
     }
 
@@ -123,18 +179,19 @@ public class DialogueScreen extends Screen {
         this.children.clear();
         super.init();
 
-        if (!dialogues.hasNext() && dialogues.getChoices() != null) {
-
-            for (int i = 0; i < dialogues.getChoices().regName.length; i++) {
-                String regName = dialogues.getChoices().regName[i];
-
-                this.addButton(new ChoiceButton(this.width / 8, 20 + i * 25, this.width - this.width / 4, 20, dialogues.getChoices().text[i], (a) -> {
-                    if (!dialogues.completeChoice(regName)) onClose();
+        iterator.prepareChoices((choiceComponent) -> {
+            ITextComponent[] texts = choiceComponent.getTexts();
+            int size = texts.length;
+            for (int i = 0; i < size; i++) {
+                ITextComponent label = texts[i];
+                this.addButton(new ChoiceButton(this.width / 8, 20 + i * 25, this.width - this.width / 4, 20, label, (button) -> {
                     buttons.clear();
+
+                    buttonChoice = (ChoiceTextComponent) button.getMessage();
                     updateStrings();
-                }, 0, regName));
+                }, 0));
             }
-        }
+        });
 
         this.addButton(new BaseButton(0, 0, 10, 10, "", (button) -> Minecraft.getInstance().setScreen(new DialogueOptionsScreen(this)), OPTIONS));
 
@@ -205,9 +262,8 @@ public class DialogueScreen extends Screen {
 
                 int xDistance = this.width / (CHARACTERS.length + 1);
 
-                if (actions != null && actions[i] != null) {
-                    actions[i].accept(entity);
-                    actions[i] = null;
+                if (action != null) {
+                    action.accept(this);
                 }
 
                 InventoryScreen.renderEntityInInventory(xDistance * (i + 1), this.height, (int) adaptiveScale, (float) xDistance * (i + 1) - rotationX, this.height / 2F - rotationY, (LivingEntity) entity);
@@ -215,6 +271,9 @@ public class DialogueScreen extends Screen {
         }
     }
 
+    public Entity[] getCharacters() {
+        return CHARACTERS;
+    }
 
     public void drawBG(MatrixStack matrixStack) {
         if (BG != null) {
@@ -280,7 +339,7 @@ public class DialogueScreen extends Screen {
     }
 
     public void createButtons() {
-        if (dialogues.getChoices() != null && !dialogues.hasNext()) {
+        if (iterator.hasNext() && iterator.isChoiceNow()) {
             isButtonsCreated = true;
             init();
         }

@@ -102,6 +102,11 @@ public class HollowJavaUtils {
 
     }
 
+    //anti-warning system :D
+    public static void nothing() {
+
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> T fakeInstance() {
         return (T) new Object();
