@@ -214,6 +214,21 @@ public class MatrixUtils {
         return dest;
     }
 
+    public static void scale(Vector3f vec, Matrix4f src) {
+        src.m00 = src.m00 * vec.x();
+        src.m01 = src.m01 * vec.x();
+        src.m02 = src.m02 * vec.x();
+        src.m03 = src.m03 * vec.x();
+        src.m10 = src.m10 * vec.y();
+        src.m11 = src.m11 * vec.y();
+        src.m12 = src.m12 * vec.y();
+        src.m13 = src.m13 * vec.y();
+        src.m20 = src.m20 * vec.z();
+        src.m21 = src.m21 * vec.z();
+        src.m22 = src.m22 * vec.z();
+        src.m23 = src.m23 * vec.z();
+    }
+
     public static Vector4f transform(Matrix4f left, Vector4f right, Vector4f dest) {
         if (dest == null) {
             dest = new Vector4f();

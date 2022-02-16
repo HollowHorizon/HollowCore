@@ -23,7 +23,7 @@ import java.util.List;
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 
 public class EventListScreen extends Screen {
-    private List<String> list = new ArrayList<>();
+    private final List<String> list = new ArrayList<>();
     private final ResourceLocation EVENT_LIST_TOP = new ResourceLocation(MODID, "textures/gui/event_list/event_list_top.png");
     private final ResourceLocation EVENT_STRING = new ResourceLocation(MODID, "textures/gui/event_list/event_list_string.png");
     private final int lastGuiScale = Minecraft.getInstance().options.guiScale;

@@ -21,6 +21,7 @@ import ru.hollowhorizon.hc.client.hollow_config.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.render.mmd.MMDAnimManager;
 import ru.hollowhorizon.hc.client.render.mmd.MMDModelManager;
 import ru.hollowhorizon.hc.client.render.mmd.MMDTextureManager;
+import ru.hollowhorizon.hc.client.render.shader.impl.ColladaShader;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.common.commands.HollowCommands;
 import ru.hollowhorizon.hc.common.handlers.DelayHandler;
@@ -33,6 +34,8 @@ import ru.hollowhorizon.hc.proxy.CommonProxy;
 import ru.hollowhorizon.hc.proxy.ServerProxy;
 import ru.hollowhorizon.hc.common.registry.*;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
+
+import java.io.IOException;
 
 @Mod(HollowCore.MODID)
 public class HollowCore implements HollowMod {
@@ -96,6 +99,7 @@ public class HollowCore implements HollowMod {
     //『Post-Init』
     private void loadEnd(final FMLLoadCompleteEvent event) {
         StoryEventListener.init();
+
     }
 
     //『server』

@@ -2,7 +2,6 @@ package ru.hollowhorizon.hc.client.render.mmd;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import ru.hollowhorizon.hc.client.render.models.IHollowModel;
 
 import java.io.File;
 import java.util.*;

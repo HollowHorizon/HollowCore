@@ -45,6 +45,20 @@ public class ModRenderTypes extends RenderType {
         return create(MODID + ":animated_model2", DefaultVertexFormats.NEW_ENTITY, GL11.GL_TRIANGLES, 256, true, false, state);
     }
 
+    public static RenderType getFBXModel(ResourceLocation locationIn, int mode) {
+        RenderType.State state = RenderType.State.builder()
+                .setTextureState(new RenderState.TextureState(locationIn, false, false))
+                .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                .setDiffuseLightingState(RenderState.DIFFUSE_LIGHTING)
+                .setAlphaState(DEFAULT_ALPHA)
+                .setCullState(RenderState.NO_CULL)
+                .setLightmapState(RenderState.LIGHTMAP)
+                .setOverlayState(RenderState.OVERLAY)
+                .createCompositeState(true);
+
+        return create(MODID + ":animated_model2", DefaultVertexFormats.NEW_ENTITY, mode, 256, true, false, state);
+    }
+
     public static RenderType getItemEntityTranslucentCull(ResourceLocation locationIn) {
         RenderType.State rendertype$state = RenderType.State.builder()
                 .setTextureState(new RenderState.TextureState(locationIn, false, false))

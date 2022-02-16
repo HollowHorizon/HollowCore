@@ -9,7 +9,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.World;
 import ru.hollowhorizon.hc.api.utils.IAnimatedEntity;
 import ru.hollowhorizon.hc.client.render.entities.HollowAnimationManager;
-import ru.hollowhorizon.hc.client.render.mmd.MMDModelManager;
 import ru.hollowhorizon.hc.common.registry.ModEntities;
 
 public class TestEntity extends MonsterEntity implements IAnimatedEntity {

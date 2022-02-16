@@ -34,9 +34,7 @@ public class HollowEntityManager {
 
     public static void registerHollowMobs() {
         for(Map.Entry<EntityType<?>, String> entry : mobData.entrySet()) {
-            String mobName = HollowJavaUtils.unpackZipFromJar(new ResourceLocation(entry.getValue()));
-
-            RenderingRegistry.registerEntityRenderingHandler(entry.getKey(), (manager) -> new HollowMobRenderer<>(manager, mobName));
+            RenderingRegistry.registerEntityRenderingHandler(entry.getKey(), (manager -> new HollowModelRenderer<>(manager, new ResourceLocation(entry.getValue()))));
         }
     }
 

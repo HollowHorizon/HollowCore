@@ -13,6 +13,8 @@
   "hollowcore.gui.yes": "Enabled",
   "hollowcore.gui.no": "Disabled",
 
+  "block.hc.save_obelisk": "Обелиск Сохранения",
+
   "hollowcore.gui.save_handler": "Сохранение",
   "hollowcore.gui.save_handler.save": "Сохранить",
   "hollowcore.gui.save_handler.load": "Загрузить",

@@ -2,7 +2,6 @@ package ru.hollowhorizon.hc.client.render.mmd;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
-import ru.hollowhorizon.hc.client.render.models.IHollowModel;
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
 import ru.hollowhorizon.hc.dll.HollowRenderManager;
 

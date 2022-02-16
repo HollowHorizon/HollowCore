@@ -10,7 +10,6 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL15;
 import ru.hollowhorizon.hc.HollowCore;
-import ru.hollowhorizon.hc.client.render.models.IHollowModel;
 import ru.hollowhorizon.hc.dll.HollowRenderManager;
 
 import java.nio.ByteBuffer;

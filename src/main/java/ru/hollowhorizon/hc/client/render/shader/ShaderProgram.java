@@ -1,157 +1,141 @@
 package ru.hollowhorizon.hc.client.render.shader;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.resources.IReloadableResourceManager;
-import net.minecraft.resources.IResourceManager;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.resource.IResourceType;
-import net.minecraftforge.resource.ISelectiveResourceReloadListener;
+import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL21;
 import ru.hollowhorizon.hc.HollowCore;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
-/**
- * A ShaderProgram.
- * You probably want {@link ShaderProgramBuilder} to construct a ShaderProgram.
- * it should be noted, that a ShaderProgram is a {@link ISelectiveResourceReloadListener},
- * its recommended that you ensure this is registered to {@link IReloadableResourceManager}
- * to ensure {@link ShaderObject}s are re loaded properly when Resources are relaoded.
- * <p>
- * Created by covers1624 on 24/5/20.
- */
-public class ShaderProgram implements ISelectiveResourceReloadListener {
+@OnlyIn(Dist.CLIENT)
+public class ShaderProgram {
+    private int programID = -1;
 
-    private final List<ShaderObject> shaders;
-    private final Consumer<UniformCache> cacheCallback;
-    private final ShaderUniformCache uniformCache;
-    private int programId = -1;
-    private boolean bound;
+    private final ResourceLocation vertexFile;
+    private final ResourceLocation fragmentFile;
+    private final List<String> variableNames;
 
-    public ShaderProgram(Collection<ShaderObject> shaders) {
-        this(shaders, e -> {
-        });
+    public ShaderProgram(final ResourceLocation vertexFile, final ResourceLocation fragmentFile, final String... variables) throws IOException {
+        this(vertexFile, fragmentFile, Arrays.asList(variables));
     }
 
-    public ShaderProgram(Collection<ShaderObject> shaders, Consumer<UniformCache> cacheCallback) {
-        this.shaders = new ArrayList<>(shaders);
-        this.cacheCallback = cacheCallback;
-        this.uniformCache = new ShaderUniformCache(this);
+    public ShaderProgram(final ResourceLocation vertexFile, final ResourceLocation fragmentFile, final List<String> variableNames) throws IOException {
+        this.vertexFile = vertexFile;
+        this.fragmentFile = fragmentFile;
+        this.variableNames = variableNames;
+
+        ShaderManager.INSTANCE.registerShader(this);
     }
 
-    /**
-     * Gets all {@link ShaderObject}s that make up this {@link ShaderProgram}.
-     *
-     * @return The {@link ShaderObject}s.
-     */
-    public List<ShaderObject> getShaders() {
-        return Collections.unmodifiableList(shaders);
-    }
+    ShaderDeletionHandler init() throws IOException {
+        if (programID != -1)
+            throw new IllegalStateException("Failed to initialize the shader. It is already initialized.");
 
-    /**
-     * Gets the GL {@link ShaderProgram} id for this shader.
-     * Might not be initialized until {@link #use()} is called once.
-     *
-     * @return The id, -1 if not initialized.
-     */
-    public int getProgramId() {
-        return programId;
-    }
+        programID = GL21.glCreateProgram();
 
-    /**
-     * Allocates a new {@link UniformCache} for this {@link ShaderProgram},
-     * Must be returned with {@link #popCache} to have uniform changes applied.
-     *
-     * @return The {@link UniformCache}.
-     */
-    public UniformCache pushCache() {
-        UniformCache cache = uniformCache.pushCache();
-        cacheCallback.accept(cache);
-        return cache;
-    }
-
-    public void use() {
-        if (bound) {
-            //throw new IllegalStateException("Already bound.");
-        }
-        if (programId == -1 || shaders.stream().anyMatch(ShaderObject::isDirty)) {
-            shaders.forEach(ShaderObject::alloc);
-            if (programId == -1) {
-                programId = GL20.glCreateProgram();
-                if (programId == 0) {
-                    throw new IllegalStateException("Allocation of ShaderProgram has failed.");
-                }
-                shaders.forEach(shader -> GL20.glAttachShader(programId, shader.getShaderID()));
+        final int vertexShaderID;
+        if (vertexFile != null)
+        {
+            vertexShaderID = loadShader(vertexFile, GL20.GL_VERTEX_SHADER);
+            if (vertexShaderID == 0)
+            {
+                throw new IllegalStateException("Failed to initialize the shader. The vertex shader did not compile.");
             }
-            GL20.glLinkProgram(programId);
-            if (GL20.glGetProgrami(programId, GL20.GL_LINK_STATUS) == GL11.GL_FALSE) {
-                throw new RuntimeException("ShaderProgram linkage failure. \n" + GL20.glGetProgramInfoLog(programId));
+
+            GL20.glAttachShader(programID, vertexShaderID);
+        }
+        else
+        {
+            vertexShaderID = -1;
+        }
+
+        final int fragmentShaderID;
+        if (fragmentFile != null)
+        {
+            fragmentShaderID = loadShader(fragmentFile, GL20.GL_FRAGMENT_SHADER);
+            if (fragmentShaderID == 0)
+            {
+                throw new IllegalStateException("Failed to initialize the shader. The fragment shader did not compile.");
             }
-            shaders.forEach(shader -> shader.onLink(programId));
-            uniformCache.onLink();
+
+            GL20.glAttachShader(programID, fragmentShaderID);
         }
-        GL20.glUseProgram(programId);
-        bound = true;
+        else
+        {
+            fragmentShaderID = -1;
+        }
+
+        bindAttributes(variableNames);
+
+        GL20.glLinkProgram(programID);
+
+        return new ShaderDeletionHandler(vertexShaderID, fragmentShaderID, programID);
     }
 
-    public void use(IUniforms uniforms, IUsable render) {
-        UniformCache cache = uniforms.onUse(this.pushCache());
-
-        this.use();
-
-        RenderSystem.depthFunc(519);
-
-        render.onUse();
-
-        RenderSystem.depthFunc(515);
-
-        this.popCache(cache);
-
-        this.release();
+    protected void storeAllUniformLocations(final Uniform<?>... uniforms){
+        for(final Uniform<?> uniform : uniforms){
+            uniform.storeUniformLocation(programID);
+        }
+        GL20.glValidateProgram(programID);
     }
 
-    public void popCache(UniformCache cache) {
-        if (!bound) {
-            throw new IllegalStateException("Not bound");
-        }
-        uniformCache.popApply((ShaderUniformCache) cache);
+    public void start() {
+        GL20.glUseProgram(programID);
     }
 
-    /**
-     * Releases this shader.
-     */
-    public void release() {
-        if (!bound) {
-            return;
-        }
-        bound = false;
+    public void stop() {
         GL20.glUseProgram(0);
     }
 
-    @Override
-    public void onResourceManagerReload(IResourceManager resourceManager, Predicate<IResourceType> resourcePredicate) {
-        for (ShaderObject shader : shaders) {
-            if (shader instanceof ISelectiveResourceReloadListener) {
-                ((ISelectiveResourceReloadListener) shader).onResourceManagerReload(resourceManager, resourcePredicate);
-            }
+    public int getProgramID()
+    {
+        return programID;
+    }
+
+    private void bindAttributes(final List<String> inVariables){
+        for (int i = 0; i < inVariables.size(); i++) {
+            GL20.glBindAttribLocation(programID, i, inVariables.get(i));
         }
     }
 
-    public interface IUniforms {
-        UniformCache onUse(UniformCache cache);
+    private int loadShader(final ResourceLocation file, final int type) throws IOException
+    {
+        final String shaderSource = readFileAsString(file);
+        final int shaderID = GL20.glCreateShader(type);
+        if (shaderID == 0)
+            return shaderID;
+
+        GL20.glShaderSource(shaderID, shaderSource);
+        GL20.glCompileShader(shaderID);
+        if (GL20.glGetShaderi(shaderID, GL20.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
+            HollowCore.LOGGER.error(GL20.glGetShaderInfoLog(shaderID, 500));
+            HollowCore.LOGGER.error("Could not compile shader "+ file);
+            throw new IllegalStateException("Could not load shader.");
+        }
+        return shaderID;
     }
 
-    public interface IUsable {
-        void onUse();
+    private static String readFileAsString(final ResourceLocation filename) throws IOException
+    {
+        try (InputStream in = Minecraft.getInstance().getResourceManager().getResource(filename).getInputStream()) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+                return reader.lines().collect(Collectors.joining("\n"));
+            }
+        }
+        catch (FileNotFoundException ex)
+        {
+            HollowCore.LOGGER.error("Failed to find shader file: " + filename, ex);
+            return "";
+        }
     }
 }

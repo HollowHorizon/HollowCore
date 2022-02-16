@@ -1,20 +1,29 @@
 package ru.hollowhorizon.hc.client.render.shader;
 
-public class Uniform {
+import org.lwjgl.opengl.GL20;
+import ru.hollowhorizon.hc.HollowCore;
+
+public abstract class Uniform<T> {
+
+    private static final int NOT_FOUND = -1;
 
     private final String name;
-    private final UniformType type;
+    private int location;
 
-    public Uniform(String name, UniformType type) {
+    public Uniform(final String name){
         this.name = name;
-        this.type = type;
     }
 
-    public String getName() {
-        return name;
+    public void storeUniformLocation(final int programID){
+        location = GL20.glGetUniformLocation(programID, name);
+        if(location == NOT_FOUND){
+            HollowCore.LOGGER.error("No uniform variable called " + name + " found!");
+        }
     }
 
-    public UniformType getType() {
-        return type;
+    public int getLocation(){
+        return location;
     }
+
+    public abstract void load(final T toLoad);
 }

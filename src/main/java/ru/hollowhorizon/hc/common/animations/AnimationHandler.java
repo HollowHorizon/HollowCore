@@ -95,7 +95,11 @@ public class AnimationHandler<T extends MobEntity> {
 
                 float rad = 38.0F + 4.0F * MathHelper.cos(this.angleRadians / 4.0F);
 
-                Vector3d vec = new Vector3d(rad * MathHelper.cos(this.angleRadians), 4.0F * MathHelper.cos(this.angleRadians * 2.0F), rad * MathHelper.sin(this.angleRadians));
+                Vector3d vec = new Vector3d(
+                        rad * MathHelper.cos(this.angleRadians),
+                        4.0F * MathHelper.cos(this.angleRadians * 2.0F),
+                        rad * MathHelper.sin(this.angleRadians));
+
                 float dragonYaw = (float) Math.toDegrees(MathHelper.atan2(vec.z, vec.x));
                 float dragonPitch = 0.0F;
                 Vector3d dragonPos = new Vector3d((double) targetPos.getX() + vec.x, (double) targetPos.getY() + vec.y + 47.0D, (double) targetPos.getZ() + vec.z);

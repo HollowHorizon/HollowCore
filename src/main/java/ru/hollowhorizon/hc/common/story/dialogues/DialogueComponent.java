@@ -1,24 +1,26 @@
 package ru.hollowhorizon.hc.common.story.dialogues;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import ru.hollowhorizon.hc.client.screens.DialogueScreen;
+import ru.hollowhorizon.hc.common.events.OnChoiceComplete;
 
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class DialogueComponent {
-    public static final IDialogueComponent<DialogueTextComponent<?>> TEXT = DialogueTextComponent::new;
+    public static final IDialogueComponent<DialogueTextComponent> TEXT = DialogueTextComponent::new;
     public static final IDialogueComponent<DialogueChoiceComponent> CHOICE = DialogueChoiceComponent::new;
     public static final IDialogueComponent<DialogueEffectComponent> EFFECT = DialogueEffectComponent::new;
 
-    public static class DialogueTextComponent<T extends Entity> implements IDialoguePart {
+    public static class DialogueTextComponent implements IDialoguePart {
         private ITextComponent text;
         private ITextComponent characterName;
-        private Supplier<T>[] characters;
+        private Supplier<LivingEntity>[] characters;
         private ResourceLocation BG;
         private String audio;
         private Consumer<DialogueScreen> action;
@@ -31,12 +33,12 @@ public class DialogueComponent {
             return text;
         }
 
-        public DialogueTextComponent<T> setText(ITextComponent text) {
+        public DialogueTextComponent setText(ITextComponent text) {
             this.text = text;
             return this;
         }
 
-        public DialogueTextComponent<T> setText(String text) {
+        public DialogueTextComponent setText(String text) {
             this.text = new TranslationTextComponent(text);
             return this;
         }
@@ -45,12 +47,12 @@ public class DialogueComponent {
             return characterName;
         }
 
-        public DialogueTextComponent<T> setCharacterName(TranslationTextComponent name) {
+        public DialogueTextComponent setCharacterName(TranslationTextComponent name) {
             this.characterName = name;
             return this;
         }
 
-        public DialogueTextComponent<T> setCharacterName(String name) {
+        public DialogueTextComponent setCharacterName(String name) {
             this.characterName = new TranslationTextComponent(name);
             return this;
         }
@@ -58,7 +60,7 @@ public class DialogueComponent {
         public Entity[] getCharacters() {
             List<Entity> list = new ArrayList<>();
             if(characters!=null) {
-                for (Supplier<T> character : characters) {
+                for (Supplier<LivingEntity> character : characters) {
                     list.add(character.get());
                 }
             }
@@ -66,7 +68,7 @@ public class DialogueComponent {
         }
 
         @SafeVarargs
-        public final DialogueTextComponent<T> setCharacterEntity(Supplier<T>... images) {
+        public final DialogueTextComponent setCharacterEntities(Supplier<LivingEntity>... images) {
 
             this.characters = images;
             return this;
@@ -76,7 +78,7 @@ public class DialogueComponent {
             return BG;
         }
 
-        public DialogueTextComponent<T> setBG(ResourceLocation BG) {
+        public DialogueTextComponent setBG(ResourceLocation BG) {
             this.BG = BG;
             return this;
         }
@@ -85,7 +87,7 @@ public class DialogueComponent {
             return action;
         }
 
-        public final DialogueTextComponent<T> setAction(Consumer<DialogueScreen> action) {
+        public final DialogueTextComponent setAction(Consumer<DialogueScreen> action) {
             this.action = action;
             return this;
         }
@@ -94,7 +96,7 @@ public class DialogueComponent {
             return audio;
         }
 
-        public DialogueTextComponent<T> setAudio(String audio) {
+        public DialogueTextComponent setAudio(String audio) {
             this.audio = audio;
             return this;
         }
@@ -139,7 +141,7 @@ public class DialogueComponent {
             return choice;
         }
 
-        public HollowDialogue getChoiceByName(ChoiceTextComponent component) {
+        public HollowDialogue getDialogueByChoice(ChoiceTextComponent component) {
             return choice.get(component);
         }
     }

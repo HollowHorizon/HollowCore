@@ -11,13 +11,16 @@ import javax.tools.ToolProvider;
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class HollowJavaUtils {
+
     public static <T> T compileAndGet(String path, String file, String classPackage, Class<T> clazz) {
         try {
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -33,10 +36,6 @@ public class HollowJavaUtils {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public static void main(String[] args) {
-        System.out.println(FilenameUtils.getName(new ResourceLocation("hc:models/mmd/kirito.zip").getPath()));
     }
 
     public static String unpackZipFromJar(ResourceLocation location) {
@@ -102,6 +101,10 @@ public class HollowJavaUtils {
 
     }
 
+    public static InputStream getResource(ResourceLocation location) {
+        return Thread.currentThread().getContextClassLoader().getResourceAsStream("assets/"+location.getNamespace()+"/"+location.getPath());
+    }
+
     //anti-warning system :D
     public static void nothing() {
 
@@ -110,5 +113,19 @@ public class HollowJavaUtils {
     @SuppressWarnings("unchecked")
     public static <T> T fakeInstance() {
         return (T) new Object();
+    }
+
+    public static float[] listToArray(List<Float> list) {
+        int size = list != null ? list.size() : 0;
+        float[] floatArr = new float[size];
+        for (int i = 0; i < size; i++) {
+            floatArr[i] = list.get(i);
+        }
+        return floatArr;
+    }
+
+    public static int[] listIntToArray(List<Integer> list) {
+        int[] result = list.stream().mapToInt((Integer v) -> v).toArray();
+        return result;
     }
 }

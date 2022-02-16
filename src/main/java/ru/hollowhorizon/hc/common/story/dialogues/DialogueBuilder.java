@@ -23,7 +23,7 @@ public class DialogueBuilder {
 
     public DialogueBuilder add(IDialoguePart part, boolean autoSkip, int time) {
         if (part instanceof DialogueComponent.DialogueTextComponent) {
-            ((DialogueComponent.DialogueTextComponent<?>) part).setAutoSkip(autoSkip ? time : -1);
+            ((DialogueComponent.DialogueTextComponent) part).setAutoSkip(autoSkip ? time : -1);
         }
         dialogues.add(part);
         return this;

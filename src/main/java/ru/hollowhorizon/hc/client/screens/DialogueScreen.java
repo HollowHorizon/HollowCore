@@ -16,6 +16,8 @@ import net.minecraft.util.text.SelectorTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
+import ru.hollowhorizon.hc.HollowCore;
+import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.screens.widget.VolumeWidget;
 import ru.hollowhorizon.hc.client.screens.widget.button.BaseButton;
 import ru.hollowhorizon.hc.client.screens.widget.button.ChoiceButton;
@@ -56,13 +58,10 @@ public class DialogueScreen extends Screen {
     public boolean isButtonsCreated = false;
     public boolean isLineEnded = true;
     public Entity[] CHARACTERS;
-    private ChoiceTextComponent buttonChoice;
-    private boolean isFirstTake = true;
     private Consumer<DialogueScreen> action;
 
     public DialogueScreen(HollowDialogue dialogue) {
-
-        super(new SelectorTextComponent("DIALOGUE_SCREEN"));
+        super(new StringTextComponent("DIALOGUE_SCREEN"));
         this.guiScale = Minecraft.getInstance().options.guiScale;
         Minecraft.getInstance().options.guiScale = 4;
         Minecraft.getInstance().options.hideGui = true;
@@ -73,13 +72,17 @@ public class DialogueScreen extends Screen {
     }
 
     public void updateStrings() {
-        if (iterator.hasNext() && (text == null || stringTicks == text.length())) {
+        if ((text == null || stringTicks == text.length()) && !iterator.isChoiceNow()) {
             if (!isLineEnded) return;
+            else if (!iterator.hasNext()) {
+                onClose();
+                return;
+            }
 
             isButtonsCreated = false;
             isLineEnded = false;
 
-            iterator.processDialogueComponent(
+            iterator.processDialogueComponent (
                     (textComponent) -> {
                         ITextComponent dialogueText = textComponent.getText();
                         ITextComponent dialogueCharacterName = textComponent.getCharacterName();
@@ -134,24 +137,13 @@ public class DialogueScreen extends Screen {
                         dialogueTicks = textComponent.getAutoSkip();
                     },
                     (choiceComponent) -> {
-                        if (isFirstTake) {
-                            isFirstTake = false;
-                        } else {
-                            if (buttonChoice != null) {
-                                iterator.makeChoice(choiceComponent, buttonChoice);
-                                NetworkHandler.sendMessageToServer(new DialogueChoiceToServer(dialogueName + "_" + buttonChoice.getRegName()));
-                                buttonChoice = null;
-                                updateStrings();
-                            }
-                        }
+
                     },
                     (effectComponent) -> {
                     }
             );
 
 
-        } else if (isLineEnded && !iterator.hasNext()) {
-            onClose();
         } else if (stringTicks != text.length()) {
             stringTicks = text.length();
         }
@@ -185,9 +177,14 @@ public class DialogueScreen extends Screen {
             for (int i = 0; i < size; i++) {
                 ITextComponent label = texts[i];
                 this.addButton(new ChoiceButton(this.width / 8, 20 + i * 25, this.width - this.width / 4, 20, label, (button) -> {
-                    buttons.clear();
+                    this.buttons.clear();
+                    this.children.clear();
 
-                    buttonChoice = (ChoiceTextComponent) button.getMessage();
+                    isLineEnded = false;
+                    isButtonsCreated = false;
+
+                    iterator.makeChoice(choiceComponent, (ChoiceTextComponent) button.getMessage(), dialogueName);
+
                     updateStrings();
                 }, 0));
             }

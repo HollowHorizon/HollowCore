@@ -1,5 +1,8 @@
 package ru.hollowhorizon.hc.common.story.dialogues;
 
+import ru.hollowhorizon.hc.common.network.NetworkHandler;
+import ru.hollowhorizon.hc.common.network.messages.DialogueChoiceToServer;
+
 import java.util.function.Consumer;
 
 public class DialogueIterator {
@@ -22,18 +25,19 @@ public class DialogueIterator {
     }
 
     public boolean isChoiceNow() {
+        if (dialogue.getAllPhrases().size() == 0) return false;
         Object object = dialogue.getAllPhrases().get(0);
         return object instanceof DialogueComponent.DialogueChoiceComponent;
     }
 
     public void processDialogueComponent(
-            Consumer<DialogueComponent.DialogueTextComponent<?>> ifText,
+            Consumer<DialogueComponent.DialogueTextComponent> ifText,
             Consumer<DialogueComponent.DialogueChoiceComponent> ifChoice,
             Consumer<DialogueComponent.DialogueEffectComponent> ifEffect
     ) {
         Object component = next();
         if (component instanceof DialogueComponent.DialogueTextComponent) {
-            ifText.accept((DialogueComponent.DialogueTextComponent<?>) component);
+            ifText.accept((DialogueComponent.DialogueTextComponent) component);
         } else if (component instanceof DialogueComponent.DialogueChoiceComponent) {
             ifChoice.accept((DialogueComponent.DialogueChoiceComponent) component);
         } else if (component instanceof DialogueComponent.DialogueEffectComponent) {
@@ -44,19 +48,21 @@ public class DialogueIterator {
     }
 
     private IDialoguePart next() {
-        if (hasNext()) return dialogue.getAllPhrases().get(0);
+        if (dialogue.getAllPhrases().size() > 0) return dialogue.getAllPhrases().get(0);
         else {
             HollowDialogue parent = dialogue.getParent();
             if (parent != null) {
-                this.dialogue = parent;
+                this.dialogue = parent.copy();
+                removeCurrent();
                 return next();
             } else {
                 return null;
             }
         }
     }
+
     private IDialoguePart nextNoUpdate() {
-        if (hasNext()) return dialogue.getAllPhrases().get(0);
+        if (dialogue.getAllPhrases().size() > 0) return dialogue.getAllPhrases().get(0);
         return null;
     }
 
@@ -64,7 +70,10 @@ public class DialogueIterator {
         dialogue.getAllPhrases().remove(0);
     }
 
-    public void makeChoice(DialogueComponent.DialogueChoiceComponent choiceComponent, ChoiceTextComponent buttonChoice) {
-        this.dialogue = choiceComponent.getChoiceByName(buttonChoice);
+    public void makeChoice(DialogueComponent.DialogueChoiceComponent component, ChoiceTextComponent buttonChoice, String dialogueName) {
+        if (buttonChoice != null) {
+            this.dialogue = component.getDialogueByChoice(buttonChoice).copy();
+            NetworkHandler.sendMessageToServer(new DialogueChoiceToServer(dialogueName + "_" + buttonChoice.getRegName()));
+        }
     }
 }

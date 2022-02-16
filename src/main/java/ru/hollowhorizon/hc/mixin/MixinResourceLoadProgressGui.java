@@ -6,7 +6,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ResourceLoadProgressGui;
 import net.minecraft.util.ColorHelper;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
 import org.spongepowered.asm.mixin.Final;
@@ -15,15 +14,13 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import ru.hollowhorizon.hc.client.textures.VideoTexture;
+import ru.hollowhorizon.hc.HollowCore;
 
 import static net.minecraft.client.gui.AbstractGui.blit;
 import static net.minecraft.client.gui.AbstractGui.fill;
-import static ru.hollowhorizon.hc.HollowCore.MODID;
 
 @Mixin(ResourceLoadProgressGui.class)
 public class MixinResourceLoadProgressGui {
-    private static VideoTexture texture;
     private static int maxCounter;
     @Shadow
     @Final
@@ -39,9 +36,8 @@ public class MixinResourceLoadProgressGui {
 
     @Inject(method = "registerTextures(Lnet/minecraft/client/Minecraft;)V", at = @At("HEAD"), cancellable = true)
     private static void init(Minecraft mc, CallbackInfo ci) {
+        HollowCore.LOGGER.info("gui init");
 
-        texture = new VideoTexture(new ResourceLocation(MODID, "videos/logo_test.mp4"), VideoTexture.VideoOptions.END_AT_LAST_FRAME);
-        maxCounter = texture.getLength();
 
         ci.cancel();
     }
@@ -93,13 +89,15 @@ public class MixinResourceLoadProgressGui {
 
         if (counter < maxCounter) {
 
-            texture.bind();
+            //текстуру тут
 
             RenderSystem.enableBlend();
             RenderSystem.blendEquation(32774);
             RenderSystem.blendFunc(770, 1);
             RenderSystem.color4f(1.0F, 1.0F, 1.0F, s); //setShaderColor
-            blit(matrices, 0, 0, 0, 0, 0, i, j, j, i);
+
+            blit(matrices, i - i / 6, j - j / 6, 0, 0, 0, i / 6, j / 6, i / 6, j / 6);
+
             RenderSystem.defaultBlendFunc();
             RenderSystem.disableBlend();
             counter += 1;

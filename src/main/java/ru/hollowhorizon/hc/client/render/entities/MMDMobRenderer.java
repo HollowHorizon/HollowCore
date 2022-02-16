@@ -13,11 +13,11 @@ import ru.hollowhorizon.hc.api.utils.IAnimatedEntity;
 import ru.hollowhorizon.hc.client.render.mmd.MMDAnimManager;
 import ru.hollowhorizon.hc.client.render.mmd.MMDModelManager;
 
-public class HollowMobRenderer<T extends Entity> extends EntityRenderer<T> {
+public class MMDMobRenderer<T extends Entity> extends EntityRenderer<T> {
     private final String modelName;
     private String currentAnim = "";
 
-    public HollowMobRenderer(EntityRendererManager manager, String model) {
+    public MMDMobRenderer(EntityRendererManager manager, String model) {
         super(manager);
         this.modelName = model;
     }
