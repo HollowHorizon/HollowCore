@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.client.screens;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.StringTextComponent;
@@ -16,6 +17,14 @@ public class HollowMenu extends Screen {
 
     public HollowMenu() {
         super(new StringTextComponent("HOLLOW_MAIN_MENU"));
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        this.addButton(new Button(0,0,20,20, new StringTextComponent(""), (button)-> {
+            Minecraft.getInstance().setScreen(new CameraScreen());
+        }));
     }
 
     @Override

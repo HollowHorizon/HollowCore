@@ -10,15 +10,33 @@
 
   "hollowcore.gui.dialogues.save": "Save",
   "hollowcore.gui.dialogues.disable_main_hero": "Main Hero Voice: ",
+  "hollowcore.gui.dialogues.blur": "Размытие: ",
   "hollowcore.gui.yes": "Enabled",
   "hollowcore.gui.no": "Disabled",
 
   "block.hc.save_obelisk": "Обелиск Сохранения",
 
   "hollowcore.gui.save_handler": "Сохранение",
+  "hollowcore.gui.skip": "Пропустить",
   "hollowcore.gui.save_handler.save": "Сохранить",
   "hollowcore.gui.save_handler.load": "Загрузить",
   "hollowcore.gui.save_handler.empty": "Пусто",
   "hollowcore.gui.save_handler.message_1": "Выберите сохранение: ",
-  "hollowcore.gui.save_handler.message_2": "Вы выбрале "
+  "hollowcore.gui.save_handler.message_2": "Вы выбрали: ",
+
+  "ftbquests.hc_addon.story_chapter": "Сюжетная Вкладка",
+
+  "ftbquests.task.hc.story_event_task": "Сюжетное Событие",
+  "ftbquests.task.hc.story_event_task.story_event": "Кодовое Имя События",
+
+  "ftbquests.reward.hc.story_event_reward": "Сюжетное Событие",
+  "ftbquests.reward.hc.story_event_reward.story_event": "Кодовое Имя События",
+
+  "ftbquests.reward.hc.dialogue_reward": "Запустить Диалог",
+  "ftbquests.reward.hc.dialogue_reward.dialogue": "Кодовое Имя Диалога",
+  "ftbquests.reward.hc.dialogue_reward.is_gui": "Оконный Режим",
+
+  "hc.gui.ftbq.dialogue": "Диалог",
+  "hc.gui.ftbq.dialogue.dialogue_name": "Кодовое Имя Диалога",
+  "hc.gui.ftbq.dialogue.dialogue_list": "Список Элементов"
 }

@@ -5,11 +5,26 @@ public class FBXAnimation implements Cloneable {
     private final long animationId;
     private final FBXCurveNode[] nodes;
     private int currentFrame;
+    private final boolean isEndless;
+    private boolean isEnd = false;
+    private String[] nextAnimations;
 
     public FBXAnimation(String animationName, long animationId, FBXCurveNode[] nodes) {
         this.animationName = animationName;
         this.animationId = animationId;
         this.nodes = nodes;
+        this.isEndless = true;
+    }
+
+    public FBXAnimation(String animationName, long animationId, FBXCurveNode[] nodes, boolean isEndless) {
+        this.animationName = animationName;
+        this.animationId = animationId;
+        this.nodes = nodes;
+        this.isEndless = isEndless;
+    }
+
+    public boolean isEndless() {
+        return isEndless;
     }
 
     public String getAnimationName() {
@@ -24,7 +39,8 @@ public class FBXAnimation implements Cloneable {
     public void tickFrame() {
         for (FBXCurveNode node : nodes) {
             if (node.updateValues(this.currentFrame)) {
-                this.currentFrame = 0;
+                if(isEndless) this.currentFrame = 0;
+                else isEnd = true;
                 return;
             }
         }
@@ -40,6 +56,10 @@ public class FBXAnimation implements Cloneable {
         return new FBXAnimation(animationName, animationId, nodes.clone());
     }
 
+    public FBXAnimation clone(boolean isEndless) {
+        return new FBXAnimation(animationName, animationId, nodes.clone(), isEndless);
+    }
+
     public long getAnimationId() {
         return animationId;
     }
@@ -48,4 +68,16 @@ public class FBXAnimation implements Cloneable {
         return nodes;
     }
 
+    public boolean isEnd() {
+        return isEnd;
+    }
+
+    public FBXAnimation setNextAnimations(String[] nextAnimations) {
+        this.nextAnimations =nextAnimations;
+        return this;
+    }
+
+    public String[] getNextAnimations() {
+        return nextAnimations;
+    }
 }

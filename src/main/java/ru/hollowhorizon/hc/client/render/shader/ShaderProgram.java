@@ -37,6 +37,10 @@ public class ShaderProgram {
         ShaderManager.INSTANCE.registerShader(this);
     }
 
+    public ShaderProgram(String vertexFile, String fragmentFile, String... variables) throws IOException {
+        this(new ResourceLocation(vertexFile), new ResourceLocation(fragmentFile), variables);
+    }
+
     ShaderDeletionHandler init() throws IOException {
         if (programID != -1)
             throw new IllegalStateException("Failed to initialize the shader. It is already initialized.");

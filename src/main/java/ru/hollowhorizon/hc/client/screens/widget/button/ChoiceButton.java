@@ -18,17 +18,15 @@ public class ChoiceButton extends Button {
     int y;
     int width;
     int height;
-    public int choice;
     ITextComponent text;
 
-    public ChoiceButton(int x, int y, int width, int height, ITextComponent text, IPressable onPress, int choice) {
+    public ChoiceButton(int x, int y, int width, int height, ITextComponent text, IPressable onPress) {
         super(x, y, width, height, text, onPress);
         this.width = width;
         this.height = height;
         this.x = x;
         this.y = y;
         this.text = text;
-        this.choice = choice;
     }
 
     public ITextComponent getText() {
@@ -51,14 +49,19 @@ public class ChoiceButton extends Button {
         RenderSystem.defaultAlphaFunc();
 
         minecraft.getTextureManager().bind(new ResourceLocation("hc", "textures/gui/lore/button_1.png"));
-        blit(stack, this.x - 16, this.y, 0, 0, 16, this.height, 16, this.height);
+        blit(stack, this.x, this.y, 0, isCursorAtButton(x, y) ? this.height : 0, 16, this.height, 16, this.height * 2);
         minecraft.getTextureManager().bind(new ResourceLocation("hc", "textures/gui/lore/button_3.png"));
-        blit(stack, this.x, this.y, 0, 0, this.width, this.height, this.width, this.height);
+        blit(stack, this.x + 16, this.y, 0, isCursorAtButton(x, y) ? this.height : 0, this.width - 32, this.height, this.width - 32, this.height * 2);
         minecraft.getTextureManager().bind(new ResourceLocation("hc", "textures/gui/lore/button_2.png"));
-        blit(stack, this.x + this.width, this.y, 0, 0, 16, this.height, 16, this.height);
+        blit(stack, this.x + this.width - 16, this.y, 0, isCursorAtButton(x, y) ? this.height : 0, 16, this.height, 16, this.height * 2);
 
         stack.translate(0.0D, 0.0D, 120.0D);
         fr.draw(stack, this.text, this.x, this.y + this.height / 4f, 0xFFFFFF);
+
         stack.popPose();
+    }
+
+    public boolean isCursorAtButton(int cursorX, int cursorY) {
+        return cursorX >= this.x && cursorY >= this.y && cursorX <= this.x + this.width && cursorY <= this.y + this.height;
     }
 }

@@ -2,8 +2,9 @@ package ru.hollowhorizon.hc.client.model.fbx;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
+import net.minecraft.client.renderer.model.ModelRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3f;
 
 import java.util.ArrayList;
@@ -13,20 +14,32 @@ public class FBXMesh {
     public final int mode;
     private final FBXVertex[] vertices;
     private final float[] normals;
-    private final float[] uvMap;
+    private final int[] uvIndices;
     private final int indCount;
     private final int[] indices;
     private final long modelId;
     private final List<FBXCurveNode> animationData = new ArrayList<>();
+    private float[] uvMap;
+    private FBXMaterial material;
 
-    public FBXMesh(long modelId, double[] vertices, double[] normals, double[] uvMap, int[] indices, int mode) {
+    public FBXMesh(long modelId, double[] vertices, double[] normals, double[] uvMap, int[] uvIndices, int[] indices, int mode) {
         this.vertices = FBXVertex.fromArray(vertices);
         this.normals = toFloatArray(normals);
         this.uvMap = toFloatArray(uvMap);
+        this.uvIndices = uvIndices;
         this.indCount = indices.length;
         this.indices = indices;
         this.mode = mode;
         this.modelId = modelId;
+
+
+
+        this.material = new FBXMaterial(modelId, "no_material");
+        this.material.setMaterialLocation(new ResourceLocation("minecraft:textures/block/dirt.png"));
+    }
+
+    public FBXMaterial getMaterial() {
+        return material;
     }
 
     public void addAnimationData(FBXCurveNode node) {
@@ -68,11 +81,12 @@ public class FBXMesh {
             int verIndex = indices[i];
             FBXVertex vertex = vertices[verIndex];
 
-            int n = i * 3;
-            int tc = i * 2;
+            int n = verIndex * 3;
+            int tc = uvIndices[i] * 2;
+
             builder.vertex(stack.last().pose(), vertex.x, vertex.y, vertex.z)
                     .color(1F, 1F, 1F, 1F)
-                    .uv(this.uvMap[tc], this.uvMap[tc + 1])
+                    .uv(this.uvMap[tc], this.uvMap[tc+1])
                     .overlayCoords(OverlayTexture.NO_OVERLAY)
                     .uv2(light)
                     .normal(stack.last().normal(), normals[n], normals[n + 1], normals[n + 2])
@@ -83,5 +97,17 @@ public class FBXMesh {
 
     public long getModelId() {
         return modelId;
+    }
+
+    public void addMaterial(FBXMaterial material) {
+        this.material = material;
+    }
+
+    public float[] getUvMap() {
+        return uvMap;
+    }
+
+    public void setUvMap(float[] uvMap) {
+        this.uvMap = uvMap;
     }
 }

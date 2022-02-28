@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.client.model.fbx.raw;
 
 import com.google.common.primitives.Bytes;
+import org.lwjgl.opengl.GL11;
 import sun.misc.IOUtils;
 
 import java.io.ByteArrayInputStream;
@@ -75,6 +76,7 @@ public class HollowByteStream {
         int[] array = new int[buffer.remaining()];
         buffer.get(array);
         return array;
+
     }
 
     public long[] readLongArray() throws IOException {

@@ -17,6 +17,11 @@ public class DialogueBuilder {
         return add(part, false, 0);
     }
 
+    public DialogueBuilder addAll(List<IDialoguePart> parts) {
+        for(IDialoguePart part : parts) add(part);
+        return this;
+    }
+
     public DialogueBuilder addAutoEnd(IDialoguePart part) {
         return add(part, true, -2);
     }

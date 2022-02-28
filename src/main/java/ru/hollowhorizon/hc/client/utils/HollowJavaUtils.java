@@ -11,7 +11,6 @@ import javax.tools.ToolProvider;
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -127,5 +126,9 @@ public class HollowJavaUtils {
     public static int[] listIntToArray(List<Integer> list) {
         int[] result = list.stream().mapToInt((Integer v) -> v).toArray();
         return result;
+    }
+
+    public static <R, K extends R> K castDarkMagic(R original) {
+        return (K) original;
     }
 }

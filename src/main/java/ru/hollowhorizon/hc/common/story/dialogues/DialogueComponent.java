@@ -6,7 +6,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import ru.hollowhorizon.hc.client.screens.DialogueScreen;
-import ru.hollowhorizon.hc.common.events.OnChoiceComplete;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -25,6 +24,7 @@ public class DialogueComponent {
         private String audio;
         private Consumer<DialogueScreen> action;
         private int autoSkip;
+        private boolean skipButton = false;
 
         private DialogueTextComponent() {
         }
@@ -57,14 +57,18 @@ public class DialogueComponent {
             return this;
         }
 
-        public Entity[] getCharacters() {
-            List<Entity> list = new ArrayList<>();
+        public LivingEntity[] getCharacters() {
+            List<LivingEntity> list = new ArrayList<>();
             if(characters!=null) {
                 for (Supplier<LivingEntity> character : characters) {
                     list.add(character.get());
                 }
             }
-            return list.toArray(new Entity[0]);
+            return list.toArray(new LivingEntity[0]);
+        }
+
+        public Supplier<LivingEntity>[] getRawCharacters() {
+            return characters;
         }
 
         @SafeVarargs
@@ -101,12 +105,22 @@ public class DialogueComponent {
             return this;
         }
 
-        public void setAutoSkip(int autoSkip) {
+        public DialogueTextComponent setAutoSkip(int autoSkip) {
             this.autoSkip = autoSkip;
+            return this;
         }
 
         public int getAutoSkip() {
             return autoSkip;
+        }
+
+        public DialogueTextComponent setSkipButton(boolean skipButton) {
+            this.skipButton = skipButton;
+            return this;
+        }
+
+        public boolean hasSkipButton() {
+            return skipButton;
         }
     }
 
@@ -122,6 +136,13 @@ public class DialogueComponent {
 
         public DialogueChoiceComponent setChoice(ChoiceTextComponent text, HollowDialogue choice) {
             this.choice.put(text, choice);
+            return this;
+        }
+
+        public DialogueChoiceComponent setChoices(ChoiceTextComponent[] text, HollowDialogue[] choice) {
+            for(int i = 0; i < text.length; i++) {
+                this.choice.put(text[i], choice[i]);
+            }
             return this;
         }
 
@@ -161,6 +182,12 @@ public class DialogueComponent {
         public List<DialogueEffects> getEffect() {
             return effects;
         }
+    }
+
+    public enum Type {
+        TEXT,
+        CHOICE,
+        EFFECT
     }
 
     public enum DialogueEffects {

@@ -25,6 +25,7 @@ import ru.hollowhorizon.hc.api.utils.DelayedAction;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.hollow_config.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.hollow_config.HollowVariable;
+import ru.hollowhorizon.hc.client.render.blocks.HollowBlockRenderManager;
 import ru.hollowhorizon.hc.client.render.entities.HollowEntityManager;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
 import ru.hollowhorizon.hc.client.utils.ResourcePackAdapter;
@@ -120,6 +121,10 @@ public class HollowModProcessor {
                                         } else if (someObject instanceof TileEntityType) {
                                             TileEntityType<?> tile = (TileEntityType<?>) someObject;
 
+                                            if (!modelName.equals("null")) {
+                                                HollowBlockRenderManager.registerHollowMob(tile, modelName);
+                                            }
+
                                             TILES.register(regName, () -> tile);
                                         } else if (someObject instanceof SoundEvent) {
                                             SoundEvent sound = (SoundEvent) someObject;
@@ -179,7 +184,7 @@ public class HollowModProcessor {
                             } else if (annotationData.getAnnotationType().equals(REGISTER_ACTION)) {
                                 String fieldName = annotationData.getMemberName();
                                 Field field = findField(containerClass, fieldName);
-
+                                field.setAccessible(true);
 
                                 if (Modifier.isStatic(field.getModifiers())) {
                                     try {

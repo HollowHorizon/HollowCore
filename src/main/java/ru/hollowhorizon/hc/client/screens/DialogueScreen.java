@@ -9,15 +9,12 @@ import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.SelectorTextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
-import ru.hollowhorizon.hc.HollowCore;
-import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.screens.widget.VolumeWidget;
 import ru.hollowhorizon.hc.client.screens.widget.button.BaseButton;
 import ru.hollowhorizon.hc.client.screens.widget.button.ChoiceButton;
@@ -25,7 +22,6 @@ import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
 import ru.hollowhorizon.hc.client.utils.TextHelper;
 import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
-import ru.hollowhorizon.hc.common.network.messages.DialogueChoiceToServer;
 import ru.hollowhorizon.hc.common.network.messages.DialogueEndToServer;
 import ru.hollowhorizon.hc.common.story.dialogues.ChoiceTextComponent;
 import ru.hollowhorizon.hc.common.story.dialogues.DialogueIterator;
@@ -58,6 +54,7 @@ public class DialogueScreen extends Screen {
     public boolean isButtonsCreated = false;
     public boolean isLineEnded = true;
     public Entity[] CHARACTERS;
+    private boolean hasSkipButton;
     private Consumer<DialogueScreen> action;
 
     public DialogueScreen(HollowDialogue dialogue) {
@@ -82,7 +79,7 @@ public class DialogueScreen extends Screen {
             isButtonsCreated = false;
             isLineEnded = false;
 
-            iterator.processDialogueComponent (
+            iterator.processDialogueComponent(
                     (textComponent) -> {
                         ITextComponent dialogueText = textComponent.getText();
                         ITextComponent dialogueCharacterName = textComponent.getCharacterName();
@@ -134,7 +131,11 @@ public class DialogueScreen extends Screen {
                             //TODO: ЗВУКИ ДОБАВЬ!
                         }
 
+                        hasSkipButton = textComponent.hasSkipButton();
+
                         dialogueTicks = textComponent.getAutoSkip();
+
+                        init();
                     },
                     (choiceComponent) -> {
 
@@ -186,7 +187,7 @@ public class DialogueScreen extends Screen {
                     iterator.makeChoice(choiceComponent, (ChoiceTextComponent) button.getMessage(), dialogueName);
 
                     updateStrings();
-                }, 0));
+                }));
             }
         });
 
@@ -195,6 +196,10 @@ public class DialogueScreen extends Screen {
         this.addButton(
                 volumeWidget
         );
+
+        if (hasSkipButton) {
+            this.addButton(new ChoiceButton((int) (this.width - this.width / 5.5F), this.height - this.height / 7, this.width / 6, this.height / 12, new TranslationTextComponent("hollowcore.gui.skip"), (button) -> onClose()));
+        }
     }
 
     @Override
@@ -248,9 +253,6 @@ public class DialogueScreen extends Screen {
         int size = CHARACTERS.length;
 
         for (int i = 0; i < size; i++) {
-            CompoundNBT nbt = new CompoundNBT();
-            nbt.putString("id", CHARACTERS[i].toString());
-
             if (CHARACTERS[i] instanceof LivingEntity) {
                 Entity entity = CHARACTERS[i];
                 float scaleFactor = entity.getBbHeight() / 1.8F;
@@ -322,7 +324,7 @@ public class DialogueScreen extends Screen {
         drawStringNoShadow(stack, fr, new StringTextComponent(text), x, y, 0xFFFFFF, alpha);
     }
 
-    protected void drawStringNoShadow(MatrixStack stack, FontRenderer fr, ITextComponent text, int x, int y, int color, int alpha) {
+    public static void drawStringNoShadow(MatrixStack stack, FontRenderer fr, ITextComponent text, int x, int y, int color, int alpha) {
         stack.pushPose();
         stack.translate(0.0D, 0.0D, 200.0D);
 

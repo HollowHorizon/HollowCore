@@ -4,16 +4,16 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
 import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
 import ru.hollowhorizon.hc.common.handlers.InGameDialogueHandler;
-import ru.hollowhorizon.hc.common.network.NetworkHandler;
-import ru.hollowhorizon.hc.common.network.messages.ParticleSendToClient;
+import ru.hollowhorizon.hc.common.integration.ftb.lib.DialogueBuilderConfig;
+import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
 import ru.hollowhorizon.hc.common.story.events.StoryEventStarter;
 
@@ -36,6 +36,30 @@ public class HollowCommands {
                 return Command.SINGLE_SUCCESS;
             })));
         }
+
+        dialogues.then(Commands.argument("name", StringArgumentType.word()).executes((command) -> {
+            String dialogue = StringArgumentType.getString(command, "name");
+
+            GUIDialogueHandler.start(command.getSource().getPlayerOrException(), dialogue);
+            return Command.SINGLE_SUCCESS;
+        }).then(Commands.argument("player", EntityArgument.players()).executes((command) -> {
+            String dialogue = StringArgumentType.getString(command, "name");
+            for (ServerPlayerEntity p : EntityArgument.getPlayers(command, "player")) {
+                GUIDialogueHandler.start(p, dialogue);
+            }
+            return Command.SINGLE_SUCCESS;
+        }).then(Commands.argument("isWindow", BoolArgumentType.bool()).executes((command) -> {
+            String dialogue = StringArgumentType.getString(command, "name");
+            for (ServerPlayerEntity p : EntityArgument.getPlayers(command, "player")) {
+                if (BoolArgumentType.getBool(command, "isWindow")) {
+                    GUIDialogueHandler.start(p, dialogue);
+                } else {
+                    InGameDialogueHandler.start(p, dialogue);
+                }
+            }
+            return Command.SINGLE_SUCCESS;
+
+        }))));
 
         for (HollowDialogue dialogue : GUIDialogueHandler.getAll()) {
             dialogues.then(Commands.literal(Objects.requireNonNull(GUIDialogueHandler.getRegName(dialogue))).executes((command) -> {
@@ -63,7 +87,7 @@ public class HollowCommands {
                 .then(lore)
                 .then(dialogues)
                 .then(Commands.literal("test").executes((source) -> {
-                    NetworkHandler.sendMessageToClient(new ParticleSendToClient(), source.getSource().getPlayerOrException());
+                            new DialogueBuilderConfig().getScreen().openGui();
                             return 1;
                         })
                 )

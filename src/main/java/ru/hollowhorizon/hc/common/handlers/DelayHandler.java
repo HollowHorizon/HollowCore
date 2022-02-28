@@ -56,9 +56,12 @@ public class DelayHandler {
                     for (Iterator<ActionPackage> iterator = pack.iterator(); iterator.hasNext(); ) {
                         ActionPackage cpack = iterator.next();
                         if (cpack.tick()) {
-                            ActionStorage.getAction(cpack.getAction()).process(player);
-                            ActionsData.INSTANCE.removeActionData(player, cpack.getAction());
-                            iterator.remove();
+                            HollowAction action = ActionStorage.getAction(cpack.getAction());
+                            if(action!=null) {
+                                action.process(player);
+                                ActionsData.INSTANCE.removeActionData(player, cpack.getAction());
+                                iterator.remove();
+                            }
                         }
                     }
 

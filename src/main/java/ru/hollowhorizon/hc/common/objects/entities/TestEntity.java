@@ -7,12 +7,11 @@ import net.minecraft.entity.ai.goal.RandomWalkingGoal;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.World;
-import ru.hollowhorizon.hc.api.utils.IAnimatedEntity;
+import ru.hollowhorizon.hc.api.utils.IAnimated;
 import ru.hollowhorizon.hc.client.render.entities.HollowAnimationManager;
 import ru.hollowhorizon.hc.common.registry.ModEntities;
 
-public class TestEntity extends MonsterEntity implements IAnimatedEntity {
-    private final HollowAnimationManager manager = new HollowAnimationManager();
+public class TestEntity extends MonsterEntity implements IAnimated {
     private boolean isCustom;
 
     public TestEntity(World level) {
@@ -31,42 +30,7 @@ public class TestEntity extends MonsterEntity implements IAnimatedEntity {
     }
 
     @Override
-    public void processAnimation() {
-        if(isCustom) return;
-        if (this.isVehicle()) {
-            manager.setAnimation("ridden");
-        } else if (this.isInWater()) {
-            manager.setAnimation("swim");
-        } else if (this.getX() - this.xo != 0.0f || this.getZ() - this.zo != 0.0f) {
-            manager.setAnimation("walk");
-        } else {
-            manager.setAnimation("idle");
-        }
-    }
+    public void onAnimationUpdate(HollowAnimationManager manager) {
 
-    @Override
-    public void setAnimation(String animation) {
-        manager.setAnimation(animation);
-    }
-
-    @Override
-    public void setCustomAnimation(String animation) {
-        isCustom = true;
-        this.setAnimation(animation);
-    }
-
-    @Override
-    public void endCustomAnimation() {
-        isCustom = false;
-    }
-
-    @Override
-    public boolean isCustomAnimation() {
-        return isCustom;
-    }
-
-    @Override
-    public HollowAnimationManager getManager() {
-        return manager;
     }
 }

@@ -14,9 +14,15 @@
     "MixinRenderTypeBuffers",
     "MixinServerWorldInfo",
     "SimpleReloadableResourceManagerMixin",
-    "StructureBlockMixin"
+    "StructureBlockMixin",
+    "ftbquests.AddRewardButtonMixin",
+    "ftbquests.AddTaskButtonMixin",
+    "ftbquests.ChapterMixin",
+    "ftbquests.ModPackButtonMixin",
+    "ftbquests.QuestPanelMixin"
   ],
   "client": [
+    "ftbquests.QuestScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

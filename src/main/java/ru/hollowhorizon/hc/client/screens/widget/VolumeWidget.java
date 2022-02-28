@@ -73,6 +73,7 @@ public class VolumeWidget extends Widget {
 
             if (isMouseDragged) slider.setPos(mouseX);
             slider.render(stack, mouseX, mouseY);
+
         }
         lastCursorState = isCursorAt;
     }

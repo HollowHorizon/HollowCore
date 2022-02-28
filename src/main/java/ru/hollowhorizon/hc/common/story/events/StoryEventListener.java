@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 public class StoryEventListener {
-    private static final Map<String, Class<? extends HollowStoryHandler>> handler = new HashMap<>();
     public static final List<HollowStoryHandler> activeLore = new ArrayList<>();
+    private static final Map<String, Class<? extends HollowStoryHandler>> handler = new HashMap<>();
     private static boolean isChanging = false;
 
     public static void registerLoreEvent(Class<? extends HollowStoryHandler> lore) {
@@ -41,7 +41,7 @@ public class StoryEventListener {
     }
 
     public static void startLoreNoUpdate(String name, ServerPlayerEntity playerEntity) {
-        HollowCore.LOGGER.info("start: "+name);
+        HollowCore.LOGGER.info("start: " + name);
         if (handler.containsKey(name)) {
             HollowCore.LOGGER.info("true: ");
             try {
@@ -58,8 +58,8 @@ public class StoryEventListener {
         }
     }
 
-    public static boolean hasLore(String loreName, ServerPlayerEntity player) {
-        for(HollowStoryHandler handler : activeLore) {
+    public static boolean hasStory(String loreName, ServerPlayerEntity player) {
+        for (HollowStoryHandler handler : activeLore) {
             if (handler.getStoryName().equals(loreName) && player.getUUID().equals(handler.player.getUUID())) {
                 return true;
             }
@@ -67,8 +67,19 @@ public class StoryEventListener {
         return false;
     }
 
-    public static void stopLore(HollowStoryHandler lore, ServerPlayerEntity player) {
-        activeLore.remove(lore);
+    public static void endStory(String lore, ServerPlayerEntity player) {
+        HollowStoryHandler handler = null;
+        for (HollowStoryHandler storyHandler : activeLore) {
+            if (storyHandler.getStoryName().equals(lore) && player.getUUID().equals(storyHandler.player.getUUID())) {
+                handler=storyHandler;
+                break;
+            }
+        }
+        if(handler!=null) handler.stop();
+    }
+
+    public static void stopStory(String lore, ServerPlayerEntity player) {
+        activeLore.removeIf(handler -> handler.getStoryName().equals(lore) && player.getUUID().equals(handler.player.getUUID()));
     }
 
     public static void stopAll(ServerPlayerEntity player) {
@@ -80,11 +91,10 @@ public class StoryEventListener {
     public static void init() {
 
         for (Class<? extends HollowStoryHandler> clazz : StoryRegistry.getAllStories()) {
-            HollowCore.LOGGER.info("StoryRegistry: "+clazz);
+            HollowCore.LOGGER.info("StoryRegistry: " + clazz);
             registerLoreEvent(clazz);
         }
     }
-
 
 
 }

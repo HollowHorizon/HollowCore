@@ -8,6 +8,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import ru.hollowhorizon.hc.client.render.blocks.HollowBlockRenderManager;
 import ru.hollowhorizon.hc.client.render.entities.HollowEntityManager;
 import ru.hollowhorizon.hc.client.render.game.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.render.shader.ShaderManager;
@@ -20,7 +21,7 @@ public class ClientProxy extends CommonProxy {
         DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> GPUMemoryManager.INSTANCE.initialize());
         DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> ShaderManager.INSTANCE.initialize());
         HollowEntityManager.renderEntitiesModels();
-
+        HollowBlockRenderManager.renderBlockModels();
     }
 
     @Override

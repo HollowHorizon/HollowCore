@@ -15,7 +15,7 @@ public abstract class HollowStoryHandler {
     public void stop() {
         StoryInfoData.INSTANCE.removeData(this.player, getStoryName());
         MinecraftForge.EVENT_BUS.unregister(this);
-        StoryEventListener.stopLore(this, player);
+        StoryEventListener.stopStory(getStoryName(), player);
     }
 
     public abstract String getStoryName();

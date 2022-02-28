@@ -1,8 +1,0 @@
-uniform int time;
-uniform float intensity;
-uniform float alpha;
-uniform int windowX;
-uniform int windowY;
-
-uniform sampler2D bgl_RenderedTexture;
-uniform sampler2D image;

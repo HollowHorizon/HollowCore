@@ -9,6 +9,8 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import ru.hollowhorizon.hc.client.hollow_config.HollowCoreConfig;
 
+import static ru.hollowhorizon.hc.common.handlers.HollowEventHandler.ENABLE_BLUR;
+
 public class DialogueOptionsScreen extends Screen {
     private final DialogueScreen lastScreen;
 
@@ -26,19 +28,33 @@ public class DialogueOptionsScreen extends Screen {
     @Override
     protected void init() {
         this.buttons.clear();
-        this.addButton(new Button(this.width / 2 - 45, (int) (this.height - this.height / 3), 90, 20, new TranslationTextComponent("hollowcore.gui.dialogues.save"), (button) -> {
+        this.addButton(new Button(this.width / 2 - 45, this.height - this.height / 3, 90, 20, new TranslationTextComponent("hollowcore.gui.dialogues.save"), (button) -> {
             onClose();
         }));
 
-        IFormattableTextComponent component = new TranslationTextComponent("hollowcore.gui.dialogues.disable_main_hero");
+        IFormattableTextComponent main_hero_voice = new TranslationTextComponent("hollowcore.gui.dialogues.disable_main_hero");
+        IFormattableTextComponent enable_blur = new TranslationTextComponent("hollowcore.gui.dialogues.blur");
+
         if (HollowCoreConfig.main_hero_voice.getValue()) {
-            component.append(new TranslationTextComponent("hollowcore.gui.yes"));
+            main_hero_voice.append(new TranslationTextComponent("hollowcore.gui.yes"));
         } else {
-            component.append(new TranslationTextComponent("hollowcore.gui.no"));
+            main_hero_voice.append(new TranslationTextComponent("hollowcore.gui.no"));
         }
 
-        this.addButton(new Button(this.width / 2 - 90, (int) (this.height / 2), 180, 20, component, (button) -> {
+        if (ENABLE_BLUR.getValue()) {
+            enable_blur.append(new TranslationTextComponent("hollowcore.gui.yes"));
+        } else {
+            enable_blur.append(new TranslationTextComponent("hollowcore.gui.no"));
+        }
+
+        this.addButton(new Button(this.width / 2 - 90, this.height / 2, 180, 20, main_hero_voice, (button) -> {
             HollowCoreConfig.setBool("main_hero_voice", !HollowCoreConfig.main_hero_voice.getValue());
+
+            this.init();
+        }));
+
+        this.addButton(new Button(this.width / 2 - 90, this.height / 2 - 40, 180, 20, enable_blur, (button) -> {
+            ENABLE_BLUR.setValue(!ENABLE_BLUR.getValue());
 
             this.init();
         }));

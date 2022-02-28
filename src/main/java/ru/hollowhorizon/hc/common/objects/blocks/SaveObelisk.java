@@ -28,24 +28,31 @@ import java.util.List;
 public class SaveObelisk extends HollowBlock {
 
     public SaveObelisk() {
-        super(Properties.of(Material.METAL));
+        super(Properties.of(Material.METAL).noOcclusion());
     }
 
     @Nonnull
     @Override
-    public ActionResultType use(@Nonnull BlockState p_225533_1_, @Nonnull World p_225533_2_, @Nonnull BlockPos p_225533_3_, PlayerEntity player, @Nonnull Hand p_225533_5_, @Nonnull BlockRayTraceResult p_225533_6_) {
-        if (!player.level.isClientSide) {
-            ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
-            List<ITextComponent> list = new ArrayList<>();
-            list.add(SaveStoryHandler.getDate(serverPlayer, 0));
-            list.add(SaveStoryHandler.getDate(serverPlayer, 1));
-            list.add(SaveStoryHandler.getDate(serverPlayer, 2));
-            list.add(SaveStoryHandler.getDate(serverPlayer, 3));
-            list.add(SaveStoryHandler.getDate(serverPlayer, 4));
-            NetworkHandler.sendMessageToClient(new OpenSaveGuiMessage(list), player);
-            return ActionResultType.SUCCESS;
+    public ActionResultType use(@Nonnull BlockState state, @Nonnull World world, @Nonnull BlockPos pos, PlayerEntity player, @Nonnull Hand p_225533_5_, @Nonnull BlockRayTraceResult p_225533_6_) {
+        SaveObeliskTile tile = (SaveObeliskTile) world.getBlockEntity(pos);
+        if(tile != null) {
+            if (tile.isActivated()) {
+                if (!player.level.isClientSide) {
+                    ServerPlayerEntity serverPlayer = (ServerPlayerEntity) player;
+                    List<ITextComponent> list = new ArrayList<>();
+                    list.add(SaveStoryHandler.getDate(serverPlayer, 0));
+                    list.add(SaveStoryHandler.getDate(serverPlayer, 1));
+                    list.add(SaveStoryHandler.getDate(serverPlayer, 2));
+                    list.add(SaveStoryHandler.getDate(serverPlayer, 3));
+                    list.add(SaveStoryHandler.getDate(serverPlayer, 4));
+                    NetworkHandler.sendMessageToClient(new OpenSaveGuiMessage(list), player);
+                    return ActionResultType.SUCCESS;
+                }
+            } else {
+                tile.activate(true);
+            }
         }
-        return super.use(p_225533_1_, p_225533_2_, p_225533_3_, player, p_225533_5_, p_225533_6_);
+        return super.use(state, world, pos, player, p_225533_5_, p_225533_6_);
     }
 
     @Nonnull
