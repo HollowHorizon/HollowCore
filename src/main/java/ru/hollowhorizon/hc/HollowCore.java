@@ -33,8 +33,9 @@ import ru.hollowhorizon.hc.proxy.ClientProxy;
 import ru.hollowhorizon.hc.proxy.CommonProxy;
 import ru.hollowhorizon.hc.proxy.ServerProxy;
 
+@HollowMod
 @Mod(HollowCore.MODID)
-public class HollowCore implements HollowMod {
+public class HollowCore {
     public static final String MODID = "hc";
     public static final Logger LOGGER = LogManager.getLogger();
     public static CommonProxy proxy = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> ServerProxy::new);

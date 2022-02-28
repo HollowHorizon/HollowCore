@@ -5,7 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "hc.refmap.json",
   "mixins": [
-    "HollowModEditor",
+    "FMLModContainerMixin",
     "MixinIngameMenuScreen",
     "MixinItemStack",
     "MixinLevelRenderer",
