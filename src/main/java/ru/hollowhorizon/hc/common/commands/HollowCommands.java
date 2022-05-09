@@ -9,10 +9,11 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import ru.hollowhorizon.hc.common.integration.ftb.lib.DialogueBuilderConfig;
 import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
 import ru.hollowhorizon.hc.common.handlers.InGameDialogueHandler;
-import ru.hollowhorizon.hc.common.integration.ftb.lib.DialogueBuilderConfig;
 import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
 import ru.hollowhorizon.hc.common.story.events.StoryEventStarter;
@@ -27,7 +28,8 @@ public class HollowCommands {
 
         for (String s : StoryEventListener.getAll()) {
             lore.then(Commands.literal(s).executes((command) -> {
-                StoryEventStarter.start(command.getSource().getPlayerOrException(), s);
+                PlayerEntity player = command.getSource().getPlayerOrException();
+                StoryEventStarter.start(player, s);
                 return Command.SINGLE_SUCCESS;
             }).then(Commands.argument("player", EntityArgument.players()).executes((command) -> {
                 for (ServerPlayerEntity p : EntityArgument.getPlayers(command, "player")) {
@@ -83,7 +85,7 @@ public class HollowCommands {
             }))));
         }
 
-        LiteralArgumentBuilder<CommandSource> commandBuilder = Commands.literal("hollow-core")
+        LiteralArgumentBuilder<CommandSource> commandBuilder = Commands.literal("hollow-core").requires((source) -> source.hasPermission(2))
                 .then(lore)
                 .then(dialogues)
                 .then(Commands.literal("test").executes((source) -> {

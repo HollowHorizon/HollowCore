@@ -8,7 +8,6 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 
 import javax.annotation.Nonnull;
 
@@ -40,7 +39,7 @@ public class BaseButton extends Button {
         FontRenderer fr = minecraft.font;
         stack.pushPose();
         stack.translate(0.0D, 0.0D, 100.0D);
-        fr.draw(stack, this.text, this.x, this.y + this.height / 4f, 0xFFFFFF);
+        fr.draw(stack, this.text, this.x + this.width / 2F - fr.width(this.text) / 2F, this.y + this.height / 4f, 0xFFFFFF);
         stack.popPose();
 
         RenderSystem.enableBlend();

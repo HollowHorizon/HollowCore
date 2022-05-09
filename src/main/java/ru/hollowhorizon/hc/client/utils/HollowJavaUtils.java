@@ -9,9 +9,11 @@ import ru.hollowhorizon.hc.HollowCore;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import java.io.*;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
+import java.nio.file.FileSystem;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -19,6 +21,39 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class HollowJavaUtils {
+    public static InputStream getFileFromJar(Path pathToJar) {
+        ZipFile zipFile = null;
+        try {
+            zipFile = new ZipFile(pathToJar.toFile());
+
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (entry.getName().equals("mcmod.info")) {
+                    return zipFile.getInputStream(entry);
+                }
+            }
+            throw new FileNotFoundException("mcmod.info not found!");
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new IllegalArgumentException("mcmod.info invalid!");
+        }
+    }
+
+    public static void updateJarFile(File srcJarFile, String path, InputStream data) {
+
+        URI uri = srcJarFile.toURI();
+        System.out.println(uri);
+
+        try (FileSystem zipfs = FileSystems.newFileSystem(srcJarFile.toPath(), null)) {
+            Path pathInZipfile = zipfs.getPath(path);
+
+            Files.copy(data, pathInZipfile, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static <T> T compileAndGet(String path, String file, String classPackage, Class<T> clazz) {
         try {
@@ -26,7 +61,7 @@ public class HollowJavaUtils {
             compiler.run(null, null, null, path + file + ".java");
 
             URLClassLoader ucl = new URLClassLoader(new URL[]{new URL("file://" + path)});
-            Class<?> cls = ucl.loadClass(classPackage+"."+file);
+            Class<?> cls = ucl.loadClass(classPackage + "." + file);
             Object instance = cls.getConstructor().newInstance();
             if (clazz.isAssignableFrom(instance.getClass())) {
                 return (T) instance;
@@ -45,7 +80,7 @@ public class HollowJavaUtils {
             File targetDir = new File(Minecraft.getInstance().gameDirectory, "config/hollowcore/cache/" + fileWithoutExtension + "/" + fileName);
             InputStream stream = Minecraft.getInstance().getResourceManager().getResource(location).getInputStream();
             HollowCore.LOGGER.info(targetDir.getParentFile());
-            if(!targetDir.getParentFile().exists()) {
+            if (!targetDir.getParentFile().exists()) {
                 targetDir.getParentFile().mkdirs();
                 Files.copy(stream, targetDir.getAbsoluteFile().toPath());
 
@@ -101,7 +136,11 @@ public class HollowJavaUtils {
     }
 
     public static InputStream getResource(ResourceLocation location) {
-        return Thread.currentThread().getContextClassLoader().getResourceAsStream("assets/"+location.getNamespace()+"/"+location.getPath());
+        try {
+            return Minecraft.getInstance().getResourceManager().getResource(location).getInputStream();
+        } catch (Exception e) {
+            return Thread.currentThread().getContextClassLoader().getResourceAsStream("assets/" + location.getNamespace() + "/" + location.getPath());
+        }
     }
 
     //anti-warning system :D

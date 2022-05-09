@@ -1,15 +1,7 @@
 package ru.hollowhorizon.hc.client.model.fbx.raw;
 
-import com.google.common.primitives.Bytes;
-import org.lwjgl.opengl.GL11;
-import sun.misc.IOUtils;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.*;
-import java.util.List;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
@@ -18,8 +10,12 @@ public class HollowByteStream {
     private final int size;
 
     public HollowByteStream(InputStream stream) throws IOException {
-        this.bytes = new ByteArrayInputStream(IOUtils.readAllBytes(stream));
-        this.size = bytes.available();
+        //преабразование входного потока в массив байтов
+        byte[] bytes = new byte[stream.available()];
+        DataInputStream dis = new DataInputStream(stream);
+        dis.readFully(bytes);
+        this.bytes = new ByteArrayInputStream(bytes);
+        this.size = this.bytes.available();
     }
 
     public HollowByteStream(byte[] bytes) {
@@ -27,38 +23,46 @@ public class HollowByteStream {
         this.size = bytes.length;
     }
 
+    //считать строку с заданным размером (1б)
     public String readString() throws IOException {
         byte len = readByte();
         return new String(read(len));
     }
 
+    //считать строку с заданным размером (4б)
     public String readBigString() throws IOException {
         int len = readUInt();
         return new String(read(len));
     }
 
+    //считать целое число (4б)
     public int readUInt() throws IOException {
         return ByteBuffer.wrap(read(4)).order(ByteOrder.LITTLE_ENDIAN).getInt();
     }
 
+    //считать байт
     public byte readByte() throws IOException {
         return read(1)[0];
     }
 
+    //считать символ
     public char readChar() throws IOException {
         return (char) read(1)[0];
     }
 
+    //получить массив байтов указанной длины
     public byte[] read(int length) throws IOException {
         byte[] data = new byte[length];
         bytes.read(data);
         return data;
     }
 
+    //считать целое число (2б)
     public int readInt() throws IOException {
         return ByteBuffer.wrap(read(2)).getInt();
     }
 
+    //считать число с плавающей точкой (4б)
     public float readFloat() throws IOException {
         return ByteBuffer.wrap(read(4)).getFloat();
     }
@@ -71,6 +75,7 @@ public class HollowByteStream {
         return ByteBuffer.wrap(read(8)).getLong();
     }
 
+    //считать массив целых чисел (4б)
     public int[] readIntArray() throws IOException {
         IntBuffer buffer = ByteBuffer.wrap(readRawArray(4)).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
         int[] array = new int[buffer.remaining()];
@@ -115,10 +120,10 @@ public class HollowByteStream {
         int compressedSize = ByteBuffer.wrap(read(4)).order(ByteOrder.LITTLE_ENDIAN).getInt();
 
         byte[] arrayData;
-        if(encoding == 1) {
+        if (encoding == 1) {
             arrayData = decompressData(read(compressedSize));
-        }else {
-            arrayData = read(length*dataSize);
+        } else {
+            arrayData = read(length * dataSize);
         }
         return arrayData;
     }

@@ -31,14 +31,4 @@ public class WorldHelper {
     private static boolean isReplaceableByStructures(BlockState blockState) {
         return blockState.getBlock().is(Blocks.AIR) || blockState.getMaterial().isLiquid() || blockState.getMaterial().isReplaceable();
     }
-
-    public static class FreePlaceInfo {
-        public final int y;
-        public final int length;
-
-        public FreePlaceInfo(int y, int length) {
-            this.y = y;
-            this.length = length;
-        }
-    }
 }

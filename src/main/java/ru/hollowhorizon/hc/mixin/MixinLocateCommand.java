@@ -8,7 +8,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import ru.hollowhorizon.hc.common.network.data.GeneratedStructuresData;
+import ru.hollowhorizon.hc.HollowCore;
+import ru.hollowhorizon.hc.common.world.storage.HollowWorldData;
+import ru.hollowhorizon.hc.common.world.structures.StoryStructureData;
 import ru.hollowhorizon.hc.common.world.structures.objects.StoryStructure;
 
 import static net.minecraft.command.impl.LocateCommand.showLocateResult;
@@ -20,12 +22,18 @@ public class MixinLocateCommand {
     private static void locate(CommandSource command, Structure<?> structure, CallbackInfoReturnable<Integer> cir) {
         if (structure instanceof StoryStructure) {
             StoryStructure storyStructure = (StoryStructure) structure;
-            if (GeneratedStructuresData.INSTANCE.hasData(storyStructure.getRegistryName().toString())) {
-                cir.setReturnValue(1);
-                try {
-                    showLocateResult(command, structure.getFeatureName(), command.getPlayerOrException().blockPosition(), GeneratedStructuresData.INSTANCE.getStructurePos(storyStructure.getRegistryName().toString()), "commands.locate.success");
-                } catch (CommandSyntaxException e) {
-                    e.printStackTrace();
+            for (StoryStructureData storyStructureData : HollowWorldData.INSTANCE.STRUCTURE_DATA_LIST) {
+                HollowCore.LOGGER.info(storyStructureData.getStructureName());
+                if (storyStructureData.getStructureName().equals(storyStructure.getRegistryName())) {
+                    HollowCore.LOGGER.info("структура найдена");
+                    cir.setReturnValue(1);
+                    cir.cancel();
+                    try {
+                        showLocateResult(command, structure.getFeatureName(), command.getPlayerOrException().blockPosition(), storyStructureData.getStructurePos(), "commands.locate.success");
+                    } catch (CommandSyntaxException e) {
+                        e.printStackTrace();
+                    }
+                    return;
                 }
             }
         }

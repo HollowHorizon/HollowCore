@@ -2,28 +2,37 @@ package ru.hollowhorizon.hc.common.network.messages;
 
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
-import ru.hollowhorizon.hc.common.registry.HollowPacketProcessor;
+import ru.hollowhorizon.hc.common.network.UniversalPacket;
+import ru.hollowhorizon.hc.client.utils.HollowNBTSerializer;
+import ru.hollowhorizon.hc.client.utils.NBTUtils;
+import ru.hollowhorizon.hc.common.network.UniversalPacketManager;
 
 import java.util.function.Supplier;
 
 public class HollowPacketToClient {
+    private final UniversalPacket<?> packet;
     private final String name;
 
-    public HollowPacketToClient(String dialogue) {
-        this.name = dialogue;
+    public <T extends UniversalPacket<?>> HollowPacketToClient(T packet, String name) {
+        this.packet = packet;
+        this.name = name;
     }
 
     public static HollowPacketToClient decode(PacketBuffer buf) {
-        return new HollowPacketToClient(buf.readUtf());
+        String name = buf.readUtf();
+        String serializer = buf.readUtf();
+        return new HollowPacketToClient(UniversalPacketManager.getPacketFromNBT(buf.readNbt().getCompound("value"), serializer, name), name);
+    }
+
+    public static <T> void onReceived(HollowPacketToClient message, Supplier<NetworkEvent.Context> ctxSupplier) {
+        ctxSupplier.get().setPacketHandled(true);
+
+        message.packet.process();
     }
 
     public void encode(PacketBuffer buf) {
         buf.writeUtf(name);
-    }
-
-    public static void onReceived(HollowPacketToClient message, Supplier<NetworkEvent.Context> ctxSupplier) {
-        ctxSupplier.get().setPacketHandled(true);
-
-        HollowPacketProcessor.getInstance(message.name).getInstance().process();
+        buf.writeUtf(NBTUtils.getName(packet.serializer()));
+        NBTUtils.saveValue(buf, "value", packet.value, (HollowNBTSerializer) packet.serializer());
     }
 }

@@ -1,9 +1,9 @@
 package ru.hollowhorizon.hc.client.utils.math;
 
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3f;
+
+import java.nio.FloatBuffer;
 
 public class MatrixUtils {
     public static float[] getMatrix(Matrix4f matrix) {
@@ -263,4 +263,22 @@ public class MatrixUtils {
     }
 
 
+    public static void store(Matrix4f matrix, FloatBuffer buf) {
+        buf.put(matrix.m00);
+        buf.put(matrix.m01);
+        buf.put(matrix.m02);
+        buf.put(matrix.m03);
+        buf.put(matrix.m10);
+        buf.put(matrix.m11);
+        buf.put(matrix.m12);
+        buf.put(matrix.m13);
+        buf.put(matrix.m20);
+        buf.put(matrix.m21);
+        buf.put(matrix.m22);
+        buf.put(matrix.m23);
+        buf.put(matrix.m30);
+        buf.put(matrix.m31);
+        buf.put(matrix.m32);
+        buf.put(matrix.m33);
+    }
 }

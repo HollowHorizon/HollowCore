@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.common.network.messages;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 import ru.hollowhorizon.hc.common.commands.HollowParticles;
@@ -18,7 +17,7 @@ public class ParticleSendToClient {
     public static void onReceived(ParticleSendToClient message, Supplier<NetworkEvent.Context> ctxSupplier) {
         ctxSupplier.get().setPacketHandled(true);
 
-        HollowParticles.process(Minecraft.getInstance().player);
+        HollowParticles.process();
     }
 
     public void encode(PacketBuffer buf) {

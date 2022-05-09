@@ -4,6 +4,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.SharedSeedRandom;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.registry.DynamicRegistries;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.biome.Biome;
@@ -11,8 +12,8 @@ import net.minecraft.world.biome.provider.BiomeProvider;
 import net.minecraft.world.gen.ChunkGenerator;
 import net.minecraft.world.gen.GenerationStage;
 import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.gen.feature.template.TemplateManager;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
-import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.common.world.structures.config.StructureNameConfig;
 
 import java.util.Random;
@@ -29,7 +30,7 @@ public class HollowBastion extends StoryStructure {
         IBlockReader columnOfBlocks = chunkGenerator.getBaseColumn(centerOfChunk.getX(), centerOfChunk.getZ());
         BlockState topBlock = columnOfBlocks.getBlockState(centerOfChunk.above(landHeight).above());
 
-        return topBlock.getFluidState().isEmpty();
+        return topBlock.getFluidState().isEmpty() && centerOfChunk.above(landHeight).above().getY() < 50;
     }
 
     @Override
@@ -46,9 +47,8 @@ public class HollowBastion extends StoryStructure {
             }
 
             @Override
-            protected boolean checkAndAdjustGeneration(ChunkGenerator chunkGenerator, BlockPos.Mutable chunkCenter, Biome biome, StructureNameConfig config) {
-                chunkCenter.setY(chunkCenter.getY() - 22);
-                return super.checkAndAdjustGeneration(chunkGenerator, chunkCenter, biome, config);
+            protected void generateStructurePieces(DynamicRegistries registries, int maxDepth, ChunkGenerator chunkGenerator, TemplateManager templateManager, BlockPos chunkCenter, Random rand, boolean bool1, boolean generateOnSurface, StructureNameConfig config) {
+                super.generateStructurePieces(registries, maxDepth, chunkGenerator, templateManager, chunkCenter.below(11), rand, bool1, generateOnSurface, config);
             }
 
             @Override

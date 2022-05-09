@@ -13,7 +13,7 @@ import ru.hollowhorizon.hc.common.registry.HollowModProcessor;
 
 @Mixin(value = FMLModContainer.class)
 public abstract class FMLModContainerMixin {
-    @Shadow
+    @Shadow(remap = false)
     @Final
     private Class<?> modClass;
     @Shadow(remap = false)

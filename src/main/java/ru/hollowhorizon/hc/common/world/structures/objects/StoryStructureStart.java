@@ -4,7 +4,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MutableBoundingBox;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.ChunkGenerator;
-import ru.hollowhorizon.hc.common.network.data.GeneratedStructuresData;
+import ru.hollowhorizon.hc.common.world.storage.HollowWorldData;
+import ru.hollowhorizon.hc.common.world.structures.StoryStructureData;
 import ru.hollowhorizon.hc.common.world.structures.config.StructureNameConfig;
 
 import java.util.Random;
@@ -16,7 +17,12 @@ public class StoryStructureStart<T extends StructureNameConfig> extends HollowSt
 
     @Override
     protected boolean checkAndAdjustGeneration(ChunkGenerator chunkGenerator, BlockPos.Mutable chunkCenter, Biome biome, T config) {
-        return !GeneratedStructuresData.INSTANCE.hasData(this.getFeature().getRegistryName().toString());
+        for (StoryStructureData data : HollowWorldData.INSTANCE.STRUCTURE_DATA_LIST) {
+            if(config.structureName.equals(data.getStructureName())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -24,7 +30,7 @@ public class StoryStructureStart<T extends StructureNameConfig> extends HollowSt
         int x = this.pieces.get(0).getBoundingBox().x0;
         int y = this.pieces.get(0).getBoundingBox().y0;
         int z = this.pieces.get(0).getBoundingBox().z0;
-        String structureInfo = this.getFeature().getRegistryName().toString() + ":" + x + ":" + y + ":" + z;
-        GeneratedStructuresData.INSTANCE.addData(structureInfo);
+
+        HollowWorldData.INSTANCE.STRUCTURE_DATA_LIST.add(new StoryStructureData(this.getFeature().getRegistryName(), new BlockPos(x,y,z)));
     }
 }

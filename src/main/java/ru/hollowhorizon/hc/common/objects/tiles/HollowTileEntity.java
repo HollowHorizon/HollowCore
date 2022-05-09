@@ -16,6 +16,7 @@ public abstract class HollowTileEntity extends TileEntity {
     public SUpdateTileEntityPacket getUpdatePacket() {
         CompoundNBT nbt = new CompoundNBT();
         this.save(nbt);
+
         return new SUpdateTileEntityPacket(this.worldPosition, 42, nbt);
     }
 

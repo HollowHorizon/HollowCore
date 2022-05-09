@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.common.network.messages;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -31,7 +30,7 @@ public class OpenSaveGuiMessage {
     public static void onReceived(OpenSaveGuiMessage message, Supplier<NetworkEvent.Context> ctxSupplier) {
         ctxSupplier.get().setPacketHandled(true);
 
-        Minecraft.getInstance().setScreen(new ProgressManagerScreen(message.list));
+        ctxSupplier.get().enqueueWork(() -> ProgressManagerScreen.open(message.list));
     }
 
     public void encode(PacketBuffer buffer) {

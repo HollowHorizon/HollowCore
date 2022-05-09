@@ -28,6 +28,10 @@ public class FBXModel implements Cloneable {
         //calculateUVs();
     }
 
+    public FBXMesh[] getMeshes() {
+        return meshes;
+    }
+
     public void calculateUVs() {
         for (FBXMesh mesh : meshes) {
             try {

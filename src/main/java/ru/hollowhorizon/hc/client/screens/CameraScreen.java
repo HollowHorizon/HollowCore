@@ -10,6 +10,7 @@ import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import ru.hollowhorizon.hc.client.screens.widget.CameraPathWidget;
 import ru.hollowhorizon.hc.client.screens.widget.SliderWidget;
 import ru.hollowhorizon.hc.client.utils.math.HollowInterpolation;
 import ru.hollowhorizon.hc.common.animations.CameraPath;
@@ -89,10 +90,13 @@ public class CameraScreen extends Screen {
         sliderZ.setValue(Minecraft.getInstance().player.getZ());
         sliderZ.setValueConsumer(value -> this.z = value);
         this.addButton(sliderZ);
+
+        this.addButton(new CameraPathWidget(50, 50, 512, 64));
     }
 
     @SubscribeEvent
     public void worldRender(RenderWorldLastEvent event) {
+        
         for (CameraPath path : allPoints) {
             path.drawPath(event.getMatrixStack());
         }

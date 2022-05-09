@@ -18,6 +18,10 @@ public class ProgressManagerScreen extends Screen {
     private final ITextComponent saveMessage = new TranslationTextComponent("hollowcore.gui.save_handler.message_1");
     List<ITextComponent> saveTime;
 
+    public static void open(List<ITextComponent> saveTime) {
+        Minecraft.getInstance().setScreen(new ProgressManagerScreen(saveTime));
+    }
+
     public ProgressManagerScreen(List<ITextComponent> saveTime) {
         super(new StringTextComponent("SAVE_PROGRESS_SCREEN"));
         this.saveTime = saveTime;

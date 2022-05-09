@@ -2,10 +2,7 @@ package ru.hollowhorizon.hc.common.world.structures.config;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.feature.IFeatureConfig;
-
-import java.util.Collections;
 
 public class OnePlacementConfig implements IFeatureConfig {
     public static final Codec<OnePlacementConfig> CODEC = RecordCodecBuilder.create(builder -> builder.group(

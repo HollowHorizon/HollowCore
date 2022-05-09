@@ -3,9 +3,6 @@ package ru.hollowhorizon.hc.common.animations;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 
-/**
- * Информация о текущем положении моба (пока только координаты и направление взгляда)
- */
 public class MobPosInfo {
     private final Vector3d mobPosition;
     private final Vector3f mobRotation;

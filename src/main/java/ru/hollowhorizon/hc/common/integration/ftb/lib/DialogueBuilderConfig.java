@@ -1,7 +1,6 @@
 package ru.hollowhorizon.hc.common.integration.ftb.lib;
 
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.StringConfig;
 import dev.ftb.mods.ftblibrary.config.ui.EditConfigScreen;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;

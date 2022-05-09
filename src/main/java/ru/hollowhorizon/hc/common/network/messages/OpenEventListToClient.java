@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.common.network.messages;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 import ru.hollowhorizon.hc.client.screens.EventListScreen;
@@ -29,7 +28,7 @@ public class OpenEventListToClient {
     public static void onReceived(OpenEventListToClient message, Supplier<NetworkEvent.Context> ctxSupplier) {
         ctxSupplier.get().setPacketHandled(true);
 
-        Minecraft.getInstance().setScreen(new EventListScreen(message.names));
+        ctxSupplier.get().enqueueWork(() -> EventListScreen.open(message.names));
     }
 
     public void encode(PacketBuffer buf) {

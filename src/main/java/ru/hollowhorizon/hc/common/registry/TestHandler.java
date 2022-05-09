@@ -1,36 +1,60 @@
 package ru.hollowhorizon.hc.common.registry;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraftforge.client.event.EntityViewRenderEvent;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import ru.hollowhorizon.hc.api.registy.StoryObject;
-import ru.hollowhorizon.hc.api.utils.DelayedAction;
-import ru.hollowhorizon.hc.common.events.action.HollowAction;
+import ru.hollowhorizon.hc.client.screens.CameraScreen;
 import ru.hollowhorizon.hc.common.story.HollowStoryHandler;
-import ru.hollowhorizon.hc.common.story.events.StoryEventStarter;
 
 @StoryObject
 public class TestHandler extends HollowStoryHandler {
-    private int roll = 180;
-    private int yaw = 0;
-    @DelayedAction
-    private static final HollowAction action = (player -> StoryEventStarter.end(player, "test.test"));
+    private int time = 0;
 
     @Override
-    public void start(ServerPlayerEntity player) {
+    public void start(PlayerEntity player) {
         super.start(player);
-        action.run(player, 200);
     }
 
     @SubscribeEvent
-    public void onCameraEdit(EntityViewRenderEvent.CameraSetup setup) {
+    public void tick(TickEvent.ServerTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) {
+            if (time < 1000) time++;
+            else {
+                setChanged();
+            }
 
-        setup.setYaw(yaw);
-        if (roll < 360) roll += 1;
-        else roll = 0;
+            if (time % 20 == 0) {
+                player.sendMessage(new StringTextComponent(time / 20 + ""), player.getUUID());
+            }
+        }
+    }
 
-        if (yaw < 360) yaw += 1;
-        else yaw = 0;
+    @OnlyIn(Dist.CLIENT)
+    @SubscribeEvent
+    public void ctick(TickEvent.ClientTickEvent event) {
+        if(time > 999) {
+            Minecraft.getInstance().setScreen(new CameraScreen());
+            stop();
+        }
+    }
+
+    @Override
+    public CompoundNBT saveNBT() {
+        CompoundNBT nbt = super.saveNBT();
+        nbt.putInt("state", time);
+        return nbt;
+    }
+
+    @Override
+    public void loadNBT(CompoundNBT nbt) {
+        super.loadNBT(nbt);
+        time = nbt.getInt("state");
     }
 
     @Override

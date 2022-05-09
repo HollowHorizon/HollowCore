@@ -15,21 +15,16 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import ru.hollowhorizon.hc.common.events.OnDialogueEndEvent;
-
-import java.util.UUID;
+import ru.hollowhorizon.hc.common.capabilities.HollowStoryCapability;
+import ru.hollowhorizon.hc.common.registry.ModCapabilities;
 
 public class StoryEventTask extends Task {
     public String storyEventName;
-    private UUID playerUUID;
-    private boolean isCompleted;
+    private boolean isEventStarted = false;
 
     public StoryEventTask(Quest q) {
         super(q);
         storyEventName = "null";
-        MinecraftForge.EVENT_BUS.register(this);
     }
 
     @Override
@@ -78,24 +73,21 @@ public class StoryEventTask extends Task {
         return 20;
     }
 
-    @SubscribeEvent
-    public void onDialogueEnd(OnDialogueEndEvent event) {
-        if (playerUUID != null && playerUUID.equals(event.getPlayer().getUUID()) && event.getDialogueName().equals(storyEventName)) {
-            isCompleted = true;
-        }
-    }
-
     @Override
     public void submitTask(TeamData teamData, ServerPlayerEntity player, ItemStack craftedItem) {
         if (teamData.isCompleted(this))
             return;
 
-        if (playerUUID == null) playerUUID = player.getUUID();
+        boolean hasEvent = player.getCapability(ModCapabilities.STORY_CAPABILITY).orElse(new HollowStoryCapability()).hasStory(storyEventName);
 
-        if (isCompleted) {
+        if (!hasEvent && isEventStarted) {
             teamData.setProgress(this, 1L);
         } else {
             teamData.setProgress(this, 0L);
+        }
+
+        if (hasEvent && !isEventStarted) {
+            isEventStarted = true;
         }
     }
 

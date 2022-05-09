@@ -3,8 +3,8 @@ package ru.hollowhorizon.hc.common.network.messages;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
-import ru.hollowhorizon.hc.common.story.HollowStoryHandler;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
+import ru.hollowhorizon.hc.common.story.HollowStoryHandler;
 
 import java.util.ArrayList;
 import java.util.List;

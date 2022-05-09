@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Mixin(QuestPanel.class)
 public abstract class QuestPanelMixin {
-    @Shadow @Final public QuestScreen questScreen;
+    @Shadow(remap = false) @Final public QuestScreen questScreen;
 
     @Redirect(method = "mousePressed", at = @At(value = "INVOKE", target = "Ljava/util/Map;values()Ljava/util/Collection;"), remap = false)
     private Collection<TaskType> init(Map<ResourceLocation, TaskType> map) {

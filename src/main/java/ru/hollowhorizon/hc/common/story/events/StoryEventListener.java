@@ -1,8 +1,12 @@
 package ru.hollowhorizon.hc.common.story.events;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import ru.hollowhorizon.hc.HollowCore;
-import ru.hollowhorizon.hc.common.network.data.StoryInfoData;
 import ru.hollowhorizon.hc.common.story.HollowStoryHandler;
 
 import java.util.ArrayList;
@@ -13,7 +17,6 @@ import java.util.Map;
 public class StoryEventListener {
     public static final List<HollowStoryHandler> activeLore = new ArrayList<>();
     private static final Map<String, Class<? extends HollowStoryHandler>> handler = new HashMap<>();
-    private static boolean isChanging = false;
 
     public static void registerLoreEvent(Class<? extends HollowStoryHandler> lore) {
 
@@ -35,12 +38,7 @@ public class StoryEventListener {
         return new ArrayList<>(handler.keySet());
     }
 
-    public static void startLore(String name, ServerPlayerEntity playerEntity) {
-        StoryInfoData.INSTANCE.createData(playerEntity, name);
-        startLoreNoUpdate(name, playerEntity);
-    }
-
-    public static void startLoreNoUpdate(String name, ServerPlayerEntity playerEntity) {
+    public static void startLore(String name, PlayerEntity playerEntity) {
         HollowCore.LOGGER.info("start: " + name);
         if (handler.containsKey(name)) {
             HollowCore.LOGGER.info("true: ");
@@ -48,13 +46,19 @@ public class StoryEventListener {
                 HollowStoryHandler lore = handler.get(name).getConstructor().newInstance();
 
                 lore.start(playerEntity);
-                isChanging = true;
                 activeLore.add(lore);
-                isChanging = false;
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
+        }
+    }
+
+    public static void updateStory(String storyName, PlayerEntity player, CompoundNBT nbt) {
+        for (HollowStoryHandler handler : activeLore) {
+            if (handler.getStoryName().equals(storyName) && player.getUUID().equals(handler.player.getUUID())) {
+                handler.loadNBT(nbt);
+            }
         }
     }
 
@@ -67,25 +71,23 @@ public class StoryEventListener {
         return false;
     }
 
-    public static void endStory(String lore, ServerPlayerEntity player) {
+    public static void endStory(String lore, PlayerEntity player) {
         HollowStoryHandler handler = null;
         for (HollowStoryHandler storyHandler : activeLore) {
             if (storyHandler.getStoryName().equals(lore) && player.getUUID().equals(storyHandler.player.getUUID())) {
-                handler=storyHandler;
+                handler = storyHandler;
                 break;
             }
         }
-        if(handler!=null) handler.stop();
+        if (handler != null) handler.stop();
     }
 
-    public static void stopStory(String lore, ServerPlayerEntity player) {
+    public static void stopStory(String lore, PlayerEntity player) {
         activeLore.removeIf(handler -> handler.getStoryName().equals(lore) && player.getUUID().equals(handler.player.getUUID()));
     }
 
     public static void stopAll(ServerPlayerEntity player) {
-        isChanging = true;
         activeLore.removeIf(handler -> handler.player.equals(player));
-        isChanging = false;
     }
 
     public static void init() {
@@ -96,5 +98,8 @@ public class StoryEventListener {
         }
     }
 
-
+    @OnlyIn(Dist.CLIENT)
+    public static void updateStory(String storyName, CompoundNBT nbt) {
+        updateStory(storyName, Minecraft.getInstance().player, nbt);
+    }
 }

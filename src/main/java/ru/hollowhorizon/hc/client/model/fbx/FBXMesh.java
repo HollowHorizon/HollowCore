@@ -38,6 +38,10 @@ public class FBXMesh {
         this.material.setMaterialLocation(new ResourceLocation("minecraft:textures/block/dirt.png"));
     }
 
+    public FBXVertex[] getVertices() {
+        return vertices;
+    }
+
     public FBXMaterial getMaterial() {
         return material;
     }

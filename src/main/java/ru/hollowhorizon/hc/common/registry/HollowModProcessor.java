@@ -11,33 +11,35 @@ import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.gen.feature.structure.Structure;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.network.NetworkDirection;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.forgespi.language.ModFileScanData;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.objectweb.asm.Type;
-import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.registy.HollowPacket;
 import ru.hollowhorizon.hc.api.registy.HollowRegister;
 import ru.hollowhorizon.hc.api.registy.StoryObject;
 import ru.hollowhorizon.hc.api.utils.DelayedAction;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
+import ru.hollowhorizon.hc.common.animations.CutsceneHandler;
+import ru.hollowhorizon.hc.common.animations.CutsceneStartHandler;
+import ru.hollowhorizon.hc.common.events.action.ActionStorage;
+import ru.hollowhorizon.hc.common.events.action.HollowAction;
+import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
+import ru.hollowhorizon.hc.common.network.UniversalPacket;
+import ru.hollowhorizon.hc.common.network.UniversalPacketManager;
+import ru.hollowhorizon.hc.common.objects.blocks.IBlockProperties;
+import ru.hollowhorizon.hc.common.objects.items.HollowArmor;
+import ru.hollowhorizon.hc.common.story.dialogues.DialogueBuilder;
+import ru.hollowhorizon.hc.common.story.dialogues.IHollowDialogue;
 import ru.hollowhorizon.hc.client.hollow_config.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.hollow_config.HollowVariable;
 import ru.hollowhorizon.hc.client.render.blocks.HollowBlockRenderManager;
 import ru.hollowhorizon.hc.client.render.entities.HollowEntityManager;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
 import ru.hollowhorizon.hc.client.utils.ResourcePackAdapter;
-import ru.hollowhorizon.hc.common.animations.CutsceneHandler;
-import ru.hollowhorizon.hc.common.animations.CutsceneStartHandler;
-import ru.hollowhorizon.hc.common.story.dialogues.DialogueBuilder;
-import ru.hollowhorizon.hc.common.story.dialogues.IHollowDialogue;
-import ru.hollowhorizon.hc.common.events.action.ActionStorage;
-import ru.hollowhorizon.hc.common.events.action.HollowAction;
-import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
-import ru.hollowhorizon.hc.common.objects.blocks.IBlockProperties;
-import ru.hollowhorizon.hc.common.objects.items.HollowArmor;
 import ru.hollowhorizon.hc.common.story.HollowStoryHandler;
 import ru.hollowhorizon.hc.common.story.events.StoryRegistry;
 
@@ -103,7 +105,6 @@ public class HollowModProcessor {
                                         if (someObject instanceof Block) {
 
                                             Block block = (Block) someObject;
-                                            HollowCore.LOGGER.info("если не зарегистрируешься, то пойдёшь в армию вместо меня");
                                             if (hasAutoModel) {
                                                 HollowPack.genBlockData.add(new ResourceLocation(modId, regName));
                                             }
@@ -137,7 +138,7 @@ public class HollowModProcessor {
                                         } else if (someObject instanceof EntityType<?>) {
                                             EntityType<?> entity = (EntityType<?>) someObject;
 
-                                            if (!modelName.equals("null")) {
+                                            if (!modelName.equals("null") && FMLEnvironment.dist == Dist.CLIENT) {
                                                 HollowEntityManager.registerHollowMob(entity, modelName);
                                             }
 
@@ -242,9 +243,11 @@ public class HollowModProcessor {
 
                                 String target = containerClass.getName() + "_" + fieldName;
 
-                                NetworkDirection direction = field.getAnnotation(HollowPacket.class).value();
-
-                                HollowPacketProcessor.process(field, target, direction);
+                                try {
+                                    UniversalPacketManager.PACKETS.put(target, (UniversalPacket<?>) field.get(null));
+                                } catch (IllegalAccessException e) {
+                                    e.printStackTrace();
+                                }
                             }
 
                         }

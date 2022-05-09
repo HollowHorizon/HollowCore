@@ -4,12 +4,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.WorldGenRegistries;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biomes;
 import net.minecraft.world.gen.DimensionSettings;
-import net.minecraft.world.gen.FlatGenerationSettings;
 import net.minecraft.world.gen.GenerationStage;
 import net.minecraft.world.gen.feature.IFeatureConfig;
 import net.minecraft.world.gen.feature.StructureFeature;
@@ -24,7 +21,6 @@ import ru.hollowhorizon.hc.common.world.structures.objects.HollowBastion;
 import ru.hollowhorizon.hc.mixin.FlatStructuresAccessor;
 
 import java.util.*;
-import java.util.function.Supplier;
 
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 
@@ -106,7 +102,7 @@ public class ModStructures {
     }
 
     public static class HollowConfiguration {
-        private static final StructureFeature<?, ? extends Structure<?>> BLOCKPOS_STRUCTURE = register("bastion", ModStructures.bastion.configured(new StructureNameConfig("hollow_bastion")));
+        private static final StructureFeature<?, ? extends Structure<?>> BLOCKPOS_STRUCTURE = register("bastion", ModStructures.bastion.configured(new StructureNameConfig(new ResourceLocation(MODID, "hollow_bastion"))));
 
         public static void postInit() {
             HollowCore.LOGGER.info("post init");

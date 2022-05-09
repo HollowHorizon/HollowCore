@@ -6,10 +6,11 @@ import net.minecraft.entity.ai.goal.LookRandomlyGoal;
 import net.minecraft.entity.ai.goal.RandomWalkingGoal;
 import net.minecraft.entity.monster.MonsterEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.potion.Effects;
 import net.minecraft.world.World;
 import ru.hollowhorizon.hc.api.utils.IAnimated;
-import ru.hollowhorizon.hc.client.render.entities.HollowAnimationManager;
 import ru.hollowhorizon.hc.common.registry.ModEntities;
+import ru.hollowhorizon.hc.client.render.entities.HollowAnimationManager;
 
 public class TestEntity extends MonsterEntity implements IAnimated {
     private boolean isCustom;
@@ -31,6 +32,10 @@ public class TestEntity extends MonsterEntity implements IAnimated {
 
     @Override
     public void onAnimationUpdate(HollowAnimationManager manager) {
-
+        if(this.hasEffect(Effects.GLOWING)) {
+            manager.addAnimation("save_obelisk_activation", false);
+        } else if (this.hasEffect(Effects.BLINDNESS)) {
+            manager.addAnimation("save_obelisk_tick", false);
+        }
     }
 }

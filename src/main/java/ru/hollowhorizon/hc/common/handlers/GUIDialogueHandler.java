@@ -1,9 +1,9 @@
 package ru.hollowhorizon.hc.common.handlers;
 
 import net.minecraft.entity.player.ServerPlayerEntity;
-import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.network.messages.StartDialogueToClient;
+import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
 
 import java.util.Collection;
 import java.util.HashMap;

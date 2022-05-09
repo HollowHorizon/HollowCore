@@ -17,13 +17,15 @@ import java.util.List;
 public class FBXModelLoader {
 
     public static void main(String[] args) {
-        createModel(new ResourceLocation("hc:models/animstion1.fbx"));
+        FBXModel model = createModel(new ResourceLocation("hc:models/monster_quad.fbx"));
+
     }
 
     public static FBXModel createModel(ResourceLocation location) {
         FBXElement[] elements = loadRaw(location);
         FBXMesh[] meshes = loadMeshes(elements);
-        Collection<ResourceLocation> matLoc = Minecraft.getInstance().getResourceManager().listResources("materials", (material) -> material.endsWith(".png"));
+        //Collection<ResourceLocation> matLoc = Minecraft.getInstance().getResourceManager().listResources("materials", (material) -> material.endsWith(".png"));
+        Collection<ResourceLocation> matLoc = new ArrayList<>();
         FBXMaterial[] materials = loadMaterials(elements, matLoc);
 
 
@@ -164,6 +166,7 @@ public class FBXModelLoader {
                         int[] uvIndices = object.getElementByName("LayerElementUV").getElementByName("UVIndex").getProperties()[0].getData();
 
                         int faceSize = 0;
+
                         for (int i = 0; i < indices.length; i++) {
                             if (indices[i] < 0) {
                                 indices[i] = -indices[i] - 1;
@@ -173,6 +176,7 @@ public class FBXModelLoader {
                                 }
                             }
                         }
+
 
                         int mode;
                         if (faceSize == 3) {
@@ -305,10 +309,15 @@ public class FBXModelLoader {
     }
 
     public static FBXElement[] loadRaw(ResourceLocation location) {
-        InputStream stream = HollowJavaUtils.getResource(location);
+
 
         try {
-            //InputStream stream = Minecraft.getInstance().getResourceManager().getResource(location).getInputStream();
+            InputStream stream;
+            try {
+                stream = Minecraft.getInstance().getResourceManager().getResource(location).getInputStream();
+            } catch (Exception ex) {
+                stream = HollowJavaUtils.getResource(location);
+            }
             HollowByteStream reader = new HollowByteStream(stream);
 
             reader.read(23);

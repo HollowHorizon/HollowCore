@@ -29,6 +29,10 @@ public class EventListScreen extends Screen {
     private final int lastGuiScale = Minecraft.getInstance().options.guiScale;
     private int scroller = 0;
 
+    public static void open(List<String> names) {
+        Minecraft.getInstance().setScreen(new EventListScreen(names));
+    }
+
     public EventListScreen(List<String> list) {
         super(new StringTextComponent("EVENT_LIST"));
         Minecraft.getInstance().options.guiScale = 4;

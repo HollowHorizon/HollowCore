@@ -1,7 +1,6 @@
 package ru.hollowhorizon.hc.common.registry;
 
 import net.minecraft.world.gen.feature.structure.IStructurePieceType;
-import net.minecraftforge.registries.ForgeRegistries;
 import ru.hollowhorizon.hc.common.world.structures.objects.HollowStructurePieces;
 
 public class ModStructurePieces {

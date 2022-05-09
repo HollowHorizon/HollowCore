@@ -48,25 +48,36 @@ public class CameraPath {
     }
 
     public void drawPath(MatrixStack matrixStack) {
+        //вызываем "рисовалку"
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferbuilder = tessellator.getBuilder();
 
-        Vector3d projectedView = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        //тип рисования линии (это значит каждые 2 точки будут превращены в линию)
+        bufferbuilder.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 
+        //сохраняем начальную позицию матрицы, т.е. место, где она была до переноса
         matrixStack.pushPose();
+
+        //переносим матрицу на место игрока
+        Vector3d projectedView = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
         matrixStack.translate(-projectedView.x, -projectedView.y, -projectedView.z);
+
+        //толщина линии
         GL11.glLineWidth(4);
 
+        //достаём саму матрицу
         Matrix4f matrix = matrixStack.last().pose();
-
-        bufferbuilder.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
         int size = precalculatedPath.size();
         for (int i = 1; i < size; i++) {
+            //тут собственно указание самих точек, я это добавил в функцию, щас распишу подробнее
             OpenGLUtils.drawLine(bufferbuilder, matrix, precalculatedPath.get(i), precalculatedPath.get(i - 1), 1.0F, 1.0F, 1.0F, 0.5F);
         }
+        //завершаем рисование
         tessellator.end();
 
+        //меняем толщину линии обратно
         GL11.glLineWidth(1);
+        //возвращаем начальную позицию, т.к. мы меняли её положение
         matrixStack.popPose();
     }
 

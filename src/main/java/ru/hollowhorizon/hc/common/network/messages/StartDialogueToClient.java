@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.common.network.messages;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
@@ -9,8 +8,8 @@ import net.minecraftforge.fml.LogicalSidedProvider;
 import net.minecraftforge.fml.network.NetworkEvent;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.client.screens.DialogueScreen;
-import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
 import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
+import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -68,7 +67,7 @@ public class StartDialogueToClient {
     }
 
     private static void processMessage(ServerPlayerEntity player, StartDialogueToClient message) {
-        Minecraft.getInstance().setScreen(new DialogueScreen(message.dialogue));
+        DialogueScreen.openGUI(message.dialogue);
     }
 
     public void encode(PacketBuffer buf) {

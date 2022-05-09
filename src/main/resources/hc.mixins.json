@@ -6,13 +6,11 @@
   "refmap": "hc.refmap.json",
   "mixins": [
     "FMLModContainerMixin",
-    "MixinIngameMenuScreen",
+    "GameRendererMixin",
     "MixinItemStack",
-    "MixinLevelRenderer",
     "MixinLocateCommand",
-    "MixinRenderItems",
-    "MixinRenderTypeBuffers",
     "MixinServerWorldInfo",
+    "ModLoaderMixin",
     "SimpleReloadableResourceManagerMixin",
     "StructureBlockMixin",
     "ftbquests.AddRewardButtonMixin",
@@ -22,6 +20,11 @@
     "ftbquests.QuestPanelMixin"
   ],
   "client": [
+    "MinecraftMixin",
+    "MixinIngameMenuScreen",
+    "MixinLevelRenderer",
+    "MixinRenderItems",
+    "MixinRenderTypeBuffers",
     "ftbquests.QuestScreenMixin"
   ],
   "injectors": {

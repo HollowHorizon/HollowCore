@@ -1,10 +1,10 @@
 package ru.hollowhorizon.hc.common.story.dialogues;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import ru.hollowhorizon.hc.client.screens.DialogueScreen;
 
 import java.util.*;
@@ -73,7 +73,7 @@ public class DialogueComponent {
 
         @SafeVarargs
         public final DialogueTextComponent setCharacterEntities(Supplier<LivingEntity>... images) {
-
+            if(FMLEnvironment.dist.isDedicatedServer()) return this; //чтобы из-за клиентских классов не крашило
             this.characters = images;
             return this;
         }
@@ -92,6 +92,7 @@ public class DialogueComponent {
         }
 
         public final DialogueTextComponent setAction(Consumer<DialogueScreen> action) {
+            if(FMLEnvironment.dist.isDedicatedServer()) return this;
             this.action = action;
             return this;
         }

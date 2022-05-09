@@ -57,6 +57,10 @@ public class DialogueScreen extends Screen {
     private boolean hasSkipButton;
     private Consumer<DialogueScreen> action;
 
+    public static void openGUI(HollowDialogue dialogue) {
+        Minecraft.getInstance().setScreen(new DialogueScreen(dialogue));
+    }
+
     public DialogueScreen(HollowDialogue dialogue) {
         super(new StringTextComponent("DIALOGUE_SCREEN"));
         this.guiScale = Minecraft.getInstance().options.guiScale;
@@ -128,7 +132,6 @@ public class DialogueScreen extends Screen {
                         //обрабатываем аудио
                         if (sound != null) {
                             HollowJavaUtils.nothing();
-                            //TODO: ЗВУКИ ДОБАВЬ!
                         }
 
                         hasSkipButton = textComponent.hasSkipButton();

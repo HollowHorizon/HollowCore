@@ -1,8 +1,6 @@
 package ru.hollowhorizon.hc.common.network.data;
 
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
-import ru.hollowhorizon.hc.api.utils.HollowConfig;
 
 public class GeneratedStructuresData implements HollowDataForServer {
 

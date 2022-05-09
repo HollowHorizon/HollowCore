@@ -1,27 +1,36 @@
 package ru.hollowhorizon.hc.common.story.events;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import ru.hollowhorizon.hc.common.network.data.StoryInfoData;
+import ru.hollowhorizon.hc.common.registry.ModCapabilities;
 
 public class StoryEventStarter {
     public static void startAll(ServerPlayerEntity player) {
-        String[] arr = StoryInfoData.INSTANCE.getAll(player);
-        if (arr != null) {
-            for (String name : arr) {
-                if (!StoryEventListener.hasStory(name, player)) StoryEventListener.startLoreNoUpdate(name, player);
+        player.getCapability(ModCapabilities.STORY_CAPABILITY).ifPresent((capability) -> {
+            for (String storyName : capability.getAll()) {
+                start(player, storyName);
             }
-        }
+        });
     }
 
     public static void stopAll(ServerPlayerEntity player) {
         StoryEventListener.stopAll(player);
     }
 
-    public static void start(ServerPlayerEntity player, String registryName) {
+    public static void start(PlayerEntity player, String registryName) {
         StoryEventListener.startLore(registryName, player);
     }
 
-    public static void end(ServerPlayerEntity player, String s) {
+    public static void end(PlayerEntity player, String s) {
         StoryEventListener.endStory(s, player);
+    }
+
+    public static void start(String name) {
+        start(Minecraft.getInstance().player, name);
+    }
+
+    public static void end(String name) {
+        end(Minecraft.getInstance().player, name);
     }
 }

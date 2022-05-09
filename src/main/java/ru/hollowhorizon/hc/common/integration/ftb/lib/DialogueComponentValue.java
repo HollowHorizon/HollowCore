@@ -15,7 +15,6 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.text.TranslationTextComponent;
-import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.common.story.dialogues.ChoiceTextComponent;
 import ru.hollowhorizon.hc.common.story.dialogues.DialogueComponent;
 import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;

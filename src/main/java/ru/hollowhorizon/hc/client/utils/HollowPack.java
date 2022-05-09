@@ -24,18 +24,15 @@ public class HollowPack implements IResourcePack {
 
     private void addItemModel(ResourceLocation location) {
         ResourceLocation models_item = new ResourceLocation(location.getNamespace(), "models/item/" + location.getPath() + ".json");
-        HollowCore.LOGGER.info("register model: " + models_item);
         resourceMap.put(models_item, ofText("{\"parent\":\"item/handheld\",\"textures\":{\"layer0\":\"" + location.getNamespace() + ":items/" + location.getPath() + "\"}}"));
     }
 
     private void addParticleModel(ResourceLocation location) {
         ResourceLocation particle = new ResourceLocation(location.getNamespace(), "particles/" + location.getPath() + ".json");
-        HollowCore.LOGGER.info("register model: " + particle);
         resourceMap.put(particle, ofText("{\"textures\":[\""+location+"\"]}"));
     }
 
     private void addBlockModel(ResourceLocation location) {
-
         ResourceLocation blockstate = new ResourceLocation(location.getNamespace(), "blockstates/" + location.getPath() + ".json");
         ResourceLocation model = new ResourceLocation(location.getNamespace(), "models/item/" + location.getPath() + ".json");
         resourceMap.put(blockstate, ofText("{\"variants\":{\"\":{\"model\":\""+location.getNamespace()+":item/"+location.getPath()+"\"}}}"));

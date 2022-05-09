@@ -7,9 +7,6 @@ import net.minecraft.util.math.vector.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Информация о анимации (логично, не так ли)
- */
 public class AnimationInfo {
     private final LivingEntity player;
     private final List<MobPosInfo> mobPos = new ArrayList<>();

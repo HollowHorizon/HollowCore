@@ -12,6 +12,7 @@ public class ClientTickHandler {
                 ticksInGame++;
             }
         }
+
 //        if (Minecraft.getInstance().level != null) {
 //            Minecraft.getInstance().level
 //                    .entitiesForRendering()
