@@ -97,6 +97,7 @@ public class AnimatrixAnimator implements IAnimator {
         }
 
         applyPoseToJoints(finalJointPoses, model.getSkeleton().getRootJoint(), new Matrix4f());
+
     }
 
     /**
@@ -137,10 +138,11 @@ public class AnimatrixAnimator implements IAnimator {
         }
 
         final Matrix4f jointInverse;
-        if (runningAnimations.isEmpty())
+        if (runningAnimations.isEmpty()) {
             jointInverse = new Matrix4f();
-        else
+        } else {
             jointInverse = joint.getInverseModelSpaceBindTransform();
+        }
 
         Matrix4f.mul(currentTransform, jointInverse, currentTransform);
         joint.setAnimationModelSpaceTransform(currentTransform);

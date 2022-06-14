@@ -25,7 +25,7 @@ public class ColladaModelLoader implements IModelLoader
     }
 
     public static void main(String[] args) {
-        new ColladaModelLoader().loadModel( new ResourceLocation(MODID, "models/untitled.dae"));
+        new ColladaModelLoader().loadModel( new ResourceLocation(MODID, "models/cyborg.dae"));
     }
 
     @Override

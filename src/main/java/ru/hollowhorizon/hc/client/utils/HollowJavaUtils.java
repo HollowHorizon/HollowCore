@@ -1,11 +1,15 @@
 package ru.hollowhorizon.hc.client.utils;
 
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.stage.FileChooser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.io.FilenameUtils;
 import ru.hollowhorizon.hc.HollowCore;
 
+import javax.swing.*;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import java.io.*;
@@ -14,9 +18,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.FileSystem;
 import java.nio.file.*;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -38,6 +42,29 @@ public class HollowJavaUtils {
         } catch (IOException e) {
             e.printStackTrace();
             throw new IllegalArgumentException("mcmod.info invalid!");
+        }
+    }
+
+    public static void main(String[] args) {
+        chooseFile(fileChooser -> fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Модель", "*.smd")), System.out::println);
+    }
+
+    public static void chooseFile(Consumer<FileChooser> consumer, Consumer<File> fileConsumer) {
+        try {
+            new JFXPanel();
+            Platform.runLater(() -> {
+                FileChooser d = new FileChooser();
+                consumer.accept(d);
+                File file = d.showOpenDialog(null);
+                fileConsumer.accept(file);
+                Platform.exit();
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            JFileChooser fileDialog = new JFileChooser();
+            fileDialog.setDialogType(JFileChooser.SAVE_DIALOG);
+            fileDialog.showSaveDialog(new Box(0));
+            fileConsumer.accept(fileDialog.getSelectedFile());
         }
     }
 
@@ -127,7 +154,7 @@ public class HollowJavaUtils {
         }
     }
 
-    public static void ensureIndex(ArrayList<?> a, int i) {
+    public static void ensureIndex(List<?> a, int i) {
 
         while (a.size() <= i) {
             a.add(null);
@@ -169,5 +196,32 @@ public class HollowJavaUtils {
 
     public static <R, K extends R> K castDarkMagic(R original) {
         return (K) original;
+    }
+
+    public static void initPath(Path path) {
+        initPath(path.toFile());
+
+    }
+
+    public static void initPath(File file) {
+        if (!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
+        }
+
+        try {
+            if (file.exists()) file.delete();
+
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static int getResourceLocationSize(ResourceLocation location) throws IOException {
+        return Minecraft.getInstance().getResourceManager().getResource(location).getInputStream().available();
+    }
+
+    public static int getInputStreamSize(InputStream inputStream) throws IOException {
+        return inputStream.available();
     }
 }

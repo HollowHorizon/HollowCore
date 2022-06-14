@@ -12,20 +12,5 @@ public class ClientTickHandler {
                 ticksInGame++;
             }
         }
-
-//        if (Minecraft.getInstance().level != null) {
-//            Minecraft.getInstance().level
-//                    .entitiesForRendering()
-//                    .forEach(e -> {
-//                                if (!(e instanceof IAnimEntity))
-//                                    return;
-//
-//                                ((IAnimEntity)e)
-//                                        .getModel()
-//                                        .getAnimator()
-//                                        .onUpdate();
-//                            }
-//                    );
-//        }
     }
 }

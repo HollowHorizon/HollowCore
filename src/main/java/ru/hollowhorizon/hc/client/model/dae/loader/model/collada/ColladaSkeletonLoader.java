@@ -42,7 +42,9 @@ public class ColladaSkeletonLoader
 	
 	private JointData extractMainJointData(final XmlNode jointNode, final boolean isRoot){
 		final String nameId = jointNode.getAttribute("id");
-		final int index = boneOrder.indexOf(nameId);
+		int index = boneOrder.indexOf(nameId);
+		if(index == -1) index = boneOrder.indexOf(nameId.substring(9));
+
 		final String[] matrixData = jointNode.getChild("matrix").getData().split(" ");
 		final Matrix4f matrix = new Matrix4f();
 		matrix.load(convertData(matrixData));

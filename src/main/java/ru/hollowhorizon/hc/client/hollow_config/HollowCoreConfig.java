@@ -13,6 +13,8 @@ public class HollowCoreConfig {
     public static HollowVariable<Boolean> main_hero_voice = new HollowVariable<>(true, "main_hero_voice");
     @HollowConfig
     public static HollowVariable<Boolean> is_editing_mode = new HollowVariable<>(false, "");
+    @HollowConfig
+    public static HollowVariable<Boolean> is_smooth_animations = new HollowVariable<>(true, "");
     @HollowConfig(min = -1.0F, max = 10.0F)
     public static HollowVariable<Float> dialogues_volume = new HollowVariable<>(1.0F, "");
 
@@ -21,7 +23,7 @@ public class HollowCoreConfig {
         if (!config.exists()) {
             SaveJsonHelper.save(config, new JsonObject());
         } else {
-
+            config.mkdirs();
         }
     }
 

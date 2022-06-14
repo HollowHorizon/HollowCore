@@ -153,4 +153,13 @@ public class XmlNode {
         this.data = data;
     }
 
+    @Override
+    public String toString() {
+        return "XmlNode{" +
+                "name='" + name + '\'' +
+                ", attributes=" + attributes +
+                ", data='" + data + '\'' +
+                ", childNodes=" + childNodes +
+                '}';
+    }
 }

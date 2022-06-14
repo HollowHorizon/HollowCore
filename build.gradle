@@ -126,11 +126,15 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.3:processor'
     minecraft 'net.minecraftforge:forge:1.16.5-36.2.29'
 
+    shade("uk.co.caprica:vlcj:4.7.3")
+    implementation ("uk.co.caprica:vlcj:4.7.3")
+
     implementation fg.deobf('dev.latian.mods:itemfilters:1605.2.5')
     implementation fg.deobf('dev.latian.mods:ftblibrary:1605.3.4')
     implementation fg.deobf('dev.latian.mods:ftbquests:1605.3.6')
     implementation fg.deobf('dev.latian.mods:ftbteams:1605.2.3')
     implementation fg.deobf('me.shedaniel:architectury:1.30.53')
+
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..

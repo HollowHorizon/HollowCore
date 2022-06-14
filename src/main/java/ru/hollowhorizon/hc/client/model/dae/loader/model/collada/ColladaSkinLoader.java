@@ -25,6 +25,7 @@ public class ColladaSkinLoader
 		final XmlNode weightsDataNode = skinningData.getChild("vertex_weights");
 		final int[] effectorJointCounts = getEffectiveJointsCounts(weightsDataNode);
 		final List<VertexSkinData> vertexWeights = getSkinData(weightsDataNode, effectorJointCounts, weights);
+		System.out.println("skin joints: "+jointsList.size());
 		return new SkinningData(jointsList, vertexWeights);
 	}
 
@@ -33,8 +34,9 @@ public class ColladaSkinLoader
 		final String jointDataId = inputNode.getChildWithAttribute("input", "semantic", "JOINT").getAttribute("source")
 				.substring(1);
 		final XmlNode jointsNode = skinningData.getChildWithAttribute("source", "id", jointDataId).getChild("Name_array");
+
 		final String[] names = jointsNode.getData().split(" ");
-		final List<String> jointsList = new ArrayList<String>();
+		final List<String> jointsList = new ArrayList<>();
 		Collections.addAll(jointsList, names);
 		return jointsList;
 	}

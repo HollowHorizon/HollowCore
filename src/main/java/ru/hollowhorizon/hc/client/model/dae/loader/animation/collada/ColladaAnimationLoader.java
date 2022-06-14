@@ -19,7 +19,7 @@ public class ColladaAnimationLoader implements IAnimationLoader {
 
     public static void main(String[] args) {
         try {
-            new ColladaAnimationLoader().loadAnimation(new ResourceLocation(MODID, "models/untitled.dae"));
+            new ColladaAnimationLoader().loadAnimation(new ResourceLocation(MODID, "models/cyborg.dae"));
         } catch (AnimationLoadingException e) {
             e.printStackTrace();
         }
@@ -32,7 +32,6 @@ public class ColladaAnimationLoader implements IAnimationLoader {
             final XmlNode animNode = node.getChild("library_animations");
             final XmlNode jointsNode = node.getChild("library_visual_scenes");
             final ColladaAnimationExtractor loader = new ColladaAnimationExtractor(animNode, jointsNode);
-            System.out.println("loading animations done");
             return loader.extractAnimation();
         }
         catch (final Exception e) {

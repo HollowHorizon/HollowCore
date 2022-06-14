@@ -2,6 +2,8 @@ package ru.hollowhorizon.hc.common.network;
 
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.ResourceLocation;
+import ru.hollowhorizon.hc.client.utils.HollowNBTSerializer;
 import ru.hollowhorizon.hc.common.network.messages.HollowPacketToClient;
 import ru.hollowhorizon.hc.common.network.messages.HollowPacketToServer;
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
@@ -15,7 +17,13 @@ public class UniversalPacketManager {
 
     public static UniversalPacket<?> getPacketFromNBT(CompoundNBT nbt, String serializer, String name) {
         UniversalPacket<?> packet =  PACKETS.get(name);
-        packet.value = HollowJavaUtils.castDarkMagic(NBTUtils.SERIALIZERS.get(serializer).fromNBT(nbt));
+        HollowNBTSerializer<?> hollowNBTSerializer = NBTUtils.SERIALIZERS.get(new ResourceLocation(serializer));
+        if(serializer.equals("hc:none")) return packet;
+        try {
+            packet.value = HollowJavaUtils.castDarkMagic(hollowNBTSerializer.fromNBT(nbt));
+        } catch (Exception e) {
+            throw new IllegalStateException("Packet "+name+" not found. Check your @HollowPacket annotation");
+        }
         return packet;
     }
 

@@ -229,6 +229,20 @@ public class MatrixUtils {
         src.m23 = src.m23 * vec.z();
     }
 
+    public static net.minecraft.util.math.vector.Vector4f transform(Matrix4f left, net.minecraft.util.math.vector.Vector4f right, net.minecraft.util.math.vector.Vector4f dest) {
+        if (dest == null) {
+            dest = new net.minecraft.util.math.vector.Vector4f();
+        }
+        float x = left.m00 * right.x() + left.m10 * right.y() + left.m20 * right.z() + left.m30 * right.w();
+        float y = left.m01 * right.x() + left.m11 * right.y() + left.m21 * right.z() + left.m31 * right.w();
+        float z = left.m02 * right.x() + left.m12 * right.y() + left.m22 * right.z() + left.m32 * right.w();
+        float w = left.m03 * right.x() + left.m13 * right.y() + left.m23 * right.z() + left.m33 * right.w();
+
+        dest.set(x, y, z, w);
+
+        return dest;
+    }
+
     public static Vector4f transform(Matrix4f left, Vector4f right, Vector4f dest) {
         if (dest == null) {
             dest = new Vector4f();

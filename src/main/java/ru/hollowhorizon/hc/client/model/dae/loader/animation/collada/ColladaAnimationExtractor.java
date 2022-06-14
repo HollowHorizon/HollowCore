@@ -30,6 +30,7 @@ public class ColladaAnimationExtractor
 		final float duration = times[times.length-1];
 		final KeyFrameData[] keyFrames = initKeyFrames(times);
 		final List<XmlNode> animationNodes = animationData.getChildren("animation");
+
 		for(final XmlNode jointNode : animationNodes){
 			loadJointTransforms(keyFrames, jointNode, rootNode);
 		}
@@ -55,8 +56,8 @@ public class ColladaAnimationExtractor
 	}
 	
 	private void loadJointTransforms(final KeyFrameData[] frames, final XmlNode jointData, final String rootNodeId){
-		final String jointNameId = getJointName(jointData);
-		final String dataId = getDataId(jointData);
+		final String jointNameId = getJointName(jointData); //Armature_Bone | Torso
+		final String dataId = getDataId(jointData); //Armature_ArmatureAction_Bone_pose_matrix-output | Armature_Torso_pose_matrix-output
 		final XmlNode transformData = jointData.getChildWithAttribute("source", "id", dataId);
 		final String[] rawData = transformData.getChild("float_array").getData().split(" ");
 		processTransforms(jointNameId, rawData, frames, jointNameId.equals(rootNodeId));

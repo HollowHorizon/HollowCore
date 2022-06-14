@@ -9,7 +9,7 @@ import static ru.hollowhorizon.hc.HollowCore.MODID;
 public class ModModels {
 
     public static IModel TEST = IModelLoaderManager.getInstance().loadModel(
-            new ResourceLocation(MODID, "models/untitled.dae"),
-            new ResourceLocation(MODID, "textures/entity/diffuse.png")
+            new ResourceLocation(MODID, "models/cyborg.dae"),
+            new ResourceLocation(MODID, "textures/gui/black.png")
     );
 }

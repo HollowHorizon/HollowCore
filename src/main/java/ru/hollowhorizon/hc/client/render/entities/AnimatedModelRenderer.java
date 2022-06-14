@@ -1,7 +1,6 @@
 package ru.hollowhorizon.hc.client.render.entities;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -20,8 +19,6 @@ import ru.hollowhorizon.hc.proxy.ClientProxy;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
-
-import static ru.hollowhorizon.hc.HollowCore.MODID;
 
 public class AnimatedModelRenderer<T extends LivingEntity> extends LivingRenderer<T, EntityModel<T>> {
 
@@ -67,13 +64,10 @@ public class AnimatedModelRenderer<T extends LivingEntity> extends LivingRendere
 
     @Override
     public ResourceLocation getTextureLocation(T p_110775_1_) {
-        return new ResourceLocation(MODID, "textures/entity/diffuse.png");
+        return ModModels.TEST.getSkin().getTexture();
     }
 
     public void drawModel(RenderType renderType, T entityIn, MatrixStack matrixStackIn, Matrix4f projectionMatrix, int packedLightIn, int packedOverlay, float entityYaw) {
-        RenderSystem.pushMatrix();
-        RenderSystem.rotatef(-entityYaw, 0.0F, 1.0F, 0.0F);
-
         matrixStackIn.pushPose();
 
         ModModels.TEST.getAnimator().onUpdate();
@@ -93,6 +87,5 @@ public class AnimatedModelRenderer<T extends LivingEntity> extends LivingRendere
         ClientProxy.SHADER.stop();
 
         matrixStackIn.popPose();
-        RenderSystem.popMatrix();
     }
 }

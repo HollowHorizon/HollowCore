@@ -29,7 +29,6 @@ public class ShaderHandler {
 
         this.blitBuffer = new Framebuffer(Minecraft.getInstance().getMainRenderTarget().width, Minecraft.getInstance().getMainRenderTarget().height, true, Minecraft.ON_OSX);
 
-        System.out.println("INITINIT");
     }
 
     public float getSwirlAngle(float partialTicks) {

@@ -23,6 +23,7 @@ import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
 import ru.hollowhorizon.hc.client.hollow_config.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.NBTUtils;
+import ru.hollowhorizon.hc.client.video.MediaListener;
 import ru.hollowhorizon.hc.common.animations.AnimationManager;
 import ru.hollowhorizon.hc.common.commands.HollowCommands;
 import ru.hollowhorizon.hc.common.handlers.DelayHandler;
@@ -45,6 +46,7 @@ public class HollowCore {
     public static CommonProxy proxy = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> ServerProxy::new);
 
     public HollowCore() {
+        VideoRegistry.init();
         if (ModList.get().isLoaded("ftbquests")) {
             FTBQuestsHandler.init();
         }
@@ -64,6 +66,7 @@ public class HollowCore {
             forgeBus.addListener(ClientTickHandler::clientTickEnd);
             new HollowEventHandler().init();
             HollowCoreConfig.initConfig();
+            MediaListener.registerReload();
         }
         DelayHandler.init();
         //команды
@@ -83,7 +86,7 @@ public class HollowCore {
 
     public void registerReloadListeners(AddReloadListenerEvent e) {
         if (FMLEnvironment.dist.isClient()) {
-            ModShaders.init(e);
+            //ModShaders.init(e);
         }
     }
 

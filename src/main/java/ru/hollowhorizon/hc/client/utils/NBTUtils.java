@@ -6,21 +6,78 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.fml.loading.FMLPaths;
+import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilities;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapability;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static ru.hollowhorizon.hc.HollowCore.MODID;
+
 public class NBTUtils {
-    public static final Map<String, HollowNBTSerializer<?>> SERIALIZERS = new HashMap<>();
+    public static final Map<ResourceLocation, HollowNBTSerializer<?>> SERIALIZERS = new HashMap<>();
+
+    public static final HollowNBTSerializer<Void> NONE = new HollowNBTSerializer<Void>("none") {
+        @Override
+        public Void fromNBT(CompoundNBT nbt) {
+            return null;
+        }
+
+        @Override
+        public CompoundNBT toNBT(Void value) {
+            return new CompoundNBT();
+        }
+    };
+
+    public static final HollowNBTSerializer<File> FILE_SERIALISER = new HollowNBTSerializer<File>("file_serialiser") {
+        @Override
+        public File fromNBT(CompoundNBT nbt) {
+            String fileName = nbt.getString("name");
+            byte[] bytes = nbt.getByteArray("data");
+
+            Path path = FMLPaths.CONFIGDIR.get().resolve("hollow-story").resolve("cache").resolve(fileName);
+            File file = path.toFile();
+            HollowJavaUtils.initPath(file);
+            System.out.println("file path init: "+file);
+            try {
+                Files.write(path, bytes);
+            } catch (IOException e) {
+                HollowCore.LOGGER.error("Can't create file");
+                e.printStackTrace();
+            }
+
+            return file;
+        }
+
+        @Override
+        public CompoundNBT toNBT(File value) {
+            try {
+                InputStream stream = new FileInputStream(value);
+                byte[] bytes = new byte[stream.available()];
+                DataInputStream dis = new DataInputStream(stream);
+                dis.readFully(bytes);
+                CompoundNBT nbt = new CompoundNBT();
+                nbt.putString("name", value.getName());
+                nbt.putByteArray("data", bytes);
+                return nbt;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return new CompoundNBT();
+            }
+        }
+    };
 
     public static final HollowNBTSerializer<HollowCapability<?>> HOLLOW_CAPABILITY_SERIALIZER = new HollowNBTSerializer<HollowCapability<?>>("hollow_capability_serializer") {
         @Override
         public HollowCapability<?> fromNBT(CompoundNBT nbt) {
             String nbts = nbt.getString("cap");
-            System.out.println(nbts);
+
             String[] s = nbts.split(":");
             ResourceLocation location = new ResourceLocation(s[0], s[1]);
 
@@ -158,13 +215,14 @@ public class NBTUtils {
     }
 
     public static <T> void addSerializer(HollowNBTSerializer<T> tHollowNBTSerializer, String s) {
-        SERIALIZERS.put(s, tHollowNBTSerializer);
+        if (!s.contains(":")) s = MODID + ":" + s;
+        SERIALIZERS.put(new ResourceLocation(s), tHollowNBTSerializer);
     }
 
     public static String getName(HollowNBTSerializer<?> serializer) {
-        for (Map.Entry<String, HollowNBTSerializer<?>> ser : SERIALIZERS.entrySet()) {
+        for (Map.Entry<ResourceLocation, HollowNBTSerializer<?>> ser : SERIALIZERS.entrySet()) {
             if (ser.getValue().equals(serializer)) {
-                return ser.getKey();
+                return ser.getKey().toString();
             }
         }
         return "null";

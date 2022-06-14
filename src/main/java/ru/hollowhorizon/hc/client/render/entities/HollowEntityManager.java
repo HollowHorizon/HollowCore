@@ -26,7 +26,7 @@ public class HollowEntityManager {
 
     public static void registerHollowMobs() {
         HollowCore.LOGGER.info("models init");
-        RenderingRegistry.registerEntityRenderingHandler(ModEntities.testEntity, AnimatedModelRenderer::new);
+        RenderingRegistry.registerEntityRenderingHandler(ModEntities.testEntity, HollowModelRenderer::new);
 //        for(Map.Entry<EntityType<?>, String> entry : mobData.entrySet()) {
 //            RenderingRegistry.registerEntityRenderingHandler(entry.getKey(), AnimatedModelRenderer::new);
 //            HollowCore.LOGGER.info("model: "+entry.getKey().toString());
