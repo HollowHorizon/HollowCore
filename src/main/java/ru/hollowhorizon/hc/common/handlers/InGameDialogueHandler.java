@@ -59,16 +59,15 @@ public class InGameDialogueHandler {
                             component.append(textComponent.getText());
                         } else {
                             component = textComponent.getText().copy();
-                            player.sendMessage(component, player.getUUID());
-
-                            ticker = 0;
-                            maxTicks = component.getString().length() * 2;
 
                             if (textComponent.getAudio() != null) {
                                 String[] resource = textComponent.getAudio().split(":");
                                 player.getLevel().playSound(player, player.position().x, player.position().y, player.position().z, Objects.requireNonNull(ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation(resource[0], resource[1]))), SoundCategory.MASTER, 1.0f, 1.0f);
                             }
                         }
+
+                        player.sendMessage(component, player.getUUID());
+                        maxTicks = component.getString().length() * 2;
                     },
                     (choiceComponent) -> {
 
@@ -88,6 +87,7 @@ public class InGameDialogueHandler {
             ticker += 1;
         } else {
             updateText();
+            ticker=0;
         }
     }
 }

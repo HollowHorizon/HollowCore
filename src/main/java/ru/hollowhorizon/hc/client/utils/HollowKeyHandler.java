@@ -41,6 +41,6 @@ public class HollowKeyHandler {
     }
 
     private void registerKeys() {
-        ClientRegistry.registerKeyBinding(OPEN_EVENT_LIST);
+        //ClientRegistry.registerKeyBinding(OPEN_EVENT_LIST);
     }
 }

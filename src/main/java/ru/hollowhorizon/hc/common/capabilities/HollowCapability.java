@@ -8,7 +8,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 import ru.hollowhorizon.hc.common.network.HollowPackets;
 import ru.hollowhorizon.hc.common.network.UniversalPacket;
 
@@ -36,7 +35,7 @@ public abstract class HollowCapability<T extends HollowCapability<T>> {
     }
 
     public void update(PlayerEntity player) {
-        UniversalPacket<HollowCapability<?>> packet = HollowPackets.SKILL_PANEL_PACKET;
+        UniversalPacket<HollowCapability<?>> packet = HollowPackets.CAPABILITY_PACKET;
 
         if (player.level.isClientSide) {
             packet.sendToServer(this);

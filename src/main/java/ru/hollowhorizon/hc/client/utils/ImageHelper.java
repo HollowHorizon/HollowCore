@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.client.utils;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.NativeImage;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.BufferUtils;
 
@@ -47,6 +48,22 @@ public class ImageHelper {
         trans.rotate(radians, midX, midY);
         AffineTransformOp op = new AffineTransformOp(trans, 1);
         return op.filter(img, (BufferedImage)null);
+    }
+
+    public static NativeImage getNativeImage(BufferedImage img) {
+        int width = img.getWidth();
+        int height = img.getHeight();
+        int[] pixels = new int[img.getWidth() * img.getHeight()];
+        img.getRGB(0, 0, width, height, pixels, 0, width);
+        NativeImage n = new NativeImage(img.getWidth(), img.getHeight(), true);
+
+        for(int y = 0; y < height; ++y) {
+            for(int x = 0; x < width; ++x) {
+                int pixel = pixels[y * width + x];
+                n.setPixelRGBA(pixel >> 16 & 255, pixel >> 8 & 255, pixel & 255);
+            }
+        }
+        return n;
     }
 
     public static ByteBuffer getBuffer(BufferedImage img) {

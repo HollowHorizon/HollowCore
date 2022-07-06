@@ -177,6 +177,19 @@ public class NBTUtils {
             return nbt;
         }
     };
+    public static final HollowNBTSerializer<CompoundNBT> COMPOUND_SEIALIZER = new HollowNBTSerializer<CompoundNBT>("compound_nbt") {
+        @Override
+        public CompoundNBT fromNBT(CompoundNBT nbt) {
+            return nbt.getCompound("value");
+        }
+
+        @Override
+        public CompoundNBT toNBT(CompoundNBT value) {
+            CompoundNBT nbt = new CompoundNBT();
+            nbt.put("value", value);
+            return nbt;
+        }
+    };
 
     public static void init() {
 

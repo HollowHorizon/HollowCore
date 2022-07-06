@@ -6,7 +6,6 @@
   "refmap": "hc.refmap.json",
   "mixins": [
     "FMLModContainerMixin",
-    "MixinItemStack",
     "MixinLocateCommand",
     "MixinServerWorldInfo",
     "ModLoaderMixin",
@@ -19,12 +18,7 @@
     "ftbquests.QuestPanelMixin"
   ],
   "client": [
-    "GameRendererMixin",
-    "MinecraftMixin",
     "MixinIngameMenuScreen",
-    "MixinLevelRenderer",
-    "MixinRenderItems",
-    "MixinRenderTypeBuffers",
     "ftbquests.QuestScreenMixin"
   ],
   "injectors": {

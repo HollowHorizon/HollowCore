@@ -18,6 +18,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.FileSystem;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.function.Consumer;
@@ -192,6 +193,14 @@ public class HollowJavaUtils {
     public static int[] listIntToArray(List<Integer> list) {
         int[] result = list.stream().mapToInt((Integer v) -> v).toArray();
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <R, K extends R> K[] castDarkMagic(R first, K second) {
+        List<K> list = new ArrayList<>();
+        list.add((K) first);
+        list.add(second);
+        return (K[]) list.toArray();
     }
 
     public static <R, K extends R> K castDarkMagic(R original) {

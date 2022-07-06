@@ -54,12 +54,10 @@ public class DialogueScreen extends Screen {
     public boolean isButtonsCreated = false;
     public boolean isLineEnded = true;
     public Entity[] CHARACTERS;
+    private ResourceLocation LAST_BG;
     private boolean hasSkipButton;
     private Consumer<DialogueScreen> action;
-
-    public static void openGUI(HollowDialogue dialogue) {
-        Minecraft.getInstance().setScreen(new DialogueScreen(dialogue));
-    }
+    private int bgCounter;
 
     public DialogueScreen(HollowDialogue dialogue) {
         super(new StringTextComponent("DIALOGUE_SCREEN"));
@@ -70,6 +68,28 @@ public class DialogueScreen extends Screen {
         this.dialogueName = GUIDialogueHandler.getRegName(dialogue);
         this.iterator = dialogue.iterator();
         updateStrings();
+    }
+
+    public static void openGUI(HollowDialogue dialogue) {
+        Minecraft.getInstance().setScreen(new DialogueScreen(dialogue));
+    }
+
+    public static void drawStringNoShadow(MatrixStack stack, FontRenderer fr, ITextComponent text, int x, int y, int color, int alpha) {
+        stack.pushPose();
+        stack.translate(0.0D, 0.0D, 200.0D);
+
+
+        GL14.glBlendFuncSeparate(770, 771, 1, 0);
+        GL11.glAlphaFunc(516, 0.1F);
+
+        fr.draw(stack, text.getString(), (float) (x), (float) y, color | (alpha << 24));
+
+        stack.popPose();
+    }
+
+    @Override
+    public boolean isPauseScreen() {
+        return true;
     }
 
     public void updateStrings() {
@@ -115,9 +135,9 @@ public class DialogueScreen extends Screen {
                         }
 
                         //обрабатываем задний фон
-                        if (dialogueBG != null) {
-                            BG = dialogueBG;
-                        }
+                        LAST_BG = BG;
+                        BG = dialogueBG;
+
 
                         //обрабатываем мобов
                         if (entities != null) {
@@ -235,7 +255,7 @@ public class DialogueScreen extends Screen {
 
         Calendar calendar = new GregorianCalendar();
         String time = new SimpleDateFormat("HH:mm").format(calendar.getTime());
-        drawStringNoShadow(stack, Minecraft.getInstance().font, time, this.width - Minecraft.getInstance().font.width(time), 1, 0xFF);
+        drawStringNoShadow(stack, Minecraft.getInstance().font, time, (int) (this.width - Minecraft.getInstance().font.width(time)), 1, 0xFF);
     }
 
     public void drawOverlay(MatrixStack stack, int offsetX) {
@@ -287,11 +307,29 @@ public class DialogueScreen extends Screen {
             Minecraft.getInstance().getTextureManager().bind(BG);
             blit(matrixStack, 0, 0, 0, 0, this.width, this.height, this.width, this.height);
             matrixStack.popPose();
+        } else {
+            if (LAST_BG != null) {
+                if (bgCounter < 15) {
+                    matrixStack.pushPose();
+                    matrixStack.translate(0.0D, 0.0D, -1000.0D);
+                    RenderSystem.enableBlend();
+                    RenderSystem.defaultBlendFunc();
+                    RenderSystem.defaultAlphaFunc();
+                    RenderSystem.color4f(1.0F, 1.0F, 1.0F, bgCounter / 14F);
+                    Minecraft.getInstance().getTextureManager().bind(LAST_BG);
+                    blit(matrixStack, 0, 0, 0, 0, this.width, this.height, this.width, this.height);
+                    matrixStack.popPose();
+                    bgCounter++;
+                } else {
+                    LAST_BG = null;
+                    bgCounter = 0;
+                }
+            }
         }
     }
 
     public void drawAnimatedStrings(MatrixStack stack) {
-        drawStringNoShadow(stack, this.font, characterName, this.width / 4 - font.width(characterName), this.height - this.height / 6, 0xFFFFFF, 0xFF);
+        drawStringNoShadow(stack, Minecraft.getInstance().font, characterName, (int) (this.width / 4 - Minecraft.getInstance().font.width(characterName.getString())), this.height - this.height / 6, 0xFFFFFF, 0xFF);
 
         if (text.length() > stringTicks) stringTicks++;
         else {
@@ -305,7 +343,7 @@ public class DialogueScreen extends Screen {
 
             if (stringAnimationTicks <= (this.height / 24) * (i + 1)) {
 
-                drawStringNoShadow(stack, this.font, strings.get(i), this.width / 4, this.height - this.height / 6 + (this.height / 24) * i - stringAnimationTicks, 0xFF - stringAnimationTicks / (i + 1) * 22);
+                drawStringNoShadow(stack, Minecraft.getInstance().font, strings.get(i), this.width / 4, this.height - this.height / 6 + (this.height / 24) * i - stringAnimationTicks, 0xFF - stringAnimationTicks / (i + 1) * 22);
 
             } else if (i == strings.size() - 1) {
 
@@ -325,19 +363,6 @@ public class DialogueScreen extends Screen {
 
     protected void drawStringNoShadow(MatrixStack stack, FontRenderer fr, String text, int x, int y, int alpha) {
         drawStringNoShadow(stack, fr, new StringTextComponent(text), x, y, 0xFFFFFF, alpha);
-    }
-
-    public static void drawStringNoShadow(MatrixStack stack, FontRenderer fr, ITextComponent text, int x, int y, int color, int alpha) {
-        stack.pushPose();
-        stack.translate(0.0D, 0.0D, 200.0D);
-
-
-        GL14.glBlendFuncSeparate(770, 771, 1, 0);
-        GL11.glAlphaFunc(516, 0.1F);
-
-        fr.draw(stack, text, (float) (x), (float) y, color | (alpha << 24));
-
-        stack.popPose();
     }
 
     public void createButtons() {

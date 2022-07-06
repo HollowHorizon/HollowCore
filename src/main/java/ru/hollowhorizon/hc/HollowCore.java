@@ -26,6 +26,8 @@ import ru.hollowhorizon.hc.client.utils.NBTUtils;
 import ru.hollowhorizon.hc.client.video.MediaListener;
 import ru.hollowhorizon.hc.common.animations.AnimationManager;
 import ru.hollowhorizon.hc.common.commands.HollowCommands;
+import ru.hollowhorizon.hc.common.container.TestUContainer;
+import ru.hollowhorizon.hc.common.container.UniversalContainerManager;
 import ru.hollowhorizon.hc.common.handlers.DelayHandler;
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.integration.ftb.quests.FTBQuestsHandler;
@@ -103,6 +105,8 @@ public class HollowCore {
         NBTUtils.init();
 
         GlobalEntityTypeAttributes.put(ModEntities.testEntity, TestEntity.createMobAttributes().build());
+
+        UniversalContainerManager.registerContainer("test_container", TestUContainer::new);
     }
 
     //『Post-Init』

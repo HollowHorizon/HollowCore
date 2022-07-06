@@ -10,7 +10,6 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.settings.PointOfView;
 import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -77,20 +76,9 @@ public class HollowEventHandler {
             MinecraftForge.EVENT_BUS.addListener(this::onRenderOverlayPost);
             MinecraftForge.EVENT_BUS.addListener(this::renderWorldEvent);
         }
-        MinecraftForge.EVENT_BUS.addListener(this::tooltipEvent);
-    }
 
-    @SubscribeEvent
-    public void renderLivingEvent(RenderLivingEvent.Pre<? extends LivingEntity, ? extends EntityModel<? extends LivingEntity>> event) {
-        if (!Minecraft.getInstance().player.canSee(event.getEntity())) {
-            event.setCanceled(true);
-            return;
-        }
-        if (event.getEntity().getType().getRegistryName().equals(ModEntities.testEntity.getRegistryName())) {
-            TestEntity entity = (TestEntity) event.getEntity();
-            event.setCanceled(true);
-            //renderer.render(entity, (LivingRenderer<TestEntity, PlayerModel<TestEntity>>) event.getRenderer(), event.getBuffers(), event.getMatrixStack(), event.getLight(), event.getPartialRenderTick());
-        }
+        MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.addListener(this::tooltipEvent);
     }
 
     private void tooltipEvent(ItemTooltipEvent event) {
@@ -231,6 +219,7 @@ public class HollowEventHandler {
         vertexbuffer.vertex(left, bottom, zLevel).color(f5, f6, f7, f4).endVertex();
         vertexbuffer.vertex(right, bottom, zLevel).color(f5, f6, f7, f4).endVertex();
         tessellator.end();
+
         RenderSystem.shadeModel(GL11.GL_FLAT);
         RenderSystem.disableBlend();
         RenderSystem.enableAlphaTest();

@@ -7,8 +7,9 @@ import ru.hollowhorizon.hc.client.utils.NBTUtils;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapability;
 
 public class HollowPackets {
+
     @HollowPacket
-    public static final UniversalPacket<HollowCapability<?>> SKILL_PANEL_PACKET = new UniversalPacket<HollowCapability<?>>() {
+    public static final UniversalPacket<HollowCapability<?>> CAPABILITY_PACKET = new UniversalPacket<HollowCapability<?>>() {
 
         @Override
         public HollowNBTSerializer<HollowCapability<?>> serializer() {

@@ -1,39 +1,63 @@
 package ru.hollowhorizon.hc.common.container;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.gui.AbstractGui;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import ru.hollowhorizon.hc.common.container.inventory.HollowInventory;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import ru.hollowhorizon.hc.api.registy.HollowPacket;
+import ru.hollowhorizon.hc.client.utils.HollowNBTSerializer;
+import ru.hollowhorizon.hc.client.utils.NBTUtils;
+import ru.hollowhorizon.hc.common.events.UniversalContainerEvent;
+import ru.hollowhorizon.hc.common.network.UniversalPacket;
+import ru.hollowhorizon.hc.common.registry.ModContainers;
 
-public abstract class HollowContainer {
-    protected World world;
+import java.util.List;
 
-    @OnlyIn(Dist.CLIENT)
-    public void clientInit(ScreenManager manager) {}
-    @OnlyIn(Dist.CLIENT)
-    public void onMouseEvent(MouseManager manager) {}
-    @OnlyIn(Dist.CLIENT)
-    public void onKeyEvent(KeyManager manager) {}
+public class HollowContainer extends Container {
+    protected final PlayerInventory playerInventory;
+    private UniversalContainer container;
+    private List<ItemStack> waitItems;
 
-    @OnlyIn(Dist.DEDICATED_SERVER)
-    public abstract void serverInit(ContainerManager manager);
-
-    public void onItemRemoved(HollowInventory inventory, ItemStack removedItem, int slotId, int count) {}
-    public void onItemUpdate(HollowInventory inventory, ItemStack item, int slotId) {}
-    public void onInventoryClear(HollowInventory inventory) {}
-
-    @OnlyIn(Dist.CLIENT)
-    public abstract void render(MatrixStack stack, int mouseX, int mouseY);
-
-    @OnlyIn(Dist.CLIENT)
-    void blit(MatrixStack stack, int x, int y, int width, int height) {
-        AbstractGui.blit(stack, x, y, 0,0, width, height, width, height);
+    public HollowContainer(int windowId, PlayerInventory inv, PacketBuffer data) {
+        this(inv, windowId);
     }
 
-    public World getWorld() {
-        return world;
+    public HollowContainer(PlayerInventory playerInventory, int windowId) {
+        super(ModContainers.HOLLOW_CONTAINER, windowId);
+        this.playerInventory = playerInventory;
+    }
+
+    @Override
+    public void setAll(List<ItemStack> p_190896_1_) {
+        if(container != null) {
+            super.setAll(p_190896_1_);
+        } else {
+            waitItems = p_190896_1_;
+        }
+    }
+
+    public UniversalContainer getUContainer() {
+        return container;
+    }
+
+    public void setUContainer(UniversalContainer container) {
+        this.container = container;
+        this.container.serverInit(this);
+        if(this.playerInventory.player.level.isClientSide) setAll(waitItems);
+    }
+
+    public Slot createSlot(Slot slot) {
+        return this.addSlot(slot);
+    }
+
+    @Override
+    public boolean stillValid(PlayerEntity p_75145_1_) {
+        return true;
     }
 }

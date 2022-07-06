@@ -11,7 +11,7 @@ import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import ru.hollowhorizon.hc.common.integration.ftb.lib.DialogueBuilderConfig;
+import ru.hollowhorizon.hc.common.container.UniversalContainer;
 import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
 import ru.hollowhorizon.hc.common.handlers.InGameDialogueHandler;
 import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
@@ -89,7 +89,7 @@ public class HollowCommands {
                 .then(lore)
                 .then(dialogues)
                 .then(Commands.literal("test").executes((source) -> {
-                            new DialogueBuilderConfig().getScreen().openGui();
+                            UniversalContainer.openContainer("test_container", source.getSource().getPlayerOrException());
                             return 1;
                         })
                 )
