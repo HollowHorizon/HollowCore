@@ -90,7 +90,6 @@ public class NBTUtils {
         @Override
         public CompoundNBT toNBT(HollowCapability<?> value) {
             CompoundNBT compound = new CompoundNBT();
-            System.out.println(value.getRegistryName().toString());
             compound.putString("cap", value.getRegistryName().toString());
             compound.put("nbt", value.writeNBT());
             return compound;
