@@ -94,7 +94,7 @@ public class HollowEventHandler {
                 HollowCapability<?> newCap = event.getPlayer().getCapability(cap).orElse(null);
                 newCap.readNBT(origCap.writeNBT());
                 newCap.update(event.getPlayer());
-                newCap.onDeath(event.getPlayer(), event.getOriginal().position());
+                newCap.onDeath(event.getPlayer(), event.getOriginal());
             }
         }
     }

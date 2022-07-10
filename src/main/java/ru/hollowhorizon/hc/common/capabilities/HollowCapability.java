@@ -5,7 +5,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
@@ -26,7 +25,7 @@ public abstract class HollowCapability<T extends HollowCapability<T>> {
 
     public abstract void readNBT(CompoundNBT nbt);
 
-    public void onDeath(PlayerEntity player, Vector3d oldPos) {
+    public void onDeath(PlayerEntity player, PlayerEntity oldPlayer) {
     }
 
     public ResourceLocation getRegistryName() {
