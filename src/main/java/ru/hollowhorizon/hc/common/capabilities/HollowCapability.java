@@ -25,6 +25,9 @@ public abstract class HollowCapability<T extends HollowCapability<T>> {
 
     public abstract void readNBT(CompoundNBT nbt);
 
+    public void onDeath(PlayerEntity player) {
+    }
+
     public ResourceLocation getRegistryName() {
         return location;
     }

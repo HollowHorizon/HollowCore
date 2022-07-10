@@ -5,18 +5,15 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.settings.PointOfView;
 import net.minecraft.client.shader.Framebuffer;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderLivingEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
@@ -37,8 +34,6 @@ import ru.hollowhorizon.hc.common.network.data.ActionsData;
 import ru.hollowhorizon.hc.common.network.data.LoreChoicesData;
 import ru.hollowhorizon.hc.common.network.data.ReputationDataForPlayer;
 import ru.hollowhorizon.hc.common.network.data.StoryInfoData;
-import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
-import ru.hollowhorizon.hc.common.registry.ModEntities;
 import ru.hollowhorizon.hc.common.story.events.StoryEventStarter;
 
 import java.util.ArrayList;
@@ -99,6 +94,7 @@ public class HollowEventHandler {
                 HollowCapability<?> newCap = event.getPlayer().getCapability(cap).orElse(null);
                 newCap.readNBT(origCap.writeNBT());
                 newCap.update(event.getPlayer());
+                newCap.onDeath(event.getPlayer());
             }
         }
     }
