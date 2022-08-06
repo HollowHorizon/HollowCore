@@ -1,7 +1,6 @@
 package ru.hollowhorizon.hc;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.ai.attributes.GlobalEntityTypeAttributes;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -10,7 +9,6 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
@@ -32,7 +30,6 @@ import ru.hollowhorizon.hc.common.handlers.DelayHandler;
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.integration.ftb.quests.FTBQuestsHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
-import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
 import ru.hollowhorizon.hc.common.registry.*;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
 import ru.hollowhorizon.hc.common.world.storage.HollowWorldData;
@@ -40,8 +37,7 @@ import ru.hollowhorizon.hc.proxy.ClientProxy;
 import ru.hollowhorizon.hc.proxy.CommonProxy;
 import ru.hollowhorizon.hc.proxy.ServerProxy;
 
-@HollowMod
-@Mod(HollowCore.MODID)
+@HollowMod(HollowCore.MODID)
 public class HollowCore {
     public static final String MODID = "hc";
     public static final Logger LOGGER = LogManager.getLogger();
@@ -81,6 +77,7 @@ public class HollowCore {
         //мод
         forgeBus.register(this);
         forgeBus.addListener(this::registerReloadListeners);
+
         forgeBus.addGenericListener(Entity.class, ModCapabilities::attachCapabilityToEntity);
 
 
@@ -104,7 +101,7 @@ public class HollowCore {
 
         NBTUtils.init();
 
-        GlobalEntityTypeAttributes.put(ModEntities.testEntity, TestEntity.createMobAttributes().build());
+        //GlobalEntityTypeAttributes.put(ModEntities.testEntity, TestEntity.createMobAttributes().build());
 
         UniversalContainerManager.registerContainer("test_container", TestUContainer::new);
     }
@@ -117,7 +114,8 @@ public class HollowCore {
     //『server』
     @SubscribeEvent
     public void onServerStarting(FMLServerStartingEvent event) {
-        HollowWorldData.INSTANCE = event.getServer().overworld().getChunkSource().getDataStorage().computeIfAbsent(HollowWorldData::new, "hollow_world_data");
+        HollowWorldData.INSTANCE = event.getServer().overworld()
+                .getChunkSource().getDataStorage().computeIfAbsent(HollowWorldData::new, "hollow_world_data");
     }
 
     private void registerCommands(RegisterCommandsEvent event) {

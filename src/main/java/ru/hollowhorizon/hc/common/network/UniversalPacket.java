@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.common.network;
 
 import net.minecraft.client.Minecraft;
+
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraftforge.api.distmarker.Dist;

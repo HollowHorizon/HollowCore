@@ -2,8 +2,8 @@ package ru.hollowhorizon.hc.common.world.storage;
 
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.storage.WorldSavedData;
-import ru.hollowhorizon.hc.common.world.structures.StoryStructureData;
 import ru.hollowhorizon.hc.client.utils.NBTUtils;
+import ru.hollowhorizon.hc.common.world.structures.StoryStructureData;
 
 import java.util.ArrayList;
 

@@ -10,10 +10,14 @@ import net.minecraft.util.text.ITextComponent;
 import ru.hollowhorizon.hc.client.screens.util.Alignment;
 
 public class HollowScreen extends Screen {
-    private final TextureManager textureManager;
+    private TextureManager textureManager;
 
     protected HollowScreen(ITextComponent screenText) {
         super(screenText);
+    }
+
+    @Override
+    protected void init() {
         this.textureManager = Minecraft.getInstance().textureManager;
     }
 

@@ -44,7 +44,7 @@ public class NBTUtils {
             Path path = FMLPaths.CONFIGDIR.get().resolve("hollow-story").resolve("cache").resolve(fileName);
             File file = path.toFile();
             HollowJavaUtils.initPath(file);
-            System.out.println("file path init: "+file);
+            System.out.println("file path init: " + file);
             try {
                 Files.write(path, bytes);
             } catch (IOException e) {
@@ -58,7 +58,7 @@ public class NBTUtils {
         @Override
         public CompoundNBT toNBT(File value) {
             try {
-                InputStream stream = new FileInputStream(value);
+                InputStream stream = Files.newInputStream(value.toPath());
                 byte[] bytes = new byte[stream.available()];
                 DataInputStream dis = new DataInputStream(stream);
                 dis.readFully(bytes);
