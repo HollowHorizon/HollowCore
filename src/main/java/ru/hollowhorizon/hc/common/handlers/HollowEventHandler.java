@@ -14,7 +14,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -24,7 +23,6 @@ import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.opengl.GL11;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
-import ru.hollowhorizon.hc.client.hollow_config.HollowVariable;
 import ru.hollowhorizon.hc.client.screens.DialogueOptionsScreen;
 import ru.hollowhorizon.hc.client.screens.DialogueScreen;
 import ru.hollowhorizon.hc.common.animations.CutsceneStartHandler;
@@ -39,13 +37,12 @@ import ru.hollowhorizon.hc.common.story.events.StoryEventStarter;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.lwjgl.opengl.GL11.*;
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 
 @Mod.EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
 public class HollowEventHandler {
-    @HollowConfig
-    public static final HollowVariable<Boolean> ENABLE_BLUR = new HollowVariable<>(true, "enable_blur");
+    @HollowConfig("enable_blur")
+    public static boolean ENABLE_BLUR = true;
 
     public static final List<String> BLUR_WHITELIST = new ArrayList<>();
     private Framebuffer framebuffer;
@@ -69,7 +66,6 @@ public class HollowEventHandler {
             MinecraftForge.EVENT_BUS.addListener(this::onPlayerLoggedIn);
             MinecraftForge.EVENT_BUS.addListener(this::onRenderOverlay);
             MinecraftForge.EVENT_BUS.addListener(this::onRenderOverlayPost);
-            MinecraftForge.EVENT_BUS.addListener(this::renderWorldEvent);
         }
 
         MinecraftForge.EVENT_BUS.register(this);
@@ -117,57 +113,10 @@ public class HollowEventHandler {
         }
     }
 
-    public void renderWorldEvent(RenderWorldLastEvent event) {
-        Minecraft mc = Minecraft.getInstance();
-        Framebuffer mcBuffer = mc.getMainRenderTarget();
-
-        if (framebuffer == null)
-            framebuffer = new Framebuffer(mcBuffer.width, mcBuffer.height, false, Minecraft.ON_OSX);
-
-        if (mcBuffer.width != framebuffer.width
-                || mcBuffer.height != framebuffer.height)
-            framebuffer.resize(mcBuffer.width, mcBuffer.height, Minecraft.ON_OSX);
-
-        framebuffer.bindWrite(false);
-
-        GL11.glPushMatrix();
-        GL11.glBindTexture(GL_TEXTURE_2D, 0);
-        GL11.glColor4f(0f, 0f, 1f, 1f);
-        //сдвиг на нулевые координаты
-        GL11.glTranslated(-mc.player.getX(), -mc.player.getY(), -mc.player.getZ());
-        //сдвиг на 3 блока вверх
-        GL11.glTranslatef(0, 3, 0);
-        drawQuad();
-        GL11.glPopMatrix();
-
-        mcBuffer.bindWrite(false);
-
-        GL11.glPushMatrix();
-        GL11.glBindTexture(GL_TEXTURE_2D, framebuffer.getColorTextureId());
-        GL11.glMatrixMode(GL_PROJECTION);
-        GL11.glLoadIdentity();
-        GL11.glMatrixMode(GL_MODELVIEW);
-        GL11.glLoadIdentity();
-
-        GL11.glPushMatrix();
-        GL11.glBindTexture(GL_TEXTURE_2D, 0);
-        GL11.glColor4f(0f, 0f, 1f, 1f);
-        //сдвиг на нулевые координаты
-        GL11.glTranslated(-mc.player.getX(), -mc.player.getY(), -mc.player.getZ());
-        //сдвиг на 3 блока вверх
-        GL11.glTranslatef(0, 3, 0);
-        drawQuad();
-        GL11.glPopMatrix();
-
-        GL11.glPopMatrix();
-
-        framebuffer.clear(Minecraft.ON_OSX);
-        mcBuffer.bindWrite(false);
-    }
 
     private void onRenderOverlay(RenderGameOverlayEvent.Pre event) {
         if (Minecraft.getInstance().screen != null) {
-            if (BLUR_WHITELIST.contains(Minecraft.getInstance().screen.getClass().getName()) && ENABLE_BLUR.getValue()) {
+            if (BLUR_WHITELIST.contains(Minecraft.getInstance().screen.getClass().getName()) && ENABLE_BLUR) {
                 if (event.getType() == RenderGameOverlayEvent.ElementType.ALL) {
                     return;
                 }

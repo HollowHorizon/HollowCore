@@ -23,6 +23,10 @@ import ru.hollowhorizon.hc.api.registy.HollowRegister;
 import ru.hollowhorizon.hc.api.registy.StoryObject;
 import ru.hollowhorizon.hc.api.utils.DelayedAction;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
+import ru.hollowhorizon.hc.client.render.blocks.HollowBlockRenderManager;
+import ru.hollowhorizon.hc.client.render.entities.HollowEntityManager;
+import ru.hollowhorizon.hc.client.utils.HollowPack;
+import ru.hollowhorizon.hc.client.utils.ResourcePackAdapter;
 import ru.hollowhorizon.hc.common.animations.CutsceneHandler;
 import ru.hollowhorizon.hc.common.animations.CutsceneStartHandler;
 import ru.hollowhorizon.hc.common.events.action.ActionStorage;
@@ -32,15 +36,9 @@ import ru.hollowhorizon.hc.common.network.UniversalPacket;
 import ru.hollowhorizon.hc.common.network.UniversalPacketManager;
 import ru.hollowhorizon.hc.common.objects.blocks.IBlockProperties;
 import ru.hollowhorizon.hc.common.objects.items.HollowArmor;
+import ru.hollowhorizon.hc.common.story.HollowStoryHandler;
 import ru.hollowhorizon.hc.common.story.dialogues.DialogueBuilder;
 import ru.hollowhorizon.hc.common.story.dialogues.IHollowDialogue;
-import ru.hollowhorizon.hc.client.hollow_config.HollowCoreConfig;
-import ru.hollowhorizon.hc.client.hollow_config.HollowVariable;
-import ru.hollowhorizon.hc.client.render.blocks.HollowBlockRenderManager;
-import ru.hollowhorizon.hc.client.render.entities.HollowEntityManager;
-import ru.hollowhorizon.hc.client.utils.HollowPack;
-import ru.hollowhorizon.hc.client.utils.ResourcePackAdapter;
-import ru.hollowhorizon.hc.common.story.HollowStoryHandler;
 import ru.hollowhorizon.hc.common.story.events.StoryRegistry;
 
 import java.lang.reflect.Field;
@@ -58,10 +56,12 @@ public class HollowModProcessor {
     private static final Type HOLLOW_PACKET = Type.getType(HollowPacket.class);
 
     public static synchronized void run(String modId, ModFileScanData scanResults) {
-        hollowRegister(scanResults, modId);
+        hollowRegister(modId, scanResults);
     }
 
-    public static void hollowRegister(ModFileScanData scanResults, String modId) {
+    public static void hollowRegister(String modId, ModFileScanData scanResults) {
+
+
         DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, modId);
         DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, modId);
         DeferredRegister<TileEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, modId);
@@ -158,7 +158,8 @@ public class HollowModProcessor {
 
                                             CONTAINERS.register(regName, () -> containerType);
                                         } else if (someObject instanceof ParticleType<?>) {
-                                            if (!texture.equals("")) HollowPack.genParticles.add(new ResourceLocation(texture));
+                                            if (!texture.equals(""))
+                                                HollowPack.genParticles.add(new ResourceLocation(texture));
 
                                             PARTICLES.register(regName, () -> (ParticleType<?>) someObject);
                                         }
@@ -179,7 +180,8 @@ public class HollowModProcessor {
 
                                         CutsceneStartHandler.register(() -> handler);
                                     }
-                                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                                } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                                         NoSuchMethodException e) {
                                     e.printStackTrace();
                                 }
                             } else if (annotationData.getAnnotationType().equals(REGISTER_ACTION)) {
@@ -205,32 +207,23 @@ public class HollowModProcessor {
                                     if (Modifier.isFinal(field.getModifiers())) {
                                         try {
                                             Object someObject = field.get(null);
-                                            if (someObject instanceof Boolean) {
-                                                boolean val = HollowCoreConfig.tryGetBool(fieldName, (Boolean) someObject);
-                                                setFinalStatic(field, val);
-                                            } else if (someObject instanceof Integer) {
-                                                int val = HollowCoreConfig.tryGetInt(fieldName, (Integer) someObject);
-                                                setFinalStatic(field, val);
-                                            } else if (someObject instanceof Float) {
-                                                float val = HollowCoreConfig.tryGetFloat(fieldName, (Float) someObject);
-                                                setFinalStatic(field, val);
-                                            }
+//                                            if (someObject instanceof Boolean) {
+//                                                boolean val = HollowCoreConfig.tryGetBool(fieldName, (Boolean) someObject);
+//                                                setFinalStatic(field, val);
+//                                            } else if (someObject instanceof Integer) {
+//                                                int val = HollowCoreConfig.tryGetInt(fieldName, (Integer) someObject);
+//                                                setFinalStatic(field, val);
+//                                            } else if (someObject instanceof Float) {
+//                                                float val = HollowCoreConfig.tryGetFloat(fieldName, (Float) someObject);
+//                                                setFinalStatic(field, val);
+//                                            }
                                         } catch (IllegalAccessException e) {
                                             e.printStackTrace();
                                         }
                                     } else {
                                         try {
                                             Object someObject = field.get(null);
-                                            if (someObject instanceof HollowVariable) {
-                                                HollowVariable variable = (HollowVariable) someObject;
-                                                if (variable.getValue() instanceof Boolean) {
-                                                    variable.setValue(HollowCoreConfig.tryGetBool(variable.getName(), (Boolean) variable.getValue()));
-                                                } else if (variable.getValue() instanceof Integer) {
-                                                    variable.setValue(HollowCoreConfig.tryGetInt(variable.getName(), (Integer) variable.getValue()));
-                                                } else if (variable.getValue() instanceof Float) {
-                                                    variable.setValue(HollowCoreConfig.tryGetFloat(variable.getName(), (Float) variable.getValue()));
-                                                }
-                                            }
+
                                         } catch (IllegalAccessException e) {
                                             e.printStackTrace();
                                         }
@@ -264,7 +257,6 @@ public class HollowModProcessor {
         PARTICLES.register(FMLJavaModLoadingContext.get().getModEventBus());
 
         ResourcePackAdapter.registerResourcePack(HollowPack.getPackInstance());
-
     }
 
     public static Field findField(Class<?> clazz, String fieldName) {

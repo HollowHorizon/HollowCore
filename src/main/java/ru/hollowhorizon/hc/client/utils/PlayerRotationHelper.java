@@ -2,9 +2,12 @@ package ru.hollowhorizon.hc.client.utils;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Objects;
 
+@OnlyIn(Dist.CLIENT)
 public class PlayerRotationHelper {
     private static final ClientPlayerEntity PLAYER = Objects.requireNonNull(Minecraft.getInstance().player);
     private static float prevRenderYawOffset;

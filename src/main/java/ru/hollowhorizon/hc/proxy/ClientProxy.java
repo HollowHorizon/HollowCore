@@ -6,6 +6,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -21,6 +22,7 @@ import java.io.InputStream;
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 
 
+@OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientProxy extends CommonProxy {
     //private static final NativeDiscovery discovery = new NativeDiscovery();
@@ -65,6 +67,7 @@ public class ClientProxy extends CommonProxy {
 
     @Override
     public void init() {
+
     }
 
     @Override

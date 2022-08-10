@@ -12,11 +12,14 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import ru.hollowhorizon.hc.api.utils.IAnimated;
 import ru.hollowhorizon.hc.client.model.fbx.FBXModel;
 import ru.hollowhorizon.hc.client.model.fbx.FBXModelLoader;
 import ru.hollowhorizon.hc.client.render.entities.HollowAnimationManager;
 
+@OnlyIn(Dist.CLIENT)
 public class HollowBlockRenderer<T extends TileEntity> extends TileEntityRenderer<T> {
     public final HollowAnimationManager manager;
     public final FBXModel model;

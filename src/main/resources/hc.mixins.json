@@ -8,7 +8,6 @@
     "FMLModContainerMixin",
     "MixinLocateCommand",
     "MixinServerWorldInfo",
-    "ModLoaderMixin",
     "SimpleReloadableResourceManagerMixin",
     "StructureBlockMixin",
     "ftbquests.AddRewardButtonMixin",

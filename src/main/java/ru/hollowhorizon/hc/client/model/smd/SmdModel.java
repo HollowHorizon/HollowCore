@@ -4,7 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.util.ResourceLocation;
-import ru.hollowhorizon.hc.client.hollow_config.HollowCoreConfig;
+import ru.hollowhorizon.hc.client.hollowconfig.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
 import ru.hollowhorizon.hc.client.utils.RegexPatterns;
 import ru.hollowhorizon.hc.client.utils.math.VectorHelper;
@@ -235,11 +235,9 @@ public class SmdModel {
                     int id = vertexCount++;
                     DeformVertex dv = this.getExisting(x, y, z);
                     if (dv == null) {
-                        if (HollowCoreConfig.is_smooth_animations.getValue()) {
+
                             faceVerts[j] = new DeformVertexSmooth(x, y, z, normX, normY, normZ, this.vertexIDBank);
-                        } else {
-                            faceVerts[j] = new DeformVertex(x, y, z, normX, normY, normZ, this.vertexIDBank);
-                        }
+
                     } else {
                         faceVerts[j] = dv;
                     }
@@ -347,11 +345,9 @@ public class SmdModel {
             float zn = -Float.parseFloat(values[6]);
             DeformVertex v = this.getExisting(x, y, z);
             if (v == null) {
-                if (HollowCoreConfig.is_smooth_animations.getValue()) {
+
                     faceVerts[i] = new DeformVertexSmooth(x, y, z, xn, yn, zn, this.vertexIDBank);
-                } else {
-                    faceVerts[i] = new DeformVertex(x, y, z, xn, yn, zn, this.vertexIDBank);
-                }
+
 
                 HollowJavaUtils.ensureIndex(this.verts, this.vertexIDBank);
                 this.verts.set(this.vertexIDBank, faceVerts[i]);
@@ -464,10 +460,7 @@ public class SmdModel {
     }
 
     public void render(MatrixStack matrixStack, IVertexBuilder buffer, int packedLight, int packedOverlay, float partialTick, float r, float g, float b, float a) {
-        boolean smooth = HollowCoreConfig.is_smooth_animations.getValue();
-        if (this.owner.overrideSmoothShading) {
-            smooth = false;
-        }
+        boolean smooth = !this.owner.overrideSmoothShading;
 
         BufferBuilder bufferBuilder = (BufferBuilder) buffer;
         this.buildVBO(matrixStack, bufferBuilder, packedLight, packedOverlay, smooth, partialTick, r, g, b, a);

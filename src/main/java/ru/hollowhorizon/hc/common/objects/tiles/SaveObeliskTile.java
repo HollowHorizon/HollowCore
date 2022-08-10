@@ -6,7 +6,7 @@ import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.world.GameType;
 import net.minecraft.world.server.ServerWorld;
 import ru.hollowhorizon.hc.api.utils.IAnimated;
-import ru.hollowhorizon.hc.client.hollow_config.HollowCoreConfig;
+import ru.hollowhorizon.hc.client.hollowconfig.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.render.entities.HollowAnimationManager;
 import ru.hollowhorizon.hc.common.registry.ModTileEntities;
 
@@ -21,9 +21,6 @@ public class SaveObeliskTile extends HollowTileEntity implements ITickableTileEn
     @Override
     public void tick() {
         if (this.level != null) {
-            if (!HollowCoreConfig.is_editing_mode.getValue()) {
-                return;
-            }
 
             if (!this.level.isClientSide) {
                 ServerWorld world = (ServerWorld) this.level;

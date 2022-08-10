@@ -12,6 +12,8 @@ import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL11;
 import ru.hollowhorizon.hc.common.registry.ModModels;
 import ru.hollowhorizon.hc.proxy.ClientProxy;
@@ -20,6 +22,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 
+@OnlyIn(Dist.CLIENT)
 public class AnimatedModelRenderer<T extends LivingEntity> extends LivingRenderer<T, EntityModel<T>> {
 
     public AnimatedModelRenderer(EntityRendererManager entityRendererManager) {

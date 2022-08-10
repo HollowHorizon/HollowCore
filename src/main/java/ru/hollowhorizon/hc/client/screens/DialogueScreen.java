@@ -13,6 +13,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 import ru.hollowhorizon.hc.client.screens.widget.VolumeWidget;
@@ -36,6 +38,7 @@ import java.util.function.Consumer;
 
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 
+@OnlyIn(Dist.CLIENT)
 public class DialogueScreen extends Screen {
     public final ResourceLocation OPTIONS = new ResourceLocation(MODID, "textures/gui/icons/options.png");
     public final ResourceLocation PANEL = new ResourceLocation(MODID, "textures/gui/save_obelisk_block.png");

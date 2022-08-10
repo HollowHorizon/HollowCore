@@ -11,13 +11,13 @@ import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import ru.hollowhorizon.hc.common.container.UniversalContainer;
 import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
 import ru.hollowhorizon.hc.common.handlers.InGameDialogueHandler;
 import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
 import ru.hollowhorizon.hc.common.story.events.StoryEventStarter;
 
+import javax.script.ScriptEngineManager;
 import java.util.Objects;
 
 
@@ -89,7 +89,6 @@ public class HollowCommands {
                 .then(lore)
                 .then(dialogues)
                 .then(Commands.literal("test").executes((source) -> {
-                            UniversalContainer.openContainer("test_container", source.getSource().getPlayerOrException());
                             return 1;
                         })
                 )
@@ -105,5 +104,10 @@ public class HollowCommands {
 
 
         dispatcher.register(commandBuilder);
+    }
+
+    public static void main(String[] args) {
+        ScriptEngineManager manager = new ScriptEngineManager();
+        manager.getEngineFactories().forEach(f -> System.out.println(f.getEngineName()));
     }
 }

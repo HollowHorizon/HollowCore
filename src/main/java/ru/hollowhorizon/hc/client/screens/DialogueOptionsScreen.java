@@ -7,7 +7,7 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import ru.hollowhorizon.hc.client.hollow_config.HollowCoreConfig;
+import ru.hollowhorizon.hc.client.hollowconfig.HollowCoreConfig;
 
 import static ru.hollowhorizon.hc.common.handlers.HollowEventHandler.ENABLE_BLUR;
 
@@ -35,26 +35,26 @@ public class DialogueOptionsScreen extends Screen {
         IFormattableTextComponent main_hero_voice = new TranslationTextComponent("hollowcore.gui.dialogues.disable_main_hero");
         IFormattableTextComponent enable_blur = new TranslationTextComponent("hollowcore.gui.dialogues.blur");
 
-        if (HollowCoreConfig.main_hero_voice.getValue()) {
+        if (HollowCoreConfig.main_hero_voice) {
             main_hero_voice.append(new TranslationTextComponent("hollowcore.gui.yes"));
         } else {
             main_hero_voice.append(new TranslationTextComponent("hollowcore.gui.no"));
         }
 
-        if (ENABLE_BLUR.getValue()) {
+        if (ENABLE_BLUR) {
             enable_blur.append(new TranslationTextComponent("hollowcore.gui.yes"));
         } else {
             enable_blur.append(new TranslationTextComponent("hollowcore.gui.no"));
         }
 
         this.addButton(new Button(this.width / 2 - 90, this.height / 2, 180, 20, main_hero_voice, (button) -> {
-            HollowCoreConfig.setBool("main_hero_voice", !HollowCoreConfig.main_hero_voice.getValue());
+
 
             this.init();
         }));
 
         this.addButton(new Button(this.width / 2 - 90, this.height / 2 - 40, 180, 20, enable_blur, (button) -> {
-            ENABLE_BLUR.setValue(!ENABLE_BLUR.getValue());
+            ENABLE_BLUR = !ENABLE_BLUR;
 
             this.init();
         }));

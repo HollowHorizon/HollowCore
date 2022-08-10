@@ -1,11 +1,10 @@
 package ru.hollowhorizon.hc.core
 
-import net.minecraftforge.fml.ModContainer
-import net.minecraftforge.fml.javafmlmod.FMLModContainer
 import net.minecraftforge.forgespi.language.ILifecycleEvent
 import net.minecraftforge.forgespi.language.IModInfo
 import net.minecraftforge.forgespi.language.IModLanguageProvider
 import net.minecraftforge.forgespi.language.ModFileScanData
+import ru.hollowhorizon.hc.common.registry.HollowModProcessor
 import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Supplier
@@ -24,7 +23,7 @@ class HollowModProvider : IModLanguageProvider {
                         it.annotationType.toString() == "Lru/hollowhorizon/hc/api/registy/HollowMod;"
                     }
                     .map { HollowModTarget(it.classType.className, it.annotationData["value"] as String) }
-                    .collect(Collectors.toMap(HollowModTarget::modId, Function.identity()) { a, b -> a })
+                    .collect(Collectors.toMap(HollowModTarget::modId, Function.identity()) { a, _ -> a })
             )
         }
     }
@@ -36,9 +35,11 @@ class HollowModProvider : IModLanguageProvider {
             println("Loading HollowMod $modId")
         }
 
+        @Suppress("UNCHECKED_CAST")
         override fun <T> loadMod(info: IModInfo, modClassLoader: ClassLoader, modFileScanResults: ModFileScanData): T {
+
             val fmlContainer = Class.forName(
-                "net.minecraftforge.fml.javafmlmod.FMLModContainer",
+                "ru.hollowhorizon.hc.core.HollowModContainer",
                 true,
                 Thread.currentThread().contextClassLoader
             )

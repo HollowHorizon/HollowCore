@@ -8,7 +8,7 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.StringTextComponent;
-import ru.hollowhorizon.hc.client.hollow_config.HollowCoreConfig;
+import ru.hollowhorizon.hc.client.hollowconfig.HollowCoreConfig;
 
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 
@@ -100,7 +100,7 @@ public class VolumeWidget extends Widget {
             this.width = width;
             this.height = height;
 
-            setPos((int) ((this.width - this.width / 4) * HollowCoreConfig.dialogues_volume.getValue() * 100) + this.x + this.width / 4);
+            setPos((int) ((this.width - this.width / 4) * HollowCoreConfig.dialogues_volume * 100) + this.x + this.width / 4);
         }
 
         public float getPos() {
@@ -111,7 +111,6 @@ public class VolumeWidget extends Widget {
             if (pos > this.x + this.width / 4 + this.width - this.width / 3) pos = this.x + this.width / 4 + this.width - this.width / 3;
             else if (pos < this.x + this.width / 4) pos = this.x + this.width / 4;
             this.position = pos;
-            HollowCoreConfig.dialogues_volume.setValue(this.position / 100F);
         }
 
         public void render(MatrixStack stack, int x, int y) {

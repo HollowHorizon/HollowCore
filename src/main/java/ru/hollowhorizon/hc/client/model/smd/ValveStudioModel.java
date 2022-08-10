@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.model.Model;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.loading.FMLLoader;
 import ru.hollowhorizon.hc.HollowCore;
-import ru.hollowhorizon.hc.client.hollow_config.HollowCoreConfig;
+import ru.hollowhorizon.hc.client.hollowconfig.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
 import ru.hollowhorizon.hc.client.utils.RegexPatterns;
 
@@ -139,7 +139,7 @@ public class ValveStudioModel extends Model {
             this.setAnimation("idle");
         }
 
-        if (HollowCoreConfig.is_smooth_animations.getValue()) {
+
             this.reverseFrame(this.body);
             this.resetVerts(this.body);
             this.root.setModified();
@@ -149,7 +149,7 @@ public class ValveStudioModel extends Model {
             this.applyVertChange(this.body);
             this.hasChanged = true;
             this.nextFrame(this.body);
-        }
+
 
         this.resetVerts(this.body);
         this.root.setModified();

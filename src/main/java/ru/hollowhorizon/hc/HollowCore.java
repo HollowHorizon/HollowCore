@@ -9,6 +9,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
@@ -18,7 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
-import ru.hollowhorizon.hc.client.hollow_config.HollowCoreConfig;
+import ru.hollowhorizon.hc.client.hollowconfig.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.NBTUtils;
 import ru.hollowhorizon.hc.client.video.MediaListener;
@@ -30,7 +31,10 @@ import ru.hollowhorizon.hc.common.handlers.DelayHandler;
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.integration.ftb.quests.FTBQuestsHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
-import ru.hollowhorizon.hc.common.registry.*;
+import ru.hollowhorizon.hc.common.registry.ModCapabilities;
+import ru.hollowhorizon.hc.common.registry.ModParticles;
+import ru.hollowhorizon.hc.common.registry.ModStructurePieces;
+import ru.hollowhorizon.hc.common.registry.ModStructures;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
 import ru.hollowhorizon.hc.common.world.storage.HollowWorldData;
 import ru.hollowhorizon.hc.proxy.ClientProxy;
@@ -38,13 +42,16 @@ import ru.hollowhorizon.hc.proxy.CommonProxy;
 import ru.hollowhorizon.hc.proxy.ServerProxy;
 
 @HollowMod(HollowCore.MODID)
+@Mod(HollowCore.MODID)
 public class HollowCore {
     public static final String MODID = "hc";
     public static final Logger LOGGER = LogManager.getLogger();
-    public static CommonProxy proxy = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> ServerProxy::new);
+    public static CommonProxy proxy = DistExecutor.safeRunForDist(
+            () -> ClientProxy::new,
+            () -> ServerProxy::new
+    );
 
     public HollowCore() {
-        VideoRegistry.init();
         if (ModList.get().isLoaded("ftbquests")) {
             FTBQuestsHandler.init();
         }
