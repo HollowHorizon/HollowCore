@@ -18,6 +18,6 @@ jobs:
           java-version: '8'
           distribution: 'adopt'
       - name: Build with Gradle
-        uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
+        uses: gradle/gradle-build-action@f1bf0da65d03437a932a57a13b74d6b0f7abc7ed
         with:
           arguments: build
