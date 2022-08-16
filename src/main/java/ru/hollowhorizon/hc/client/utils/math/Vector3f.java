@@ -1,5 +1,7 @@
 package ru.hollowhorizon.hc.client.utils.math;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.nio.FloatBuffer;
 
@@ -315,4 +317,6 @@ public class Vector3f extends Vector<Vector3f> implements Serializable, Readable
 
         return false;
     }
+
+
 }

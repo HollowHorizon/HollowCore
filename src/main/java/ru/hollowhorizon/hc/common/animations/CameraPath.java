@@ -9,6 +9,7 @@ import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Vector3d;
 import org.lwjgl.opengl.GL11;
 import ru.hollowhorizon.hc.client.render.OpenGLUtils;
+import ru.hollowhorizon.hc.client.utils.math.BezierUtils;
 import ru.hollowhorizon.hc.client.utils.math.HollowInterpolation;
 
 import java.util.ArrayList;
@@ -24,6 +25,25 @@ public class CameraPath {
         this.fromPos = fromPos;
         this.toPos = toPos;
         calculatePath(100);
+    }
+
+    public CameraPath(List<Vector3d> raw) {
+        this.precalculatedPath.clear();
+        this.fromPos = null;
+        this.toPos = null;
+
+        float[] x = new float[raw.size()];
+        float[] y = new float[raw.size()];
+        float[] z = new float[raw.size()];
+        for (int i = 0; i < raw.size(); i++) {
+            x[i] = (float) raw.get(i).x;
+            y[i] = (float) raw.get(i).y;
+            z[i] = (float) raw.get(i).z;
+        }
+
+        List<BezierUtils.Vec3d> v = BezierUtils.INSTANCE.calculateSpline(x, y, z, 100);
+
+        v.forEach(vec -> precalculatedPath.add(new Vector3d(vec.getX(), vec.getY(), vec.getZ())));
     }
 
     public HollowInterpolation getInterpolation() {
@@ -84,7 +104,7 @@ public class CameraPath {
     public void calculatePath(int posCount) {
         precalculatedPath.clear();
         for (float i = 0; i < posCount; i++) {
-            precalculatedPath.add(getPosByKey(i/posCount));
+            precalculatedPath.add(getPosByKey(i / posCount));
         }
     }
 

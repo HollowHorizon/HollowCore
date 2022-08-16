@@ -12,7 +12,6 @@ import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import ru.hollowhorizon.hc.client.screens.widget.CameraPathWidget;
 import ru.hollowhorizon.hc.client.screens.widget.SliderWidget;
 import ru.hollowhorizon.hc.client.utils.math.HollowInterpolation;
 import ru.hollowhorizon.hc.common.animations.CameraPath;
@@ -32,6 +31,7 @@ public class CameraScreen extends Screen {
     private double z;
     private float yaw;
     private float pitch;
+    private final List<Vector3d> points = new ArrayList<>();
 
     public CameraScreen() {
         super(new StringTextComponent("CAMERA_SCREEN"));
@@ -44,12 +44,7 @@ public class CameraScreen extends Screen {
         this.addButton(new Button(0, 0, 80, 20, new StringTextComponent("Add Point"), (button) -> {
             Vector3d currentPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
 
-            if (lastPos != null) {
-                allPoints.add(new CameraPath(lastPos, currentPos));
-                Minecraft.getInstance().player.sendMessage(new StringTextComponent("добавлена точка"), Minecraft.getInstance().player.getUUID());
-            }
-
-            lastPos = currentPos;
+            this.points.add(currentPos);
         }));
         this.addButton(new Button(0, 20, 80, 20, new StringTextComponent("Change Path"), (button) -> {
             if (currentPath != null) {
@@ -59,7 +54,7 @@ public class CameraScreen extends Screen {
                 }
                 currentPath = allPoints.get(i + 1);
             } else {
-                currentPath = allPoints.get(0);
+                currentPath = new CameraPath(this.points);
             }
         }));
         this.addButton(new Button(0, 40, 80, 20, new StringTextComponent("Switch Interpolation"), (button) -> {
@@ -94,7 +89,6 @@ public class CameraScreen extends Screen {
         sliderZ.setValueConsumer(value -> this.z = value);
         this.addButton(sliderZ);
 
-        this.addButton(new CameraPathWidget(50, 50, 512, 64));
     }
 
     @SubscribeEvent

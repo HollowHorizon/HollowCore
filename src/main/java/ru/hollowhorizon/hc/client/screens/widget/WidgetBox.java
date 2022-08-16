@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.client.screens.widget;
 
-import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.util.text.StringTextComponent;
 
 public class WidgetBox extends HollowWidget {
@@ -26,7 +25,7 @@ public class WidgetBox extends HollowWidget {
 
     @Override
     public void init() {
-        this.widgets.clear();
+        this.getWidgets().clear();
     }
 
     public void putWidget(int xBox, int yBox, IWidgetConsumer<?> widget) {
@@ -36,6 +35,6 @@ public class WidgetBox extends HollowWidget {
         int widgetX = this.x + boxSizeX * (xBox - 1) + boarderX * (xBox - 1);
         int widgetY = this.x + boxSizeY * (yBox - 1) + boarderY * (yBox - 1);
 
-        this.widgets.add(widget.create(widgetX, widgetY, boxSizeX, boxSizeY));
+        this.getWidgets().add(widget.create(widgetX, widgetY, boxSizeX, boxSizeY));
     }
 }

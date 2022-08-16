@@ -217,7 +217,7 @@ public class DialogueScreen extends Screen {
             }
         });
 
-        this.addButton(new BaseButton(0, 0, 10, 10, "", (button) -> Minecraft.getInstance().setScreen(new DialogueOptionsScreen(this)), OPTIONS));
+        this.addButton(new BaseButton(0, 0, 10, 10, new StringTextComponent(""), (button) -> Minecraft.getInstance().setScreen(new DialogueOptionsScreen(this)), OPTIONS, 0xFFFFFF, 0xF0F0F0, new StringTextComponent("")));
 
         this.addButton(
                 volumeWidget

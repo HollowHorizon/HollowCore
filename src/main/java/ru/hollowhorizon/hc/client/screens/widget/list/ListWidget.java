@@ -51,7 +51,7 @@ public class ListWidget extends HollowWidget {
         y -= this.height;
         maxHeight = y;
 
-        this.widgets.clear();
+        this.getWidgets().clear();
 
         y = this.y + 5 - currentHeight;
         for (Widget widget : listWidgets) {
