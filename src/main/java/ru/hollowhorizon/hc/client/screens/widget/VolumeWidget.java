@@ -8,7 +8,7 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.StringTextComponent;
-import ru.hollowhorizon.hc.client.hollowconfig.HollowCoreConfig;
+import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
 
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 

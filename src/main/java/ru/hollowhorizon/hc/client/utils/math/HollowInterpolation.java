@@ -1,6 +1,6 @@
 package ru.hollowhorizon.hc.client.utils.math;
 
-import dev.ftb.mods.ftblibrary.math.MathUtils;
+import net.minecraft.util.math.MathHelper;
 
 public enum HollowInterpolation implements IInterpolation {
     LINEAR("linear") {
@@ -495,7 +495,7 @@ public enum HollowInterpolation implements IInterpolation {
     CIRCLE_IN("circle_in") {
         @Override
         public float interpolate(float a, float b, float x) {
-            x = MathUtils.lerp(0, 1, x);
+            x = MathHelper.lerp(0, 1, x);
 
             float factor = 1 - (float) Math.sqrt(1 - Math.pow(x, 2));
 
@@ -504,7 +504,7 @@ public enum HollowInterpolation implements IInterpolation {
 
         @Override
         public double interpolate(double a, double b, double x) {
-            x = MathUtils.lerp(0, 1, x);
+            x = MathHelper.lerp(0, 1, x);
 
             double factor = 1 - (float) Math.sqrt(1 - Math.pow(x, 2));
 
@@ -514,7 +514,7 @@ public enum HollowInterpolation implements IInterpolation {
     CIRCLE_OUT("circle_out") {
         @Override
         public float interpolate(float a, float b, float x) {
-            x = MathUtils.lerp(0, 1, x);
+            x = MathHelper.lerp(0, 1, x);
 
             float factor = (float) Math.sqrt(1 - Math.pow(x - 1, 2));
 
@@ -523,7 +523,7 @@ public enum HollowInterpolation implements IInterpolation {
 
         @Override
         public double interpolate(double a, double b, double x) {
-            x = MathUtils.lerp(0, 1, x);
+            x = MathHelper.lerp(0, 1, x);
 
             double factor = Math.sqrt(1 - Math.pow(x - 1, 2));
 
@@ -533,7 +533,7 @@ public enum HollowInterpolation implements IInterpolation {
     CIRCLE_INOUT("circle_inout") {
         @Override
         public float interpolate(float a, float b, float x) {
-            x = MathUtils.lerp(0, 1, x);
+            x = MathHelper.lerp(0, 1, x);
 
             float factor = x < 0.5
                     ? (float) (1 - Math.sqrt(1 - Math.pow(2 * x, 2))) / 2
@@ -544,7 +544,7 @@ public enum HollowInterpolation implements IInterpolation {
 
         @Override
         public double interpolate(double a, double b, double x) {
-            x = MathUtils.lerp(0, 1, x);
+            x = MathHelper.lerp(0, 1, x);
 
             double factor = x < 0.5
                     ? (1 - Math.sqrt(1 - Math.pow(2 * x, 2))) / 2

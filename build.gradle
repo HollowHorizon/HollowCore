@@ -69,6 +69,9 @@ repositories {
     flatDir { dirs 'libs' }
 }
 
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+
 dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.3:processor'
     minecraft 'net.minecraftforge:forge:1.16.5-36.2.29'
@@ -79,12 +82,7 @@ dependencies {
     shade 'org.jetbrains.kotlin:kotlin-reflect:1.7.10'
     shade 'org.jetbrains:annotations:23.0.0'
 
-    implementation fg.deobf('dev.latian.mods:itemfilters:1605.2.5')
-    implementation fg.deobf('dev.latian.mods:ftblibrary:1605.3.4')
-    implementation fg.deobf('dev.latian.mods:ftbquests:1605.3.6')
-    implementation fg.deobf('dev.latian.mods:ftbteams:1605.2.3')
-    implementation fg.deobf('me.shedaniel:architectury:1.30.53')
-    implementation "org.jetbrains.kotlin:kotlin-script-runtime:1.7.10"
+    //implementation "org.jetbrains.kotlin:kotlin-script-runtime:1.7.10"
 }
 
 jar {
@@ -92,21 +90,51 @@ jar {
 
     from sourceSets.main.output
 
-    exclude()
+    exclude(
+            "**/*.kotlin_metadata",
+            "**/*.kotlin_builtins"
+    )
 
     from { configurations.shade.collect { it.isDirectory() ? it : zipTree(it) } }
 
     manifest {
         attributes([
-                "Specification-Title"     : "hollowstory",
+                "Specification-Title"     : "hollowcore",
+                "Specification-Vendor"    : "Hollow Horizon",
                 "Specification-Version"   : "1",
                 "Implementation-Title"    : project.name,
-                "Implementation-Version"  : project.jar.archiveVersion,
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "Implementation-Version"  : archiveVersion,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "MixinConfigs"            : "hc.mixins.json"
         ])
     }
 
     finalizedBy('reobfJar')
+}
+
+task devJar(type: Jar) {
+    from sourceSets.main.output
+
+    it.archiveClassifier = 'dev'
+
+    manifest {
+        attributes([
+                "Specification-Title"     : "hollowcore",
+                "Specification-Vendor"    : "Hollow Horizon",
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : archiveVersion,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "MixinConfigs"            : "hc.mixins.json"
+        ])
+    }
+
+    finalizedBy('reobfJar')
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.java.srcDirs
+    it.archiveClassifier = 'sources'
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
@@ -115,13 +143,4 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
         jvmTarget = "1.8"
         languageVersion = "1.4"
     }
-}
-
-jar.finalizedBy('reobfJar')
-
-compileJava.options.encoding = "UTF-8"
-compileTestJava.options.encoding = "UTF-8"
-
-tasks.withType(JavaCompile) {
-    options.encoding = "UTF-8"
 }

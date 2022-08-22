@@ -50,7 +50,7 @@ open class BaseButton(
 
         stack.popPose()
 
-        if (mc.screen != null) {
+        if (mc.screen != null && isHovered) {
             mc.screen!!.renderTooltip(stack, minecraft.font.split(tooltip, (width / 2 - 43).coerceAtLeast(170)), x, y)
         }
     }

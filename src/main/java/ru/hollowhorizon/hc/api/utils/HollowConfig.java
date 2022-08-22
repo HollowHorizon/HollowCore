@@ -17,4 +17,5 @@ public @interface HollowConfig {
 
     float min() default 0.0F;
     float max() default 1.0F;
+
 }

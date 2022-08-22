@@ -9,16 +9,10 @@
     "MixinLocateCommand",
     "MixinServerWorldInfo",
     "SimpleReloadableResourceManagerMixin",
-    "StructureBlockMixin",
-    "ftbquests.AddRewardButtonMixin",
-    "ftbquests.AddTaskButtonMixin",
-    "ftbquests.ChapterMixin",
-    "ftbquests.ModPackButtonMixin",
-    "ftbquests.QuestPanelMixin"
+    "StructureBlockMixin"
   ],
   "client": [
-    "MixinIngameMenuScreen",
-    "ftbquests.QuestScreenMixin"
+    "MixinIngameMenuScreen"
   ],
   "injectors": {
     "defaultRequire": 1

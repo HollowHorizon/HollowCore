@@ -1,8 +1,5 @@
 package ru.hollowhorizon.hc.client.utils;
 
-import javafx.application.Platform;
-import javafx.embed.swing.JFXPanel;
-import javafx.stage.FileChooser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.compress.utils.IOUtils;
@@ -43,43 +40,6 @@ public class HollowJavaUtils {
         } catch (IOException e) {
             e.printStackTrace();
             throw new IllegalArgumentException("mcmod.info invalid!");
-        }
-    }
-
-    public static void main(String[] args) {
-        chooseFile(fileChooser -> fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Модель", "*.smd")), System.out::println);
-    }
-
-    public static void chooseFile(Consumer<FileChooser> consumer, Consumer<File> fileConsumer) {
-        try {
-            new JFXPanel();
-            Platform.runLater(() -> {
-                FileChooser d = new FileChooser();
-                consumer.accept(d);
-                File file = d.showOpenDialog(null);
-                fileConsumer.accept(file);
-                Platform.exit();
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-            JFileChooser fileDialog = new JFileChooser();
-            fileDialog.setDialogType(JFileChooser.SAVE_DIALOG);
-            fileDialog.showSaveDialog(new Box(0));
-            fileConsumer.accept(fileDialog.getSelectedFile());
-        }
-    }
-
-    public static void updateJarFile(File srcJarFile, String path, InputStream data) {
-
-        URI uri = srcJarFile.toURI();
-        System.out.println(uri);
-
-        try (FileSystem zipfs = FileSystems.newFileSystem(srcJarFile.toPath(), null)) {
-            Path pathInZipfile = zipfs.getPath(path);
-
-            Files.copy(data, pathInZipfile, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

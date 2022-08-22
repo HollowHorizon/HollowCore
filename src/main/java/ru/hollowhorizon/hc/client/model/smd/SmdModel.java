@@ -4,7 +4,6 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.util.ResourceLocation;
-import ru.hollowhorizon.hc.client.hollowconfig.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
 import ru.hollowhorizon.hc.client.utils.RegexPatterns;
 import ru.hollowhorizon.hc.client.utils.math.VectorHelper;

@@ -6,7 +6,6 @@ import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.world.GameType;
 import net.minecraft.world.server.ServerWorld;
 import ru.hollowhorizon.hc.api.utils.IAnimated;
-import ru.hollowhorizon.hc.client.hollowconfig.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.render.entities.HollowAnimationManager;
 import ru.hollowhorizon.hc.common.registry.ModTileEntities;
 

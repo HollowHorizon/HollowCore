@@ -7,7 +7,7 @@ import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import ru.hollowhorizon.hc.client.hollowconfig.HollowCoreConfig;
+import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
 
 import static ru.hollowhorizon.hc.common.handlers.HollowEventHandler.ENABLE_BLUR;
 

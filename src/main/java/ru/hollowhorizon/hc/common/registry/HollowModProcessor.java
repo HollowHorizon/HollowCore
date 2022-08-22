@@ -23,6 +23,7 @@ import ru.hollowhorizon.hc.api.registy.HollowRegister;
 import ru.hollowhorizon.hc.api.registy.StoryObject;
 import ru.hollowhorizon.hc.api.utils.DelayedAction;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
+import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.render.blocks.HollowBlockRenderManager;
 import ru.hollowhorizon.hc.client.render.entities.HollowEntityManager;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
@@ -46,6 +47,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class HollowModProcessor {
@@ -77,6 +79,7 @@ public class HollowModProcessor {
                         annotationData.getAnnotationType().equals(HOLLOW_REGISTER) ||
                                 annotationData.getAnnotationType().equals(STORY_OBJECT) ||
                                 annotationData.getAnnotationType().equals(REGISTER_ACTION) ||
+                                annotationData.getAnnotationType().equals(HOLLOW_CONFIG) ||
                                 annotationData.getAnnotationType().equals(HOLLOW_PACKET)
 
                 )
@@ -202,31 +205,11 @@ public class HollowModProcessor {
                             } else if (annotationData.getAnnotationType().equals(HOLLOW_CONFIG)) {
                                 String fieldName = annotationData.getMemberName();
                                 Field field = findField(containerClass, fieldName);
-
                                 if (Modifier.isStatic(field.getModifiers())) {
-                                    if (Modifier.isFinal(field.getModifiers())) {
-                                        try {
-                                            Object someObject = field.get(null);
-//                                            if (someObject instanceof Boolean) {
-//                                                boolean val = HollowCoreConfig.tryGetBool(fieldName, (Boolean) someObject);
-//                                                setFinalStatic(field, val);
-//                                            } else if (someObject instanceof Integer) {
-//                                                int val = HollowCoreConfig.tryGetInt(fieldName, (Integer) someObject);
-//                                                setFinalStatic(field, val);
-//                                            } else if (someObject instanceof Float) {
-//                                                float val = HollowCoreConfig.tryGetFloat(fieldName, (Float) someObject);
-//                                                setFinalStatic(field, val);
-//                                            }
-                                        } catch (IllegalAccessException e) {
-                                            e.printStackTrace();
-                                        }
+                                    if (!Modifier.isFinal(field.getModifiers())) {
+                                        HollowCoreConfig.FIELDS.computeIfAbsent(modId, k -> new ArrayList<>()).add(field);
                                     } else {
-                                        try {
-                                            Object someObject = field.get(null);
-
-                                        } catch (IllegalAccessException e) {
-                                            e.printStackTrace();
-                                        }
+                                        throw new IllegalArgumentException("Field " + fieldName + " is final");
                                     }
                                 }
                             } else if (annotationData.getAnnotationType().equals(HOLLOW_PACKET)) {
@@ -257,6 +240,8 @@ public class HollowModProcessor {
         PARTICLES.register(FMLJavaModLoadingContext.get().getModEventBus());
 
         ResourcePackAdapter.registerResourcePack(HollowPack.getPackInstance());
+
+        HollowCoreConfig.load();
     }
 
     public static Field findField(Class<?> clazz, String fieldName) {
