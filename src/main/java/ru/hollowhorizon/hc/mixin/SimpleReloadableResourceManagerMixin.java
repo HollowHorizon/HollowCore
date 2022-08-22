@@ -10,7 +10,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.client.utils.ResourcePackAdapter;
-import ru.hollowhorizon.hc.client.video.MediaListener;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -29,7 +28,7 @@ public abstract class SimpleReloadableResourceManagerMixin {
         if (FMLEnvironment.dist.isClient()) {
             SimpleReloadableResourceManager thisMgr = (SimpleReloadableResourceManager) (Object) this;
 
-            ResourcePackAdapter.BUILTIN_PACKS.forEach(thisMgr::add);
+            ResourcePackAdapter.RESOURCE_PACKS.forEach(thisMgr::add);
 
             //thisMgr.registerReloadListener(MediaListener::reloadResources);
         }

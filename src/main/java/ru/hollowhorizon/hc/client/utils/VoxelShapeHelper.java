@@ -31,8 +31,4 @@ public class VoxelShapeHelper {
         shapes.remove(0);
         return VoxelShapes.or(root, shapes.toArray(new VoxelShape[0]));
     }
-    
-    public static void main(String[] args) {
-        System.out.println(loadFromLocation(new ResourceLocation("hc:models/table.json")));
-    }
 }

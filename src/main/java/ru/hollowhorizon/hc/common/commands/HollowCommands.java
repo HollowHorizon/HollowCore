@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.common.commands;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.CommandSource;
@@ -91,15 +90,6 @@ public class HollowCommands {
                 .then(Commands.literal("test").executes((source) -> {
                             return 1;
                         })
-                )
-                .then(Commands.literal("utils")
-                        .then(Commands.literal("glint")
-                                .then(Commands.literal("start")
-                                        .then(Commands.argument("color", IntegerArgumentType.integer(0, 16))
-                                                .executes(StartGlintCommand::execute)))
-                                .then(Commands.literal("stop")
-                                        .executes(context -> StopGlintCommand.execute())
-                                ))
                 );
 
 

@@ -28,10 +28,6 @@ import ru.hollowhorizon.hc.client.screens.DialogueScreen;
 import ru.hollowhorizon.hc.common.animations.CutsceneStartHandler;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilities;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapability;
-import ru.hollowhorizon.hc.common.network.data.ActionsData;
-import ru.hollowhorizon.hc.common.network.data.LoreChoicesData;
-import ru.hollowhorizon.hc.common.network.data.ReputationDataForPlayer;
-import ru.hollowhorizon.hc.common.network.data.StoryInfoData;
 import ru.hollowhorizon.hc.common.story.events.StoryEventStarter;
 
 import java.util.ArrayList;
@@ -97,11 +93,6 @@ public class HollowEventHandler {
 
     private void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         ServerPlayerEntity player = (ServerPlayerEntity) event.getPlayer();
-
-        LoreChoicesData.INSTANCE.createFile(player);
-        StoryInfoData.INSTANCE.createFile(player);
-        ReputationDataForPlayer.INSTANCE.createFile(player);
-        ActionsData.INSTANCE.createFile(player);
 
         CutsceneStartHandler.startUncompletedCutscene(player);
 

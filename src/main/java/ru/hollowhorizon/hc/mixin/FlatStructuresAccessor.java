@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.gen.Accessor;
-import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
 
 import java.util.Map;
 
@@ -20,6 +19,6 @@ public class FlatStructuresAccessor {
 
     @Accessor(value = "STRUCTURE_FEATURES")
     public static Map<Structure<?>, StructureFeature<?, ?>> getStructureFeatures() {
-        return HollowJavaUtils.fakeInstance();
+        return null;
     }
 }

@@ -1,8 +1,5 @@
 package ru.hollowhorizon.hc.common.story.dialogues;
 
-import ru.hollowhorizon.hc.common.network.NetworkHandler;
-import ru.hollowhorizon.hc.common.network.messages.DialogueChoiceToServer;
-
 import java.util.function.Consumer;
 
 public class DialogueIterator {
@@ -73,7 +70,6 @@ public class DialogueIterator {
     public void makeChoice(DialogueComponent.DialogueChoiceComponent component, ChoiceTextComponent buttonChoice, String dialogueName) {
         if (buttonChoice != null) {
             this.dialogue = component.getDialogueByChoice(buttonChoice).copy();
-            NetworkHandler.sendMessageToServer(new DialogueChoiceToServer(dialogueName + "_" + buttonChoice.getRegName()));
         }
     }
 }

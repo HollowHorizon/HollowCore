@@ -8,6 +8,8 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface HollowRegister {
+    String value() default "";
+
     boolean auto_model() default false;
 
     String texture() default "";

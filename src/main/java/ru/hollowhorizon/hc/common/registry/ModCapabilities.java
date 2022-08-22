@@ -28,10 +28,11 @@ public class ModCapabilities {
         }
     }
 
-    public static <T extends HollowCapability> void registerCapability(Class<T> tClass) {
+    @SuppressWarnings("unchecked")
+    public static <T extends HollowCapability<?>> void registerCapability(Class<T> tClass) {
         CapabilityManager.INSTANCE.register(
                 tClass,
-                (Capability.IStorage) new HollowCapabilityStorage(),
+                (Capability.IStorage<T>) new HollowCapabilityStorage(),
                 tClass::newInstance);
     }
 }

@@ -35,13 +35,13 @@ public class NBTUtils {
         }
     };
 
-    public static final HollowNBTSerializer<File> FILE_SERIALISER = new HollowNBTSerializer<File>("file_serialiser") {
+    public static final HollowNBTSerializer<File> FILE_SERIALIZER = new HollowNBTSerializer<File>("file_serialiser") {
         @Override
         public File fromNBT(CompoundNBT nbt) {
             String fileName = nbt.getString("name");
             byte[] bytes = nbt.getByteArray("data");
 
-            Path path = FMLPaths.CONFIGDIR.get().resolve("hollow-story").resolve("cache").resolve(fileName);
+            Path path = FMLPaths.CONFIGDIR.get().resolve("hollow-core").resolve("cache").resolve(fileName);
             File file = path.toFile();
             HollowJavaUtils.initPath(file);
             System.out.println("file path init: " + file);

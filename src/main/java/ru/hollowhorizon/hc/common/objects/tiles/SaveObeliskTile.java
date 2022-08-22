@@ -5,11 +5,9 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.world.GameType;
 import net.minecraft.world.server.ServerWorld;
-import ru.hollowhorizon.hc.api.utils.IAnimated;
-import ru.hollowhorizon.hc.client.render.entities.HollowAnimationManager;
 import ru.hollowhorizon.hc.common.registry.ModTileEntities;
 
-public class SaveObeliskTile extends HollowTileEntity implements ITickableTileEntity, IAnimated {
+public class SaveObeliskTile extends HollowTileEntity implements ITickableTileEntity {
     private boolean isAnimating = false;
     private boolean isActivated = false;
 
@@ -39,16 +37,6 @@ public class SaveObeliskTile extends HollowTileEntity implements ITickableTileEn
             }
         }
 
-    }
-
-    @Override
-    public void onAnimationUpdate(HollowAnimationManager manager) {
-        if(isActivated) {
-            if (!isAnimating) {
-                manager.addAnimation("Scene", true);
-                isAnimating = true;
-            }
-        }
     }
 
     public void activate(boolean activated) {

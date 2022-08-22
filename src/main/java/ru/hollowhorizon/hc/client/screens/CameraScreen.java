@@ -13,7 +13,6 @@ import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import ru.hollowhorizon.hc.client.screens.widget.SliderWidget;
-import ru.hollowhorizon.hc.client.utils.math.HollowInterpolation;
 import ru.hollowhorizon.hc.common.animations.CameraPath;
 
 import java.util.ArrayList;
@@ -55,13 +54,6 @@ public class CameraScreen extends Screen {
                 currentPath = allPoints.get(i + 1);
             } else {
                 currentPath = new CameraPath(this.points);
-            }
-        }));
-        this.addButton(new Button(0, 40, 80, 20, new StringTextComponent("Switch Interpolation"), (button) -> {
-            if (currentPath != null) {
-                interpolationId++;
-                if (interpolationId > HollowInterpolation.values().length - 1) interpolationId = 0;
-                currentPath.setInterpolation(HollowInterpolation.values()[interpolationId]);
             }
         }));
 

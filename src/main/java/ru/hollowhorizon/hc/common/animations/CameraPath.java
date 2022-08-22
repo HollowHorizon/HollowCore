@@ -10,7 +10,6 @@ import net.minecraft.util.math.vector.Vector3d;
 import org.lwjgl.opengl.GL11;
 import ru.hollowhorizon.hc.client.render.OpenGLUtils;
 import ru.hollowhorizon.hc.client.utils.math.BezierUtils;
-import ru.hollowhorizon.hc.client.utils.math.HollowInterpolation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +18,6 @@ public class CameraPath {
     private final Vector3d fromPos;
     private final Vector3d toPos;
     private final List<Vector3d> precalculatedPath = new ArrayList<>();
-    private HollowInterpolation interpolation = HollowInterpolation.LINEAR;
 
     public CameraPath(Vector3d fromPos, Vector3d toPos) {
         this.fromPos = fromPos;
@@ -46,27 +44,6 @@ public class CameraPath {
         v.forEach(vec -> precalculatedPath.add(new Vector3d(vec.getX(), vec.getY(), vec.getZ())));
     }
 
-    public HollowInterpolation getInterpolation() {
-        return interpolation;
-    }
-
-    public void setInterpolation(HollowInterpolation interpolation) {
-        this.interpolation = interpolation;
-        calculatePath(100);
-    }
-
-    public void setPosCount(int posCount) {
-        calculatePath(posCount);
-    }
-
-    public Vector3d getFromPos() {
-        return fromPos;
-    }
-
-    public Vector3d getToPos() {
-        return toPos;
-    }
-
     public void drawPath(MatrixStack matrixStack) {
         //вызываем "рисовалку"
         Tessellator tessellator = Tessellator.getInstance();
@@ -75,7 +52,7 @@ public class CameraPath {
         //тип рисования линии (это значит каждые 2 точки будут превращены в линию)
         bufferbuilder.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
 
-        //сохраняем начальную позицию матрицы, т.е. место, где она была до переноса
+        //Сохраняем начальную позицию матрицы, т.е. место, где она была до переноса
         matrixStack.pushPose();
 
         //переносим матрицу на место игрока
@@ -89,7 +66,7 @@ public class CameraPath {
         Matrix4f matrix = matrixStack.last().pose();
         int size = precalculatedPath.size();
         for (int i = 1; i < size; i++) {
-            //тут собственно указание самих точек, я это добавил в функцию, щас распишу подробнее
+            //тут собственно указание самих точек, я это добавил в функцию, сейчас распишу подробнее
             OpenGLUtils.drawLine(bufferbuilder, matrix, precalculatedPath.get(i), precalculatedPath.get(i - 1), 1.0F, 1.0F, 1.0F, 0.5F);
         }
         //завершаем рисование
@@ -97,7 +74,7 @@ public class CameraPath {
 
         //меняем толщину линии обратно
         GL11.glLineWidth(1);
-        //возвращаем начальную позицию, т.к. мы меняли её положение
+        //Возвращаем начальную позицию, т.к. мы меняли её положение
         matrixStack.popPose();
     }
 
@@ -113,9 +90,7 @@ public class CameraPath {
     }
 
     private Vector3d getPosByKey(float key) {
-        double posX = interpolation.interpolate(fromPos.x(), toPos.x(), key);
-        double posY = interpolation.interpolate(fromPos.y(), toPos.y(), key);
-        double posZ = interpolation.interpolate(fromPos.z(), toPos.z(), key);
-        return new Vector3d(posX, posY, posZ);
+
+        return new Vector3d(0, 0, 0);
     }
 }

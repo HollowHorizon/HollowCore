@@ -11,7 +11,7 @@ import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import ru.hollowhorizon.hc.common.events.action.ActionPackage;
 import ru.hollowhorizon.hc.common.events.action.ActionStorage;
 import ru.hollowhorizon.hc.common.events.action.HollowAction;
-import ru.hollowhorizon.hc.common.network.data.ActionsData;
+//import ru.hollowhorizon.hc.common.network.data.ActionsData;
 
 import java.util.*;
 
@@ -59,7 +59,7 @@ public class DelayHandler {
                             HollowAction action = ActionStorage.getAction(cpack.getAction());
                             if(action!=null) {
                                 action.process(player);
-                                ActionsData.INSTANCE.removeActionData(player, cpack.getAction());
+                                //ActionsData.INSTANCE.removeActionData(player, cpack.getAction());
                                 iterator.remove();
                             }
                         }
@@ -74,12 +74,12 @@ public class DelayHandler {
     private static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         PlayerEntity player = event.getPlayer();
         String uuid = player.getUUID().toString();
-        if (!actions.containsKey(uuid)) actions.put(uuid, ActionsData.INSTANCE.getAllActions(player));
-        else {
-            List<ActionPackage> packages = ActionsData.INSTANCE.getAllActions(player);
-            packages.addAll(actions.get(uuid));
-            actions.put(uuid, packages);
-        }
+        //if (!actions.containsKey(uuid)) actions.put(uuid, ActionsData.INSTANCE.getAllActions(player));
+        //else {
+            //List<ActionPackage> packages = ActionsData.INSTANCE.getAllActions(player);
+            //packages.addAll(actions.get(uuid));
+            //actions.put(uuid, packages);
+        //}
 
     }
 
@@ -88,7 +88,7 @@ public class DelayHandler {
 
         if (actions.containsKey(playerId)) {
             List<ActionPackage> pack = actions.get(playerId);
-            pack.forEach((cpack) -> ActionsData.INSTANCE.addActionData(event.getPlayer().getUUID().toString(), cpack.getAction(), cpack.getDelay()));
+            //pack.forEach((cpack) -> ActionsData.INSTANCE.addActionData(event.getPlayer().getUUID().toString(), cpack.getAction(), cpack.getDelay()));
             actions.get(playerId).clear();
         }
 
@@ -97,7 +97,7 @@ public class DelayHandler {
     private static void onServerStop(FMLServerStoppingEvent event) {
         event.getServer().getPlayerList().getPlayers().forEach(player -> {
             if (actions.containsKey(player.getUUID().toString())) {
-                actions.get(player.getUUID().toString()).forEach((pack) -> ActionsData.INSTANCE.addActionData(player.getUUID().toString(), pack.getAction(), pack.getDelay()));
+                //actions.get(player.getUUID().toString()).forEach((pack) -> ActionsData.INSTANCE.addActionData(player.getUUID().toString(), pack.getAction(), pack.getDelay()));
                 actions.get(player.getUUID().toString()).clear();
             }
         });

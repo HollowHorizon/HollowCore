@@ -23,7 +23,7 @@ open class BaseButton(
     private val textColor: Int = 0xFFFFFF,
     private val textColorHovered: Int = 0xF0F0F0,
     private val tooltip: ITextComponent = StringTextComponent(""),
-) : Button(x, y, width, height, text, null) {
+) : Button(x, y, width, height, text, { }) {
 
     override fun render(@Nonnull stack: MatrixStack, x: Int, y: Int, f: Float) {
         val minecraft = Minecraft.getInstance()

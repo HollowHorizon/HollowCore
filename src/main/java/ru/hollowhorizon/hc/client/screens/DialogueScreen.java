@@ -23,8 +23,6 @@ import ru.hollowhorizon.hc.client.screens.widget.button.ChoiceButton;
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
 import ru.hollowhorizon.hc.client.utils.TextHelper;
 import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
-import ru.hollowhorizon.hc.common.network.NetworkHandler;
-import ru.hollowhorizon.hc.common.network.messages.DialogueEndToServer;
 import ru.hollowhorizon.hc.common.story.dialogues.ChoiceTextComponent;
 import ru.hollowhorizon.hc.common.story.dialogues.DialogueIterator;
 import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
@@ -418,7 +416,7 @@ public class DialogueScreen extends Screen {
         Minecraft.getInstance().options.hideGui = false;
         Minecraft.getInstance().resizeDisplay();
 
-        NetworkHandler.sendMessageToServer(new DialogueEndToServer(dialogueName));
+
     }
 
     @Override

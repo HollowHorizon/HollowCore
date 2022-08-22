@@ -33,62 +33,6 @@ public class NetworkHandler {
         int i = 0;
 
         HollowCoreChannel.registerMessage(i++,
-                DialogueChoiceToServer.class,
-                DialogueChoiceToServer::encode,
-                DialogueChoiceToServer::decode,
-                DialogueChoiceToServer::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
-
-        HollowCoreChannel.registerMessage(i++,
-                DialogueEndToServer.class,
-                DialogueEndToServer::encode,
-                DialogueEndToServer::decode,
-                DialogueEndToServer::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
-
-        HollowCoreChannel.registerMessage(i++,
-                LoadProgressToServer.class,
-                LoadProgressToServer::encode,
-                LoadProgressToServer::decode,
-                LoadProgressToServer::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
-
-        HollowCoreChannel.registerMessage(i++,
-                OpenEventListToServer.class,
-                OpenEventListToServer::encode,
-                OpenEventListToServer::decode,
-                OpenEventListToServer::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
-
-        HollowCoreChannel.registerMessage(i++,
-                OpenEventListToClient.class,
-                OpenEventListToClient::encode,
-                OpenEventListToClient::decode,
-                OpenEventListToClient::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-
-        HollowCoreChannel.registerMessage(i++,
-                OpenSaveGuiMessage.class,
-                OpenSaveGuiMessage::encode,
-                OpenSaveGuiMessage::decode,
-                OpenSaveGuiMessage::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-
-        HollowCoreChannel.registerMessage(i++,
-                SaveProgressToServer.class,
-                SaveProgressToServer::encode,
-                SaveProgressToServer::decode,
-                SaveProgressToServer::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
-
-        HollowCoreChannel.registerMessage(i++,
-                ParticleSendToClient.class,
-                ParticleSendToClient::encode,
-                ParticleSendToClient::decode,
-                ParticleSendToClient::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-
-        HollowCoreChannel.registerMessage(i++,
                 HollowPacketToClient.class,
                 HollowPacketToClient::encode,
                 HollowPacketToClient::decode,

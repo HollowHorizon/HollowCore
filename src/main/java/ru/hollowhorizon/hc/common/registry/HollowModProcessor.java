@@ -11,9 +11,7 @@ import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.forgespi.language.ModFileScanData;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -24,8 +22,6 @@ import ru.hollowhorizon.hc.api.registy.StoryObject;
 import ru.hollowhorizon.hc.api.utils.DelayedAction;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
-import ru.hollowhorizon.hc.client.render.blocks.HollowBlockRenderManager;
-import ru.hollowhorizon.hc.client.render.entities.HollowEntityManager;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
 import ru.hollowhorizon.hc.client.utils.ResourcePackAdapter;
 import ru.hollowhorizon.hc.common.animations.CutsceneHandler;
@@ -125,10 +121,6 @@ public class HollowModProcessor {
                                         } else if (someObject instanceof TileEntityType) {
                                             TileEntityType<?> tile = (TileEntityType<?>) someObject;
 
-                                            if (!modelName.equals("null")) {
-                                                HollowBlockRenderManager.registerHollowMob(tile, modelName);
-                                            }
-
                                             TILES.register(regName, () -> tile);
                                         } else if (someObject instanceof SoundEvent) {
                                             SoundEvent sound = (SoundEvent) someObject;
@@ -140,10 +132,6 @@ public class HollowModProcessor {
                                             STRUCTURES.register(regName, () -> structure);
                                         } else if (someObject instanceof EntityType<?>) {
                                             EntityType<?> entity = (EntityType<?>) someObject;
-
-                                            if (!modelName.equals("null") && FMLEnvironment.dist == Dist.CLIENT) {
-                                                HollowEntityManager.registerHollowMob(entity, modelName);
-                                            }
 
                                             ENTITIES.register(regName, () -> entity);
                                         } else if (someObject instanceof HollowArmor) {

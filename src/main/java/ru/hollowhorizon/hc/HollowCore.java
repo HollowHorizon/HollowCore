@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -12,7 +13,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
-import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.LogManager;
@@ -25,13 +25,10 @@ import ru.hollowhorizon.hc.client.utils.NBTUtils;
 import ru.hollowhorizon.hc.client.video.MediaListener;
 import ru.hollowhorizon.hc.common.animations.AnimationManager;
 import ru.hollowhorizon.hc.common.commands.HollowCommands;
-import ru.hollowhorizon.hc.common.container.TestUContainer;
-import ru.hollowhorizon.hc.common.container.UniversalContainerManager;
 import ru.hollowhorizon.hc.common.handlers.DelayHandler;
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.registry.ModCapabilities;
-import ru.hollowhorizon.hc.common.registry.ModParticles;
 import ru.hollowhorizon.hc.common.registry.ModStructurePieces;
 import ru.hollowhorizon.hc.common.registry.ModStructures;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
@@ -53,12 +50,10 @@ public class HollowCore {
     public HollowCore() {
 
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
-        modBus.addListener(ModParticles::onRegisterParticleFactories);
         modBus.addListener(this::setup);
         modBus.addListener(this::loadEnd);
 
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
-        forgeBus.addListener(this::close);
 
         if (proxy.isClientSide()) {
             //клавиши
@@ -83,7 +78,7 @@ public class HollowCore {
         forgeBus.addListener(this::registerReloadListeners);
 
         forgeBus.addGenericListener(Entity.class, ModCapabilities::attachCapabilityToEntity);
-
+        forgeBus.addListener(this::configSave);
 
     }
 
@@ -104,13 +99,9 @@ public class HollowCore {
         event.enqueueWork(ModStructurePieces::registerPieces);
 
         NBTUtils.init();
-
-        //GlobalEntityTypeAttributes.put(ModEntities.testEntity, TestEntity.createMobAttributes().build());
-
-        UniversalContainerManager.registerContainer("test_container", TestUContainer::new);
     }
 
-    private void close(FMLServerStoppedEvent event) {
+    private void configSave(WorldEvent.Save event) {
         HollowCoreConfig.save();
     }
 

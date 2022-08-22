@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.utils
+package ru.hollowhorizon.hc.client.utils.math
 
 import net.minecraft.util.math.MathHelper
 
