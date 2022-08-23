@@ -82,7 +82,14 @@ dependencies {
     shade 'org.jetbrains.kotlin:kotlin-reflect:1.7.10'
     shade 'org.jetbrains:annotations:23.0.0'
 
-    //implementation "org.jetbrains.kotlin:kotlin-script-runtime:1.7.10"
+//    shade 'org.jetbrains.kotlin:kotlin-script-util:1.7.10'
+//    shade 'org.jetbrains.kotlin:kotlin-scripting-jsr223:1.7.10'
+//    shade 'org.jetbrains.kotlin:kotlin-script-runtime:1.7.10'
+//    shade 'org.jetbrains.kotlin:kotlin-scripting-common:1.7.10'
+//    shade 'org.jetbrains.kotlin:kotlin-scripting-jvm:1.7.10'
+//    shade 'org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.7.10'
+//    shade 'org.jetbrains.kotlin:kotlin-compiler-embeddable:1.7.10'
+//    shade 'org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.7.10'
 }
 
 jar {
@@ -90,10 +97,7 @@ jar {
 
     from sourceSets.main.output
 
-    exclude(
-            "**/*.kotlin_metadata",
-            "**/*.kotlin_builtins"
-    )
+    exclude()
 
     from { configurations.shade.collect { it.isDirectory() ? it : zipTree(it) } }
 

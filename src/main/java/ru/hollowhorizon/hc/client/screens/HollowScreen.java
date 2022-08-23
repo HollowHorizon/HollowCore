@@ -12,7 +12,7 @@ import ru.hollowhorizon.hc.client.screens.util.Alignment;
 public class HollowScreen extends Screen {
     private TextureManager textureManager;
 
-    protected HollowScreen(ITextComponent screenText) {
+    public HollowScreen(ITextComponent screenText) {
         super(screenText);
     }
 

@@ -87,7 +87,8 @@ public class HollowCommands {
         LiteralArgumentBuilder<CommandSource> commandBuilder = Commands.literal("hollow-core").requires((source) -> source.hasPermission(2))
                 .then(lore)
                 .then(dialogues)
-                .then(Commands.literal("test").executes((source) -> {
+                .then(Commands.literal("test").executes(source -> {
+
                             return 1;
                         })
                 );

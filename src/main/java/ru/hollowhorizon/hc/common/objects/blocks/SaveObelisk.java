@@ -22,6 +22,7 @@ public class SaveObelisk extends HollowBlock {
 
     public SaveObelisk() {
         super(Properties.of(Material.METAL).noOcclusion());
+
     }
 
     @Nonnull

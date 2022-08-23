@@ -8,7 +8,7 @@ import ru.hollowhorizon.hc.common.world.structures.StoryStructureData;
 import java.util.ArrayList;
 
 public class HollowWorldData extends WorldSavedData {
-    public static HollowWorldData INSTANCE;
+    public static HollowWorldData INSTANCE = null;
     public ArrayList<StoryStructureData> STRUCTURE_DATA_LIST = new ArrayList<>();
 
     public HollowWorldData() {

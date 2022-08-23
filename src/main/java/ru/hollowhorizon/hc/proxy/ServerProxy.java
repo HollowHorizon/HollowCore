@@ -4,11 +4,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.World;
 
 public class ServerProxy extends CommonProxy {
+
     @Override
-    public void init() {
-
-    }
-
     public boolean isClientSide() {
         return false;
     }

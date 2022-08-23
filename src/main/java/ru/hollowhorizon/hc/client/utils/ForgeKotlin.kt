@@ -1,6 +1,8 @@
 package ru.hollowhorizon.hc.client.utils
 
+import com.mojang.blaze3d.matrix.MatrixStack
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.AbstractGui
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.renderer.texture.Texture
 import net.minecraft.util.ResourceLocation
@@ -10,6 +12,7 @@ import net.minecraft.util.text.StringTextComponent
 import net.minecraft.util.text.TranslationTextComponent
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
+import ru.hollowhorizon.hc.HollowCore
 import java.io.InputStream
 
 @OnlyIn(Dist.CLIENT)
@@ -44,5 +47,14 @@ fun Screen.open() {
 }
 
 fun ResourceLocation.toTexture(): Texture {
-    return mc.textureManager.getTexture(this)!!
+    val texture: Texture? = mc.textureManager.getTexture(this)
+    return if (texture == null) {
+        HollowCore.LOGGER.warn("Texture \"$this\" not found")
+        mc.textureManager.getTexture("textures/block/beacon.png".toRL())!!
+    } else texture
+}
+
+fun Texture.render(stack: MatrixStack, x: Int, y: Int, width: Int, height: Int) {
+    this.bind()
+    AbstractGui.blit(stack, x, y, 0F, 0F, width, height, width, height)
 }

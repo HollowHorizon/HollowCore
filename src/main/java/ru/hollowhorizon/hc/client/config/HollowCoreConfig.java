@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.client.config;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.loading.FMLPaths;
-import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 
 import java.io.File;
@@ -14,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 public class HollowCoreConfig {
+    private HollowCoreConfig() {}
+
     public static final Map<String, List<Field>> FIELDS = new HashMap<>();
 
     @HollowConfig(value = "general.main_hero_voice", description = "Enable Main hero voice")
@@ -50,13 +51,13 @@ public class HollowCoreConfig {
                         throw new IllegalArgumentException("Unsupported type: " + field.getType());
                     }
 
-                    if(!config.description().isEmpty()) configuration.setComment(config.value(), config.description());
+                    if (!config.description().isEmpty()) configuration.setComment(config.value(), config.description());
                 }
 
                 configuration.close();
             }
         } catch (IllegalAccessException | IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Failed to save config", e);
         }
     }
 
@@ -73,9 +74,8 @@ public class HollowCoreConfig {
                     HollowConfig config = field.getAnnotation(HollowConfig.class);
                     if (field.getType().equals(boolean.class)) {
                         boolean data = configuration.get(config.value());
-                        field.set(null, data);
+                        field.setBoolean(null, data);
                     } else if (field.getType().equals(float.class)) {
-                        HollowCore.LOGGER.info("Loading float: " + configuration.get(config.value())+ " " + config.value());
                         double d = configuration.get(config.value());
                         float data = (float) d;
                         field.set(null, MathHelper.lerp(data, config.min(), config.max()));
@@ -92,7 +92,7 @@ public class HollowCoreConfig {
                 configuration.close();
             }
         } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Failed to load config", e);
         }
     }
 }

@@ -12,7 +12,8 @@ import net.minecraftforge.api.distmarker.OnlyIn
 import ru.hollowhorizon.hc.client.utils.mc
 import javax.annotation.Nonnull
 
-open class BaseButton(
+
+open class BaseButton @JvmOverloads constructor(
     x: Int,
     y: Int,
     width: Int,
@@ -50,7 +51,7 @@ open class BaseButton(
 
         stack.popPose()
 
-        if (mc.screen != null && isHovered) {
+        if (mc.screen != null && isHovered && tooltip.string != "") {
             mc.screen!!.renderTooltip(stack, minecraft.font.split(tooltip, (width / 2 - 43).coerceAtLeast(170)), x, y)
         }
     }

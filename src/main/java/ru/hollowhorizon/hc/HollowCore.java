@@ -2,9 +2,7 @@ package ru.hollowhorizon.hc;
 
 import net.minecraft.entity.Entity;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -13,8 +11,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
@@ -22,7 +20,6 @@ import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.NBTUtils;
-import ru.hollowhorizon.hc.client.video.MediaListener;
 import ru.hollowhorizon.hc.common.animations.AnimationManager;
 import ru.hollowhorizon.hc.common.commands.HollowCommands;
 import ru.hollowhorizon.hc.common.handlers.DelayHandler;
@@ -42,7 +39,7 @@ import ru.hollowhorizon.hc.proxy.ServerProxy;
 public class HollowCore {
     public static final String MODID = "hc";
     public static final Logger LOGGER = LogManager.getLogger();
-    public static CommonProxy proxy = DistExecutor.safeRunForDist(
+    public static final CommonProxy proxy = DistExecutor.safeRunForDist(
             () -> ClientProxy::new,
             () -> ServerProxy::new
     );
@@ -63,7 +60,6 @@ public class HollowCore {
             //события
             forgeBus.addListener(ClientTickHandler::clientTickEnd);
             new HollowEventHandler().init();
-            MediaListener.registerReload();
         }
         DelayHandler.init();
         //команды
@@ -75,18 +71,12 @@ public class HollowCore {
 
         //мод
         forgeBus.register(this);
-        forgeBus.addListener(this::registerReloadListeners);
 
         forgeBus.addGenericListener(Entity.class, ModCapabilities::attachCapabilityToEntity);
         forgeBus.addListener(this::configSave);
 
     }
 
-    public void registerReloadListeners(AddReloadListenerEvent e) {
-        if (FMLEnvironment.dist.isClient()) {
-            //ModShaders.init(e);
-        }
-    }
 
     //『Pre-Init』
     private void setup(final FMLCommonSetupEvent event) {
@@ -101,7 +91,7 @@ public class HollowCore {
         NBTUtils.init();
     }
 
-    private void configSave(WorldEvent.Save event) {
+    private void configSave(FMLServerStoppedEvent event) {
         HollowCoreConfig.save();
     }
 
@@ -112,7 +102,7 @@ public class HollowCore {
 
     //『server』
     @SubscribeEvent
-    public void onServerStarting(FMLServerStartingEvent event) {
+    public static void onServerStarting(FMLServerStartingEvent event) {
         HollowWorldData.INSTANCE = event.getServer().overworld()
                 .getChunkSource().getDataStorage().computeIfAbsent(HollowWorldData::new, "hollow_world_data");
     }
