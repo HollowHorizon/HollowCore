@@ -11,17 +11,16 @@ import static ru.hollowhorizon.hc.HollowCore.MODID;
 
 public class ModShaders {
     public static final ShaderProgram TEST_SHADER = ShaderProgramBuilder.builder()
-            .addShader("test_shader", (builder) -> {
-                builder.source(new ResourceLocation(MODID, "shaders/portal.frag"));
+            .addShader("test_shader", builder -> {
+                builder.source(new ResourceLocation(MODID, "shaders/console.glsl"));
                 builder.type(ShaderObject.StandardShaderType.FRAGMENT);
 
-                builder.uniform("TEST", UniformType.INT);
-                builder.uniform("time", UniformType.INT);
+                builder.uniform("t", UniformType.INT);
                 builder.uniform("windowX", UniformType.INT);
                 builder.uniform("windowY", UniformType.INT);
             })
             .whenUsed((uniformCache -> {
-                uniformCache.glUniform1i("time", ClientTickHandler.ticksInGame);
+                uniformCache.glUniform1i("t", ClientTickHandler.ticksInGame);
                 uniformCache.glUniform1i("windowX", Minecraft.getInstance().getMainRenderTarget().width);
                 uniformCache.glUniform1i("windowY", Minecraft.getInstance().getMainRenderTarget().height);
             }))

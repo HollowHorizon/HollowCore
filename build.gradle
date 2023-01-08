@@ -6,13 +6,14 @@ buildscript {
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.+', changing: true
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10'
+        classpath 'org.spongepowered:mixingradle:0.7.32'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.20-RC'
     }
 }
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.7.10"
-    id "org.jetbrains.kotlin.plugin.serialization" version "1.7.10"
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id "org.jetbrains.kotlin.jvm" version "1.7.20"
+    id "org.jetbrains.kotlin.plugin.serialization" version "1.7.20"
 }
 apply plugin: 'kotlin'
 apply plugin: 'net.minecraftforge.gradle'
@@ -25,7 +26,8 @@ archivesBaseName = 'hc'
 java.toolchain.languageVersion = JavaLanguageVersion.of(8) // Mojang ships Java 8 to end users, so your mod should target Java 8.
 
 configurations {
-    implementation.extendsFrom(shade)
+    shade
+    implementation.extendsFrom shade
 }
 
 minecraft {
@@ -58,6 +60,10 @@ minecraft {
     }
 }
 
+ext {
+    imguiVersion = '1.86.4'
+}
+
 mixin {
     add sourceSets.main, "hc.refmap.json"
 }
@@ -66,6 +72,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
     flatDir { dirs 'libs' }
 }
 
@@ -73,33 +80,46 @@ compileJava.options.encoding = "UTF-8"
 compileTestJava.options.encoding = "UTF-8"
 
 dependencies {
-    annotationProcessor 'org.spongepowered:mixin:0.8.3:processor'
-    minecraft 'net.minecraftforge:forge:1.16.5-36.2.29'
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    minecraft 'net.minecraftforge:forge:1.16.5-36.2.39'
 
     shade 'uk.co.caprica:vlcj:4.7.3'
 
-    shade 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.10'
-    shade 'org.jetbrains.kotlin:kotlin-reflect:1.7.10'
-    shade 'org.jetbrains:annotations:23.0.0'
+    shade 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.22'
+    shade 'org.jetbrains.kotlin:kotlin-stdlib-common:1.7.22'
+    shade 'org.jetbrains.kotlin:kotlin-reflect:1.7.22'
+    shade 'org.jetbrains:annotations:23.1.0'
 
-//    shade 'org.jetbrains.kotlin:kotlin-script-util:1.7.10'
-//    shade 'org.jetbrains.kotlin:kotlin-scripting-jsr223:1.7.10'
-//    shade 'org.jetbrains.kotlin:kotlin-script-runtime:1.7.10'
-//    shade 'org.jetbrains.kotlin:kotlin-scripting-common:1.7.10'
-//    shade 'org.jetbrains.kotlin:kotlin-scripting-jvm:1.7.10'
-//    shade 'org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.7.10'
-//    shade 'org.jetbrains.kotlin:kotlin-compiler-embeddable:1.7.10'
-//    shade 'org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.7.10'
+    shade 'org.jetbrains.kotlin:kotlin-scripting-common:1.7.22'
+    shade 'org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.7.22'
+    shade 'org.jetbrains.kotlin:kotlin-scripting-jvm:1.7.20-RC'
+
+    shade 'org.jetbrains.kotlin:kotlin-compiler-embeddable:1.7.22'
+    shade 'org.jetbrains.kotlin:kotlin-script-runtime:1.7.22'
+    shade 'org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.7.22'
+    shade 'org.jetbrains.kotlin:kotlin-scripting-dependencies:1.7.22'
+    shade 'org.jetbrains.kotlin:kotlin-scripting-dependencies-maven:1.7.22'
+
+    shade 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
+    shade 'org.jetbrains.kotlinx:kotlinx-serialization-core:1.4.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1'
+
+    shade 'gnu.trove:trove:1.0.2'
+
+    implementation('com.google.guava:guava') {
+        version {
+            strictly '21.0'
+        }
+    }
+
+    shade 'org.cadixdev:lorenz:0.5.8'
+    shade 'org.cadixdev:bombe:0.4.4'
+    shade 'me.jamiemansfield:string:0.1.0'
 }
 
 jar {
+    archiveClassifier = ''
     duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-
-    from sourceSets.main.output
-
-    exclude()
-
-    from { configurations.shade.collect { it.isDirectory() ? it : zipTree(it) } }
 
     manifest {
         attributes([
@@ -114,6 +134,21 @@ jar {
     }
 
     finalizedBy('reobfJar')
+}
+
+shadowJar {
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    configurations = [project.configurations.shade]
+
+    relocate('gnu.trove', 'ru.hollowhorizon.gnu.trove')
+
+    finalizedBy 'reobfShadowJar'
+}
+
+assemble.dependsOn shadowJar
+
+reobf {
+    shadowJar {}
 }
 
 task devJar(type: Jar) {
@@ -145,6 +180,6 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
         freeCompilerArgs = Arrays.asList("-Xjvm-default=all", "-Xopt-in=kotlin.RequiresOptIn")
         jvmTarget = "1.8"
-        languageVersion = "1.4"
+        languageVersion = "1.7"
     }
 }

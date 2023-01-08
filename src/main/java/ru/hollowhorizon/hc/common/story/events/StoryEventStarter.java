@@ -5,11 +5,13 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2;
+import ru.hollowhorizon.hc.common.capabilities.HollowStoryCapability;
 import ru.hollowhorizon.hc.common.registry.ModCapabilities;
 
 public class StoryEventStarter {
     public static void startAll(ServerPlayerEntity player) {
-        player.getCapability(ModCapabilities.STORY_CAPABILITY).ifPresent((capability) -> {
+        player.getCapability(HollowCapabilityV2.Companion.get(HollowStoryCapability.class)).ifPresent((capability) -> {
             for (String storyName : capability.getAll()) {
                 start(player, storyName);
             }

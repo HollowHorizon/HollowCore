@@ -6,6 +6,8 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2;
+import ru.hollowhorizon.hc.common.capabilities.HollowStoryCapability;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.network.messages.*;
 import ru.hollowhorizon.hc.common.registry.ModCapabilities;
@@ -16,7 +18,7 @@ public abstract class HollowStoryHandler {
     public void start(PlayerEntity player) {
         MinecraftForge.EVENT_BUS.register(this);
         this.player = player;
-        this.player.getCapability(ModCapabilities.STORY_CAPABILITY).ifPresent((capability) -> {
+        this.player.getCapability(HollowCapabilityV2.Companion.get(HollowStoryCapability.class)).ifPresent((capability) -> {
             String storyName = getStoryName();
             if (capability.hasStory(storyName)) {
                 CompoundNBT story = capability.getStory(storyName);
@@ -51,11 +53,11 @@ public abstract class HollowStoryHandler {
     }
 
     public void saveStory() {
-        player.getCapability(ModCapabilities.STORY_CAPABILITY).ifPresent((capability) -> capability.addStory(getStoryName(), saveNBT()));
+        player.getCapability(HollowCapabilityV2.Companion.get(HollowStoryCapability.class)).ifPresent((capability) -> capability.addStory(getStoryName(), saveNBT()));
     }
 
     public void loadStory() {
-        player.getCapability(ModCapabilities.STORY_CAPABILITY).ifPresent((capability) -> loadNBT(capability.getStory(getStoryName())));
+        player.getCapability(HollowCapabilityV2.Companion.get(HollowStoryCapability.class)).ifPresent((capability) -> loadNBT(capability.getStory(getStoryName())));
     }
 
     @SubscribeEvent
@@ -68,7 +70,7 @@ public abstract class HollowStoryHandler {
 
     public void stop() {
         MinecraftForge.EVENT_BUS.unregister(this);
-        this.player.getCapability(ModCapabilities.STORY_CAPABILITY).ifPresent((capability) -> capability.removeStory(getStoryName()));
+        this.player.getCapability(HollowCapabilityV2.Companion.get(HollowStoryCapability.class)).ifPresent((capability) -> capability.removeStory(getStoryName()));
         if(enableClient()) {
             if(!FMLEnvironment.dist.isClient()) {
                 NetworkHandler.sendMessageToClient(new StopStoryEventToClient(getStoryName()), this.player);

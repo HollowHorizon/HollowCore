@@ -14,5 +14,5 @@ public @interface HollowRegister {
 
     String texture() default "";
 
-    String model() default "null";
+    Class<?> renderer() default HollowRegister.class;
 }

@@ -14,8 +14,6 @@ import ru.hollowhorizon.hc.client.utils.ScissorUtil;
 
 import java.util.List;
 
-import static ru.hollowhorizon.hc.HollowCore.MODID;
-
 public class ListWidget extends HollowWidget {
     private final List<Widget> listWidgets;
     protected boolean autoSize = false;
@@ -94,9 +92,6 @@ public class ListWidget extends HollowWidget {
 
     @Override
     public void renderButton(MatrixStack stack, int mouseX, int mouseY, float ticks) {
-
-        bind(MODID, "gui/background_ftbq.png");
-        betterBlit(stack, Alignment.CENTER, 0, 0, this.width, this.height);
         this.slider.render(stack, mouseX, mouseY, ticks);
 
         ScissorUtil.start(this.x, this.y, this.width, this.height);

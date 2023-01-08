@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.client.screens;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -19,6 +20,12 @@ public class HollowScreen extends Screen {
     @Override
     protected void init() {
         this.textureManager = Minecraft.getInstance().textureManager;
+    }
+
+    @Override
+    public void mouseMoved(double mouseX, double mouseY) {
+        this.children.forEach(widget -> widget.mouseMoved(mouseX, mouseY));
+        super.mouseMoved(mouseX, mouseY);
     }
 
     public static int getAlignmentPosX(Alignment alignment, int offsetX, int positionWidth, int targetWidth) {
@@ -91,6 +98,15 @@ public class HollowScreen extends Screen {
         boolean value = false;
         for(Widget widget : this.buttons) {
             value = value || widget.mouseReleased(p_231048_1_, p_231048_3_, p_231048_5_);
+        }
+        return value;
+    }
+
+    @Override
+    public boolean mouseDragged(double p_231045_1_, double p_231045_3_, int p_231045_5_, double p_231045_6_, double p_231045_8_) {
+        boolean value = false;
+        for(IGuiEventListener widget : this.children) {
+            value = value || widget.mouseDragged(p_231045_1_, p_231045_3_, p_231045_5_, p_231045_6_, p_231045_8_);
         }
         return value;
     }

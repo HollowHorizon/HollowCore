@@ -9,6 +9,7 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.registries.ForgeRegistries;
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler;
 
 import javax.annotation.Nonnull;
@@ -35,7 +36,7 @@ public class ChoiceButton extends Button {
 
     @Override
     public void playDownSound(SoundHandler soundHandler) {
-        soundHandler.play(SimpleSound.forUI(HollowSoundHandler.CHOICE_BUTTON, 1));
+        soundHandler.play(SimpleSound.forUI(ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("hc:choice_button")), 1));
     }
 
     @Override

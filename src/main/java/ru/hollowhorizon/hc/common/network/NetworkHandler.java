@@ -14,6 +14,7 @@ public class NetworkHandler {
     public static final String MESSAGE_PROTOCOL_VERSION = "1.0";
     public static final ResourceLocation HOLLOW_CORE_CHANNEL = new ResourceLocation("hc", "hollow_core_channel");
     public static SimpleChannel HollowCoreChannel;
+    public static int index = 7;
 
     public static <MSG> void sendMessageToClient(MSG messageToClient, PlayerEntity player) {
         HollowCoreChannel.sendTo(messageToClient, ((ServerPlayerEntity) player).connection.connection, NetworkDirection.PLAY_TO_CLIENT);
@@ -30,6 +31,7 @@ public class NetworkHandler {
                     MESSAGE_PROTOCOL_VERSION::equals
             );
         }
+
         int i = 0;
 
         HollowCoreChannel.registerMessage(i++,
@@ -80,5 +82,7 @@ public class NetworkHandler {
                 StartDialogueToClient::decode,
                 StartDialogueToClient::onReceived,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+
     }
 }

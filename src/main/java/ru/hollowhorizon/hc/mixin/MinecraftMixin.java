@@ -17,6 +17,4 @@ public abstract class MinecraftMixin {
 //        framebuffer.blitToScreen(screenWidth, screenHeight);
 //        ModShaders.TEST_SHADER.release();
 //    }
-
-
 }

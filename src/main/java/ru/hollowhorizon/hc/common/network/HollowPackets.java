@@ -8,17 +8,5 @@ import ru.hollowhorizon.hc.common.capabilities.HollowCapability;
 
 public class HollowPackets {
 
-    @HollowPacket
-    public static final UniversalPacket<HollowCapability<?>> CAPABILITY_PACKET = new UniversalPacket<HollowCapability<?>>() {
 
-        @Override
-        public HollowNBTSerializer<HollowCapability<?>> serializer() {
-            return NBTUtils.HOLLOW_CAPABILITY_SERIALIZER;
-        }
-
-        @Override
-        public void onReceived(PlayerEntity playerEntity, HollowCapability<?> value) {
-            playerEntity.getCapability(value.getCapability()).ifPresent(capability -> capability.readNBT(value.writeNBT()));
-        }
-    };
 }

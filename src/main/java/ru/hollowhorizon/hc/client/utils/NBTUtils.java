@@ -73,28 +73,28 @@ public class NBTUtils {
         }
     };
 
-    public static final HollowNBTSerializer<HollowCapability<?>> HOLLOW_CAPABILITY_SERIALIZER = new HollowNBTSerializer<HollowCapability<?>>("hollow_capability_serializer") {
-        @Override
-        public HollowCapability<?> fromNBT(CompoundNBT nbt) {
-            String nbts = nbt.getString("cap");
-
-            String[] s = nbts.split(":");
-            ResourceLocation location = new ResourceLocation(s[0], s[1]);
-
-            Capability<HollowCapability<?>> capability = HollowCapabilities.CAPABILITIES.get(location);
-            HollowCapability<?> capabilityInstance = capability.getDefaultInstance();
-            capabilityInstance.readNBT(nbt.getCompound("nbt"));
-            return capabilityInstance;
-        }
-
-        @Override
-        public CompoundNBT toNBT(HollowCapability<?> value) {
-            CompoundNBT compound = new CompoundNBT();
-            compound.putString("cap", value.getRegistryName().toString());
-            compound.put("nbt", value.writeNBT());
-            return compound;
-        }
-    };
+//    public static final HollowNBTSerializer<HollowCapability<?>> HOLLOW_CAPABILITY_SERIALIZER = new HollowNBTSerializer<HollowCapability<?>>("hollow_capability_serializer") {
+//        @Override
+//        public HollowCapability<?> fromNBT(CompoundNBT nbt) {
+//            String nbts = nbt.getString("cap");
+//
+//            String[] s = nbts.split(":");
+//            ResourceLocation location = new ResourceLocation(s[0], s[1]);
+//
+//            Capability<HollowCapability<?>> capability = HollowCapabilities.CAPABILITIES.get(location);
+//            HollowCapability<?> capabilityInstance = capability.getDefaultInstance();
+//            capabilityInstance.readNBT(nbt.getCompound("nbt"));
+//            return capabilityInstance;
+//        }
+//
+//        @Override
+//        public CompoundNBT toNBT(HollowCapability<?> value) {
+//            CompoundNBT compound = new CompoundNBT();
+//            compound.putString("cap", value.getRegistryName().toString());
+//            compound.put("nbt", value.writeNBT());
+//            return compound;
+//        }
+//    };
     public static final HollowNBTSerializer<Integer> INTEGER_SERIALIZER = new HollowNBTSerializer<Integer>("int") {
         @Override
         public Integer fromNBT(CompoundNBT nbt) {

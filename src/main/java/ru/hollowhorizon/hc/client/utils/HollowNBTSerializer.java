@@ -11,3 +11,4 @@ public abstract class HollowNBTSerializer<T> {
 
     public abstract CompoundNBT toNBT(T value);
 }
+

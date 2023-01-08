@@ -27,8 +27,9 @@ public abstract class FMLModContainerMixin {
     public void fmlModConstructingHook(CallbackInfo ci) {
         FMLModContainer modContainer = (FMLModContainer) (Object) this;
         String modId = modContainer.getModId();
+        HollowModProcessor.INSTANCE.init();
         if (modClass.isAnnotationPresent(HollowMod.class)) {
-            HollowModProcessor.run(modId, scanResults);
+            HollowModProcessor.INSTANCE.run(modId, scanResults);
         }
     }
 }

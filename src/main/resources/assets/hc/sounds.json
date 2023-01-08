@@ -1,8 +1,0 @@
-{
-  "choice_button": {
-    "category": "master",
-    "sounds": [
-      "hc:sfx/choice_button"
-    ]
-  }
-}

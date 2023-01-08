@@ -1,18 +1,14 @@
 package ru.hollowhorizon.hc.common.handlers;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.settings.PointOfView;
-import net.minecraft.client.shader.Framebuffer;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
@@ -20,14 +16,16 @@ import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.lwjgl.opengl.GL11;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.screens.DialogueOptionsScreen;
 import ru.hollowhorizon.hc.client.screens.DialogueScreen;
+import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
 import ru.hollowhorizon.hc.common.animations.CutsceneStartHandler;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilities;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapability;
+import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2;
+import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2Kt;
 import ru.hollowhorizon.hc.common.story.events.StoryEventStarter;
 
 import java.util.ArrayList;
@@ -41,18 +39,6 @@ public class HollowEventHandler {
     public static boolean ENABLE_BLUR = true;
 
     public static final List<String> BLUR_WHITELIST = new ArrayList<>();
-    private Framebuffer framebuffer;
-
-    private static void drawQuad() {
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder buffer = tessellator.getBuilder();
-        buffer.begin(7, DefaultVertexFormats.POSITION_TEX);
-        buffer.vertex(-1, -1, 0).uv(0, 0).endVertex();
-        buffer.vertex(1, -1, 0).uv(1, 0).endVertex();
-        buffer.vertex(1, 1, 0).uv(1, 1).endVertex();
-        buffer.vertex(-1, 1, 0).uv(0, 1).endVertex();
-        tessellator.end();
-    }
 
     public void init() {
         BLUR_WHITELIST.add(DialogueScreen.class.getName());
@@ -79,14 +65,31 @@ public class HollowEventHandler {
     }
 
     @SubscribeEvent
+    public void onOpen(GuiOpenEvent event) {
+//        if(event.getGui() instanceof MainMenuScreen) {
+//            event.setCanceled(true);
+//            Minecraft.getInstance().setScreen(new Screen(new StringTextComponent("")) {
+//                @Override
+//                public void render(MatrixStack p_230430_1_, int p_230430_2_, int p_230430_3_, float p_230430_4_) {
+//                    IMGUILoader.INSTANCE.render(0, 0, this.width, this.height, () -> {
+//                        ImGuiKt.testRender();
+//                        return null;
+//                    });
+//                }
+//            });
+//        }
+    }
+
+    @SubscribeEvent
     public void onPlayerClone(PlayerEvent.Clone event) {
-        if (event.isWasDeath()) {
-            for (Capability<HollowCapability<?>> cap : HollowCapabilities.CAPABILITIES.values()) {
-                HollowCapability<?> origCap = event.getOriginal().getCapability(cap).orElse(null);
-                HollowCapability<?> newCap = event.getPlayer().getCapability(cap).orElse(null);
-                newCap.readNBT(origCap.writeNBT());
-                newCap.update(event.getPlayer());
-                newCap.onDeath(event.getPlayer(), event.getOriginal());
+        if (event.isWasDeath() && false) { //Пока в разработке
+
+            for (Capability<?> cap : HollowCapabilityStorageV2.INSTANCE.getStorages().values()) {
+                HollowCapability<?> origCap = (HollowCapability<?>) event.getOriginal().getCapability(cap).orElse(null);
+                if (origCap == null) return;
+                HollowCapability<?> newCap = (HollowCapability<?>) event.getPlayer().getCapability(cap).orElse(null);
+                newCap.setValue(HollowJavaUtils.castDarkMagic(origCap.getValue()));
+                HollowCapabilityV2Kt.syncClient(newCap, event.getPlayer());
             }
         }
     }
@@ -100,11 +103,12 @@ public class HollowEventHandler {
 
         //update capabilities on clients
         for (Capability<HollowCapability<?>> cap : HollowCapabilities.CAPABILITIES.values()) {
-            player.getCapability(cap).ifPresent(capability -> capability.update(event.getPlayer()));
+            //player.getCapability(cap).ifPresent(capability -> capability.update(event.getPlayer()));
         }
     }
 
 
+    @OnlyIn(Dist.CLIENT)
     private void onRenderOverlay(RenderGameOverlayEvent.Pre event) {
         if (Minecraft.getInstance().screen != null) {
             if (BLUR_WHITELIST.contains(Minecraft.getInstance().screen.getClass().getName()) && ENABLE_BLUR) {
@@ -126,43 +130,6 @@ public class HollowEventHandler {
     }
 
     private void onRenderOverlayPost(RenderGameOverlayEvent.Post event) {
-
-    }
-
-    public void drawColouredRect(int posX, int posY, int xSize, int ySize, int colour) {
-        drawRect(posX, posY, posX + xSize, posY + ySize, colour, colour, 1F, 0);
-    }
-
-    public void drawRect(float left, float top, float right, float bottom, int colour1, int colour2, float fade, double zLevel) {
-        float f = ((colour1 >> 24 & 255) / 255.0F) * fade;
-        float f1 = (float) (colour1 >> 16 & 255) / 255.0F;
-        float f2 = (float) (colour1 >> 8 & 255) / 255.0F;
-        float f3 = (float) (colour1 & 255) / 255.0F;
-        float f4 = ((colour2 >> 24 & 255) / 255.0F) * fade;
-        float f5 = (float) (colour2 >> 16 & 255) / 255.0F;
-        float f6 = (float) (colour2 >> 8 & 255) / 255.0F;
-        float f7 = (float) (colour2 & 255) / 255.0F;
-        RenderSystem.disableTexture();
-        RenderSystem.enableBlend();
-        RenderSystem.disableAlphaTest();
-        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        RenderSystem.shadeModel(GL11.GL_SMOOTH);
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder vertexbuffer = tessellator.getBuilder();
-        vertexbuffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-        vertexbuffer.vertex(right, top, zLevel).color(f1, f2, f3, f).endVertex();
-        vertexbuffer.vertex(left, top, zLevel).color(f1, f2, f3, f).endVertex();
-        vertexbuffer.vertex(left, bottom, zLevel).color(f5, f6, f7, f4).endVertex();
-        vertexbuffer.vertex(right, bottom, zLevel).color(f5, f6, f7, f4).endVertex();
-        tessellator.end();
-
-        RenderSystem.shadeModel(GL11.GL_FLAT);
-        RenderSystem.disableBlend();
-        RenderSystem.enableAlphaTest();
-        RenderSystem.enableTexture();
-    }
-
-    private void renderShaders(Framebuffer framebuffer, int screenWidth, int screenHeight) {
 
     }
 }

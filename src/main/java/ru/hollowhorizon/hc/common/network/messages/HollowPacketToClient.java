@@ -24,7 +24,7 @@ public class HollowPacketToClient {
         return new HollowPacketToClient(UniversalPacketManager.getPacketFromNBT(buf.readNbt().getCompound("value"), serializer, name), name);
     }
 
-    public static <T> void onReceived(HollowPacketToClient message, Supplier<NetworkEvent.Context> ctxSupplier) {
+    public static void onReceived(HollowPacketToClient message, Supplier<NetworkEvent.Context> ctxSupplier) {
         ctxSupplier.get().setPacketHandled(true);
 
         message.packet.process();

@@ -1,8 +1,15 @@
 package ru.hollowhorizon.hc;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.resources.IResourcePack;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
+import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -17,22 +24,34 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
+import ru.hollowhorizon.hc.client.gltf.GlTFModelManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
+import ru.hollowhorizon.hc.client.utils.HollowPack;
 import ru.hollowhorizon.hc.client.utils.NBTUtils;
+import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat;
 import ru.hollowhorizon.hc.common.animations.AnimationManager;
+import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2;
 import ru.hollowhorizon.hc.common.commands.HollowCommands;
+import ru.hollowhorizon.hc.common.events.ResourcePackAddEvent;
 import ru.hollowhorizon.hc.common.handlers.DelayHandler;
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
+import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
 import ru.hollowhorizon.hc.common.registry.ModCapabilities;
+import ru.hollowhorizon.hc.common.registry.ModEntities;
 import ru.hollowhorizon.hc.common.registry.ModStructurePieces;
 import ru.hollowhorizon.hc.common.registry.ModStructures;
+import ru.hollowhorizon.hc.common.scripting.TestMain;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
 import ru.hollowhorizon.hc.common.world.storage.HollowWorldData;
 import ru.hollowhorizon.hc.proxy.ClientProxy;
 import ru.hollowhorizon.hc.proxy.CommonProxy;
 import ru.hollowhorizon.hc.proxy.ServerProxy;
+
+import java.util.ArrayList;
+
+import static ru.hollowhorizon.hc.common.objects.entities.data.AnimationDataParametersKt.ANIMATION_MANAGER;
 
 @HollowMod(HollowCore.MODID)
 @Mod(HollowCore.MODID)
@@ -46,11 +65,18 @@ public class HollowCore {
 
     public HollowCore() {
 
+        new GlTFModelManager();
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::setup);
         modBus.addListener(this::loadEnd);
-
+        modBus.addListener(this::onAttribute);
+        modBus.addListener(GlTFModelManager::clientSetup);
+        modBus.addListener(GlTFModelManager::modelBake);
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
+
+        //Обработчик NBT первый раз грузится долго, поэтому его лучше загрузить в отдельном потоке
+        new Thread(NBTFormat.Default::init).start();
+
 
         if (proxy.isClientSide()) {
             //клавиши
@@ -72,9 +98,16 @@ public class HollowCore {
         //мод
         forgeBus.register(this);
 
-        forgeBus.addGenericListener(Entity.class, ModCapabilities::attachCapabilityToEntity);
-        forgeBus.addListener(this::configSave);
+        forgeBus.addGenericListener(Entity.class, HollowCapabilityStorageV2::registerProvidersEntity);
+        forgeBus.addGenericListener(TileEntity.class, HollowCapabilityStorageV2::registerProvidersTile);
+        forgeBus.addGenericListener(Chunk.class, HollowCapabilityStorageV2::registerProvidersChunk);
+        forgeBus.addGenericListener(World.class, HollowCapabilityStorageV2::registerProvidersWorld);
 
+        forgeBus.addListener(this::configSave);
+    }
+
+    public static void onResourcePackAdd(ArrayList<IResourcePack> packs) {
+        packs.add(HollowPack.getPackInstance());
     }
 
 
@@ -84,12 +117,18 @@ public class HollowCore {
 
         ModCapabilities.init();
         NetworkHandler.register();
+        DataSerializers.registerSerializer(ANIMATION_MANAGER);
 
         event.enqueueWork(ModStructures::postInit);
         event.enqueueWork(ModStructurePieces::registerPieces);
 
         NBTUtils.init();
     }
+
+    private void onAttribute(EntityAttributeCreationEvent event) {
+        event.put(ModEntities.TEST_ENTITY, TestEntity.createMobAttributes().build());
+    }
+
 
     private void configSave(FMLServerStoppedEvent event) {
         HollowCoreConfig.save();

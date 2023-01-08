@@ -5,10 +5,12 @@ import net.minecraft.resources.IResourcePack;
 import net.minecraft.resources.ResourcePackType;
 import net.minecraft.resources.data.IMetadataSectionSerializer;
 import net.minecraft.util.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 import ru.hollowhorizon.hc.HollowCore;
 
 import javax.annotation.Nullable;
 import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
@@ -21,6 +23,8 @@ public class HollowPack implements IResourcePack {
     public static List<ResourceLocation> genParticles = new ArrayList<>();
     static HollowPack packInstance;
     public final Map<ResourceLocation, IResourceStreamSupplier> resourceMap = new HashMap<>();
+    @NotNull
+    public static final Map<String, JsonObject> genSounds = new HashMap<>();
 
     private void addItemModel(ResourceLocation location) {
         ResourceLocation models_item = new ResourceLocation(location.getNamespace(), "models/item/" + location.getPath() + ".json");
@@ -39,12 +43,16 @@ public class HollowPack implements IResourcePack {
         resourceMap.put(model, ofText("{\"parent\":\"block/cube_all\",\"textures\":{\"all\":\""+location.getNamespace()+":blocks/"+location.getPath()+"\"}}"));
     }
 
+    private void addSoundJson(String modid, JsonObject sound) {
+        resourceMap.put(new ResourceLocation(modid, "sounds.json"), ofText(sound.toString()));
+    }
+
     private static IResourceStreamSupplier ofText(String text) {
         return IResourceStreamSupplier.create(() -> true, () -> new ByteArrayInputStream(text.getBytes()));
     }
 
     private static IResourceStreamSupplier ofFile(File file) {
-        return IResourceStreamSupplier.create(file::isFile, () -> new FileInputStream(file));
+        return IResourceStreamSupplier.create(file::isFile, () -> Files.newInputStream(file.toPath()));
     }
 
     public static HollowPack getPackInstance() {
@@ -54,8 +62,6 @@ public class HollowPack implements IResourcePack {
     }
 
     public void init() {
-        resourceMap.put(new ResourceLocation(MODID, "sounds.json"), ofText("{}"));
-
         for(ResourceLocation location : genItemModels) {
             addItemModel(location);
         }
@@ -64,6 +70,9 @@ public class HollowPack implements IResourcePack {
         }
         for(ResourceLocation location : genBlockData) {
             addBlockModel(location);
+        }
+        for(Map.Entry<String, JsonObject> sound : genSounds.entrySet()) {
+            addSoundJson(sound.getKey(), sound.getValue());
         }
     }
 

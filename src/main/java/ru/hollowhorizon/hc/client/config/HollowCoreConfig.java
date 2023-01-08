@@ -72,6 +72,7 @@ public class HollowCoreConfig {
                 configuration.load();
                 for (Field field : entry.getValue()) {
                     HollowConfig config = field.getAnnotation(HollowConfig.class);
+                    if(!field.isAccessible()) field.setAccessible(true);
                     if (field.getType().equals(boolean.class)) {
                         boolean data = configuration.get(config.value());
                         field.setBoolean(null, data);

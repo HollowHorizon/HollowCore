@@ -1,7 +1,6 @@
 package ru.hollowhorizon.hc.client.utils;
 
 import com.google.gson.*;
-import org.jline.utils.InputStreamReader;
 import ru.hollowhorizon.hc.HollowCore;
 
 import java.io.*;

@@ -5,14 +5,15 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "hc.refmap.json",
   "mixins": [
+    "CapabilityManagerMixin",
     "FMLModContainerMixin",
     "MixinLocateCommand",
-    "MixinServerWorldInfo",
+    "PathUtilMixin",
+    "ScriptJvmCompilerImplsMixin",
     "SimpleReloadableResourceManagerMixin",
     "StructureBlockMixin"
   ],
   "client": [
-    "MixinIngameMenuScreen"
   ],
   "injectors": {
     "defaultRequire": 1
