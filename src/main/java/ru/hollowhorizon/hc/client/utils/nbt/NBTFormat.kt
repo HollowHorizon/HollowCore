@@ -1,5 +1,7 @@
 package ru.hollowhorizon.hc.client.utils.nbt
 
+import com.google.common.reflect.TypeToken
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -11,7 +13,6 @@ import kotlinx.serialization.modules.polymorphic
 import net.minecraft.nbt.*
 import java.io.InputStream
 import java.io.OutputStream
-import kotlin.reflect.full.createType
 
 internal val TagModule = SerializersModule {
     polymorphic(INBT::class) {
@@ -31,7 +32,6 @@ internal val TagModule = SerializersModule {
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 sealed class NBTFormat(context: SerializersModule = EmptySerializersModule()) : SerialFormat {
     override val serializersModule = context + TagModule
 
@@ -41,8 +41,10 @@ sealed class NBTFormat(context: SerializersModule = EmptySerializersModule()) : 
     data class Initializator(val value: String)
 
     fun init() {
-        //Первый вызов сериализатора происходит около 5 секунд, так что лучше сделать это заранее
-        deserialize<Initializator>(serialize(Initializator("")))
+        //Первый вызов сериализатора происходит около 5 секунд, так что лучше сделать это заранее и асинхронно
+        runBlocking {
+            deserialize<Initializator>(serialize(Initializator("")))
+        }
     }
 
     fun <T> serialize(serializer: SerializationStrategy<T>, obj: T): INBT {
@@ -57,10 +59,10 @@ sealed class NBTFormat(context: SerializersModule = EmptySerializersModule()) : 
 internal const val NbtFormatNull = 1.toByte()
 
 @OptIn(ExperimentalSerializationApi::class)
-internal inline fun <T, R1 : T, R2 : T> NBTFormat.selectMapMode(
+internal inline fun <T, R1 : T, R2 : T> selectMapMode(
     mapDescriptor: SerialDescriptor,
     ifMap: () -> R1,
-    ifList: () -> R2
+    ifList: () -> R2,
 ): T {
     val keyDescriptor = mapDescriptor.getElementDescriptor(0)
     val keyKind = keyDescriptor.kind
@@ -87,17 +89,22 @@ inline fun <reified T> NBTFormat.serialize(value: T): INBT {
     return serialize(serializersModule.serializer(), value)
 }
 
-fun <T> NBTFormat.serializeNoInline(value: T, cl: Class<T>): INBT {
-    val c = cl as Class<*>
-    return serialize(serializersModule.serializer(c.kotlin.createType()), value)
+@Suppress("UnstableApiUsage")
+@OptIn(ExperimentalSerializationApi::class)
+fun <T : Any> NBTFormat.serializeNoInline(value: T, cl: Class<T>): INBT {
+    val typeToken = TypeToken.of(cl)
+    return serialize(serializersModule.serializer(typeToken.type), value)
 }
 
 inline fun <reified T> NBTFormat.deserialize(tag: INBT): T {
     return deserialize(serializersModule.serializer(), tag)
 }
 
+@Suppress("UnstableApiUsage", "UNCHECKED_CAST")
+@OptIn(ExperimentalSerializationApi::class)
 fun <T : Any> NBTFormat.deserializeNoInline(tag: INBT, cl: Class<out T>): T {
-    return deserialize(serializersModule.serializer(cl.kotlin.createType()), tag) as T
+    val typeToken = TypeToken.of(cl)
+    return deserialize(serializersModule.serializer(typeToken.type), tag) as T
 }
 
 @OptIn(ExperimentalSerializationApi::class)

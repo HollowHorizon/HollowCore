@@ -38,6 +38,7 @@ open class BaseButton @JvmOverloads constructor(
         RenderSystem.defaultBlendFunc()
         RenderSystem.defaultAlphaFunc()
         stack.pushPose()
+        stack.translate(0.0, 0.0, 700.0)
 
         minecraft.getTextureManager().bind(texLocation)
         blit(

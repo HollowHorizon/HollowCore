@@ -5,8 +5,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 class GLTFAnimationManager {
     val animations = arrayListOf<GLTFAnimationRaw>()
+    val markedToRemove = hashSetOf<GLTFAnimationRaw>()
 
-    fun addAnimation(animation: String, loop: Boolean) {
+    fun addAnimation(animation: String, loop: Boolean = false) {
         animations.forEach { if (it.name == animation) return }
 
         animations.add(GLTFAnimationRaw(animation, loop))
@@ -17,7 +18,7 @@ class GLTFAnimationManager {
     }
 
     fun stopAnimation(animation: String) {
-        animations.removeIf { it.name == animation }
+        markedToRemove.addAll(animations.filter { it.name == animation })
     }
 
     fun stopAnimations() {

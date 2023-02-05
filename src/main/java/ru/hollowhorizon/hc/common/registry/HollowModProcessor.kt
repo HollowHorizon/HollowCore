@@ -1,9 +1,6 @@
 package ru.hollowhorizon.hc.common.registry
 
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
 import net.minecraft.block.Block
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screen.inventory.ContainerScreen
 import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer
@@ -37,6 +34,7 @@ import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
+import ru.hollowhorizon.hc.common.capabilities.IHollowCapability
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV2Reg
 import ru.hollowhorizon.hc.common.network.Packet
@@ -150,14 +148,14 @@ object HollowModProcessor {
         }
         registerHandler<HollowPacketV2> { cont ->
             cont.whenClassTask = { clazz ->
-                if (clazz.isAssignableFrom(Packet::class.java)) {
-                    HollowPacketV2Reg.register(clazz.getConstructor().newInstance() as Packet<*>)
-                }
+                HollowPacketV2Reg.PACKETS.add(clazz.getConstructor().newInstance() as Packet<*>)
             }
         }
         registerHandler<HollowCapabilityV2> { cont ->
             cont.whenClassTask = { clazz ->
                 HollowCapabilityStorageV2.capabilities.add(clazz)
+
+                HollowCapabilityStorageV2.createPacket(clazz as Class<IHollowCapability>)
             }
         }
     }

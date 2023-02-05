@@ -1,0 +1,11 @@
+Model Information:
+* title:	Fantasy Sky Background
+* source:	https://sketchfab.com/3d-models/fantasy-sky-background-15c79bb2fc1147128039fe4ff90fd5a0
+* author:	Hannes Delbeke (https://sketchfab.com/han)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Fantasy Sky Background" (https://sketchfab.com/3d-models/fantasy-sky-background-15c79bb2fc1147128039fe4ff90fd5a0) by Hannes Delbeke (https://sketchfab.com/han) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

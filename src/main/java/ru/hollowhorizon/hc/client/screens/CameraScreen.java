@@ -85,7 +85,7 @@ public class CameraScreen extends Screen {
 
     @SubscribeEvent
     public void worldRender(RenderWorldLastEvent event) {
-        
+
         for (CameraPath path : allPoints) {
             path.drawPath(event.getMatrixStack());
         }

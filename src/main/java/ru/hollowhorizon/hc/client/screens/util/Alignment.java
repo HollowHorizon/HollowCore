@@ -22,6 +22,21 @@ public enum Alignment implements IPlacement {
         this.factorY = factorY;
     }
 
+    public static IPlacement custom(float factorX, float factorY) {
+        return new IPlacement() {
+
+            @Override
+            public float factorX() {
+                return factorX;
+            }
+
+            @Override
+            public float factorY() {
+                return factorY;
+            }
+        };
+    }
+
     @Override
     public float factorX() {
         return factorX;

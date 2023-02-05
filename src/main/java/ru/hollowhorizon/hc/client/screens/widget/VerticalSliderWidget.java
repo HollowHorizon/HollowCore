@@ -1,21 +1,31 @@
 package ru.hollowhorizon.hc.client.screens.widget;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.StringTextComponent;
 
 import java.util.function.Consumer;
 
-public class VerticalSliderWidget extends HollowWidget {
+public class VerticalSliderWidget extends HollowWidget implements IOriginBlackList {
+    private final ResourceLocation texture;
     private int maxHeight;
     private int yHeight;
     private boolean isClicked;
-    private Consumer<Float> consumer;
+    private Consumer<Float> consumer = (f) -> {};
 
-    public VerticalSliderWidget(int x, int y, int w, int h) {
+    public VerticalSliderWidget(int x, int y, int w, int h, ResourceLocation texture) {
         super(x, y, w, h, new StringTextComponent(""));
+        this.texture = texture;
 
         init();
+
+        if (w > h)
+            throw new IllegalArgumentException("Width must be less than height, it's a vertical slider! Not a horizontal one!");
+    }
+
+    public VerticalSliderWidget(int x, int y, int w, int h) {
+        this(x, y, w, h, new ResourceLocation("hc", "textures/gui/buttons/scrollbar.png"));
     }
 
     @Override
@@ -30,13 +40,23 @@ public class VerticalSliderWidget extends HollowWidget {
     }
 
     @Override
-    public void render(MatrixStack stack, int p_230430_2_, int mouseY, float p_230430_4_) {
+    public void render(MatrixStack stack, int mouseX, int mouseY, float p_230430_4_) {
         if (isClicked) {
             yHeight = clamp(mouseY);
             this.consumer.accept(getScroll());
         }
 
-        fill(stack, x, yHeight - 15, x + width, yHeight + 15, 0xFFFFFFFF);
+        bind(texture);
+
+        //render boarder
+        blit(stack, this.x, this.y, this.width * 2, 0, this.width, this.width, this.width * 3, this.width * 3);
+        blit(stack, this.x, this.y + this.height - this.width, this.width * 2, this.width * 2, this.width, this.width, this.width * 3, this.width * 3);
+        blit(stack, this.x, this.y + this.width, this.width * 2, (this.height - this.width * 2), this.width, this.height - this.width * 2, this.width * 3, (this.height - this.width * 2) * 3);
+
+        //render scroll
+        if (mouseY > this.yHeight - 15 && mouseY < this.yHeight + 15 && mouseX > this.x && mouseX < this.x + this.width || isClicked)
+            blit(stack, this.x, this.yHeight - 15, this.width, 0, this.width, 30, this.width * 3, 30);
+        else blit(stack, this.x, this.yHeight - 15, 0, 0, this.width, 30, this.width * 3, 30);
     }
 
     public float getScroll() {
@@ -58,10 +78,6 @@ public class VerticalSliderWidget extends HollowWidget {
             return true;
         }
         return false;
-    }
-
-    public boolean isHovered(double mouseX, double mouseY) {
-        return mouseX > this.x && mouseX <= this.x + this.width && mouseY > this.y && mouseY < this.y + this.height;
     }
 
     @Override

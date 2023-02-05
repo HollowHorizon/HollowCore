@@ -10,6 +10,7 @@ import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.fml.network.NetworkDirection
 import net.minecraftforge.fml.network.NetworkEvent
 import org.jetbrains.kotlin.utils.addToStdlib.cast
+import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
 import ru.hollowhorizon.hc.client.utils.mc
 import ru.hollowhorizon.hc.client.utils.nbt.*
 import ru.hollowhorizon.hc.client.utils.toSTC
@@ -23,7 +24,11 @@ annotation class HollowPacketV2(val toTarget: Dist = Dist.DEDICATED_SERVER)
 open class Packet<T>(val function: (PlayerEntity, T) -> Unit) {
     var direction: Optional<NetworkDirection> = Optional.empty()
     var value: T? = null
-    private val typeToken: TypeToken<T> = object : TypeToken<T>(javaClass) {}
+    private var typeToken: TypeToken<T> = object : TypeToken<T>(javaClass) {}
+
+    constructor(function: (PlayerEntity, T) -> Unit, token: Class<T>) : this(function) {
+        typeToken = TypeToken.of(token)
+    }
 
     fun send(data: T, vararg players: PlayerEntity) {
         this.value = data
@@ -37,9 +42,10 @@ open class Packet<T>(val function: (PlayerEntity, T) -> Unit) {
     }
 
     fun <E> encode(data: Packet<E>, buf: PacketBuffer) {
+        if(data.value == null) throw IllegalStateException("Packet(${data::class.java}) value is null!")
 
         buf.writeNbt(CompoundNBT().apply {
-            put("data", NBTFormat.serializeNoInline(data.value, data.typeToken.rawType))
+            put("data", NBTFormat.serializeNoInline(HollowJavaUtils.castDarkMagic(data.value), data.value!!::class.java))
         })
     }
 

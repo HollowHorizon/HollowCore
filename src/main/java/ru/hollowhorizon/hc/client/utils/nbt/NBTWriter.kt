@@ -95,10 +95,9 @@ private sealed class AbstractNBTWriter(
             }
 
             is PolymorphicKind -> NbtMapEncoder(format, consumer)
-            StructureKind.MAP -> format.selectMapMode(descriptor,
-                ifMap = { NbtMapEncoder(format, consumer) },
-                ifList = { NbtListEncoder(format, consumer) }
-            )
+            StructureKind.MAP -> selectMapMode(descriptor,
+                ifMap = { NbtMapEncoder(format, consumer) }
+            ) { NbtListEncoder(format, consumer) }
 
             else -> NBTWriter(format, consumer)
         }

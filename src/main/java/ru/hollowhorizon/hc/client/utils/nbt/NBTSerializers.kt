@@ -14,6 +14,7 @@ import net.minecraft.util.SoundEvents
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.vector.Matrix4f
 import net.minecraft.util.math.vector.Vector3d
+import net.minecraft.util.math.vector.Vector3f
 import net.minecraft.util.registry.Registry
 import ru.hollowhorizon.hc.HollowCore
 import java.util.*
@@ -357,7 +358,7 @@ internal sealed class PublicedListLikeDescriptor(val elementDesc: SerialDescript
 }
 
 @Serializer(forClass = Vector3d::class)
-object ForVec3d : KSerializer<Vector3d> {
+object ForVector3d : KSerializer<Vector3d> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Vector3d") {
         element("x", Double.serializer().descriptor)
         element("y", Double.serializer().descriptor)
@@ -424,6 +425,75 @@ object ForVec3d : KSerializer<Vector3d> {
         if (!zExists) z = missingField("z", "Vec3d") { 0.0 }
 
         return Vector3d(x, y, z)
+    }
+}
+
+@Serializer(forClass = Vector3f::class)
+object ForVector3f : KSerializer<Vector3f> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Vector3f") {
+        element("x", Float.serializer().descriptor)
+        element("y", Float.serializer().descriptor)
+        element("z", Float.serializer().descriptor)
+    }
+    private const val XIndex = 0
+    private const val YIndex = 1
+    private const val ZIndex = 2
+
+    override fun serialize(encoder: Encoder, value: Vector3f) {
+        val compositeOutput = encoder.beginStructure(descriptor)
+        compositeOutput.encodeFloatElement(descriptor, XIndex, value.x())
+        compositeOutput.encodeFloatElement(descriptor, YIndex, value.y())
+        compositeOutput.encodeFloatElement(descriptor, ZIndex, value.z())
+        compositeOutput.endStructure(descriptor)
+    }
+
+    override fun deserialize(decoder: Decoder): Vector3f {
+        val dec: CompositeDecoder = decoder.beginStructure(descriptor)
+
+        var x = 0.0f
+        var y = 0.0f
+        var z = 0.0f
+        var xExists = false
+        var yExists = false
+        var zExists = false
+        if (dec.decodeSequentially()) {
+            x = dec.decodeFloatElement(descriptor, XIndex)
+            y = dec.decodeFloatElement(descriptor, YIndex)
+            z = dec.decodeFloatElement(descriptor, ZIndex)
+            xExists = true
+            yExists = true
+            zExists = true
+        } else {
+            loop@ while (true) {
+                when (val i = dec.decodeElementIndex(descriptor)) {
+                    CompositeDecoder.DECODE_DONE -> break@loop
+                    XIndex -> {
+                        x = dec.decodeFloatElement(descriptor, i)
+                        xExists = true
+                    }
+
+                    YIndex -> {
+                        y = dec.decodeFloatElement(descriptor, i)
+                        yExists = true
+                    }
+
+                    ZIndex -> {
+                        z = dec.decodeFloatElement(descriptor, i)
+                        zExists = true
+                    }
+
+                    else -> throw SerializationException("Unknown index $i")
+                }
+            }
+        }
+
+
+        dec.endStructure(descriptor)
+        if (!xExists) x = missingField("x", "Vector3f") { 0.0f }
+        if (!yExists) y = missingField("y", "Vector3f") { 0.0f }
+        if (!zExists) z = missingField("z", "Vector3f") { 0.0f }
+
+        return Vector3f(x, y, z)
     }
 }
 

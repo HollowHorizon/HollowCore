@@ -6,6 +6,7 @@
   "refmap": "hc.refmap.json",
   "mixins": [
     "CapabilityManagerMixin",
+    "CapabilityProviderMixin",
     "FMLModContainerMixin",
     "MixinLocateCommand",
     "PathUtilMixin",

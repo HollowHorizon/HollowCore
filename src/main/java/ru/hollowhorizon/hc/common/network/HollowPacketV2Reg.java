@@ -1,15 +1,21 @@
 package ru.hollowhorizon.hc.common.network;
 
-public class HollowPacketV2Reg {
-    @SuppressWarnings("unchecked")
-    public static void register(Packet<?> packet) {
+import java.util.ArrayList;
+import java.util.List;
 
-        NetworkHandler.HollowCoreChannel.registerMessage(NetworkHandler.index++,
-                (Class<Packet<?>>) packet.getClass(),
-                (packet1, packetBuffer) -> packet.encode(packet, packetBuffer),
-                packet::decode,
-                (packet1, context) -> packet.onReceive(packet, context)
-        );
+public class HollowPacketV2Reg {
+    public static final List<Packet<?>> PACKETS = new ArrayList<>();
+
+    @SuppressWarnings("unchecked")
+    public static void registerAll() {
+        for(Packet<?> packet : PACKETS) {
+            NetworkHandler.HollowCoreChannel.registerMessage(NetworkHandler.index++,
+                    (Class<Packet<?>>) packet.getClass(),
+                    packet::encode,
+                    packet::decode,
+                    packet::onReceive
+            );
+        }
 
     }
 }

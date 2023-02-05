@@ -53,11 +53,11 @@ private sealed class AbstractNBTReader(val format: NBTFormat, open val map: INBT
                 else TagListDecoder(format, cast(currentObject))
             }
             is PolymorphicKind -> NbtMapDecoder(format, cast(currentObject))
-            StructureKind.MAP -> format.selectMapMode(
+            StructureKind.MAP -> selectMapMode(
                 descriptor,
-                { NbtMapDecoder(format, cast(currentObject)) },
-                { TagListDecoder(format, cast(currentObject)) }
-            )
+                { NbtMapDecoder(format, cast(currentObject)) }
+            ) { TagListDecoder(format, cast(currentObject)) }
+
             else -> NBTReader(format, cast(currentObject))
         }
     }

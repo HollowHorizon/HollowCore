@@ -5,13 +5,13 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.loading.FMLPaths;
 import ru.hollowhorizon.hc.HollowCore;
-import ru.hollowhorizon.hc.common.capabilities.HollowCapabilities;
-import ru.hollowhorizon.hc.common.capabilities.HollowCapability;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -73,7 +73,7 @@ public class NBTUtils {
         }
     };
 
-//    public static final HollowNBTSerializer<HollowCapability<?>> HOLLOW_CAPABILITY_SERIALIZER = new HollowNBTSerializer<HollowCapability<?>>("hollow_capability_serializer") {
+    //    public static final HollowNBTSerializer<HollowCapability<?>> HOLLOW_CAPABILITY_SERIALIZER = new HollowNBTSerializer<HollowCapability<?>>("hollow_capability_serializer") {
 //        @Override
 //        public HollowCapability<?> fromNBT(CompoundNBT nbt) {
 //            String nbts = nbt.getString("cap");

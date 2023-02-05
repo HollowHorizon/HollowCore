@@ -11,7 +11,6 @@ import net.minecraftforge.common.capabilities.Capability.IStorage
 import net.minecraftforge.common.capabilities.CapabilityManager
 import net.minecraftforge.common.capabilities.ICapabilitySerializable
 import net.minecraftforge.common.util.LazyOptional
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
@@ -34,8 +33,8 @@ annotation class HollowCapabilityV2(vararg val value: KClass<*>) {
     }
 }
 
-class HollowCapabilitySerializer<T : Any?>(val cap: Capability<T>) : ICapabilitySerializable<INBT> {
-    val instance: T? = cap.defaultInstance
+class HollowCapabilitySerializer<T : Any>(val cap: Capability<T>) : ICapabilitySerializable<INBT> {
+    var instance: T = cap.defaultInstance ?: throw NullPointerException("Default instance of capability ${cap.name} is null! May be you forgot to add default constructor?")
 
     override fun <T : Any?> getCapability(cap: Capability<T>, side: Direction?): LazyOptional<T> {
         if (cap == this.cap) {
@@ -44,12 +43,13 @@ class HollowCapabilitySerializer<T : Any?>(val cap: Capability<T>) : ICapability
         return LazyOptional.empty()
     }
 
-    override fun serializeNBT(): INBT =
-        cap.writeNBT(instance, null) ?: throw NullPointerException("${cap.name} NBT is null")
+    override fun serializeNBT(): INBT {
+        return NBTFormat.serializeNoInline(instance, TypeToken.get(instance.javaClass).rawType)
+    }
 
 
     override fun deserializeNBT(nbt: INBT) {
-        cap.readNBT(instance, null, nbt)
+        instance = NBTFormat.deserializeNoInline(nbt, TypeToken.get(instance.javaClass).rawType) as T
     }
 
     companion object {
@@ -57,7 +57,7 @@ class HollowCapabilitySerializer<T : Any?>(val cap: Capability<T>) : ICapability
     }
 }
 
-fun <T : HollowCapability<T>> register(clazz: Class<T>) {
+fun <T : IHollowCapability> register(clazz: Class<T>) {
     CapabilityManager.INSTANCE.register(
         clazz,
         object : IStorage<T> {
@@ -66,10 +66,7 @@ fun <T : HollowCapability<T>> register(clazz: Class<T>) {
                 instance: T,
                 side: Direction?,
             ): INBT {
-                HollowCore.LOGGER.info("value: ${instance}")
-                HollowCore.LOGGER.info("instance class: ${instance.javaClass}")
-                val typeToken = TypeToken.get(instance.javaClass)
-                return NBTFormat.serializeNoInline(instance.value, typeToken.rawType)
+                throw UnsupportedOperationException("HollowCapability serialization proceed by custom serializer, look HollowCapabilitySerializer class")
             }
 
             override fun readNBT(
@@ -78,10 +75,7 @@ fun <T : HollowCapability<T>> register(clazz: Class<T>) {
                 side: Direction?,
                 nbt: INBT,
             ) {
-                val typeToken = TypeToken.get(instance.javaClass)
-                val result = NBTFormat.deserializeNoInline(nbt, typeToken.rawType)
-
-                instance.value = result as T
+                throw UnsupportedOperationException("HollowCapability serialization proceed by custom serializer, look HollowCapabilitySerializer class")
             }
         }
     ) {
@@ -90,37 +84,44 @@ fun <T : HollowCapability<T>> register(clazz: Class<T>) {
     }
 }
 
-open class HollowCapability<T : HollowCapability<T>> {
-    var value: T = this as T
+interface IHollowCapability
+
+fun <T: IHollowCapability> T.serialize(): INBT {
+    return NBTFormat.serializeNoInline(HollowJavaUtils.castDarkMagic(this), this::class.java)
 }
 
-fun HollowCapability<*>.syncClient(playerEntity: PlayerEntity) {
-    HollowCapabilitySyncPacket().send(this, playerEntity)
+fun deserialize(nbt: INBT): IHollowCapability {
+    return NBTFormat.deserialize(nbt)
 }
 
-fun HollowCapability<*>.syncServer() {
-    HollowCapabilitySyncPacket().send(this)
+fun <T: IHollowCapability> T.syncClient(playerEntity: PlayerEntity) {
+    this.javaClass.createSyncPacket().send(this, playerEntity)
 }
 
-@HollowPacketV2
-class HollowCapabilitySyncPacket: Packet<HollowCapability<*>>({ player, capability ->
-    val cap = HollowCapabilityV2.get(capability.javaClass)
+fun <T: IHollowCapability> T.syncServer() {
+    this.javaClass.createSyncPacket().send(this)
+}
 
-    player.getCapability(cap).ifPresent {
-        it.value = HollowJavaUtils.castDarkMagic(capability.value)
-    }
-})
+fun <T: IHollowCapability> Class<T>.createSyncPacket(): Packet<T> {
+
+    return object : Packet<T>({ player, capability ->
+        val cap = HollowCapabilityV2.get(capability.javaClass)
+
+        val capabilityUpdater = player as ICapabilityUpdater
+
+        capabilityUpdater.updateCapability(cap, capability.serialize())
+    }, this) {}
+}
 
 @HollowCapabilityV2(PlayerEntity::class)
 @Serializable
-data class MoneyCapability(var money: Int = 0) : HollowCapability<MoneyCapability>()
+data class MoneyCapability(var money: Int = 0) : IHollowCapability
 
 fun initCapability(cap: Capability<*>, targets: ArrayList<Type>) {
     HollowCapabilityStorageV2.storages[cap.name] = cap
 
     targets.forEach {
         val clazz = Class.forName(it.className)
-
         HollowCapabilityStorageV2.providers.add(clazz to HollowCapabilitySerializer(cap))
 
     }

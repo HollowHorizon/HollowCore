@@ -7,5 +7,5 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HollowCapabilities {
-    public static final Map<ResourceLocation, Capability<HollowCapability<?>>> CAPABILITIES = new HashMap<>();
+    public static final Map<ResourceLocation, Capability<IHollowCapability>> CAPABILITIES = new HashMap<>();
 }

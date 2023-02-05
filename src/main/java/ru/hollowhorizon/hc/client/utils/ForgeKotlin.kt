@@ -6,39 +6,54 @@ import net.minecraft.client.gui.AbstractGui
 import net.minecraft.client.gui.FontRenderer
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.renderer.texture.Texture
+import net.minecraft.item.Item
+import net.minecraft.item.ItemStack
+import net.minecraft.nbt.CompoundNBT
 import net.minecraft.util.ResourceLocation
-import net.minecraft.util.math.vector.Vector3f
 import net.minecraft.util.text.ITextComponent
 import net.minecraft.util.text.StringTextComponent
 import net.minecraft.util.text.TranslationTextComponent
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraftforge.registries.ForgeRegistries
+import net.minecraftforge.registries.IForgeRegistry
+import net.minecraftforge.registries.IForgeRegistryEntry
 import ru.hollowhorizon.hc.HollowCore
 import java.io.InputStream
 
 @OnlyIn(Dist.CLIENT)
 val mc = Minecraft.getInstance()
 
-operator fun Vector3f.plusAssign(vector: Vector3f) {
-    this.add(vector)
-}
+
 
 fun String.toRL(): ResourceLocation {
     return ResourceLocation(this)
 }
+
+val String.rl: ResourceLocation
+    get() = ResourceLocation(this)
 
 @OnlyIn(Dist.CLIENT)
 fun ResourceLocation.toIS(): InputStream {
     return HollowJavaUtils.getResource(this)
 }
 
+val ResourceLocation.stream: InputStream
+    get() = HollowJavaUtils.getResource(this)
+
 fun String.toSTC(): ITextComponent {
     return StringTextComponent(this)
 }
 
+val String.mcText: ITextComponent
+    get() = StringTextComponent(this)
+
 fun String.toTTC(): ITextComponent {
     return TranslationTextComponent(this)
 }
+
+val String.mcTranslate: ITextComponent
+    get() = TranslationTextComponent(this)
 
 fun Screen.open() {
     mc.setScreen(this)
@@ -92,3 +107,16 @@ fun Int.toRGBA(): RGBA {
 
 data class RGBA(val r: Float, val g: Float, val b: Float, val a: Float)
 
+fun <V : IForgeRegistryEntry<V>> ResourceLocation.valueFrom(registry: IForgeRegistry<V>): V {
+    return registry.getValue(this) ?: throw IllegalArgumentException("Value $this not found in registry $registry")
+}
+
+fun Item.stack(count: Int = 1, nbt: CompoundNBT? = null): ItemStack {
+    return ItemStack(this, count, nbt)
+}
+
+fun MatrixStack.use(usable: MatrixStack.() -> Unit) {
+    this.pushPose()
+    usable()
+    this.popPose()
+}

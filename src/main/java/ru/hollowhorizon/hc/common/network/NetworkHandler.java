@@ -83,6 +83,6 @@ public class NetworkHandler {
                 StartDialogueToClient::onReceived,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
-
+        HollowPacketV2Reg.registerAll();
     }
 }

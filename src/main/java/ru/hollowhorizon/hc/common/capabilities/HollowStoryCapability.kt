@@ -8,7 +8,7 @@ import ru.hollowhorizon.hc.client.utils.nbt.ForCompoundNBT
 
 @HollowCapabilityV2(PlayerEntity::class)
 @Serializable
-class HollowStoryCapability : HollowCapability<HollowStoryCapability>() {
+class HollowStoryCapability : IHollowCapability {
     private val storyData: MutableMap<String, @Serializable(ForCompoundNBT::class) CompoundNBT> = HashMap()
 
     fun addStory(storyName: String, data: CompoundNBT) {

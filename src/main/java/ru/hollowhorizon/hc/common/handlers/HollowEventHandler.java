@@ -1,6 +1,8 @@
 package ru.hollowhorizon.hc.common.handlers;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screen.MainMenuScreen;
+import net.minecraft.client.gui.screen.inventory.BeaconScreen;
 import net.minecraft.client.settings.PointOfView;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -20,12 +22,12 @@ import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.screens.DialogueOptionsScreen;
 import ru.hollowhorizon.hc.client.screens.DialogueScreen;
-import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
+import ru.hollowhorizon.hc.client.screens.UIScreen;
 import ru.hollowhorizon.hc.common.animations.CutsceneStartHandler;
-import ru.hollowhorizon.hc.common.capabilities.HollowCapabilities;
-import ru.hollowhorizon.hc.common.capabilities.HollowCapability;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2Kt;
+import ru.hollowhorizon.hc.common.capabilities.ICapabilityUpdater;
+import ru.hollowhorizon.hc.common.capabilities.IHollowCapability;
 import ru.hollowhorizon.hc.common.story.events.StoryEventStarter;
 
 import java.util.ArrayList;
@@ -33,7 +35,6 @@ import java.util.List;
 
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 
-@Mod.EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
 public class HollowEventHandler {
     @HollowConfig("enable_blur")
     public static boolean ENABLE_BLUR = true;
@@ -45,11 +46,11 @@ public class HollowEventHandler {
         BLUR_WHITELIST.add(DialogueOptionsScreen.class.getName());
 
         if (HollowCore.proxy.isClientSide()) {
-            MinecraftForge.EVENT_BUS.addListener(this::onPlayerLoggedIn);
             MinecraftForge.EVENT_BUS.addListener(this::onRenderOverlay);
             MinecraftForge.EVENT_BUS.addListener(this::onRenderOverlayPost);
         }
 
+        MinecraftForge.EVENT_BUS.addListener(this::onPlayerLoggedIn);
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.addListener(this::tooltipEvent);
     }
@@ -64,32 +65,27 @@ public class HollowEventHandler {
         }
     }
 
-    @SubscribeEvent
+    //@SubscribeEvent
     public void onOpen(GuiOpenEvent event) {
-//        if(event.getGui() instanceof MainMenuScreen) {
-//            event.setCanceled(true);
-//            Minecraft.getInstance().setScreen(new Screen(new StringTextComponent("")) {
-//                @Override
-//                public void render(MatrixStack p_230430_1_, int p_230430_2_, int p_230430_3_, float p_230430_4_) {
-//                    IMGUILoader.INSTANCE.render(0, 0, this.width, this.height, () -> {
-//                        ImGuiKt.testRender();
-//                        return null;
-//                    });
-//                }
-//            });
-//        }
+        if(event.getGui() instanceof MainMenuScreen) {
+            event.setCanceled(true);
+            Minecraft.getInstance().setScreen(new UIScreen());
+        }
     }
 
     @SubscribeEvent
+    @SuppressWarnings("unchecked")
     public void onPlayerClone(PlayerEvent.Clone event) {
-        if (event.isWasDeath() && false) { //Пока в разработке
+        if (event.isWasDeath()) { //Пока в разработке
 
             for (Capability<?> cap : HollowCapabilityStorageV2.INSTANCE.getStorages().values()) {
-                HollowCapability<?> origCap = (HollowCapability<?>) event.getOriginal().getCapability(cap).orElse(null);
+                IHollowCapability origCap = (IHollowCapability) event.getOriginal().getCapability(cap).orElse(null);
                 if (origCap == null) return;
-                HollowCapability<?> newCap = (HollowCapability<?>) event.getPlayer().getCapability(cap).orElse(null);
-                newCap.setValue(HollowJavaUtils.castDarkMagic(origCap.getValue()));
-                HollowCapabilityV2Kt.syncClient(newCap, event.getPlayer());
+                ICapabilityUpdater updater = (ICapabilityUpdater) event.getPlayer();
+
+                updater.updateCapability(cap, HollowCapabilityV2Kt.serialize(origCap));
+
+                HollowCapabilityV2Kt.syncClient(origCap, event.getPlayer());
             }
         }
     }
@@ -102,8 +98,8 @@ public class HollowEventHandler {
         StoryEventStarter.startAll(player);
 
         //update capabilities on clients
-        for (Capability<HollowCapability<?>> cap : HollowCapabilities.CAPABILITIES.values()) {
-            //player.getCapability(cap).ifPresent(capability -> capability.update(event.getPlayer()));
+        for (Capability<?> cap : HollowCapabilityStorageV2.INSTANCE.getStorages().values()) {
+            player.getCapability(cap).ifPresent(capability -> HollowCapabilityV2Kt.syncClient((IHollowCapability) capability, player));
         }
     }
 

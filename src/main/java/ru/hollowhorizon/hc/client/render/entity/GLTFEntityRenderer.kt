@@ -18,9 +18,9 @@ import ru.hollowhorizon.hc.client.gltf.animation.loadAnimations
 
 
 class GLTFEntityRenderer<T>(manager: EntityRendererManager) : EntityRenderer<T>(manager),
-    IGltfModelReceiver where T : LivingEntity, T : IAnimatedEntity {
+    IGltfModelReceiver where T : LivingEntity, T : IAnimated {
     protected var renderedScene: RenderedGltfScene? = null
-    protected var animations: List<GLTFAnimation>? = null
+    protected var allAnimations: List<GLTFAnimation>? = null
 
 
     init {
@@ -32,19 +32,35 @@ class GLTFEntityRenderer<T>(manager: EntityRendererManager) : EntityRenderer<T>(
     }
 
     override fun getModelLocation(): ResourceLocation {
-        return ResourceLocation("hc", "models/entity/ring.gltf")
+        return ResourceLocation("hc", "models/entity/rig/untitled.gltf")
     }
 
     override fun onReceiveSharedModel(renderedModel: RenderedGltfModel) {
         renderedScene = renderedModel.renderedGltfScenes[0]
 
-        animations = renderedModel.loadAnimations()
+        allAnimations = renderedModel.loadAnimations()
 
-        HollowCore.LOGGER.info("Received model, animations: ${animations?.joinToString(", ")}")
+        HollowCore.LOGGER.info("Received model, animations: ${allAnimations?.joinToString(", ") { it.name }}")
     }
 
     fun preRender(entity: T) {
-        entity.processAnimations(animations)
+        val manager = entity.getManager()
+        var shouldUpdate = false
+
+        manager.markedToRemove.forEach {
+            shouldUpdate = true
+            manager.animations.remove(it)
+        }
+
+        manager.animations.removeIf { animation ->
+            val doRemove = allAnimations?.find { anim -> anim.name == animation.name }
+                ?.update(animation.tick(), animation.loop) ?: false
+            shouldUpdate = shouldUpdate || doRemove
+            return@removeIf doRemove
+        }
+        if (shouldUpdate) {
+            entity.setManager(manager)
+        }
     }
 
     @Suppress("DEPRECATION")

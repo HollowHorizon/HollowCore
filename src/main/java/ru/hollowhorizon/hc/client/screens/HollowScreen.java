@@ -8,9 +8,11 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import org.jetbrains.annotations.NotNull;
 import ru.hollowhorizon.hc.client.screens.util.Alignment;
+import ru.hollowhorizon.hc.client.screens.widget.layout.ILayoutConsumer;
 
-public class HollowScreen extends Screen {
+public class HollowScreen extends Screen implements ILayoutConsumer {
     private TextureManager textureManager;
 
     public HollowScreen(ITextComponent screenText) {
@@ -113,5 +115,30 @@ public class HollowScreen extends Screen {
 
     public void betterFillGradient(MatrixStack stack, int x, int y, int width, int height, int color1, int color2) {
         fillGradient(stack, x, y, x + width, y + height, 0x66000000, 0xCC000000);
+    }
+
+    @Override
+    public void addLayoutWidget(@NotNull Widget widget) {
+        this.addButton(widget);
+    }
+
+    @Override
+    public int x() {
+        return 0;
+    }
+
+    @Override
+    public int y() {
+        return 0;
+    }
+
+    @Override
+    public int width() {
+        return this.width;
+    }
+
+    @Override
+    public int height() {
+        return this.height;
     }
 }

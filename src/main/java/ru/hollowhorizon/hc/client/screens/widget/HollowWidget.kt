@@ -10,9 +10,11 @@ import net.minecraft.util.ResourceLocation
 import net.minecraft.util.text.ITextComponent
 import ru.hollowhorizon.hc.client.screens.HollowScreen
 import ru.hollowhorizon.hc.client.screens.util.Alignment
+import ru.hollowhorizon.hc.client.screens.widget.layout.ILayoutConsumer
 
 open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComponent) :
-    Widget(x, y, width, height, text) {
+    Widget(x, y, width, height, text), ILayoutConsumer {
+    @JvmField
     val widgets: MutableList<Widget> = ArrayList()
     protected val textureManager: TextureManager = Minecraft.getInstance().textureManager
     protected val font: FontRenderer = Minecraft.getInstance().font
@@ -25,8 +27,14 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
         }
 
         for (widget in widgets) {
-            widget.render(stack, mouseX, mouseY, ticks)
+            if (!widget.visible) return
+
+            renderWidget(widget, stack, mouseX, mouseY, ticks)
         }
+    }
+
+    open fun renderWidget(widget: Widget, stack: MatrixStack, mouseX: Int, mouseY: Int, ticks: Float) {
+        widget.render(stack, mouseX, mouseY, ticks)
     }
 
     open fun init() {}
@@ -40,87 +48,107 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
     }
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        if(!visible) return false
+        if (!visible) return false
 
         var isClicked = false
         for (widget in widgets) {
-            isClicked = widget.mouseClicked(mouseX, mouseY, button) || isClicked
+            if (widget.visible) isClicked = widgetMouseClicked(widget, mouseX, mouseY, button) || isClicked
         }
 
         return super.mouseClicked(mouseX, mouseY, button) || isClicked
     }
 
+    open fun widgetMouseClicked(widget: Widget, mouseX: Double, mouseY: Double, button: Int): Boolean {
+        return widget.mouseClicked(mouseX, mouseY, button)
+    }
+
     override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        if(!visible) return false
+        if (!visible) return false
 
         var isReleased = false
         for (widget in widgets) {
-            isReleased = widget.mouseReleased(mouseX, mouseY, button) || isReleased
+            if (widget.visible) isReleased = widgetMouseReleased(widget, mouseX, mouseY, button) || isReleased
         }
 
         return super.mouseReleased(mouseX, mouseY, button) || isReleased
     }
 
+    open fun widgetMouseReleased(widget: Widget, mouseX: Double, mouseY: Double, button: Int): Boolean {
+        return widget.mouseReleased(mouseX, mouseY, button)
+    }
+
     override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, dragX: Double, dragY: Double): Boolean {
-        if(!visible) return false
+        if (!visible) return false
 
         var isDragged = false
         for (widget in widgets) {
-            isDragged = widget.mouseDragged(mouseX, mouseY, button, dragX, dragY) || isDragged
+            if (widget.visible) isDragged = widgetMouseDragged(widget, mouseX, mouseY, button, dragX, dragY) || isDragged
         }
 
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY) || isDragged
     }
 
+    open fun widgetMouseDragged(widget: Widget, mouseX: Double, mouseY: Double, button: Int, dragX: Double, dragY: Double): Boolean {
+        return widget.mouseDragged(mouseX, mouseY, button, dragX, dragY)
+    }
+
     override fun mouseScrolled(mouseX: Double, mouseY: Double, scroll: Double): Boolean {
-        if(!visible) return false
+        if (!visible) return false
 
         var isScrolled = false
         for (widget in widgets) {
-            isScrolled = widget.mouseScrolled(mouseX, mouseY, scroll) || isScrolled
+            if (widget.visible) isScrolled = widgetMouseScrolled(widget, mouseX, mouseY, scroll) || isScrolled
         }
 
         return super.mouseScrolled(mouseX, mouseY, scroll) || isScrolled
     }
 
+    open fun widgetMouseScrolled(widget: Widget, mouseX: Double, mouseY: Double, scroll: Double): Boolean {
+        return widget.mouseScrolled(mouseX, mouseY, scroll)
+    }
+
     override fun mouseMoved(mouseX: Double, mouseY: Double) {
-        if(!visible) return
+        if (!visible) return
 
         for (widget in widgets) {
-            widget.mouseMoved(mouseX, mouseY)
+            if (widget.visible) widgetMouseMoved(widget, mouseX, mouseY)
         }
 
         super.mouseMoved(mouseX, mouseY)
     }
 
+    open fun widgetMouseMoved(widget: Widget, mouseX: Double, mouseY: Double) {
+        widget.mouseMoved(mouseX, mouseY)
+    }
+
     override fun keyPressed(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-        if(!visible) return false
+        if (!visible) return false
 
         var isPressed = false
         for (widget in widgets) {
-            isPressed = widget.keyPressed(keyCode, scanCode, modifiers) || isPressed
+            if (widget.visible) isPressed = widget.keyPressed(keyCode, scanCode, modifiers) || isPressed
         }
 
         return super.keyPressed(keyCode, scanCode, modifiers) || isPressed
     }
 
     override fun keyReleased(keyCode: Int, scanCode: Int, modifiers: Int): Boolean {
-        if(!visible) return false
+        if (!visible) return false
 
         var isReleased = false
         for (widget in widgets) {
-            isReleased = widget.keyReleased(keyCode, scanCode, modifiers) || isReleased
+            if (widget.visible) isReleased = widget.keyReleased(keyCode, scanCode, modifiers) || isReleased
         }
 
         return super.keyReleased(keyCode, scanCode, modifiers) || isReleased
     }
 
     override fun charTyped(character: Char, p_231042_2_: Int): Boolean {
-        if(!visible) return false
+        if (!visible) return false
 
         var isTyped = false
         for (widget in widgets) {
-            isTyped = widget.charTyped(character, p_231042_2_) || isTyped
+            if (widget.visible) isTyped = widget.charTyped(character, p_231042_2_) || isTyped
         }
 
         return super.charTyped(character, p_231042_2_) || isTyped
@@ -128,6 +156,10 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
 
     fun bind(modid: String, path: String) {
         textureManager.bind(ResourceLocation(modid, "textures/$path"))
+    }
+
+    fun bind(path: ResourceLocation) {
+        textureManager.bind(path)
     }
 
     override fun playDownSound(p_230988_1_: SoundHandler) {}
@@ -144,7 +176,7 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
         imageHeight: Int = targetHeight,
         texX: Int = 0,
         texY: Int = 0,
-        size: Float = 1.0f
+        size: Float = 1.0f,
     ) {
         blit(
             stack,
@@ -183,5 +215,16 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
         }
     }
 
+    override fun addLayoutWidget(widget: Widget) {
+        this.addWidget(widget)
+    }
 
+    override fun x() = this.x
+    override fun y() = this.y
+    override fun width() = this.width
+    override fun height() = this.height
+
+    fun isHovered(mouseX: Double, mouseY: Double): Boolean {
+        return mouseX >= this.x && mouseX < this.x + this.width && mouseY >= this.y && mouseY < this.y + this.height
+    }
 }

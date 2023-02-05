@@ -83,14 +83,9 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     minecraft 'net.minecraftforge:forge:1.16.5-36.2.39'
 
-    shade 'uk.co.caprica:vlcj:4.7.3'
-
     shade 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.22'
-    shade 'org.jetbrains.kotlin:kotlin-stdlib-common:1.7.22'
-    shade 'org.jetbrains.kotlin:kotlin-reflect:1.7.22'
-    shade 'org.jetbrains:annotations:23.1.0'
 
-    shade 'org.jetbrains.kotlin:kotlin-scripting-common:1.7.22'
+    //shade 'org.jetbrains.kotlin:kotlin-scripting-common:1.7.22'
     shade 'org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.7.22'
     shade 'org.jetbrains.kotlin:kotlin-scripting-jvm:1.7.20-RC'
 
@@ -102,7 +97,6 @@ dependencies {
 
     shade 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
     shade 'org.jetbrains.kotlinx:kotlinx-serialization-core:1.4.1'
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1'
 
     shade 'gnu.trove:trove:1.0.2'
 
@@ -120,6 +114,7 @@ dependencies {
 jar {
     archiveClassifier = ''
     duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    from { configurations.shade.collect { it.isDirectory() ? it : zipTree(it) } }
 
     manifest {
         attributes([

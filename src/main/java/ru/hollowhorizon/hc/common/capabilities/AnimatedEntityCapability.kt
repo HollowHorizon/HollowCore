@@ -6,6 +6,6 @@ import ru.hollowhorizon.hc.client.gltf.animation.GLTFAnimationManager
 
 @HollowCapabilityV2(PlayerEntity::class)
 @Serializable
-class AnimatedEntityCapability : HollowCapability<AnimatedEntityCapability>() {
+class AnimatedEntityCapability : IHollowCapability {
     var manager = GLTFAnimationManager()
 }

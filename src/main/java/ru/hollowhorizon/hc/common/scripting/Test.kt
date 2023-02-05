@@ -15,9 +15,9 @@ object Test {
     @JvmStatic
     fun main() {
         if(FMLLoader.isProduction()) System.setProperty("kotlin.java.stdlib.jar", ModList.get().getModFileById("hc").file.filePath.toFile().absolutePath)
-        val compiled = HSCompiler().compile<HollowScript>(
-            "test",
-            File("C:\\Users\\user\\Desktop\\papka_with_papkami\\MyJavaProjects\\HollowCore\\src\\main\\resources\\assets\\hc\\screen\\test.hs.kts").inputStream()
+        val compiled = HSCompiler.COMPILER.compile<HollowScript>(
+            File("scripts"),
+            File("C:\\Users\\user\\Desktop\\papka_with_papkami\\MyJavaProjects\\HollowCore\\src\\main\\resources\\assets\\hc\\screen\\test.hs.kts")
         )
 
         println("Script compiled: ${compiled.scriptName}")
