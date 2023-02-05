@@ -19,7 +19,11 @@ import kotlin.script.experimental.jvm.dependenciesFromClassloader
 import kotlin.script.experimental.jvm.jvm
 import kotlin.script.experimental.jvm.updateClasspath
 
-class HollowScriptConfiguration : ScriptCompilationConfiguration({
+class HollowScriptConfiguration : AbstractHollowScriptConfiguration({})
+
+abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : ScriptCompilationConfiguration({
+    body()
+
     jvm {
         if (FMLLoader.isProduction()) System.setProperty(
             "kotlin.java.stdlib.jar",
