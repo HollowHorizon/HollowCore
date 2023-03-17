@@ -17,7 +17,7 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
     var scale = 1f
     var enableSliders = false
     var canMove = true
-    var canScale = true
+    open var canScale = true
     val maxHeight: Int
         get() {
             var min = this.y
@@ -29,7 +29,13 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
             for (widget in widgets) {
                 if (widget.y + widget.height > max) max = widget.y + widget.height
             }
-            return max - min
+            return max - min - this.height
+        }
+    val maxWidth: Int
+        get() {
+            val min = widgets.minOfOrNull { it.x } ?: this.y
+            val max = widgets.maxOfOrNull { it.x + it.width } ?: min
+            return max - min - this.width
         }
 
 
@@ -44,7 +50,7 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
         ScissorUtil.push()
         ScissorUtil.start(x, y, width, height)
 
-        super.renderButton(stack, originMX, originMY, ticks)
+        super.renderButton(stack, mouseX, mouseY, ticks)
         ScissorUtil.stop()
         ScissorUtil.pop()
 
@@ -64,12 +70,12 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
     override fun renderWidget(widget: Widget, stack: MatrixStack, mouseX: Int, mouseY: Int, ticks: Float) {
         if (widget is IOriginBlackList) {
             stack.pushPose()
-            stack.scale(1/scale, 1/scale, 1f)
+            stack.scale(1 / scale, 1 / scale, 1f)
             stack.translate(originX.toDouble(), originY.toDouble(), 0.0)
             widget.render(stack, mouseX, mouseY, ticks)
             stack.popPose()
         } else {
-            widget.render(stack, mouseX, mouseY, ticks)
+            widget.render(stack, mouseX.toOriginX(), mouseY.toOriginY(), ticks)
         }
     }
 
@@ -83,7 +89,7 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
     }
 
     override fun widgetMouseClicked(widget: Widget, mouseX: Double, mouseY: Double, button: Int): Boolean {
-        return if(widget is IOriginBlackList) {
+        return if (widget is IOriginBlackList) {
             super.widgetMouseClicked(widget, mouseX, mouseY, button)
         } else {
             super.widgetMouseClicked(widget, mouseX.toOriginX(), mouseY.toOriginY(), button)
@@ -98,7 +104,7 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
     }
 
     override fun widgetMouseReleased(widget: Widget, mouseX: Double, mouseY: Double, button: Int): Boolean {
-        return if(widget is IOriginBlackList) {
+        return if (widget is IOriginBlackList) {
             super.widgetMouseReleased(widget, mouseX, mouseY, button)
         } else {
             super.widgetMouseReleased(widget, mouseX.toOriginX(), mouseY.toOriginY(), button)
@@ -117,7 +123,7 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
     }
 
     override fun widgetMouseMoved(widget: Widget, mouseX: Double, mouseY: Double) {
-        if(widget is IOriginBlackList) {
+        if (widget is IOriginBlackList) {
             super.widgetMouseMoved(widget, mouseX, mouseY)
         } else {
             super.widgetMouseMoved(widget, mouseX.toOriginX(), mouseY.toOriginY())
@@ -130,9 +136,9 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
         mouseY: Double,
         button: Int,
         dragX: Double,
-        dragY: Double
+        dragY: Double,
     ): Boolean {
-        return if(widget is IOriginBlackList) {
+        return if (widget is IOriginBlackList) {
             super.widgetMouseDragged(widget, mouseX, mouseY, button, dragX, dragY)
         } else {
             super.widgetMouseDragged(widget, mouseX.toOriginX(), mouseY.toOriginY(), button, dragX, dragY)
@@ -149,7 +155,7 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
     }
 
     override fun widgetMouseScrolled(widget: Widget, mouseX: Double, mouseY: Double, scroll: Double): Boolean {
-        return if(widget is IOriginBlackList) {
+        return if (widget is IOriginBlackList) {
             super.widgetMouseScrolled(widget, mouseX, mouseY, scroll)
         } else {
             super.widgetMouseScrolled(widget, mouseX.toOriginX(), mouseY.toOriginY(), scroll)

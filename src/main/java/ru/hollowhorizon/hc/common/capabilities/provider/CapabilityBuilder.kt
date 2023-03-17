@@ -8,7 +8,6 @@ import java.util.function.Function
 
 class CapabilityBuilder(val classes: ArrayList<Type>) : Function<Capability<*>, Any?> {
     override fun apply(capability: Capability<*>): Any? {
-        HollowCore.LOGGER.info("Building capability ${capability.name}")
         initCapability(capability, classes)
         return null
     }

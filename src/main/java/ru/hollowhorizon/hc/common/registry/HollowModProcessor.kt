@@ -29,6 +29,11 @@ import net.minecraftforge.registries.IForgeRegistryEntry
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.registy.HollowRegister
+import ru.hollowhorizon.hc.client.models.core.BoneTownRegistry
+import ru.hollowhorizon.hc.client.models.core.animation.BTAdditionalAnimationEntry
+import ru.hollowhorizon.hc.client.models.core.materials.BTMaterialEntry
+import ru.hollowhorizon.hc.client.models.core.model.BTArmorModelEntry
+import ru.hollowhorizon.hc.client.models.core.model.BTModel
 import ru.hollowhorizon.hc.client.render.entity.RenderFactoryBuilder
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.client.utils.HollowPack
@@ -60,8 +65,8 @@ object HollowModProcessor {
                 val model = cont.annotation.renderer
                 val hasModel = model != HollowRegister::class
 
-                //По идее регистрация дважды не должна происходить, но на всякий случай
-                if (data is IForgeRegistry<*> && data.registryName != null) {
+                //По идеи регистрация дважды не должна происходить, но на всякий случай
+                if (data is IForgeRegistryEntry<*> && data.registryName != null) {
                     return@whenObjectTask
                 }
 
@@ -143,25 +148,43 @@ object HollowModProcessor {
                     is ParticleType<*> -> {
                         Registries.getRegistry(ForgeRegistries.PARTICLE_TYPES, cont.modId).register(name) { data }
                     }
+
+                    is BTAdditionalAnimationEntry -> {
+                        Registries.getRegistry(BoneTownRegistry.ADDITIONAL_ANIMATION_REGISTRY, cont.modId).register(name) { data }
+                    }
+
+                    is BTModel -> {
+                        Registries.getRegistry(BoneTownRegistry.MODEL_REGISTRY, cont.modId).register(name) { data }
+                    }
+
+                    is BTMaterialEntry -> {
+                        Registries.getRegistry(BoneTownRegistry.MATERIAL_REGISTRY, cont.modId).register(name) { data }
+                    }
+
+                    is BTArmorModelEntry -> {
+                        Registries.getRegistry(BoneTownRegistry.ARMOR_MODEL_REGISTRY, cont.modId).register(name) { data }
+                    }
                 }
             }
         }
         registerHandler<HollowPacketV2> { cont ->
             cont.whenClassTask = { clazz ->
-                HollowPacketV2Reg.PACKETS.add(clazz.getConstructor().newInstance() as Packet<*>)
+                HollowPacketV2Reg.PLAYER_PACKETS.add(clazz.getConstructor().newInstance() as Packet<*>)
             }
         }
         registerHandler<HollowCapabilityV2> { cont ->
             cont.whenClassTask = { clazz ->
                 HollowCapabilityStorageV2.capabilities.add(clazz)
 
-                HollowCapabilityStorageV2.createPacket(clazz as Class<IHollowCapability>)
+                HollowCapabilityStorageV2.createPacket(clazz as Class<IHollowCapability>, cont.annotation.value)
             }
         }
     }
 
     @Synchronized
     fun run(modId: String, scanResults: ModFileScanData) {
+        if(modId == HollowCore.MODID) BoneTownRegistry.createRegistries(null)
+
         scanResults.annotations.stream()
             .filter { it.annotationType in ANNOTATIONS.keys }
             .forEach { data ->
@@ -283,6 +306,8 @@ object Registries {
                 registry.register(FMLJavaModLoadingContext.get().modEventBus)
             }
         }
+
+        REGISTRIES.clear()
     }
 }
 

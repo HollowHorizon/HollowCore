@@ -25,7 +25,7 @@ class TestEntity(type: EntityType<TestEntity>, world: World) : MobEntity(type, w
     }
 
     override fun tick() {
-        this.getManager().addAnimation("dance", loop = true)
+        this.getManager().addAnimation("Thomas_rig|Thomas_rig|anim", loop = true)
 
 
         super.tick()

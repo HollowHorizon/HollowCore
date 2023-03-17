@@ -4,6 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.StringTextComponent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
@@ -18,10 +19,14 @@ public class VerticalSliderWidget extends HollowWidget implements IOriginBlackLi
         super(x, y, w, h, new StringTextComponent(""));
         this.texture = texture;
 
-        init();
-
         if (w > h)
             throw new IllegalArgumentException("Width must be less than height, it's a vertical slider! Not a horizontal one!");
+    }
+
+    @Override
+    public void setHeight(int value) {
+        super.setHeight(value);
+        init();
     }
 
     public VerticalSliderWidget(int x, int y, int w, int h) {
@@ -31,16 +36,18 @@ public class VerticalSliderWidget extends HollowWidget implements IOriginBlackLi
     @Override
     public void init() {
         super.init();
-        this.maxHeight = this.height - 30;
-        yHeight = this.y + 15;
+        this.maxHeight = this.height - 20;
+        yHeight = this.y + 10;
     }
 
     public int clamp(int value) {
-        return MathHelper.clamp(value, this.y + 15, this.y + this.height - 15);
+        return MathHelper.clamp(value, this.y + 10, this.y + this.height - 10);
     }
 
     @Override
-    public void render(MatrixStack stack, int mouseX, int mouseY, float p_230430_4_) {
+    public void renderButton(@NotNull MatrixStack stack, int mouseX, int mouseY, float ticks) {
+        super.renderButton(stack, mouseX, mouseY, ticks);
+
         if (isClicked) {
             yHeight = clamp(mouseY);
             this.consumer.accept(getScroll());
@@ -54,17 +61,18 @@ public class VerticalSliderWidget extends HollowWidget implements IOriginBlackLi
         blit(stack, this.x, this.y + this.width, this.width * 2, (this.height - this.width * 2), this.width, this.height - this.width * 2, this.width * 3, (this.height - this.width * 2) * 3);
 
         //render scroll
-        if (mouseY > this.yHeight - 15 && mouseY < this.yHeight + 15 && mouseX > this.x && mouseX < this.x + this.width || isClicked)
-            blit(stack, this.x, this.yHeight - 15, this.width, 0, this.width, 30, this.width * 3, 30);
-        else blit(stack, this.x, this.yHeight - 15, 0, 0, this.width, 30, this.width * 3, 30);
+        if (mouseY > this.yHeight - 10 && mouseY < this.yHeight + 10 && mouseX > this.x && mouseX < this.x + this.width || isClicked)
+            blit(stack, this.x, this.yHeight - 10, this.width, 0, this.width, 20, this.width * 3, 20);
+        else blit(stack, this.x, this.yHeight - 10, 0, 0, this.width, 20, this.width * 3, 20);
     }
 
     public float getScroll() {
-        return (this.yHeight - this.y - 15) / (this.maxHeight + 0F);
+        return (this.yHeight - this.y - 10) / (this.maxHeight + 0F);
     }
 
     public void setScroll(float modifier) {
-        this.yHeight = clamp(this.y + (int) (this.maxHeight * modifier) + 15);
+        this.yHeight = clamp(this.y + (int) (this.maxHeight * modifier) + 10);
+        this.consumer.accept(getScroll());
     }
 
     public void onValueChange(Consumer<Float> consumer) {

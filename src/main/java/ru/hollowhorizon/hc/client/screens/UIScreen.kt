@@ -68,7 +68,7 @@ class UIScreen : HollowScreen("".toSTC()) {
                     padding = 5.px x 5.px
                     spacing = 5.px x 5.px
                     alignElements = Alignment.LEFT_CENTER
-                    placementType = PlacementType.VERTICAL
+                    placementType = PlacementType.GRID
 
                     elements {
                         +Button(0, 0, 90.pc.w().value, 20.pc.h().value, "Кынопка 1".mcText) {}
@@ -111,7 +111,7 @@ class UIScreen : HollowScreen("".toSTC()) {
                     placementType = PlacementType.HORIZONTAL
 
                     elements {
-                        for(i in 0..2) {
+                        for(i in 0..10) {
                             +TextFieldWidget(font, 0, 0, 90.pc.h().value * 4, 90.pc.h().value, "T${i}".mcText)
                         }
                     }

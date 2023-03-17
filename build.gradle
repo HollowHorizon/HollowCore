@@ -109,6 +109,8 @@ dependencies {
     shade 'org.cadixdev:lorenz:0.5.8'
     shade 'org.cadixdev:bombe:0.4.4'
     shade 'me.jamiemansfield:string:0.1.0'
+
+    shade 'com.upokecenter:cbor:4.5.2'
 }
 
 jar {

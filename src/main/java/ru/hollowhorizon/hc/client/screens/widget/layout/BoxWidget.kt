@@ -3,16 +3,15 @@ package ru.hollowhorizon.hc.client.screens.widget.layout
 import com.mojang.blaze3d.matrix.MatrixStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.audio.SoundHandler
+import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.widget.Widget
-import net.minecraft.util.math.MathHelper
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.screens.DrawUtils
 import ru.hollowhorizon.hc.client.screens.util.Alignment
 import ru.hollowhorizon.hc.client.screens.util.IPlacement
-import ru.hollowhorizon.hc.client.screens.widget.HollowWidget
+import ru.hollowhorizon.hc.client.screens.widget.HorizontalSliderWidget
 import ru.hollowhorizon.hc.client.screens.widget.OriginWidget
 import ru.hollowhorizon.hc.client.screens.widget.VerticalSliderWidget
-import ru.hollowhorizon.hc.client.utils.toSTC
 
 class BoxWidget(
     x: Int,
@@ -23,19 +22,33 @@ class BoxWidget(
     val renderer: (MatrixStack, Int, Int, Int, Int) -> Unit,
     val padding: SizePair,
 ) : OriginWidget(x, y, width, height) {
+    override var canScale = false
+
     override fun playDownSound(p_230988_1_: SoundHandler) {}
 
-    private var currentHeight = 0
     var verticalSlider: VerticalSliderWidget? = null
+    var horizontalSlider: HorizontalSliderWidget? = null
+    var offsetX = 0
+    var offsetY = 0
 
     override fun init() {
         super.init()
 
+        this.originY = offsetY
+        this.originX = offsetX
+
+        horizontalSlider = this.addWidget(
+            HorizontalSliderWidget(this.x, this.y + this.height - 10, this.width - 10, 10)
+        )
+        horizontalSlider?.onValueChange { value ->
+            originX = offsetX + (maxWidth * value).toInt()
+        }
+
         verticalSlider = this.addWidget(
-            VerticalSliderWidget((this.x + this.width - 20), this.y, 20, this.height)
+            VerticalSliderWidget((this.x + this.width - 10), this.y, 10, this.height - 10)
         )
         verticalSlider?.onValueChange { value ->
-            originY = (maxHeight * value).toInt()
+            originY = offsetY + (maxHeight * value).toInt()
         }
     }
 
@@ -46,7 +59,7 @@ class BoxWidget(
 
         super.renderButton(stack, mouseX, mouseY, ticks)
 
-        if (HollowCore.DEBUG_MODE) {
+        if (!HollowCore.DEBUG_MODE) {
             //box
             DrawUtils.drawBounds(
                 stack, this.x, this.y, this.x + this.width, this.y + this.height, 1, 0xFFFFFFFF.toInt()
@@ -67,23 +80,40 @@ class BoxWidget(
 
     private fun checkSliders() {
         val outOfBoundsY = this.widgets.any { it.y + it.height > this.y + this.height || it.y < this.y }
+        val outOfBoundsX = this.widgets.any { it.x + it.width > this.x + this.width || it.x < this.x }
 
         verticalSlider?.visible = outOfBoundsY
         verticalSlider?.active = outOfBoundsY
 
-        canMove = outOfBoundsY
-        canScale = outOfBoundsY
+        horizontalSlider?.visible = outOfBoundsX
+        horizontalSlider?.active = outOfBoundsX
+
+        canMove = outOfBoundsX || outOfBoundsY
+
+        if(maxWidth == 0 && maxHeight > 0) this.verticalSlider?.height = this.height
+        if(maxHeight == 0 && maxWidth > 0) this.horizontalSlider?.width = this.width
     }
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, scroll: Double): Boolean {
-        if (maxHeight > 0) {
-            currentHeight -= (scroll * 5).toInt()
-            currentHeight = MathHelper.clamp(currentHeight, 0, maxHeight)
-
-            this.verticalSlider?.scroll = currentHeight / (maxHeight + 0.0f)
-
+        if (isHovered(mouseX, mouseY)) {
+            val scrollVal = -scroll.toFloat() / 10f
+            if (maxHeight > 0) {
+                if (this.verticalSlider != null) {
+                    this.verticalSlider!!.scroll += scrollVal
+                }
+            }
+            if (maxWidth > 0) {
+                if (this.horizontalSlider != null && Screen.hasShiftDown()) {
+                    this.horizontalSlider!!.scroll += scrollVal
+                }
+            }
         }
         return super.mouseScrolled(mouseX, mouseY, scroll)
+    }
+
+    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
+        if (!isHovered) return false
+        return super.mouseClicked(mouseX, mouseY, button)
     }
 
     fun hide() {
@@ -237,7 +267,7 @@ class WidgetBuilder(
                 var yDelta = (y() + freeHeight * align.factorY()).toInt()
 
                 widgets.forEach { widget ->
-                    widget.x = (x() + freeWidth * align.factorX() - widget.width * align.factorX()).toInt()
+                    widget.x = (x() + (width() - freeWidth) * align.factorX() - widget.width * align.factorX()).toInt()
                     widget.y = yDelta
 
                     yDelta += widget.height + prev.spacing.height.value
@@ -344,6 +374,9 @@ fun ILayoutConsumer.box(name: String = "", builder: BoxBuilder.() -> Unit): BoxW
     for (widget in boxBuilder.widgets) {
         box.addLayoutWidget(widget)
     }
+    if (box.maxHeight > 0) box.offsetY = (-box.maxHeight * boxBuilder.align.factorY()).toInt()
+    if (box.maxWidth > 0) box.offsetX = (-box.maxWidth * boxBuilder.align.factorX()).toInt()
+    HollowCore.LOGGER.info("Box originY: ${box.originY}")
     this.addLayoutWidget(box)
     return box
 }

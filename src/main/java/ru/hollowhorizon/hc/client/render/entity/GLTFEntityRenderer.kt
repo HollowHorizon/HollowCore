@@ -32,7 +32,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererManager) : EntityRenderer<T>(
     }
 
     override fun getModelLocation(): ResourceLocation {
-        return ResourceLocation("hc", "models/entity/rig/untitled.gltf")
+        return ResourceLocation("hc", "models/entity/untitled.gltf")
     }
 
     override fun onReceiveSharedModel(renderedModel: RenderedGltfModel) {

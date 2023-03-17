@@ -15,7 +15,7 @@ import ru.hollowhorizon.hc.client.screens.widget.layout.ILayoutConsumer
 open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComponent) :
     Widget(x, y, width, height, text), ILayoutConsumer {
     @JvmField
-    val widgets: MutableList<Widget> = ArrayList()
+    val widgets = ArrayList<Widget>()
     protected val textureManager: TextureManager = Minecraft.getInstance().textureManager
     protected val font: FontRenderer = Minecraft.getInstance().font
     private var isInitialized = false
@@ -26,7 +26,7 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
             isInitialized = true
         }
 
-        for (widget in widgets) {
+        widgets.forEach { widget ->
             if (!widget.visible) return
 
             renderWidget(widget, stack, mouseX, mouseY, ticks)

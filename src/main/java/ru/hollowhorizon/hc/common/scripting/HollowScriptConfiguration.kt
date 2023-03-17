@@ -90,6 +90,12 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
 
     }
 
+    defaultImports(
+        "ru.hollowhorizon.hc.common.scripting.annotations.Import",
+        "kotlin.script.experimental.dependencies.DependsOn",
+        "kotlin.script.experimental.dependencies.Repository"
+    )
+
     refineConfiguration {
         onAnnotations(DependsOn::class, Repository::class, Import::class, handler = HollowScriptConfigurator())
     }

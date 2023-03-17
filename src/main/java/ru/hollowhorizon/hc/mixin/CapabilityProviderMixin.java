@@ -8,6 +8,7 @@ import net.minecraftforge.common.capabilities.CapabilityProvider;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import ru.hollowhorizon.hc.common.capabilities.ICapabilitySyncer;
 import ru.hollowhorizon.hc.common.capabilities.ICapabilityUpdater;
 
 import javax.annotation.Nullable;
@@ -23,8 +24,11 @@ public abstract class CapabilityProviderMixin implements ICapabilityUpdater {
         final CapabilityDispatcher disp = getCapabilities();
         if(valid && disp != null) {
             CompoundNBT nbt = new CompoundNBT();
-            nbt.put(capability.getName(), newValue);
+            String name = capability.getName();
+            nbt.put("hc_capabilities:"+name.toLowerCase(), newValue);
             disp.deserializeNBT(nbt);
         }
+
+        if(this instanceof ICapabilitySyncer) ((ICapabilitySyncer) this).onCapabilitySync(capability);
     }
 }

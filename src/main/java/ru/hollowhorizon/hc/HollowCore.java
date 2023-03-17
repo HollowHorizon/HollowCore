@@ -19,18 +19,19 @@ import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.gltf.GlTFModelManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
+import ru.hollowhorizon.hc.client.models.core.BoneTownRegistry;
+import ru.hollowhorizon.hc.client.models.core.bonemf.BoneMFSkeleton;
+import ru.hollowhorizon.hc.client.models.core.model.BTAnimatedModel;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
 import ru.hollowhorizon.hc.client.utils.NBTUtils;
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat;
-import ru.hollowhorizon.hc.client.utils.nbt.NBTFormatKt;
 import ru.hollowhorizon.hc.common.animations.AnimationManager;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2;
 import ru.hollowhorizon.hc.common.commands.HollowCommands;
@@ -38,10 +39,7 @@ import ru.hollowhorizon.hc.common.handlers.DelayHandler;
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
-import ru.hollowhorizon.hc.common.registry.ModCapabilities;
-import ru.hollowhorizon.hc.common.registry.ModEntities;
-import ru.hollowhorizon.hc.common.registry.ModStructurePieces;
-import ru.hollowhorizon.hc.common.registry.ModStructures;
+import ru.hollowhorizon.hc.common.registry.*;
 import ru.hollowhorizon.hc.common.scripting.HSCompiler;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
 import ru.hollowhorizon.hc.common.world.storage.HollowWorldData;
@@ -98,6 +96,7 @@ public class HollowCore {
 
         //мод
         forgeBus.register(this);
+        forgeBus.addListener(ModShaders::init);
 
         forgeBus.addGenericListener(Entity.class, HollowCapabilityStorageV2::registerProvidersEntity);
         forgeBus.addGenericListener(TileEntity.class, HollowCapabilityStorageV2::registerProvidersTile);
@@ -116,6 +115,17 @@ public class HollowCore {
     private void setup(final FMLCommonSetupEvent event) {
         proxy.init();
 
+        BoneTownRegistry.MODEL_REGISTRY.getEntries().forEach((x) -> x.getValue().load());
+        BoneTownRegistry.ADDITIONAL_ANIMATION_REGISTRY.getEntries().forEach((x) -> x.getValue().load());
+        BoneTownRegistry.MODEL_REGISTRY.getEntries().forEach((x) -> x.getValue().getModel().getSkeleton()
+                .ifPresent(BoneMFSkeleton::bakeAnimations));
+        BoneTownRegistry.ARMOR_MODEL_REGISTRY.getEntries().forEach((x) -> x.getValue().load());
+        BoneTownRegistry.MODEL_REGISTRY.getEntries().forEach((x) -> {
+            if (x.getValue() instanceof BTAnimatedModel) {
+                ((BTAnimatedModel) x.getValue()).bakeArmors();
+            }
+        });
+
         ModCapabilities.init();
         NetworkHandler.register();
         DataSerializers.registerSerializer(ANIMATION_MANAGER);
@@ -128,6 +138,7 @@ public class HollowCore {
 
     private void onAttribute(EntityAttributeCreationEvent event) {
         event.put(ModEntities.TEST_ENTITY, TestEntity.createMobAttributes().build());
+        event.put(ModEntities.TEST_ENTITY_V2, TestEntity.createMobAttributes().build());
     }
 
 
