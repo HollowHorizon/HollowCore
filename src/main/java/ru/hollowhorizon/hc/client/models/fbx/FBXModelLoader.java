@@ -1,6 +1,8 @@
 package ru.hollowhorizon.hc.client.models.fbx;
 
 import net.minecraft.util.ResourceLocation;
+import ru.hollowhorizon.hc.client.models.core.bonemf.BoneMFAttribute;
+import ru.hollowhorizon.hc.client.models.core.bonemf.BoneMFMeshAttribute;
 import ru.hollowhorizon.hc.client.models.core.bonemf.BoneMFModel;
 import ru.hollowhorizon.hc.client.models.core.bonemf.BoneMFNode;
 import ru.hollowhorizon.hc.client.models.fbx.raw.FBXElement;
@@ -8,6 +10,7 @@ import ru.hollowhorizon.hc.client.models.fbx.raw.FBXFile;
 import ru.hollowhorizon.hc.client.models.fbx.raw.FBXProperty;
 import ru.hollowhorizon.hc.client.models.fbx.raw.HollowByteStream;
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
+import ru.hollowhorizon.hc.client.utils.math.Vector4d;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,28 +24,84 @@ public class FBXModelLoader {
     public static void main(String[] args) {
         FBXFile file = loadFile(new ResourceLocation(MODID, "models/hollowrigv3.fbx"));
 
-        loadRoot(file, "ROOT");
-        //convertToBoneMF(file);
+        BoneMFModel model = convertToBoneMF(file);
+
+
     }
 
     public static BoneMFModel convertToBoneMF(FBXFile file) {
-        BoneMFNode root = loadRoot(file, file.getFileName());
+        BoneMFNode root = loadRootNode(file, file.getFileName());
 
-        return null;
+        return new BoneMFModel(new ResourceLocation(file.getFileName()), root);
     }
 
-    private static BoneMFNode loadRoot(FBXFile file, String name) {
+    private static BoneMFNode loadRootNode(FBXFile file, String name) {
         FBXElement[] elements = file.getChildren(0);
+        BoneMFNode root = new BoneMFNode(name);
 
+        if (elements.length > 0) {
+            for (FBXElement node : elements) {
+                if(!node.getType().equals("Mesh") || !node.getType().equals("Null")) continue;
 
-        return null;
+                BoneMFNode mfNode = parseNode(node);
+                root.addChild(mfNode);
+                mfNode.setParent(root);
+            }
+            BoneMFNode firstChild = root.getChildren().get(0);
+            root.setInheritType(firstChild.getInheritType());
+        }
+
+        return root;
+    }
+
+    private static BoneMFNode parseNode(FBXElement node) {
+        String nodeName = node.getName();
+
+        FBXElement[] children = node.getElements();
+        BoneMFNode mfNode = new BoneMFNode(nodeName);
+
+        mfNode.setInheritType(BoneMFNode.InheritTypes.fromFBX(node.getProperties()[4].getData()));
+        mfNode.setPostRotation(new Vector4d(0, 0, 0, 1));
+        mfNode.setPreRotation(new Vector4d(0, 0, 0, 1));
+        mfNode.setRotation(new Vector4d(0, 0, 0, 1));
+        mfNode.setRotationOffset(new Vector4d(0, 0, 0, 1));
+        mfNode.setRotationPivot(new Vector4d(0, 0, 0, 1));
+        mfNode.setScaling(new Vector4d(0, 0, 0, 1));
+        mfNode.setScalingOffset(new Vector4d(0, 0, 0, 1));
+        mfNode.setScalingPivot(new Vector4d(0, 0, 0, 1));
+        mfNode.setTranslation(new Vector4d(0, 0, 0, 1));
+
+        if (children.length > 0){
+            for (FBXElement attr : children){
+                if(node.getType().equals("Mesh") || node.getType().equals("Null")) mfNode.addChild(parseNode(attr));
+
+                BoneMFAttribute boneAttr = parseAttribute(attr, mfNode);
+                mfNode.addAttribute(boneAttr);
+            }
+        }
+        return mfNode;
+
+    }
+
+    private static BoneMFAttribute parseAttribute(FBXElement element, BoneMFNode owner) {
+        var name = element.getName();
+
+        BoneMFAttribute attr;
+        switch (name) {
+            case "Geometry" -> {
+                BoneMFMeshAttribute meshAttr = new BoneMFMeshAttribute(owner);
+                double[] triangles = element.getProperties()[2].getData();
+                attr = meshAttr;
+            }
+            default -> attr = new BoneMFAttribute(BoneMFAttribute.AttributeTypes.NULL, owner);
+        }
+        return attr;
+
     }
 
 
     public static FBXFile loadFile(ResourceLocation location) {
-        FBXElement[] elements = loadRaw(location);
-
-        return new FBXFile(location.getPath(), elements);
+        return new FBXFile(location.toString(), loadRaw(location));
     }
 
     private static long[] getElementsByValue(FBXElement[] elements, long id) {
@@ -102,7 +161,7 @@ public class FBXModelLoader {
         char firstElement = '@';
         for (int i = 0; i < propertiesCount; i++) {
             char type = reader.readChar();
-            if(i==0) firstElement = type;
+            if (i == 0) firstElement = type;
             properties[i] = FBXProperty.load(reader, type);
         }
 
@@ -114,7 +173,7 @@ public class FBXModelLoader {
             reader.read(13);
         }
         long id = -1;
-        if(firstElement=='L') id = properties[0].getData();
+        if (firstElement == 'L') id = properties[0].getData();
         return new FBXElement(nodeName, id, properties, elements.toArray(new FBXElement[0]));
     }
 

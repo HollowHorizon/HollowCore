@@ -158,6 +158,7 @@ public class BoneMFModelLoader {
         mfNode.setInheritType(BoneMFNode.getInheritTypeFromString(inheritType));
         mfNode.setPostRotation(parseVector(node.get("postRotation")));
         mfNode.setPreRotation(parseVector(node.get("preRotation")));
+
         mfNode.setRotation(parseVector(node.get("rotation")));
         mfNode.setRotationOffset(parseVector(node.get("rotationOffset")));
         mfNode.setRotationPivot(parseVector(node.get("rotationPivot")));

@@ -37,7 +37,16 @@ public class BoneMFNode {
         UNKNOWN,
         RRSS,
         RSRS,
-        RRS
+        RRS;
+
+        public static InheritTypes fromFBX(int id) {
+            return switch (id) {
+                case 0 -> RRS;
+                case 1 -> RRSS;
+                case 2 -> RSRS;
+                default -> UNKNOWN;
+            };
+        }
     }
 
     public static InheritTypes getInheritTypeFromString(String typeIn) {

@@ -50,6 +50,8 @@ public class FBXElement {
         return properties[1].getData();
     }
 
+    public String getType() { return properties[2].getData(); }
+
     public FBXElement[] getElements() {
         return elements;
     }
