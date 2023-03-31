@@ -34,6 +34,7 @@ import ru.hollowhorizon.hc.common.commands.HollowCommands;
 import ru.hollowhorizon.hc.common.handlers.DelayHandler;
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
+import ru.hollowhorizon.hc.common.objects.blocks.multi.MultiBlockSystem;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
 import ru.hollowhorizon.hc.common.registry.*;
 import ru.hollowhorizon.hc.common.scripting.HSCompiler;
@@ -93,6 +94,8 @@ public class HollowCore {
         forgeBus.addGenericListener(World.class, HollowCapabilityStorageV2::registerProvidersWorld);
 
         forgeBus.addListener(this::configSave);
+
+        MultiBlockSystem.init();
     }
 
     public static void onResourcePackAdd(ArrayList<IResourcePack> packs) {
