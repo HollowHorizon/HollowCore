@@ -5,7 +5,6 @@ import net.minecraft.client.renderer.IRenderTypeBuffer
 import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.client.renderer.entity.EntityRendererManager
 import ru.hollowhorizon.hc.client.models.Mesh
-import ru.hollowhorizon.hc.client.models.StaticMeshesLoader
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.objects.entities.TestEntityV2
 
