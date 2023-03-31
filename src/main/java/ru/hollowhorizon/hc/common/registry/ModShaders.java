@@ -5,7 +5,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
-import ru.hollowhorizon.hc.client.models.core.materials.MaterialResourceManager;
 import ru.hollowhorizon.hc.client.render.shaders.*;
 
 import static ru.hollowhorizon.hc.HollowCore.MODID;
@@ -30,7 +29,6 @@ public class ModShaders {
     public static void init(AddReloadListenerEvent e) {
         HollowCore.LOGGER.info("init all shaders");
 
-        e.addListener(MaterialResourceManager.INSTANCE);
 
         //initShader(TEST_SHADER, e);
     }

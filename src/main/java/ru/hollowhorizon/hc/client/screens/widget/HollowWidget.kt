@@ -82,13 +82,21 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
 
         var isDragged = false
         for (widget in widgets) {
-            if (widget.visible) isDragged = widgetMouseDragged(widget, mouseX, mouseY, button, dragX, dragY) || isDragged
+            if (widget.visible) isDragged =
+                widgetMouseDragged(widget, mouseX, mouseY, button, dragX, dragY) || isDragged
         }
 
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY) || isDragged
     }
 
-    open fun widgetMouseDragged(widget: Widget, mouseX: Double, mouseY: Double, button: Int, dragX: Double, dragY: Double): Boolean {
+    open fun widgetMouseDragged(
+        widget: Widget,
+        mouseX: Double,
+        mouseY: Double,
+        button: Int,
+        dragX: Double,
+        dragY: Double,
+    ): Boolean {
         return widget.mouseDragged(mouseX, mouseY, button, dragX, dragY)
     }
 
@@ -226,5 +234,9 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
 
     fun isHovered(mouseX: Double, mouseY: Double): Boolean {
         return mouseX >= this.x && mouseX < this.x + this.width && mouseY >= this.y && mouseY < this.y + this.height
+    }
+
+    open fun tick() {
+        this.widgets.forEach { if(it is HollowWidget) it.tick() }
     }
 }

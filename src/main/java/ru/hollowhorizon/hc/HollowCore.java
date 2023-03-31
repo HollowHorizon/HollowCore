@@ -12,26 +12,22 @@ import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.gltf.GlTFModelManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
-import ru.hollowhorizon.hc.client.models.core.BoneTownRegistry;
-import ru.hollowhorizon.hc.client.models.core.bonemf.BoneMFSkeleton;
-import ru.hollowhorizon.hc.client.models.core.model.BTAnimatedModel;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
 import ru.hollowhorizon.hc.client.utils.NBTUtils;
-import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat;
 import ru.hollowhorizon.hc.common.animations.AnimationManager;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2;
 import ru.hollowhorizon.hc.common.commands.HollowCommands;
@@ -43,9 +39,6 @@ import ru.hollowhorizon.hc.common.registry.*;
 import ru.hollowhorizon.hc.common.scripting.HSCompiler;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
 import ru.hollowhorizon.hc.common.world.storage.HollowWorldData;
-import ru.hollowhorizon.hc.proxy.ClientProxy;
-import ru.hollowhorizon.hc.proxy.CommonProxy;
-import ru.hollowhorizon.hc.proxy.ServerProxy;
 
 import java.util.ArrayList;
 
@@ -58,32 +51,28 @@ public class HollowCore {
     public static final Logger LOGGER = LoggerLoader.createLogger("HollowLogger");
     @HollowConfig(value = "general/debug_mode", description = "Enables debug mode, logs, and some more info for developers.")
     public static final boolean DEBUG_MODE = true;
-    public static final CommonProxy proxy = DistExecutor.safeRunForDist(
-            () -> ClientProxy::new,
-            () -> ServerProxy::new
-    );
 
     public HollowCore() {
-        new GlTFModelManager();
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::setup);
         modBus.addListener(this::loadEnd);
         modBus.addListener(this::onAttribute);
-        modBus.addListener(GlTFModelManager::clientSetup);
-        modBus.addListener(GlTFModelManager::modelBake);
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
-        //Обработчик NBT первый раз грузится долго, поэтому его лучше загрузить в отдельном потоке
-        NBTFormat.Default.init();
         HSCompiler.init();
 
-        if (proxy.isClientSide()) {
+        if (FMLEnvironment.dist.isClient()) {
             //клавиши
             forgeBus.register(new HollowKeyHandler());
             forgeBus.addListener(HollowKeyHandler::onKeyInput);
 
             //события
             forgeBus.addListener(ClientTickHandler::clientTickEnd);
+
+            //модели
+            new GlTFModelManager();
+            modBus.addListener(GlTFModelManager::clientSetup);
+            modBus.addListener(GlTFModelManager::modelBake);
         }
         new HollowEventHandler().init();
         DelayHandler.init();
@@ -113,18 +102,6 @@ public class HollowCore {
 
     //『Pre-Init』
     private void setup(final FMLCommonSetupEvent event) {
-        proxy.init();
-
-        BoneTownRegistry.MODEL_REGISTRY.getEntries().forEach((x) -> x.getValue().load());
-        BoneTownRegistry.ADDITIONAL_ANIMATION_REGISTRY.getEntries().forEach((x) -> x.getValue().load());
-        BoneTownRegistry.MODEL_REGISTRY.getEntries().forEach((x) -> x.getValue().getModel().getSkeleton()
-                .ifPresent(BoneMFSkeleton::bakeAnimations));
-        BoneTownRegistry.ARMOR_MODEL_REGISTRY.getEntries().forEach((x) -> x.getValue().load());
-        BoneTownRegistry.MODEL_REGISTRY.getEntries().forEach((x) -> {
-            if (x.getValue() instanceof BTAnimatedModel) {
-                ((BTAnimatedModel) x.getValue()).bakeArmors();
-            }
-        });
 
         ModCapabilities.init();
         NetworkHandler.register();

@@ -1,7 +1,6 @@
 package ru.hollowhorizon.hc.common.network
 
 import com.google.common.reflect.TypeToken
-import kotlinx.serialization.Serializable
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.network.IPacket
@@ -10,11 +9,11 @@ import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.fml.network.NetworkDirection
 import net.minecraftforge.fml.network.NetworkEvent
+import net.minecraftforge.fml.network.PacketDistributor
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
 import ru.hollowhorizon.hc.client.utils.mc
 import ru.hollowhorizon.hc.client.utils.nbt.*
-import ru.hollowhorizon.hc.client.utils.toSTC
 import java.util.*
 import java.util.function.Supplier
 
@@ -22,6 +21,7 @@ import java.util.function.Supplier
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
 annotation class HollowPacketV2(val toTarget: Dist = Dist.DEDICATED_SERVER)
 
+@Suppress("UnstableApiUsage")
 open class Packet<T>(val function: Packet<T>.(PlayerEntity, T) -> Unit) {
     var direction: Optional<NetworkDirection> = Optional.empty()
     var value: T? = null
@@ -42,13 +42,19 @@ open class Packet<T>(val function: Packet<T>.(PlayerEntity, T) -> Unit) {
         }
     }
 
+    fun send(data: T, distributor: PacketDistributor.PacketTarget) {
+        this.value = data
+        NetworkHandler.HollowCoreChannel.send(distributor, this)
+
+    }
+
     open fun <E> encode(data: Packet<E>, buf: PacketBuffer) {
         if (data.value == null) throw IllegalStateException("Packet(${data::class.java}) value is null!")
 
         buf.writeNbt(CompoundNBT().apply {
             put(
                 "data",
-                NBTFormat.serializeNoInline(HollowJavaUtils.castDarkMagic(data.value), data.value!!::class.java)
+                NBTFormat.serializeNoInline(HollowJavaUtils.castDarkMagic(data.value), typeToken.rawType)
             )
         })
     }
@@ -74,11 +80,3 @@ fun Packet<*>.toVanillaPacket(): IPacket<*> =
 fun <T, T1> T.safeCast(): T1? {
     return this as? T1
 }
-
-@Serializable
-data class TestData(val a: Int, val b: String)
-
-@HollowPacketV2(Dist.CLIENT)
-class ExamplePacket : Packet<String>({ player, data ->
-    player.sendMessage(data.toSTC(), player.uuid)
-})

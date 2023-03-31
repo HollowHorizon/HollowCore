@@ -1,14 +1,13 @@
 package ru.hollowhorizon.hc.common.capabilities
 
 import com.google.common.reflect.TypeToken
+import kotlinx.serialization.Serializable
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.ServerPlayerEntity
 import net.minecraft.nbt.CompoundNBT
 import net.minecraft.nbt.INBT
 import net.minecraft.util.Direction
-import net.minecraft.util.RegistryKey
-import net.minecraft.world.World
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.capabilities.Capability.IStorage
 import net.minecraftforge.common.capabilities.CapabilityManager
@@ -19,15 +18,17 @@ import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
 import ru.hollowhorizon.hc.client.utils.nbt.*
 import ru.hollowhorizon.hc.common.network.Packet
-import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityClientLevelPacket
-import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityEntityPacket
+import ru.hollowhorizon.hc.common.network.messages.CapabilityForEntity
+import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityWorld
+import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityEntity
+import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityPlayer
 import ru.hollowhorizon.hc.common.network.toVanillaPacket
 import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.CLASS)
 annotation class HollowCapabilityV2(vararg val value: KClass<*>) {
+    @Suppress("UNCHECKED_CAST")
     companion object {
-        @Suppress("UNCHECKED_CAST")
         inline fun <reified T> get(): Capability<T> {
             return HollowCapabilityStorageV2.storages[T::class.java.name] as Capability<T>
         }
@@ -38,11 +39,13 @@ annotation class HollowCapabilityV2(vararg val value: KClass<*>) {
     }
 }
 
+@Suppress("UnstableApiUsage")
 class HollowCapabilitySerializer<T : Any>(val cap: Capability<T>) : ICapabilitySerializable<INBT> {
     var instance: T = cap.defaultInstance
         ?: throw NullPointerException("Default instance of capability ${cap.name} is null! May be you forgot to add default constructor?")
 
-    override fun <T : Any?> getCapability(cap: Capability<T>, side: Direction?): LazyOptional<T> {
+    @Suppress("unchecked_cast")
+    override fun <T : Any> getCapability(cap: Capability<T>, side: Direction?): LazyOptional<T> {
         if (cap == this.cap) {
             return LazyOptional.of { instance as T }
         }
@@ -59,7 +62,7 @@ class HollowCapabilitySerializer<T : Any>(val cap: Capability<T>) : ICapabilityS
     }
 }
 
-fun <T : IHollowCapability> register(clazz: Class<T>) {
+fun <T : HollowCapability> register(clazz: Class<T>) {
     CapabilityManager.INSTANCE.register(
         clazz,
         object : IStorage<T> {
@@ -86,61 +89,46 @@ fun <T : IHollowCapability> register(clazz: Class<T>) {
     }
 }
 
-interface IHollowCapability
+@Serializable
+abstract class HollowCapability {
+    val consumeDataFromClient = false
+}
 
-fun <T : IHollowCapability> T.serialize(): INBT {
+fun <T : HollowCapability> T.serialize(): INBT {
     return NBTFormat.serializeNoInline(HollowJavaUtils.castDarkMagic(this), this::class.java)
 }
 
-fun deserialize(nbt: INBT): IHollowCapability {
+fun deserialize(nbt: INBT): HollowCapability {
     return NBTFormat.deserialize(nbt)
 }
 
-fun <T : IHollowCapability> T.syncClient(playerEntity: PlayerEntity) {
+fun HollowCapability.syncClient(playerEntity: PlayerEntity) {
     this.javaClass.createSyncPacketPlayer().send(this, playerEntity)
 }
 
-fun <T : IHollowCapability> T.syncEntity(entity: Entity) {
-    val packet = this.javaClass.createSyncPacketEntity(entity.id)
-    packet.value = this
-    PacketDistributor.TRACKING_ENTITY.with { entity }.send(packet.toVanillaPacket())
+fun HollowCapability.syncEntity(entity: Entity) {
+    val packet = this.javaClass.createSyncPacketEntity()
+    packet.send(CapabilityForEntity(this, entity.id), PacketDistributor.TRACKING_ENTITY.with { entity });
 }
 
-fun <T : IHollowCapability> T.syncWorld(vararg players: ServerPlayerEntity) {
+fun HollowCapability.syncWorld(vararg players: ServerPlayerEntity) {
     val packet = this.javaClass.createSyncPacketClientLevel()
-    packet.value = this
-    for (player in players) {
-        PacketDistributor.PLAYER.with { player }.send(packet.toVanillaPacket())
-    }
+    players.forEach { packet.send(this, PacketDistributor.PLAYER.with { it }) }
 }
 
-fun <T : IHollowCapability> T.syncEntityForPlayer(entity: Entity, player: ServerPlayerEntity) {
-    val packet = this.javaClass.createSyncPacketEntity(entity.id)
-    packet.value = this
-    PacketDistributor.PLAYER.with { player }.send(packet.toVanillaPacket())
+//Пакет синхронизирующий данные моба у конкретного игрока
+fun HollowCapability.syncEntityForPlayer(entity: Entity, player: ServerPlayerEntity) {
+    val packet = this.javaClass.createSyncPacketEntity()
+    packet.send(CapabilityForEntity(this, entity.id), player)
 }
 
-fun <T : IHollowCapability> T.syncServer() {
+fun HollowCapability.syncServer() {
     this.javaClass.createSyncPacketPlayer().send(this)
 }
 
-fun <T : IHollowCapability> Class<T>.createSyncPacketPlayer(): Packet<T> {
-    return object : Packet<T>({ player, capability ->
-        val cap = HollowCapabilityV2.get(capability.javaClass)
-
-        val capabilityUpdater = player as ICapabilityUpdater
-
-        capabilityUpdater.updateCapability(cap, capability.serialize())
-    }, this) {}
-}
-
-fun <T : IHollowCapability> Class<T>.createSyncPacketEntity(entityId: Int = -1): Packet<T> {
-    return SyncCapabilityEntityPacket<T>().apply { this.entityId = entityId }
-}
-
-fun <T: IHollowCapability> Class<T>.createSyncPacketClientLevel(): Packet<T> {
-    return SyncCapabilityClientLevelPacket<T>()
-}
+fun Class<HollowCapability>.createSyncPacketPlayer(): Packet<HollowCapability> = SyncCapabilityPlayer()
+fun Class<HollowCapability>.createSyncPacketEntity(): Packet<CapabilityForEntity> = SyncCapabilityEntity()
+fun Class<HollowCapability>.createSyncPacketClientLevel(): Packet<HollowCapability> = SyncCapabilityWorld()
 
 fun initCapability(cap: Capability<*>, targets: ArrayList<Type>) {
     HollowCapabilityStorageV2.storages[cap.name] = cap

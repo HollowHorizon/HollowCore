@@ -6,11 +6,9 @@ import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
-import kotlinx.serialization.modules.EmptySerializersModule
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.plus
-import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.*
 import net.minecraft.nbt.*
+import ru.hollowhorizon.hc.common.capabilities.*
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -32,8 +30,33 @@ internal val TagModule = SerializersModule {
     }
 }
 
+internal val capabilities = SerializersModule {
+    polymorphic(HollowCapability::class) {
+        subclass(AnimatedEntityCapability::class, AnimatedEntityCapability.serializer())
+        subclass(HollowStoryCapability::class, HollowStoryCapability.serializer())
+    }
+}
+
+object CapabilityModule {
+
+    @OptIn(InternalSerializationApi::class)
+    @Suppress("unchecked_cast")
+    fun build() = SerializersModule {
+        polymorphic(HollowCapability::class) {
+            fun <B: HollowCapability> subclass(c: Class<B>) {
+                val klass = c.kotlin
+                subclass(klass, klass.serializer())
+            }
+
+            HollowCapabilityStorageV2.capabilities.forEach {
+                subclass(it as Class<HollowCapability>)
+            }
+        }
+    }
+}
+
 sealed class NBTFormat(context: SerializersModule = EmptySerializersModule()) : SerialFormat {
-    override val serializersModule = context + TagModule
+    override val serializersModule = context + TagModule + CapabilityModule.build()
 
     companion object Default : NBTFormat()
 

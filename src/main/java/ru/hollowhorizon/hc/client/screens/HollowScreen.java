@@ -10,6 +10,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import org.jetbrains.annotations.NotNull;
 import ru.hollowhorizon.hc.client.screens.util.Alignment;
+import ru.hollowhorizon.hc.client.screens.widget.HollowWidget;
 import ru.hollowhorizon.hc.client.screens.widget.layout.ILayoutConsumer;
 
 public class HollowScreen extends Screen implements ILayoutConsumer {
@@ -28,6 +29,13 @@ public class HollowScreen extends Screen implements ILayoutConsumer {
     public void mouseMoved(double mouseX, double mouseY) {
         this.children.forEach(widget -> widget.mouseMoved(mouseX, mouseY));
         super.mouseMoved(mouseX, mouseY);
+    }
+
+    @Override
+    public void tick() {
+        this.children.forEach(widget -> {
+            if (widget instanceof HollowWidget) ((HollowWidget) widget).tick();
+        });
     }
 
     public static int getAlignmentPosX(Alignment alignment, int offsetX, int positionWidth, int targetWidth) {
@@ -98,7 +106,7 @@ public class HollowScreen extends Screen implements ILayoutConsumer {
     @Override
     public boolean mouseReleased(double p_231048_1_, double p_231048_3_, int p_231048_5_) {
         boolean value = false;
-        for(Widget widget : this.buttons) {
+        for (Widget widget : this.buttons) {
             value = value || widget.mouseReleased(p_231048_1_, p_231048_3_, p_231048_5_);
         }
         return value;
@@ -107,7 +115,7 @@ public class HollowScreen extends Screen implements ILayoutConsumer {
     @Override
     public boolean mouseDragged(double p_231045_1_, double p_231045_3_, int p_231045_5_, double p_231045_6_, double p_231045_8_) {
         boolean value = false;
-        for(IGuiEventListener widget : this.children) {
+        for (IGuiEventListener widget : this.children) {
             value = value || widget.mouseDragged(p_231045_1_, p_231045_3_, p_231045_5_, p_231045_6_, p_231045_8_);
         }
         return value;

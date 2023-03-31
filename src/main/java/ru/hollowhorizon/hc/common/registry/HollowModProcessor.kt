@@ -29,19 +29,14 @@ import net.minecraftforge.registries.IForgeRegistryEntry
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.registy.HollowRegister
-import ru.hollowhorizon.hc.client.models.core.BoneTownRegistry
-import ru.hollowhorizon.hc.client.models.core.animation.BTAdditionalAnimationEntry
-import ru.hollowhorizon.hc.client.models.core.materials.BTMaterialEntry
-import ru.hollowhorizon.hc.client.models.core.model.BTArmorModelEntry
-import ru.hollowhorizon.hc.client.models.core.model.BTModel
 import ru.hollowhorizon.hc.client.render.entity.RenderFactoryBuilder
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.client.utils.HollowPack
+import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
-import ru.hollowhorizon.hc.common.capabilities.IHollowCapability
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
-import ru.hollowhorizon.hc.common.network.HollowPacketV2Reg
+import ru.hollowhorizon.hc.common.network.HollowPacketV2Loader
 import ru.hollowhorizon.hc.common.network.Packet
 import ru.hollowhorizon.hc.common.objects.blocks.IBlockProperties
 import ru.hollowhorizon.hc.common.objects.items.HollowArmor
@@ -63,7 +58,7 @@ object HollowModProcessor {
                 val data = field.get(null)
                 val hasAutoModel = cont.annotation.auto_model
                 val model = cont.annotation.renderer
-                val hasModel = model != HollowRegister::class
+                val hasModel = model != "" && FMLEnvironment.dist.isClient //всё что связано с рендером должно быть ТОЛЬКО на клиенте
 
                 //По идеи регистрация дважды не должна происходить, но на всякий случай
                 if (data is IForgeRegistryEntry<*> && data.registryName != null) {
@@ -96,8 +91,7 @@ object HollowModProcessor {
 
                         if (hasModel) {
                             RenderFactoryBuilder.buildEntity(
-                                data as EntityType<Entity>,
-                                model.java as Class<EntityRenderer<Entity>>
+                                data as EntityType<Entity>, Class.forName(model) as Class<EntityRenderer<Entity>>
                             )
                         }
 
@@ -108,8 +102,7 @@ object HollowModProcessor {
 
                         if (hasModel) {
                             RenderFactoryBuilder.buildTileEntity(
-                                data as TileEntityType<TileEntity>,
-                                model.java as Class<TileEntityRenderer<TileEntity>>
+                                data as TileEntityType<TileEntity>, Class.forName(model) as Class<TileEntityRenderer<TileEntity>>
                             )
                         }
                     }
@@ -139,8 +132,7 @@ object HollowModProcessor {
 
                         if (hasModel) {
                             RenderFactoryBuilder.buildContainerScreen(
-                                data as ContainerType<Container>,
-                                model.java as Class<ContainerScreen<Container>>
+                                data as ContainerType<Container>, Class.forName(model) as Class<ContainerScreen<Container>>
                             )
                         }
                     }
@@ -149,67 +141,50 @@ object HollowModProcessor {
                         Registries.getRegistry(ForgeRegistries.PARTICLE_TYPES, cont.modId).register(name) { data }
                     }
 
-                    is BTAdditionalAnimationEntry -> {
-                        Registries.getRegistry(BoneTownRegistry.ADDITIONAL_ANIMATION_REGISTRY, cont.modId).register(name) { data }
-                    }
-
-                    is BTModel -> {
-                        Registries.getRegistry(BoneTownRegistry.MODEL_REGISTRY, cont.modId).register(name) { data }
-                    }
-
-                    is BTMaterialEntry -> {
-                        Registries.getRegistry(BoneTownRegistry.MATERIAL_REGISTRY, cont.modId).register(name) { data }
-                    }
-
-                    is BTArmorModelEntry -> {
-                        Registries.getRegistry(BoneTownRegistry.ARMOR_MODEL_REGISTRY, cont.modId).register(name) { data }
-                    }
                 }
             }
         }
         registerHandler<HollowPacketV2> { cont ->
             cont.whenClassTask = { clazz ->
-                HollowPacketV2Reg.PLAYER_PACKETS.add(clazz.getConstructor().newInstance() as Packet<*>)
+                val packet = clazz.getConstructor().newInstance() as Packet<*>
+
+                HollowPacketV2Loader.register(packet)
             }
         }
         registerHandler<HollowCapabilityV2> { cont ->
             cont.whenClassTask = { clazz ->
                 HollowCapabilityStorageV2.capabilities.add(clazz)
-
-                HollowCapabilityStorageV2.createPacket(clazz as Class<IHollowCapability>, cont.annotation.value)
             }
         }
     }
 
     @Synchronized
     fun run(modId: String, scanResults: ModFileScanData) {
-        if(modId == HollowCore.MODID) BoneTownRegistry.createRegistries(null)
 
-        scanResults.annotations.stream()
-            .filter { it.annotationType in ANNOTATIONS.keys }
-            .forEach { data ->
-                val type = data.annotationType
 
-                val containerClass = Class.forName(data.classType.className)
+        scanResults.annotations.stream().filter { it.annotationType in ANNOTATIONS.keys }.forEach { data ->
+            val type = data.annotationType
 
-                when (data.targetType) {
-                    ElementType.FIELD -> {
-                        processField(containerClass, data.memberName, type, modId)
-                    }
+            val containerClass = Class.forName(data.classType.className)
 
-                    ElementType.METHOD -> {
-                        processMethod(containerClass, data.memberName, type, modId)
-                    }
+            when (data.targetType) {
+                ElementType.FIELD -> {
+                    processField(containerClass, data.memberName, type, modId)
+                }
 
-                    ElementType.TYPE -> {
-                        processClass(containerClass, type, modId)
-                    }
+                ElementType.METHOD -> {
+                    processMethod(containerClass, data.memberName, type, modId)
+                }
 
-                    else -> {
-                        HollowCore.LOGGER.error("Annotation target type ${data.targetType} not supported! Only FIELD, METHOD and TYPE are supported!")
-                    }
+                ElementType.TYPE -> {
+                    processClass(containerClass, type, modId)
+                }
+
+                else -> {
+                    HollowCore.LOGGER.error("Annotation target type ${data.targetType} not supported! Only FIELD, METHOD and TYPE are supported!")
                 }
             }
+        }
 
         if (FMLEnvironment.dist.isClient) processSounds(modId)
 
@@ -221,6 +196,7 @@ object HollowModProcessor {
         HollowSoundHandler.MODS.add(modId)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun processField(containerClass: Class<*>, memberName: String, type: Type, modId: String) {
         val field = containerClass.getDeclaredField(memberName)
 
@@ -228,9 +204,7 @@ object HollowModProcessor {
 
         if (field.isStatic()) {
             val container = AnnotationContainer(
-                modId,
-                field.getAnnotation(Class.forName(type.className) as Class<Annotation>),
-                memberName
+                modId, field.getAnnotation(Class.forName(type.className) as Class<Annotation>), memberName
             )
 
             ANNOTATIONS[type]?.invoke(container)
@@ -239,9 +213,10 @@ object HollowModProcessor {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun processMethod(containerClass: Class<*>, memberName: String, type: Type, modId: String) {
-        val methods = containerClass.declaredMethods.filter {
-            it.annotations.map { Type.getType(it.javaClass) }.contains(type) && it.name == memberName
+        val methods = containerClass.declaredMethods.filter { method ->
+            method.annotations.map { Type.getType(it.javaClass) }.contains(type) && method.name == memberName
         }
 
         methods.forEach { method ->
@@ -249,9 +224,7 @@ object HollowModProcessor {
 
             if (method.isStatic()) {
                 val container = AnnotationContainer(
-                    modId,
-                    method.getAnnotation(Class.forName(type.className) as Class<Annotation>),
-                    method.name
+                    modId, method.getAnnotation(Class.forName(type.className) as Class<Annotation>), method.name
                 )
 
                 ANNOTATIONS[type]?.invoke(container)
@@ -261,6 +234,7 @@ object HollowModProcessor {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun processClass(containerClass: Class<*>, type: Type, modId: String) {
         containerClass.getAnnotation(Class.forName(type.className) as Class<Annotation>)?.let { annotation ->
             val container = AnnotationContainer(modId, annotation, containerClass.name)
@@ -274,6 +248,14 @@ object HollowModProcessor {
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified T : Any> registerHandler(noinline task: (AnnotationContainer<T>) -> Unit) {
         ANNOTATIONS[Type.getType(T::class.java)] = task as (AnnotationContainer<*>) -> Unit
+    }
+
+    fun postInit(modId: String) {
+        if (modId != HollowCore.MODID) return
+
+        //Обработчик NBT первый раз грузится долго, поэтому его лучше загрузить в отдельном потоке
+        //Также важно, что он запускается ПОСЛЕ [HollowModProcessor], т.к. там добавляются данные для полиморфической сериализации!
+        NBTFormat.init()
     }
 }
 

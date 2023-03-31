@@ -133,7 +133,7 @@ private class NbtMapDecoder(json: NBTFormat, override val map: CompoundNBT) : NB
     private val size: Int = keys.size * 2
     private var position = -1
 
-    override fun elementName(desc: SerialDescriptor, index: Int): String {
+    override fun elementName(descriptor: SerialDescriptor, index: Int): String {
         val i = index / 2
         return keys[i]
     }
@@ -159,7 +159,7 @@ private class NullableListDecoder(json: NBTFormat, override val map: CompoundNBT
     private val size: Int = map.size()
     private var position = -1
 
-    override fun elementName(desc: SerialDescriptor, index: Int): String = index.toString()
+    override fun elementName(descriptor: SerialDescriptor, index: Int): String = index.toString()
 
 
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
@@ -183,7 +183,7 @@ private class TagListDecoder(json: NBTFormat, override val map: CollectionNBT<*>
     private val size = map.size
     private var currentIndex = -1
 
-    override fun elementName(desc: SerialDescriptor, index: Int): String = (index).toString()
+    override fun elementName(descriptor: SerialDescriptor, index: Int): String = (index).toString()
 
     override fun currentElement(tag: String): INBT {
         return map[tag.toInt()]

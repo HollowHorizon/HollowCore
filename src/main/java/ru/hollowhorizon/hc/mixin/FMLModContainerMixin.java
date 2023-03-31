@@ -31,5 +31,6 @@ public abstract class FMLModContainerMixin {
         if (modClass.isAnnotationPresent(HollowMod.class)) {
             HollowModProcessor.INSTANCE.run(modId, scanResults);
         }
+        HollowModProcessor.INSTANCE.postInit(modId);
     }
 }

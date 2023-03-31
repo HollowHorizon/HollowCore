@@ -13,8 +13,8 @@ import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromT
 
 
 class HSCompiler private constructor() {
-    fun toReadablePath(file: File): String {
-        return file.path.substringAfter(FMLPaths.GAMEDIR.get().resolve("hollowscript").toFile().path+"\\").replace("\\", "/")
+    fun toReadablePath(cacheDir: File, file: File): String {
+        return file.path.substringAfter(cacheDir.parentFile.path+"\\").replace("\\", "/")
     }
 
     companion object {
@@ -52,7 +52,7 @@ class HSCompiler private constructor() {
         cacheDir: File = File("scripts"),
         script: File,
     ): CompiledHollowScript {
-        val compiledFile = File(cacheDir, toReadablePath(script).substringBeforeLast(".")+".hollow")
+        val compiledFile = File(cacheDir, toReadablePath(cacheDir, script).substringBeforeLast(".")+".hollow")
 
         val hash = script.readText().hashCode()
 

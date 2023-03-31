@@ -4,6 +4,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.function.Supplier;
 
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
@@ -14,5 +15,5 @@ public @interface HollowRegister {
 
     String texture() default "";
 
-    Class<?> renderer() default HollowRegister.class;
+    String renderer() default "";
 }

@@ -18,7 +18,6 @@ class BoxWidget(
     y: Int,
     width: Int,
     height: Int,
-    name: String,
     val renderer: (MatrixStack, Int, Int, Int, Int) -> Unit,
     val padding: SizePair,
 ) : OriginWidget(x, y, width, height) {
@@ -134,7 +133,7 @@ class BoxBuilder(val x0: Int, val y0: Int, val maxWidth: Int, val maxHeight: Int
     var pos: SizePair = 0.px x 0.px
     var padding: SizePair = 0.px x 0.px
 
-    var renderer: (MatrixStack, Int, Int, Int, Int) -> Unit = { stack, x, y, w, h -> }
+    var renderer: (MatrixStack, Int, Int, Int, Int) -> Unit = { _, _, _, _, _ -> }
 
     var alignElements: IPlacement = Alignment.CENTER
     var placementType: PlacementType = PlacementType.VERTICAL
@@ -336,7 +335,6 @@ class ScreenPos(val raw: Int, private val maxWidth: Int, private val maxHeight: 
                     if (isWidth) ((raw / 100F) * windowX).toInt() else ((raw / 100F) * windowY).toInt()
                 }
 
-                else -> raw
             }
         }
 
@@ -367,7 +365,6 @@ fun ILayoutConsumer.box(name: String = "", builder: BoxBuilder.() -> Unit): BoxW
         boxBuilder.y(),
         boxBuilder.width(),
         boxBuilder.height(),
-        name,
         boxBuilder.renderer,
         boxBuilder.padding
     )

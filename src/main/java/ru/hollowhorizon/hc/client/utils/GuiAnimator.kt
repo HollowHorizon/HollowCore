@@ -4,16 +4,22 @@ open class GuiAnimator(
     val begin: Int,
     val end: Int,
     protected val time: Float,
-    protected val interpolation: (Float) -> Float
+    protected val interpolation: (Float) -> Float,
 ) {
     var value: Int = begin
     protected var timePassed: Int = (time * 20).toInt()
+    protected var lastValue: Int = begin
 
-    open fun update() {
+    open fun update(particalTick: Float) {
         if (timePassed > 0) {
-            value = begin + ((end - begin) * interpolation(1 - timePassed.toFloat() / (time * 20))).toInt()
-            timePassed--
+            val current = begin + ((end - begin) * interpolation(1 - timePassed.toFloat() / (time * 20))).toInt()
+            value = (lastValue + (current - lastValue) * particalTick).toInt()
+            lastValue = value
         }
+    }
+
+    fun tick() {
+        if (timePassed > 0) timePassed--
     }
 
     fun isFinished(): Boolean {
@@ -28,14 +34,17 @@ open class GuiAnimator(
         GuiAnimator(begin, end, time, interpolation) {
         private var switch = false
 
-        override fun update() {
+        override fun update(particalTick: Float) {
             if (switch) {
                 if (timePassed > 0) {
-                    value = end - ((end - begin) * interpolation(1 - timePassed.toFloat() / (time * 20))).toInt()
-                    timePassed--
+                    val current = end - ((end - begin) * interpolation(1 - timePassed.toFloat() / (time * 20))).toInt()
+                    value = (lastValue + (current - lastValue) * particalTick).toInt()
+                    lastValue = value
+
                 }
+
             } else {
-                super.update()
+                super.update(particalTick)
             }
             if (isFinished()) {
                 switch = !switch
