@@ -39,13 +39,13 @@ import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import ru.hollowhorizon.hc.client.gltf.GlTFModelManager;
 
 import de.javagl.jgltf.impl.v1.Accessor;
 import de.javagl.jgltf.impl.v1.Animation;
 import de.javagl.jgltf.impl.v1.AnimationChannel;
 import de.javagl.jgltf.impl.v1.AnimationChannelTarget;
 import de.javagl.jgltf.impl.v1.AnimationSampler;
+import de.javagl.jgltf.impl.v1.Asset;
 import de.javagl.jgltf.impl.v1.Buffer;
 import de.javagl.jgltf.impl.v1.BufferView;
 import de.javagl.jgltf.impl.v1.Camera;
@@ -75,10 +75,12 @@ import de.javagl.jgltf.model.Accessors;
 import de.javagl.jgltf.model.AnimationModel;
 import de.javagl.jgltf.model.AnimationModel.Channel;
 import de.javagl.jgltf.model.AnimationModel.Interpolation;
+import de.javagl.jgltf.model.AssetModel;
 import de.javagl.jgltf.model.BufferModel;
 import de.javagl.jgltf.model.BufferViewModel;
 import de.javagl.jgltf.model.CameraModel;
 import de.javagl.jgltf.model.ElementType;
+import de.javagl.jgltf.model.ExtensionsModel;
 import de.javagl.jgltf.model.GltfConstants;
 import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.ImageModel;
@@ -108,11 +110,13 @@ import de.javagl.jgltf.model.impl.DefaultAccessorModel;
 import de.javagl.jgltf.model.impl.DefaultAnimationModel;
 import de.javagl.jgltf.model.impl.DefaultAnimationModel.DefaultChannel;
 import de.javagl.jgltf.model.impl.DefaultAnimationModel.DefaultSampler;
+import de.javagl.jgltf.model.impl.DefaultAssetModel;
 import de.javagl.jgltf.model.impl.DefaultBufferModel;
 import de.javagl.jgltf.model.impl.DefaultBufferViewModel;
 import de.javagl.jgltf.model.impl.DefaultCameraModel;
 import de.javagl.jgltf.model.impl.DefaultCameraOrthographicModel;
 import de.javagl.jgltf.model.impl.DefaultCameraPerspectiveModel;
+import de.javagl.jgltf.model.impl.DefaultExtensionsModel;
 import de.javagl.jgltf.model.impl.DefaultGltfModel;
 import de.javagl.jgltf.model.impl.DefaultImageModel;
 import de.javagl.jgltf.model.impl.DefaultMeshModel;
@@ -129,18 +133,38 @@ import de.javagl.jgltf.model.v1.gl.DefaultModels;
 import de.javagl.jgltf.model.v1.gl.GltfDefaults;
 import de.javagl.jgltf.model.v1.gl.TechniqueStatesFunctionsModels;
 import net.minecraft.util.ResourceLocation;
+import org.apache.commons.io.IOUtils;
+import org.codehaus.plexus.util.IOUtil;
+import org.lwjgl.BufferUtils;
+import ru.hollowhorizon.hc.client.gltf.GlTFModelManager;
+import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
 
 /**
  * A class that is responsible for filling a {@link DefaultGltfModel} with
  * the model instances that are created from a {@link GltfAssetV1}
  */
-class GltfModelCreatorV1
+public class GltfModelCreatorV1
 {
     /**
      * The logger used in this class
      */
     private static final Logger logger = 
         Logger.getLogger(GltfModelCreatorV1.class.getName());
+    
+    /**
+     * Create the {@link GltfModel} for the given {@link GltfAssetV1}
+     * 
+     * @param gltfAsset The {@link GltfAssetV1}
+     * @return The {@link GltfModel}
+     */
+    public static GltfModelV1 create(GltfAssetV1 gltfAsset)
+    {
+        GltfModelV1 gltfModel = new GltfModelV1();
+        GltfModelCreatorV1 creator = 
+            new GltfModelCreatorV1(gltfAsset, gltfModel);
+        creator.create();
+        return gltfModel;
+    }
     
     /**
      * The {@link IndexMappingSet}
@@ -220,6 +244,9 @@ class GltfModelCreatorV1
         initTextureModels();
         initShaderModels();
         initProgramModels();
+        
+        initExtensionsModel();
+        initAssetModel();
     }
     
     /**
@@ -607,9 +634,9 @@ class GltfModelCreatorV1
             
             Object extras = image.getExtras();
         	if(extras != null) {
-        		JsonElement extra = new Gson().toJsonTree(extras).getAsJsonObject().get(GlTFModelManager.RESOURCE_LOCATION);
+        		JsonElement extra = new Gson().toJsonTree(extras).getAsJsonObject().get("resourceLocation");
         		if(extra != null) {
-        			imageModel.setImageData(GlTFModelManager.getInstance().getImageResource(new ResourceLocation(extra.getAsString())));
+                    imageModel.setImageData(GlTFModelManager.getInstance().getImageResource(extra.getAsString()));
         			continue;
         		}
         	}
@@ -734,9 +761,9 @@ class GltfModelCreatorV1
             
             Object extras = buffer.getExtras();
         	if(extras != null) {
-        		JsonElement extra = new Gson().toJsonTree(extras).getAsJsonObject().get(GlTFModelManager.RESOURCE_LOCATION);
+        		JsonElement extra = new Gson().toJsonTree(extras).getAsJsonObject().get("resourceLocation");
         		if(extra != null) {
-        			bufferModel.setBufferData(GlTFModelManager.getInstance().getBufferResource(new ResourceLocation(extra.getAsString())));
+                    bufferModel.setBufferData(GlTFModelManager.getInstance().getBufferResource(new ResourceLocation(extra.getAsString())));
         			continue;
         		}
         	}
@@ -1418,6 +1445,35 @@ class GltfModelCreatorV1
             materialModel.setValues(modelValues);
         }
     }
+    
+    /**
+     * Initialize the {@link ExtensionsModel} with the extensions that
+     * are used in the glTF.
+     */
+    private void initExtensionsModel() 
+    {
+        // Note that glTF 1.0 only had 'extensionsUsed', no 'extensionsRequired'
+        List<String> extensionsUsed = gltf.getExtensionsUsed();
+        DefaultExtensionsModel extensionsModel = gltfModel.getExtensionsModel();
+        extensionsModel.addExtensionsUsed(extensionsUsed);
+    }
+    
+    /**
+     * Initialize the {@link AssetModel} with the asset information that
+     * was given in the glTF.
+     */
+    private void initAssetModel() 
+    {
+        Asset asset = gltf.getAsset();
+        if (asset != null)
+        {
+            DefaultAssetModel assetModel = gltfModel.getAssetModel();
+            transferGltfPropertyElements(asset, assetModel);
+            assetModel.setCopyright(asset.getCopyright());
+            assetModel.setGenerator(asset.getGenerator());
+        }
+    }
+    
     
     /**
      * Transfer the extensions and extras from the given property to

@@ -1,12 +1,15 @@
 package ru.hollowhorizon.hc.common.handlers;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.MainMenuScreen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
@@ -17,10 +20,11 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
-import ru.hollowhorizon.hc.client.screens.UIScreen;
+import ru.hollowhorizon.hc.client.screens.HTMLScreen;
 import ru.hollowhorizon.hc.common.animations.CutsceneStartHandler;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapability;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2;
@@ -55,7 +59,18 @@ public class HollowEventHandler {
     public void onOpen(GuiOpenEvent event) {
         if (event.getGui() instanceof MainMenuScreen) {
             event.setCanceled(true);
-            Minecraft.getInstance().setScreen(new UIScreen());
+            Minecraft.getInstance().setScreen(new HTMLScreen());
+        }
+    }
+
+    @SubscribeEvent
+    @OnlyIn(Dist.CLIENT)
+    public void onBlockClick(PlayerInteractEvent.RightClickBlock event) {
+        BlockPos pos = event.getPos();
+        Block block = event.getWorld().getBlockState(pos).getBlock();
+        if(block.is(Blocks.BEACON)) {
+            event.setCanceled(true);
+            Minecraft.getInstance().setScreen(new HTMLScreen());
         }
     }
 

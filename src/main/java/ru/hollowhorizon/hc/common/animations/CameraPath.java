@@ -30,18 +30,10 @@ public class CameraPath {
         this.fromPos = null;
         this.toPos = null;
 
-        float[] x = new float[raw.size()];
-        float[] y = new float[raw.size()];
-        float[] z = new float[raw.size()];
-        for (int i = 0; i < raw.size(); i++) {
-            x[i] = (float) raw.get(i).x;
-            y[i] = (float) raw.get(i).y;
-            z[i] = (float) raw.get(i).z;
-        }
+        List<Vector3d> v = BezierUtils.INSTANCE.calculateSpline(raw, 100);
 
-        List<BezierUtils.Vec3d> v = BezierUtils.INSTANCE.calculateSpline(x, y, z, 100);
-
-        v.forEach(vec -> precalculatedPath.add(new Vector3d(vec.getX(), vec.getY(), vec.getZ())));
+        precalculatedPath.clear();
+        precalculatedPath.addAll(v);
     }
 
     public void drawPath(MatrixStack matrixStack) {

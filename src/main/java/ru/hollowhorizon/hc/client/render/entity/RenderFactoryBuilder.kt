@@ -21,7 +21,12 @@ import net.minecraftforge.fml.client.registry.RenderingRegistry
 object RenderFactoryBuilder {
     fun <T : Entity> buildEntity(entityType: EntityType<T>, rendererClass: Class<EntityRenderer<T>>) {
         RenderingRegistry.registerEntityRenderingHandler(entityType) { manager ->
-            rendererClass.getConstructor(EntityRendererManager::class.java).newInstance(manager)
+            try {
+                rendererClass.getConstructor(EntityRendererManager::class.java).newInstance(manager)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                throw e
+            }
         }
     }
 

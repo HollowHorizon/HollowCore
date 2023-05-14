@@ -8,6 +8,7 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import org.jetbrains.annotations.NotNull;
 import ru.hollowhorizon.hc.client.screens.util.Alignment;
 import ru.hollowhorizon.hc.client.screens.widget.HollowWidget;
@@ -18,6 +19,10 @@ public class HollowScreen extends Screen implements ILayoutConsumer {
 
     public HollowScreen(ITextComponent screenText) {
         super(screenText);
+    }
+
+    public HollowScreen() {
+        this(new StringTextComponent(""));
     }
 
     @Override

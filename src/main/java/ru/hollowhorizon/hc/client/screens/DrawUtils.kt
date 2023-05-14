@@ -14,6 +14,7 @@ import ru.hollowhorizon.hc.client.utils.toRGBA
 import ru.hollowhorizon.hc.client.utils.use
 
 object DrawUtils {
+    @Suppress("DEPRECATION")
     fun drawBox(stack: MatrixStack, location: ResourceLocation, x: Int, y: Int, width: Int, height: Int, color: Int) {
         val rgba = color.toRGBA()
 
@@ -50,6 +51,7 @@ object DrawUtils {
         stack.popPose()
     }
 
+    @Suppress("DEPRECATION")
     fun drawBounds(stack: MatrixStack, x1: Int, y1: Int, x2: Int, y2: Int, width: Int, color: Int) {
         val rgba = color.toRGBA()
 

@@ -26,6 +26,15 @@
  */
 package de.javagl.jgltf.model.io.v2;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import de.javagl.jgltf.impl.v2.Buffer;
 import de.javagl.jgltf.impl.v2.BufferView;
 import de.javagl.jgltf.impl.v2.GlTF;
@@ -37,11 +46,6 @@ import de.javagl.jgltf.model.Optionals;
 import de.javagl.jgltf.model.io.Buffers;
 import de.javagl.jgltf.model.io.MimeTypes;
 import de.javagl.jgltf.model.v2.GltfCreatorV2;
-
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * A class for creating a binary {@link GltfAssetV2} from a 

@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.renderer.ActiveRenderInfo;
+import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
@@ -12,6 +13,7 @@ import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import ru.hollowhorizon.hc.client.math.Spline3D;
 import ru.hollowhorizon.hc.client.screens.widget.SliderWidget;
 import ru.hollowhorizon.hc.common.animations.CameraPath;
 
@@ -20,8 +22,8 @@ import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
 public class CameraScreen extends Screen {
-    private final List<CameraPath> allPoints = new ArrayList<>();
-    private CameraPath currentPath;
+    //private final List<CameraPath> allPoints = new ArrayList<>();
+    private Spline3D currentPath;
     private int currentFrame = 0;
     private int interpolationId = 0;
     private Vector3d lastPos;
@@ -46,15 +48,7 @@ public class CameraScreen extends Screen {
             this.points.add(currentPos);
         }));
         this.addButton(new Button(0, 20, 80, 20, new StringTextComponent("Change Path"), (button) -> {
-            if (currentPath != null) {
-                int i = allPoints.indexOf(currentPath);
-                if (i == allPoints.size() - 1) {
-                    i = -1;
-                }
-                currentPath = allPoints.get(i + 1);
-            } else {
-                currentPath = new CameraPath(this.points);
-            }
+            currentPath = new Spline3D(this.points);
         }));
 
         SliderWidget slider = new SliderWidget(this.width - 64, 0, 64, 16);
@@ -85,10 +79,15 @@ public class CameraScreen extends Screen {
 
     @SubscribeEvent
     public void worldRender(RenderWorldLastEvent event) {
+        event.getMatrixStack().pushPose();
 
-        for (CameraPath path : allPoints) {
-            path.drawPath(event.getMatrixStack());
-        }
+
+        Vector3d projectedView = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        event.getMatrixStack().translate(-projectedView.x, -projectedView.y, -projectedView.z);
+
+        if(currentPath!=null) currentPath.draw(event.getMatrixStack());
+
+        event.getMatrixStack().popPose();
     }
 
     @SubscribeEvent
@@ -98,7 +97,7 @@ public class CameraScreen extends Screen {
 
         ActiveRenderInfo camera = event.getInfo();
 
-        if (currentPath != null) camera.setPosition(currentPath.getPosByFrame(currentFrame));
+        if (currentPath != null) camera.setPosition(currentPath.getPoint(currentFrame / 100.0));
         else {
             camera.setPosition(this.x, this.y, this.z);
         }

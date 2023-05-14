@@ -26,11 +26,34 @@ public class ModShaders {
             }))
             .build();
 
+    public static final ShaderProgram ASSIMP_SHADER = ShaderProgramBuilder.builder()
+            .attributes("in_position", "in_textureCoords", "in_normal", "in_jointIndices", "in_weights")
+            .addShader("assimp_shader_frag", builder -> {
+                builder.source(new ResourceLocation(MODID, "shaders/animated_entity_fragment.glsl"));
+                builder.type(ShaderObject.StandardShaderType.FRAGMENT);
+
+                builder.uniform("textureSampler", UniformType.INT);
+                builder.uniform("overlaySampler", UniformType.INT);
+                builder.uniform("lightmapSampler", UniformType.INT);
+
+                builder.uniform("lightMapTextureCoords", UniformType.VEC2);
+                builder.uniform("overlayTextureCoords", UniformType.INT);
+            })
+            .addShader("assimp_shader_vert", builder -> {
+                builder.source(new ResourceLocation(MODID, "shaders/animated_entity_vertex.glsl"));
+                builder.type(ShaderObject.StandardShaderType.VERTEX);
+
+                builder.uniform("modelViewMatrix", UniformType.MAT4);
+                builder.uniform("projectionMatrix", UniformType.MAT4);
+                for(int i = 0; i < 50; i++) builder.uniform("jointTransforms["+i+"]", UniformType.MAT4);
+            })
+            .build();
+
     public static void init(AddReloadListenerEvent e) {
         HollowCore.LOGGER.info("init all shaders");
 
 
-        //initShader(TEST_SHADER, e);
+        initShader(ASSIMP_SHADER, e);
     }
 
     private static void initShader(ShaderProgram program, AddReloadListenerEvent e) {

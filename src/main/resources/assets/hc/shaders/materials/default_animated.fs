@@ -8,13 +8,12 @@ out vec4 fragColor;
 layout(binding = 0) uniform sampler2D texture_sampler;
 layout(binding = 1) uniform sampler2D overlay_sampler;
 layout(binding = 2) uniform sampler2D lightmap_sampler;
+
 uniform vec2 lightmap_uv;
 uniform vec2 overlay_uv;
 uniform vec3 ambient_light;
 uniform vec3 diffuse_colors[2];
 uniform vec3 diffuse_locs[2];
-
-
 
 float getDiffuseCos(vec3 lightPos, vec3 vert, vec3 norm) {
     vec3 to_light = normalize(lightPos);

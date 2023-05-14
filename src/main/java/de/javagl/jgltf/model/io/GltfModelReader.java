@@ -26,16 +26,17 @@
  */
 package de.javagl.jgltf.model.io;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.Path;
+
 import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.io.v1.GltfAssetV1;
 import de.javagl.jgltf.model.io.v2.GltfAssetV2;
 import de.javagl.jgltf.model.v1.GltfModelV1;
 import de.javagl.jgltf.model.v2.GltfModelCreatorV2;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.file.Path;
+import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability;
 
 /**
  * A class for reading a {@link GltfModel} from a URI.
@@ -57,11 +58,11 @@ public final class GltfModelReader
      * @return The {@link GltfModel}
      * @throws IOException If an IO error occurs
      */
-    public GltfModel read(URI uri) throws IOException
+    public GltfModel read(AnimatedEntityCapability capability, URI uri) throws IOException
     {
         GltfAssetReader gltfAssetReader = new GltfAssetReader();
         GltfAsset gltfAsset = gltfAssetReader.read(uri);
-        return createModel(gltfAsset);
+        return createModel(capability, gltfAsset);
     }
 
     /**
@@ -71,11 +72,11 @@ public final class GltfModelReader
      * @return The {@link GltfModel}
      * @throws IOException If an IO error occurs
      */
-    public GltfModel read(Path path) throws IOException
+    public GltfModel read(AnimatedEntityCapability capability, Path path) throws IOException
     {
         GltfAssetReader gltfAssetReader = new GltfAssetReader();
         GltfAsset gltfAsset = gltfAssetReader.read(path);
-        return createModel(gltfAsset);
+        return createModel(capability, gltfAsset);
     }
 
     /**
@@ -90,11 +91,11 @@ public final class GltfModelReader
      * @return The {@link GltfModel}
      * @throws IOException If an IO error occurs
      */
-    public GltfModel readWithoutReferences(URI uri) throws IOException
+    public GltfModel readWithoutReferences(AnimatedEntityCapability capability, URI uri) throws IOException
     {
         try (InputStream inputStream = uri.toURL().openStream())
         {
-            GltfModel gltfModel = readWithoutReferences(inputStream);
+            GltfModel gltfModel = readWithoutReferences(capability, inputStream);
             return gltfModel;
         }
     }
@@ -111,23 +112,24 @@ public final class GltfModelReader
      * @return The {@link GltfModel}
      * @throws IOException If an IO error occurs
      */
-    public GltfModel readWithoutReferences(InputStream inputStream) 
+    public GltfModel readWithoutReferences(AnimatedEntityCapability capability, InputStream inputStream)
         throws IOException
     {
         GltfAssetReader gltfAssetReader = new GltfAssetReader();
         GltfAsset gltfAsset = 
             gltfAssetReader.readWithoutReferences(inputStream);
-        return createModel(gltfAsset);
+        return createModel(capability, gltfAsset);
     }
     
     /**
      * Creates a {@link GltfModel} instance from the given {@link GltfAsset}
-     * 
-     * @param gltfAsset The {@link GltfAsset}
+     *
+     * @param capability some data, for dynamically changing model data (like textures)
+     * @param gltfAsset  The {@link GltfAsset}
      * @return The {@link GltfModel}
      * @throws IOException If the given asset has an unknown version
      */
-    private static GltfModel createModel(GltfAsset gltfAsset) throws IOException
+    private static GltfModel createModel(AnimatedEntityCapability capability, GltfAsset gltfAsset) throws IOException
     {
         if (gltfAsset instanceof GltfAssetV1)
         {
@@ -137,7 +139,7 @@ public final class GltfModelReader
         if (gltfAsset instanceof GltfAssetV2)
         {
             GltfAssetV2 gltfAssetV2 = (GltfAssetV2)gltfAsset;
-            return GltfModelCreatorV2.create(gltfAssetV2);
+            return GltfModelCreatorV2.create(capability, gltfAssetV2);
         }
         throw new IOException(
             "The glTF asset has an unknown version: " + gltfAsset);

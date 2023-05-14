@@ -680,5 +680,93 @@ public class MathUtils
     {
         // Private constructor to prevent instantiation
     }
+    
+
+	/**
+	 * Computes a0-a1, and stores the result in the given array.
+	 * 
+	 * This assumes that the given arrays are non-<code>null</code> 
+	 * and have equal lengths.
+	 *   
+	 * @param a0 The first array
+	 * @param a1 The second array
+	 * @param result The array that stores the result
+	 */
+	public static void subtract(float[] a0, float[] a1, float[] result)
+	{
+		for (int i = 0; i < a0.length; i++)
+		{
+			result[i] = a0[i] - a1[i];
+		}
+	} 
+	
+	/**
+	 * Computes the cross product of a0 and a1, and stores the result in 
+	 * the given array.
+	 * 
+	 * This assumes that the given arrays are non-<code>null</code> 
+	 * and have length 3.
+	 *   
+	 * @param a0 The first array
+	 * @param a1 The second array
+	 * @param result The array that stores the result
+	 */
+	public static void cross(float a0[], float a1[], float result[])
+	{
+		result[0] = a0[1] * a1[2] - a0[2] * a1[1];
+		result[1] = a0[2] * a1[0] - a0[0] * a1[2];
+		result[2] = a0[0] * a1[1] - a0[1] * a1[0];
+	}
+	
+	/**
+	 * Compute the length of the given vector
+	 * 
+	 * @param a The vector
+	 * @return The length
+	 */
+	public static float computeLength(float a[])
+	{
+		float sum = 0;
+		for (int i=0; i<a.length; i++)
+		{
+			sum += a[i] * a[i];
+		}
+		float r = (float) Math.sqrt(sum);
+		return r;
+	}
+	
+	/**
+	 * Normalizes the given array, and stores the result in the given array.
+	 * 
+	 * This assumes that the given arrays are non-<code>null</code> 
+	 * and have the same length.
+	 *   
+	 * @param a The array
+	 * @param result The array that stores the result
+	 */
+	public static void normalize(float a[], float result[])
+	{
+		float scaling = 1.0f / computeLength(a);
+		scale(a, scaling, result);
+	}
+	
+	/**
+	 * Scales the given vector with the given factor, and stores the result
+	 * in the given array.
+	 * 
+	 * This assumes that the given arrays are non-<code>null</code> 
+	 * and have equal lengths.
+	 * 
+	 * @param a The vector
+	 * @param factor The scaling factor
+	 * @param result The array that will store the result
+	 */
+	public static void scale(float a[], float factor, float result[])
+	{
+		for (int i = 0; i < a.length; i++)
+		{
+			result[i] = a[i] * factor;
+		}
+	}
 
 }

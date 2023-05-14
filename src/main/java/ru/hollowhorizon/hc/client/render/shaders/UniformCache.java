@@ -86,6 +86,9 @@ public interface UniformCache {
 
     void glUniformMatrix4f(String name, Matrix4f matrix);
 
+    void glUniformArrayMatrix4f(String name, int size, boolean transpose, float[] matrix);
+    void glUniformArrayMatrix4f(String name, int size, Matrix4f matrix4f);
+
     void glUniformMatrix4f(String name, boolean transpose, Matrix4f matrix);
 
     void glUniformMatrix4x2f(String name, float[] matrix);

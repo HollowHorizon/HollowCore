@@ -45,7 +45,7 @@ import de.javagl.jgltf.model.animation.InterpolatorType;
  * contain {@link Animation} instances that correspond to the 
  * {@link AnimationModel} instances of a glTF 
  */
-@Deprecated //Please use com.timlee9024.mcgltf.animation.GltfAnimationCreator to compatible with CUBICSPLINE interpolation
+@Deprecated //Please use com.modularmods.mcgltf.animation.GltfAnimationCreator to compatible with CUBICSPLINE interpolation
 public class GltfAnimations
 {
     /**

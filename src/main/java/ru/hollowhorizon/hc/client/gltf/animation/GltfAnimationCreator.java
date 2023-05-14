@@ -4,6 +4,7 @@ import de.javagl.jgltf.model.*;
 import de.javagl.jgltf.model.AnimationModel.Channel;
 import de.javagl.jgltf.model.AnimationModel.Interpolation;
 import de.javagl.jgltf.model.AnimationModel.Sampler;
+import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.client.gltf.GlTFModelManager;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public final class GltfAnimationCreator {
 			AccessorData inputData = input.getAccessorData();
 			if (!(inputData instanceof AccessorFloatData))
 			{
-				GlTFModelManager.logger.warn("Input data is not an AccessorFloatData, but "
+				HollowCore.LOGGER.warn("Input data is not an AccessorFloatData, but "
 						+ inputData.getClass());
 				continue;
 			}
@@ -31,7 +32,7 @@ public final class GltfAnimationCreator {
 			AccessorData outputData = output.getAccessorData();
 			if (!(outputData instanceof AccessorFloatData))
 			{
-				GlTFModelManager.logger.warn("Output data is not an AccessorFloatData, but "
+				HollowCore.LOGGER.warn("Output data is not an AccessorFloatData, but "
 						+ outputData.getClass());
 				continue;
 			}
@@ -127,7 +128,7 @@ public final class GltfAnimationCreator {
 					});
 					break;
 				default:
-					GlTFModelManager.logger.warn("Interpolation type not supported: " + interpolation);
+					HollowCore.LOGGER.warn("Interpolation type not supported: " + interpolation);
 					break;
 				}
 				break;
@@ -205,7 +206,7 @@ public final class GltfAnimationCreator {
 					});
 					break;
 				default:
-					GlTFModelManager.logger.warn("Interpolation type not supported: " + interpolation);
+					HollowCore.LOGGER.warn("Interpolation type not supported: " + interpolation);
 					break;
 				}
 				break;
@@ -283,7 +284,7 @@ public final class GltfAnimationCreator {
 					});
 					break;
 				default:
-					GlTFModelManager.logger.warn("Interpolation type not supported: " + interpolation);
+					HollowCore.LOGGER.warn("Interpolation type not supported: " + interpolation);
 					break;
 				}
 				break;
@@ -363,12 +364,12 @@ public final class GltfAnimationCreator {
 					});
 					break;
 				default:
-					GlTFModelManager.logger.warn("Interpolation type not supported: " + interpolation);
+					HollowCore.LOGGER.warn("Interpolation type not supported: " + interpolation);
 					break;
 				}
 				break;
 			default:
-				GlTFModelManager.logger.warn("Animation channel target path must be "
+				HollowCore.LOGGER.warn("Animation channel target path must be "
 					+ "\"translation\", \"rotation\", \"scale\" or  \"weights\", "
 					+ "but is " + path);
 				break;

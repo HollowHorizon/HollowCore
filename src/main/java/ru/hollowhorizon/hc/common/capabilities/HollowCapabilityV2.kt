@@ -5,24 +5,27 @@ import kotlinx.serialization.Serializable
 import net.minecraft.entity.Entity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.ServerPlayerEntity
-import net.minecraft.nbt.CompoundNBT
 import net.minecraft.nbt.INBT
 import net.minecraft.util.Direction
+import net.minecraft.world.World
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.capabilities.Capability.IStorage
 import net.minecraftforge.common.capabilities.CapabilityManager
+import net.minecraftforge.common.capabilities.CapabilityProvider
 import net.minecraftforge.common.capabilities.ICapabilitySerializable
 import net.minecraftforge.common.util.LazyOptional
 import net.minecraftforge.fml.network.PacketDistributor
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
-import ru.hollowhorizon.hc.client.utils.nbt.*
+import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
+import ru.hollowhorizon.hc.client.utils.nbt.deserialize
+import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
+import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 import ru.hollowhorizon.hc.common.network.Packet
 import ru.hollowhorizon.hc.common.network.messages.CapabilityForEntity
-import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityWorld
 import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityEntity
 import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityPlayer
-import ru.hollowhorizon.hc.common.network.toVanillaPacket
+import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityWorld
 import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.CLASS)
@@ -35,6 +38,27 @@ annotation class HollowCapabilityV2(vararg val value: KClass<*>) {
 
         fun <T> get(clazz: Class<T>): Capability<T> {
             return HollowCapabilityStorageV2.storages[clazz.name] as Capability<T>
+        }
+    }
+}
+
+inline fun <reified T> CapabilityProvider<*>.getCapability(): T {
+    return this.getCapability(HollowCapabilityV2.get<T>())
+        .orElseThrow { IllegalStateException("Capability ${T::class.java.simpleName} not found!") }
+}
+
+inline fun <reified T : HollowCapability> CapabilityProvider<*>.useCapability(
+    update: Boolean = true,
+    crossinline task: T.() -> Unit
+) {
+    this.getCapability(HollowCapabilityV2.get<T>()).ifPresent {
+        task(it)
+        if (update) {
+            when (this) {
+                is PlayerEntity -> it.syncClient(this)
+                is Entity -> it.syncEntity(this)
+                is World -> it.syncWorld(*this.players().toTypedArray())
+            }
         }
     }
 }
@@ -91,7 +115,7 @@ fun <T : HollowCapability> register(clazz: Class<T>) {
 
 @Serializable
 abstract class HollowCapability {
-    val consumeDataFromClient = false
+    open val consumeDataFromClient = false
 }
 
 fun <T : HollowCapability> T.serialize(): INBT {
@@ -103,17 +127,23 @@ fun deserialize(nbt: INBT): HollowCapability {
 }
 
 fun HollowCapability.syncClient(playerEntity: PlayerEntity) {
+    if (playerEntity.level.isClientSide) return //С клиента нельзя обновлять серверную часть
+
     this.javaClass.createSyncPacketPlayer().send(this, playerEntity)
 }
 
 fun HollowCapability.syncEntity(entity: Entity) {
+    if (entity.level.isClientSide) return //С клиента нельзя обновлять серверную часть
+
     val packet = this.javaClass.createSyncPacketEntity()
     packet.send(CapabilityForEntity(this, entity.id), PacketDistributor.TRACKING_ENTITY.with { entity });
 }
 
-fun HollowCapability.syncWorld(vararg players: ServerPlayerEntity) {
+fun HollowCapability.syncWorld(vararg players: PlayerEntity) {
+    if (players.first().level.isClientSide) return //С клиента нельзя обновлять серверную часть
+
     val packet = this.javaClass.createSyncPacketClientLevel()
-    players.forEach { packet.send(this, PacketDistributor.PLAYER.with { it }) }
+    players.forEach { packet.send(this, PacketDistributor.PLAYER.with { it as ServerPlayerEntity }) }
 }
 
 //Пакет синхронизирующий данные моба у конкретного игрока

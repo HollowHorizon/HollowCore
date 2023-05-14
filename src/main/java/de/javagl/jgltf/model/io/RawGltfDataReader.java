@@ -26,14 +26,14 @@
  */
 package de.javagl.jgltf.model.io;
 
-import de.javagl.jgltf.model.io.v1.RawBinaryGltfDataReaderV1;
-import de.javagl.jgltf.model.io.v2.RawBinaryGltfDataReaderV2;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+
+import de.javagl.jgltf.model.io.v1.RawBinaryGltfDataReaderV1;
+import de.javagl.jgltf.model.io.v2.RawBinaryGltfDataReaderV2;
 
 /**
  * A class for reading the raw data of a glTF asset from an input stream.

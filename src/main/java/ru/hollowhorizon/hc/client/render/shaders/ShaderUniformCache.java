@@ -273,6 +273,20 @@ public class ShaderUniformCache implements UniformCache {
     }
 
     @Override
+    public void glUniformArrayMatrix4f(String name, int size, boolean transpose, float[] matrix) {
+        for(int i = 0; i < size; i++) {
+            glUniformMatrix4f(name+"["+i+"]", transpose, matrix);
+        }
+    }
+
+    @Override
+    public void glUniformArrayMatrix4f(String name, int size, Matrix4f matrix4f) {
+        for(int i = 0; i < size; i++) {
+            glUniformMatrix4f(name+"["+i+"]", false, matrix4f);
+        }
+    }
+
+    @Override
     public void glUniformMatrix4f(String name, boolean transpose, Matrix4f matrix) {
         glUniformMatrix4f(name, transpose, MatrixUtils.getMatrix(matrix));
     }

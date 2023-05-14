@@ -1,13 +1,10 @@
 package ru.hollowhorizon.hc.client.render.shaders;
 
-import com.electronwill.nightconfig.core.utils.ObservedMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.client.shader.ShaderUniform;
 import net.minecraft.resources.IResourceManager;
 import net.minecraft.resources.IResourceManagerReloadListener;
@@ -16,7 +13,6 @@ import org.lwjgl.opengl.GL20;
 import ru.hollowhorizon.hc.HollowCore;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -29,17 +25,19 @@ public class ShaderProgram implements IResourceManagerReloadListener {
     private final List<Uniform> uniforms;
     private final Consumer<UniformCache> cacheCallback;
     private final ShaderUniformCache uniformCache;
+    private final List<String> attributes;
     private int programId = -1;
     private boolean bound;
     private final Map<String, IntSupplier> samplerMap = Maps.newHashMap();
     private final List<String> samplerNames = Lists.newArrayList();
     private final List<Integer> samplerLocations = Lists.newArrayList();
 
-    ShaderProgram(Collection<ShaderObject> shaders, Collection<Uniform> uniforms, Consumer<UniformCache> cacheCallback) {
+    ShaderProgram(Collection<ShaderObject> shaders, Collection<Uniform> uniforms, Consumer<UniformCache> cacheCallback, List<String> attributes) {
         this.shaders = ImmutableList.copyOf(shaders);
         this.uniforms = ImmutableList.copyOf(uniforms);
         this.cacheCallback = cacheCallback;
         this.uniformCache = new ShaderUniformCache(this);
+        this.attributes = attributes;
     }
 
     public List<ShaderObject> getShaders() {
@@ -106,6 +104,11 @@ public class ShaderProgram implements IResourceManagerReloadListener {
             shaders.forEach(shader -> GL20.glAttachShader(programId, shader.getShaderID()));
         }
         GL20.glLinkProgram(programId);
+
+        for(int i = 0; i < this.attributes.size(); i++) {
+            GL20.glBindAttribLocation(programId, i, attributes.get(i));
+        }
+
         if (GL20.glGetProgrami(programId, GL20.GL_LINK_STATUS) == GL11.GL_FALSE) {
             throw new RuntimeException("ShaderProgram linkage failure. \n" + GL20.glGetProgramInfoLog(programId));
         }

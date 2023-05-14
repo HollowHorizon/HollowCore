@@ -26,12 +26,26 @@
  */
 package de.javagl.jgltf.model.impl;
 
-import de.javagl.jgltf.model.*;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import de.javagl.jgltf.model.AccessorModel;
+import de.javagl.jgltf.model.AnimationModel;
+import de.javagl.jgltf.model.AssetModel;
+import de.javagl.jgltf.model.BufferModel;
+import de.javagl.jgltf.model.BufferViewModel;
+import de.javagl.jgltf.model.CameraModel;
+import de.javagl.jgltf.model.ExtensionsModel;
+import de.javagl.jgltf.model.GltfModel;
+import de.javagl.jgltf.model.ImageModel;
+import de.javagl.jgltf.model.MaterialModel;
+import de.javagl.jgltf.model.MeshModel;
+import de.javagl.jgltf.model.NodeModel;
+import de.javagl.jgltf.model.SceneModel;
+import de.javagl.jgltf.model.SkinModel;
+import de.javagl.jgltf.model.TextureModel;
 
 /**
  * Default implementation of a {@link GltfModel}.<br>
@@ -97,6 +111,16 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * The {@link TextureModel} instances
      */
     private final List<DefaultTextureModel> textureModels;
+    
+    /**
+     * The {@link ExtensionsModel}
+     */
+    private final DefaultExtensionsModel extensionsModel;
+    
+    /**
+     * The {@link AssetModel}
+     */
+    private final DefaultAssetModel assetModel;
 
     /**
      * Creates a new model 
@@ -115,6 +139,8 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
         this.sceneModels = new ArrayList<DefaultSceneModel>();
         this.skinModels = new ArrayList<DefaultSkinModel>();
         this.textureModels = new ArrayList<DefaultTextureModel>();
+        this.extensionsModel = new DefaultExtensionsModel();
+        this.assetModel = new DefaultAssetModel();
     }
     
     /**
@@ -823,5 +849,17 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
     public List<TextureModel> getTextureModels()
     {
         return Collections.unmodifiableList(textureModels);
+    }
+    
+    @Override
+    public DefaultExtensionsModel getExtensionsModel()
+    {
+        return extensionsModel;
+    }
+    
+    @Override
+    public DefaultAssetModel getAssetModel()
+    {
+        return assetModel;
     }
 }

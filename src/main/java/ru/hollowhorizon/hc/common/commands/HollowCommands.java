@@ -5,11 +5,14 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import kotlin.Pair;
+import kotlin.jvm.functions.Function0;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import org.jetbrains.annotations.NotNull;
 import ru.hollowhorizon.hc.common.handlers.GUIDialogueHandler;
 import ru.hollowhorizon.hc.common.handlers.InGameDialogueHandler;
 import ru.hollowhorizon.hc.common.story.dialogues.HollowDialogue;
@@ -17,10 +20,13 @@ import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
 import ru.hollowhorizon.hc.common.story.events.StoryEventStarter;
 
 import javax.script.ScriptEngineManager;
+import java.util.ArrayList;
 import java.util.Objects;
 
 
 public class HollowCommands {
+    private static final ArrayList<Pair<String, Runnable>> commands = new ArrayList<>();
+
     public static void register(CommandDispatcher<CommandSource> dispatcher) {
         LiteralArgumentBuilder<CommandSource> lore = Commands.literal("start_event");
         LiteralArgumentBuilder<CommandSource> dialogues = Commands.literal("start_dialogue");
@@ -93,12 +99,24 @@ public class HollowCommands {
                         })
                 );
 
-
         dispatcher.register(commandBuilder);
+
+        commands.forEach((pair) -> {
+            String name = pair.getFirst();
+            Runnable runnable = pair.getSecond();
+            dispatcher.register(Commands.literal(name).executes((data) -> {
+                runnable.run();
+                return 1;
+            }));
+        });
     }
 
     public static void main(String[] args) {
         ScriptEngineManager manager = new ScriptEngineManager();
         manager.getEngineFactories().forEach(f -> System.out.println(f.getEngineName()));
+    }
+
+    public static void addCommand(@NotNull Pair<String, Runnable> pair) {
+        commands.add(pair);
     }
 }

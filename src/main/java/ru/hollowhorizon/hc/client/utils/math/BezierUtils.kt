@@ -5,28 +5,37 @@ import net.minecraft.util.math.vector.Vector3d
 
 object BezierUtils {
     fun calculateSpline(
-        x: FloatArray,
-        y: FloatArray,
-        z: FloatArray,
+        list: List<Vector3d>,
         n: Int
-    ): List<Vec3d> {
+    ): List<Vector3d> {
+        return smoothCurve(list, n)
+    }
 
-        val ys = FloatArray(n)
-        val stepSize: Float = ((y[y.size - 1] - y[0]) / (n - 1))
 
-        for (i in 0 until n) {
-            ys[i] = y[0] + i * stepSize
+    fun bezierCurve(points: List<Vector3d>, t: Double): Vector3d {
+        return if (points.size == 1) {
+            points[0]
+        } else {
+            val newPoints = mutableListOf<Vector3d>()
+            for (i in 0 until points.size - 1) {
+                val p1 = points[i]
+                val p2 = points[i + 1]
+                val x = (1 - t) * p1.x + t * p2.x
+                val y = (1 - t) * p1.y + t * p2.y
+                val z = (1 - t) * p1.z + t * p2.z
+                newPoints.add(Vector3d(x, y, z))
+            }
+            bezierCurve(newPoints, t)
         }
+    }
 
-        val spline = CubicSpline()
-        val xs: FloatArray = spline.fitAndEval(y, x, ys)
-        val zs: FloatArray = spline.fitAndEval(y, z, ys)
-
-        return createList(
-            xs.map { it.toDouble() }.toList(),
-            ys.map { it.toDouble() }.toList(),
-            zs.map { it.toDouble() }.toList()
-        )
+    fun smoothCurve(points: List<Vector3d>, resolution: Int): List<Vector3d> {
+        val curvePoints = mutableListOf<Vector3d>()
+        for (i in 0 until resolution) {
+            val t = i.toDouble() / (resolution - 1)
+            curvePoints.add(bezierCurve(points, t))
+        }
+        return curvePoints
     }
 
     data class Vec3d(val x: Double, val y: Double, val z: Double)

@@ -26,14 +26,14 @@
  */
 package de.javagl.jgltf.model.impl;
 
+import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.logging.Logger;
+
 import de.javagl.jgltf.model.ImageModel;
 import de.javagl.jgltf.model.gl.ShaderModel;
 import de.javagl.jgltf.model.gl.ShaderModel.ShaderType;
 import de.javagl.jgltf.model.io.MimeTypes;
-
-import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.logging.Logger;
 
 /**
  * Utility methods to generate URI strings for buffers, images and shaders.<br>

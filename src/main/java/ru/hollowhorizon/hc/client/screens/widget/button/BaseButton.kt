@@ -28,6 +28,7 @@ open class BaseButton @JvmOverloads constructor(
     protected val tooltip: ITextComponent = StringTextComponent(""),
     protected val textScale: Float = 1.0F,
 ) : Button(x, y, width, height, text, { }) {
+    var isClickable = true
 
     override fun render(@Nonnull stack: MatrixStack, x: Int, y: Int, f: Float) {
         val minecraft = Minecraft.getInstance()
@@ -59,11 +60,11 @@ open class BaseButton @JvmOverloads constructor(
     }
 
     override fun onPress() {
-        pressable.onPress(this)
+        if(isClickable) pressable.onPress(this)
     }
 
     fun isCursorAtButton(cursorX: Int, cursorY: Int): Boolean {
-        return cursorX >= x && cursorY >= y && cursorX <= x + width && cursorY <= y + height
+        return cursorX >= x && cursorY >= y && cursorX <= x + width && cursorY <= y + height && isClickable
     }
 
     @OnlyIn(Dist.CLIENT)

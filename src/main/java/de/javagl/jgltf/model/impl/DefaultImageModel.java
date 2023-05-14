@@ -26,11 +26,11 @@
  */
 package de.javagl.jgltf.model.impl;
 
+import java.nio.ByteBuffer;
+
 import de.javagl.jgltf.model.BufferViewModel;
 import de.javagl.jgltf.model.ImageModel;
 import de.javagl.jgltf.model.io.Buffers;
-
-import java.nio.ByteBuffer;
 
 /**
  * Implementation of a {@link ImageModel}

@@ -15,15 +15,15 @@ import net.minecraft.util.text.StringTextComponent
 import net.minecraft.util.text.TranslationTextComponent
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
-import net.minecraftforge.registries.ForgeRegistries
 import net.minecraftforge.registries.IForgeRegistry
 import net.minecraftforge.registries.IForgeRegistryEntry
 import ru.hollowhorizon.hc.HollowCore
 import java.io.InputStream
 
-@OnlyIn(Dist.CLIENT)
-val mc = Minecraft.getInstance()
 
+val mc: Minecraft
+    @OnlyIn(Dist.CLIENT)
+    get() = Minecraft.getInstance()
 
 
 fun String.toRL(): ResourceLocation {
@@ -55,10 +55,12 @@ fun String.toTTC(): ITextComponent {
 val String.mcTranslate: ITextComponent
     get() = TranslationTextComponent(this)
 
+@OnlyIn(Dist.CLIENT)
 fun Screen.open() {
     mc.setScreen(this)
 }
 
+@OnlyIn(Dist.CLIENT)
 fun ResourceLocation.toTexture(): Texture {
     val texture: Texture? = mc.textureManager.getTexture(this)
     return if (texture == null) {
@@ -67,11 +69,13 @@ fun ResourceLocation.toTexture(): Texture {
     } else texture
 }
 
+@OnlyIn(Dist.CLIENT)
 fun Texture.render(stack: MatrixStack, x: Int, y: Int, width: Int, height: Int) {
     this.bind()
     AbstractGui.blit(stack, x, y, 0F, 0F, width, height, width, height)
 }
 
+@OnlyIn(Dist.CLIENT)
 fun FontRenderer.drawScaled(stack: MatrixStack, text: ITextComponent, x: Int, y: Int, color: Int, scale: Float) {
     stack.pushPose()
     stack.translate((x).toDouble(), (y).toDouble(), 0.0)
@@ -80,6 +84,7 @@ fun FontRenderer.drawScaled(stack: MatrixStack, text: ITextComponent, x: Int, y:
     stack.popPose()
 }
 
+@OnlyIn(Dist.CLIENT)
 fun FontRenderer.drawScaledEnd(stack: MatrixStack, text: ITextComponent, x: Int, y: Int, color: Int, scale: Float) {
     stack.pushPose()
     stack.translate((x).toDouble(), (y).toDouble(), 0.0)
@@ -88,6 +93,7 @@ fun FontRenderer.drawScaledEnd(stack: MatrixStack, text: ITextComponent, x: Int,
     stack.popPose()
 }
 
+@OnlyIn(Dist.CLIENT)
 fun FontRenderer.drawCentredScaled(stack: MatrixStack, text: ITextComponent, x: Int, y: Int, color: Int, scale: Float) {
     stack.pushPose()
     stack.translate((x).toDouble(), (y).toDouble(), 0.0)
@@ -115,6 +121,7 @@ fun Item.stack(count: Int = 1, nbt: CompoundNBT? = null): ItemStack {
     return ItemStack(this, count, nbt)
 }
 
+@OnlyIn(Dist.CLIENT)
 fun MatrixStack.use(usable: MatrixStack.() -> Unit) {
     this.pushPose()
     usable()

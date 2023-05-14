@@ -26,14 +26,14 @@
  */
 package de.javagl.jgltf.model.io;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.logging.Logger;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 /**
  * A class for reading the JSON for a glTF asset in a version-agnostic form.
@@ -67,7 +67,8 @@ final class GltfReader
     void read(InputStream inputStream) throws IOException
     {
     	InputStreamReader reader = new InputStreamReader(inputStream);
-    	rootNode = (new JsonParser()).parse(reader);
+
+    	rootNode = new JsonParser().parse(reader);
     	reader.close();
     }
     

@@ -19,11 +19,15 @@ import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.fml.loading.FMLPaths;
 import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.gltf.GlTFModelManager;
+import ru.hollowhorizon.hc.client.gltf.GltfModelSources;
+import ru.hollowhorizon.hc.client.gltf.PathSource;
+import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
@@ -61,6 +65,8 @@ public class HollowCore {
 
         HSCompiler.init();
 
+        GltfModelSources.INSTANCE.addSource(new PathSource(FMLPaths.GAMEDIR.get().resolve("hollowengine")));
+
         if (FMLEnvironment.dist.isClient()) {
             //клавиши
             forgeBus.register(new HollowKeyHandler());
@@ -72,7 +78,10 @@ public class HollowCore {
             //модели
             new GlTFModelManager();
             modBus.addListener(GlTFModelManager::clientSetup);
-            modBus.addListener(GlTFModelManager::modelBake);
+
+            GPUMemoryManager.Companion.getInstance().initialize();
+
+            forgeBus.addListener(ModShaders::init);
         }
         new HollowEventHandler().init();
         DelayHandler.init();
@@ -85,7 +94,6 @@ public class HollowCore {
 
         //мод
         forgeBus.register(this);
-        forgeBus.addListener(ModShaders::init);
 
         forgeBus.addGenericListener(Entity.class, HollowCapabilityStorageV2::registerProvidersEntity);
         forgeBus.addGenericListener(TileEntity.class, HollowCapabilityStorageV2::registerProvidersTile);

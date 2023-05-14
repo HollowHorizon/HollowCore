@@ -13,7 +13,9 @@ import net.minecraftforge.fml.network.PacketDistributor
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
 import ru.hollowhorizon.hc.client.utils.mc
-import ru.hollowhorizon.hc.client.utils.nbt.*
+import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
+import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
+import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 import java.util.*
 import java.util.function.Supplier
 
@@ -45,7 +47,6 @@ open class Packet<T>(val function: Packet<T>.(PlayerEntity, T) -> Unit) {
     fun send(data: T, distributor: PacketDistributor.PacketTarget) {
         this.value = data
         NetworkHandler.HollowCoreChannel.send(distributor, this)
-
     }
 
     open fun <E> encode(data: Packet<E>, buf: PacketBuffer) {

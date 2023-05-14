@@ -1,11 +1,8 @@
 package ru.hollowhorizon.hc.client.gltf
 
-import net.minecraft.util.ResourceLocation
-import ru.hollowhorizon.hc.client.gltf.animation.GLTFAnimationManager
+import ru.hollowhorizon.hc.client.gltf.animation.GLTFAnimation
 
-interface IAnimated {
-    fun getModel(): ResourceLocation
-    fun getManager(): GLTFAnimationManager
-
-    fun setManager(manager: GLTFAnimationManager)
+interface IAnimatedEntity {
+    var renderedGltfModel: RenderedGltfModel?
+    var animationList: List<GLTFAnimation>
 }

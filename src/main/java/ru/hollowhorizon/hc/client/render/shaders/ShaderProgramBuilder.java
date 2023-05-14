@@ -2,9 +2,7 @@ package ru.hollowhorizon.hc.client.render.shaders;
 
 import net.minecraft.util.ResourceLocation;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class ShaderProgramBuilder {
@@ -12,6 +10,7 @@ public class ShaderProgramBuilder {
     private final Map<String, ShaderObject> shaders = new HashMap<>();
     private final Map<String, Uniform> allUniforms = new HashMap<>();
     private Consumer<UniformCache> cacheCallback;
+    protected List<String> attributes = new ArrayList<>();
 
     private ShaderProgramBuilder() {
     }
@@ -32,6 +31,11 @@ public class ShaderProgramBuilder {
         return addShader(builder.build());
     }
 
+    public ShaderProgramBuilder attributes(String... attributes) {
+        this.attributes.addAll(Arrays.asList(attributes));
+        return this;
+    }
+
     public ShaderProgramBuilder addShader(ShaderObject shader) {
         if (shaders.containsKey(shader.getName())) {
             throw new IllegalArgumentException("Duplicate shader with name: " + shader.getName());
@@ -50,7 +54,7 @@ public class ShaderProgramBuilder {
     }
 
     public ShaderProgram build() {
-        return new ShaderProgram(shaders.values(), allUniforms.values(), cacheCallback == null ? uniformCache -> {} : cacheCallback);
+        return new ShaderProgram(shaders.values(), allUniforms.values(), cacheCallback == null ? uniformCache -> {} : cacheCallback, attributes);
     }
 
     public void nulll() {
@@ -69,9 +73,12 @@ public class ShaderProgramBuilder {
         protected String simpleSource;
         protected ResourceLocation assetSource;
 
+
         private ShaderObjectBuilder(String name) {
             this.name = Objects.requireNonNull(name);
         }
+
+
 
         public ShaderObjectBuilder type(ShaderObject.ShaderType type) {
             if (this.type != null) throw new IllegalArgumentException("Type already set.");

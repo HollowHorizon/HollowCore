@@ -14,7 +14,7 @@ public class ModEntities {
     @HollowRegister(renderer = "ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer")
     public static final EntityType<TestEntity> TEST_ENTITY = createEntity(TestEntity::new, EntityClassification.CREATURE, 1, 2, "test_entity");
 
-    //@HollowRegister(renderer = TestEntityV2Renderer.class)
+    @HollowRegister(renderer = "ru.hollowhorizon.hc.client.render.entity.TestEntityV2Renderer")
     public static final EntityType<TestEntityV2> TEST_ENTITY_V2 = createEntity(TestEntityV2::new, EntityClassification.CREATURE, 1, 2, "test_entity_v2");
 
     public static <T extends Entity> EntityType<T> createEntity(EntityType.IFactory<T> entity, EntityClassification classification, float width, float height, String regName) {

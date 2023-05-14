@@ -1,101 +1,126 @@
 package ru.hollowhorizon.hc.client.render.entity
 
 import com.mojang.blaze3d.matrix.MatrixStack
-import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.renderer.IRenderTypeBuffer
 import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.client.renderer.entity.EntityRendererManager
 import net.minecraft.client.renderer.entity.LivingRenderer
 import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.passive.IFlyingAnimal
 import net.minecraft.util.ResourceLocation
 import net.minecraft.util.math.MathHelper
 import org.lwjgl.opengl.*
-import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.gltf.*
-import ru.hollowhorizon.hc.client.gltf.animation.GLTFAnimation
-import ru.hollowhorizon.hc.client.gltf.animation.loadAnimations
+import ru.hollowhorizon.hc.client.gltf.GlTFModelManager
+import ru.hollowhorizon.hc.client.gltf.IAnimatedEntity
+import ru.hollowhorizon.hc.client.gltf.animation.AnimationTypes
+import ru.hollowhorizon.hc.client.gltf.animation.GLTFAnimationManager
+import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability
+import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
 
 
-class GLTFEntityRenderer<T>(manager: EntityRendererManager) : EntityRenderer<T>(manager),
-    IGltfModelReceiver where T : LivingEntity, T : IAnimated {
-    protected var renderedScene: RenderedGltfScene? = null
-    protected var allAnimations: List<GLTFAnimation>? = null
-
-
-    init {
-        GlTFModelManager.getInstance().addGltfModelReceiver(this)
-    }
+class GLTFEntityRenderer<T>(manager: EntityRendererManager) :
+        EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimatedEntity {
 
     override fun getTextureLocation(entity: T): ResourceLocation {
         return ResourceLocation("hc", "textures/entity/test_entity.png")
     }
 
-    override fun getModelLocation(): ResourceLocation {
-        return ResourceLocation("hc", "models/entity/untitled.gltf")
-    }
+    private fun preRender(entity: T, stack: MatrixStack, partialTick: Float) {
+        val capability = entity.getCapability(HollowCapabilityV2.get<AnimatedEntityCapability>())
+                .orElseThrow { IllegalStateException("Animated Entity Capability Not Found!") }
 
-    override fun onReceiveSharedModel(renderedModel: RenderedGltfModel) {
-        renderedScene = renderedModel.renderedGltfScenes[0]
+        stack.last().pose().multiply(capability.transform)
 
-        allAnimations = renderedModel.loadAnimations()
+        val templates = capability.animations
+        val manager = capability.manager
 
-        HollowCore.LOGGER.info("Received model, animations: ${allAnimations?.joinToString(", ") { it.name }}")
-    }
-
-    fun preRender(entity: T) {
-        val manager = entity.getManager()
-        var shouldUpdate = false
+        updateAnimations(entity, manager, templates)
 
         manager.markedToRemove.forEach {
-            shouldUpdate = true
             manager.animations.remove(it)
         }
 
         manager.animations.removeIf { animation ->
-            val doRemove = allAnimations?.find { anim -> anim.name == animation.name }
-                ?.update(animation.tick(), animation.loop) ?: false
-            shouldUpdate = shouldUpdate || doRemove
-            return@removeIf doRemove
+            entity.animationList.find { anim -> anim.name == animation.name }
+                    ?.update(animation.tick(partialTick), animation.loop) ?: false
         }
-        if (shouldUpdate) {
-            entity.setManager(manager)
+    }
+
+    private fun updateAnimations(entity: T, manager: GLTFAnimationManager, templates: HashMap<AnimationTypes, String>) {
+        if (!entity.isAlive) {
+            manager.setAnimation(templates.getOrDefault(AnimationTypes.DEATH, ""), true)
+            return
+        }
+
+        if(entity is IFlyingAnimal) {
+            manager.setAnimation(templates.getOrDefault(AnimationTypes.FLY, ""), true)
+            return
+        }
+
+        if(entity.isSleeping) {
+            manager.setAnimation(templates.getOrDefault(AnimationTypes.SLEEP, ""), true)
+            return
+        }
+
+        if(entity.swinging) {
+            manager.setAnimation(templates.getOrDefault(AnimationTypes.SWING, ""))
+        }
+
+        if (entity.vehicle != null) {
+            manager.setAnimation(templates.getOrDefault(AnimationTypes.SIT, ""), true)
+            return
+        }
+
+        if (entity.fallFlyingTicks > 4) {
+            manager.setAnimation(templates.getOrDefault(AnimationTypes.FALL, ""), true)
+            return
+        }
+
+        if (entity.animationSpeed > 0.01) {
+            val animation =
+                    if (entity.isVisuallySwimming) AnimationTypes.SWIM
+                    else if (entity.animationSpeed > 1.5f) AnimationTypes.RUN
+                    else if (entity.isShiftKeyDown) AnimationTypes.WALK_SNEAKED
+                    else AnimationTypes.WALK
+
+            manager.setAnimation(templates.getOrDefault(animation, ""))
+        } else {
+            manager.setAnimation(templates.getOrDefault(if (entity.isShiftKeyDown) AnimationTypes.IDLE_SNEAKED else AnimationTypes.IDLE, ""), true)
         }
     }
 
     @Suppress("DEPRECATION")
     override fun render(
         entity: T,
-        p_225623_2_: Float,
+        yaw: Float,
         particalTick: Float,
-        p_225623_4_: MatrixStack,
+        stack: MatrixStack,
         p_225623_5_: IRenderTypeBuffer,
         packedLight: Int
     ) {
-        preRender(entity)
+        super.render(entity, yaw, particalTick, stack, p_225623_5_, packedLight)
+        if(entity.renderedGltfModel == null) return
+
+        stack.pushPose()
+
+        preRender(entity, stack, particalTick)
 
         val packedOverlay: Int = LivingRenderer.getOverlayCoords(entity, particalTick)
 
         GL11.glPushMatrix()
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+
         GL11.glEnable(GL11.GL_LIGHTING)
         GL11.glShadeModel(GL11.GL_SMOOTH)
         GL11.glEnable(GL12.GL_RESCALE_NORMAL)
         GL11.glEnable(GL11.GL_DEPTH_TEST)
         GL11.glEnable(GL11.GL_COLOR_MATERIAL)
-        GL11.glEnable(GL11.GL_ALPHA_TEST)
-        RenderSystem.enableBlend()
-        RenderSystem.blendFuncSeparate(
-            GlStateManager.SourceFactor.SRC_ALPHA,
-            GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
-            GlStateManager.SourceFactor.ONE,
-            GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA
-        )
+        GL11.glEnable(GL11.GL_BLEND)
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
 
-        GL11.glAlphaFunc(516, 0.1f)
-
-        RenderSystem.multMatrix(p_225623_4_.last().pose())
-        GL11.glRotatef(MathHelper.rotLerp(particalTick, entity.yBodyRotO, entity.yBodyRot), 0.0f, 1.0f, 0.0f)
+        RenderSystem.multMatrix(stack.last().pose())
+        GL11.glRotatef(-yaw, 0.0f, 1.0f, 0.0f)
 
         GL13.glMultiTexCoord2s(
             GL13.GL_TEXTURE2,
@@ -107,20 +132,19 @@ class GLTFEntityRenderer<T>(manager: EntityRendererManager) : EntityRenderer<T>(
             (packedOverlay and '\uffff'.code).toShort(),
             (packedOverlay shr 16 and '\uffff'.code).toShort()
         )
+
         if (GlTFModelManager.getInstance().isShaderModActive) {
-            renderedScene!!.renderForShaderMod()
+            entity.renderedGltfModel?.renderedGltfScenes?.forEach { it.renderForShaderMod() }
         } else {
             GL13.glActiveTexture(GL13.GL_TEXTURE2)
             GL11.glEnable(GL11.GL_TEXTURE_2D)
             GL13.glActiveTexture(GL13.GL_TEXTURE0)
-            renderedScene!!.renderForVanilla()
+            entity.renderedGltfModel?.renderedGltfScenes?.forEach { it.renderForVanilla() }
         }
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0)
-        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0)
-        GL30.glBindVertexArray(0)
-        RenderedGltfModel.nodeGlobalTransformLookup.clear()
+
         GL11.glPopAttrib()
         GL11.glPopMatrix()
-        super.render(entity, p_225623_2_, particalTick, p_225623_4_, p_225623_5_, packedLight)
+
+        stack.popPose()
     }
 }

@@ -1,37 +1,29 @@
 package ru.hollowhorizon.hc.client.render.tile
 
 import com.mojang.blaze3d.matrix.MatrixStack
-import com.mojang.blaze3d.platform.GlStateManager
-import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.renderer.IRenderTypeBuffer
-import net.minecraft.client.renderer.entity.LivingRenderer
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
 import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.math.MathHelper
-import org.lwjgl.opengl.*
-import ru.hollowhorizon.hc.client.gltf.GlTFModelManager
-import ru.hollowhorizon.hc.client.gltf.IAnimated
-import ru.hollowhorizon.hc.client.gltf.RenderedGltfModel
+import ru.hollowhorizon.hc.client.gltf.IAnimatedEntity
 import ru.hollowhorizon.hc.client.gltf.animation.GLTFAnimation
-import ru.hollowhorizon.hc.client.gltf.animation.GLTFAnimationRaw
 
 class GLTFTileRenderer<T>(dispatcher: TileEntityRendererDispatcher) :
-    TileEntityRenderer<T>(dispatcher) where T : TileEntity, T : IAnimated {
+    TileEntityRenderer<T>(dispatcher) where T : TileEntity, T : IAnimatedEntity {
     private val allAnimations: List<GLTFAnimation>? = null
 
     fun preRender(tile: T) {
-        val manager = tile.getManager()
-        var shouldUpdate = false
-        manager.animations.removeIf { animation ->
-            val doRemove = allAnimations?.find { anim -> anim.name == animation.name }
-                ?.update(animation.tick(), animation.loop) ?: false
-            shouldUpdate = shouldUpdate || doRemove
-            return@removeIf doRemove
-        }
-        if (shouldUpdate) {
-            tile.setManager(manager)
-        }
+//        //val manager = tile.getManager()
+//        var shouldUpdate = false
+//        manager.animations.removeIf { animation ->
+//            val doRemove = allAnimations?.find { anim -> anim.name == animation.name }
+//                ?.update(animation.tick(), animation.loop) ?: false
+//            shouldUpdate = shouldUpdate || doRemove
+//            return@removeIf doRemove
+//        }
+//        if (shouldUpdate) {
+//          /  tile.setManager(manager)
+//        }
     }
 
     override fun render(

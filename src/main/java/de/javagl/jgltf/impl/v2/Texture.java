@@ -44,6 +44,10 @@ public class Texture
      * 
      */
     public void setSampler(Integer sampler) {
+        if (sampler == null) {
+            this.sampler = sampler;
+            return ;
+        }
         this.sampler = sampler;
     }
 

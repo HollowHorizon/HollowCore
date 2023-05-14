@@ -5,11 +5,11 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.gltf.RenderedGltfModel
 
 class GLTFAnimation(val name: String, val channel: List<InterpolatedChannel>) {
-    fun update(time: Int, loop: Boolean): Boolean {
-        val ftime: Float = time / 60f
+    fun update(time: Float, loop: Boolean): Boolean {
+        val deltaTime = time / 30f
         var isEnd = false
         channel.parallelStream().forEach { channel ->
-            val calcTime = ftime % channel.keys[channel.keys.size - 1];
+            val calcTime = deltaTime % channel.keys[channel.keys.size - 1];
             channel.update(calcTime)
             if (!loop && calcTime >= channel.keys[channel.keys.size - 1] - 0.1) isEnd = true
         }
@@ -18,13 +18,16 @@ class GLTFAnimation(val name: String, val channel: List<InterpolatedChannel>) {
 }
 
 @Serializable
-class GLTFAnimationRaw(val name: String, val loop: Boolean = false) {
-    private var ticker = 0
+class GLTFAnimationContainer(val name: String, val loop: Boolean = false) {
+    private var ticker = 0f
 
-    fun tick() = ticker++
+    fun tick(partialTick: Float): Float {
+        ticker += partialTick
+        return ticker
+    }
 
     fun reset() {
-        ticker = 0
+        ticker = 0f
     }
 }
 

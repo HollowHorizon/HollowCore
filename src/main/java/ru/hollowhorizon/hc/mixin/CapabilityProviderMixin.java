@@ -22,6 +22,7 @@ public abstract class CapabilityProviderMixin implements ICapabilityUpdater {
     @Override
     public void updateCapability(@NotNull Capability<?> capability, @NotNull INBT newValue) {
         final CapabilityDispatcher disp = getCapabilities();
+
         if(valid && disp != null) {
             CompoundNBT nbt = new CompoundNBT();
             String name = capability.getName();
@@ -29,6 +30,9 @@ public abstract class CapabilityProviderMixin implements ICapabilityUpdater {
             disp.deserializeNBT(nbt);
         }
 
-        if(this instanceof ICapabilitySyncer) ((ICapabilitySyncer) this).onCapabilitySync(capability);
+        if(this instanceof ICapabilitySyncer) {
+            ICapabilitySyncer syncer = (ICapabilitySyncer) this;
+            syncer.onCapabilitySync(capability);
+        }
     }
 }

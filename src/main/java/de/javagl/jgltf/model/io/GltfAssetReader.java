@@ -26,16 +26,16 @@
  */
 package de.javagl.jgltf.model.io;
 
-import de.javagl.jgltf.model.GltfModel;
-import de.javagl.jgltf.model.GltfModels;
-import de.javagl.jgltf.model.io.v1.GltfAssetV1;
-import de.javagl.jgltf.model.io.v2.GltfAssetV2;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+
+import de.javagl.jgltf.model.GltfModel;
+import de.javagl.jgltf.model.GltfModels;
+import de.javagl.jgltf.model.io.v1.GltfAssetV1;
+import de.javagl.jgltf.model.io.v2.GltfAssetV2;
 
 /**
  * A class for reading a glTF asset in a version-agnostic form. <br>

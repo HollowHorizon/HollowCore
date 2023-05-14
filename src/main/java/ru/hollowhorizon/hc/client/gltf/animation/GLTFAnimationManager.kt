@@ -4,13 +4,28 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class GLTFAnimationManager {
-    val animations = arrayListOf<GLTFAnimationRaw>()
-    val markedToRemove = hashSetOf<GLTFAnimationRaw>()
+    val animations = arrayListOf<GLTFAnimationContainer>()
+    val markedToRemove = hashSetOf<GLTFAnimationContainer>()
 
-    fun addAnimation(animation: String, loop: Boolean = false) {
-        animations.forEach { if (it.name == animation) return }
+    //Устанавливает только ОДНУ, текущую анимацию
+    fun setAnimation(animation: String, loop: Boolean = false) {
+        if(animation.isEmpty()) return
+        if (animations.size > 1) animations.removeIf {it.loop}
 
-        animations.add(GLTFAnimationRaw(animation, loop))
+        if(animations.firstOrNull()?.name == animation) return
+
+        animations.add(GLTFAnimationContainer(animation, loop))
+    }
+
+    //Возвращает — получилось ли добавить анимацию
+    fun addAnimation(animation: String, loop: Boolean = false): Boolean {
+        if(animation.isEmpty()) return false
+
+        animations.forEach { if (it.name == animation) return false }
+
+        animations.add(GLTFAnimationContainer(animation, loop))
+
+        return true
     }
 
     fun hasAnimation(animation: String): Boolean {

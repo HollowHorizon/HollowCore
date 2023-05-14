@@ -26,13 +26,13 @@
  */
 package de.javagl.jgltf.model.io.v2;
 
-import de.javagl.jgltf.model.io.Buffers;
-import de.javagl.jgltf.model.io.RawGltfData;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import de.javagl.jgltf.model.io.Buffers;
+import de.javagl.jgltf.model.io.RawGltfData;
 
 /**
  * A class for reading a {@link RawGltfData} from a buffer that contains

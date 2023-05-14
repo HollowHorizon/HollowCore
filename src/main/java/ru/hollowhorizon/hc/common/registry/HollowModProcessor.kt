@@ -29,17 +29,21 @@ import net.minecraftforge.registries.IForgeRegistryEntry
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.registy.HollowRegister
+import ru.hollowhorizon.hc.api.utils.HollowCommand
 import ru.hollowhorizon.hc.client.render.entity.RenderFactoryBuilder
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
+import ru.hollowhorizon.hc.common.commands.HollowCommands
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV2Loader
 import ru.hollowhorizon.hc.common.network.Packet
 import ru.hollowhorizon.hc.common.objects.blocks.IBlockProperties
 import ru.hollowhorizon.hc.common.objects.items.HollowArmor
+import ru.hollowhorizon.hc.core.AsmReflectionMethodGenerator
+import ru.hollowhorizon.hc.core.ReflectionMethod
 import java.lang.annotation.ElementType
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -101,9 +105,7 @@ object HollowModProcessor {
                         Registries.getRegistry(ForgeRegistries.TILE_ENTITIES, cont.modId).register(name) { data }
 
                         if (hasModel) {
-                            RenderFactoryBuilder.buildTileEntity(
-                                data as TileEntityType<TileEntity>, Class.forName(model) as Class<TileEntityRenderer<TileEntity>>
-                            )
+                            RenderFactoryBuilder.buildTileEntity(data as TileEntityType<TileEntity>, Class.forName(model) as Class<TileEntityRenderer<TileEntity>>)
                         }
                     }
 
@@ -131,9 +133,7 @@ object HollowModProcessor {
                         Registries.getRegistry(ForgeRegistries.CONTAINERS, cont.modId).register(name) { data }
 
                         if (hasModel) {
-                            RenderFactoryBuilder.buildContainerScreen(
-                                data as ContainerType<Container>, Class.forName(model) as Class<ContainerScreen<Container>>
-                            )
+                            RenderFactoryBuilder.buildContainerScreen(data as ContainerType<Container>, Class.forName(model) as Class<ContainerScreen<Container>>)
                         }
                     }
 
@@ -156,6 +156,16 @@ object HollowModProcessor {
                 HollowCapabilityStorageV2.capabilities.add(clazz)
             }
         }
+
+        registerHandler<HollowCommand> { cont ->
+            cont.whenMethodTask = { methodCaller ->
+                val method = methodCaller()
+
+                HollowCommands.addCommand(cont.annotation.value to Runnable {
+                    method.invoke(null)
+                })
+            }
+        }
     }
 
     @Synchronized
@@ -165,24 +175,28 @@ object HollowModProcessor {
         scanResults.annotations.stream().filter { it.annotationType in ANNOTATIONS.keys }.forEach { data ->
             val type = data.annotationType
 
-            val containerClass = Class.forName(data.classType.className)
+            try {
+                val containerClass = Class.forName(data.classType.className)
 
-            when (data.targetType) {
-                ElementType.FIELD -> {
-                    processField(containerClass, data.memberName, type, modId)
-                }
+                when (data.targetType) {
+                    ElementType.FIELD -> {
+                        processField(containerClass, data.memberName, type, modId)
+                    }
 
-                ElementType.METHOD -> {
-                    processMethod(containerClass, data.memberName, type, modId)
-                }
+                    ElementType.METHOD -> {
+                        processMethod(containerClass, data.memberName, type, modId)
+                    }
 
-                ElementType.TYPE -> {
-                    processClass(containerClass, type, modId)
-                }
+                    ElementType.TYPE -> {
+                        processClass(containerClass, type, modId)
+                    }
 
-                else -> {
-                    HollowCore.LOGGER.error("Annotation target type ${data.targetType} not supported! Only FIELD, METHOD and TYPE are supported!")
+                    else -> {
+                        HollowCore.LOGGER.error("Annotation target type ${data.targetType} not supported! Only FIELD, METHOD and TYPE are supported!")
+                    }
                 }
+            } catch (e: Exception) {
+                HollowCore.LOGGER.info("Cant load class \"${data.classType.className}\". May be you forgot @OnlyIn(Dist.CLIENT) annotation?", e)
             }
         }
 
@@ -229,7 +243,9 @@ object HollowModProcessor {
 
                 ANNOTATIONS[type]?.invoke(container)
 
-                container.whenMethodTask.invoke(method)
+                container.whenMethodTask.invoke {
+                    AsmReflectionMethodGenerator.generateMethod(method)
+                }
             }
         }
     }
@@ -300,6 +316,6 @@ class AnnotationContainer<T : Any>(
 ) {
     var whenObjectTask: (Field) -> Unit = {}
     var whenClassTask: (Class<*>) -> Unit = {}
-    var whenMethodTask: (Method) -> Unit = {}
+    var whenMethodTask: (() -> ReflectionMethod) -> Unit = {}
 }
 

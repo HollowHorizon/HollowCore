@@ -150,11 +150,6 @@ public class DialogueScreen extends Screen {
                             this.action = action;
                         }
 
-                        //обрабатываем аудио
-                        if (sound != null) {
-                            HollowJavaUtils.nothing();
-                        }
-
                         hasSkipButton = textComponent.hasSkipButton();
 
                         dialogueTicks = textComponent.getAutoSkip();
