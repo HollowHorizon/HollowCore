@@ -17,6 +17,7 @@ import net.minecraft.tileentity.TileEntityType
 import net.minecraft.util.text.ITextComponent
 import net.minecraftforge.fml.client.registry.ClientRegistry
 import net.minecraftforge.fml.client.registry.RenderingRegistry
+import ru.hollowhorizon.hc.HollowCore
 
 object RenderFactoryBuilder {
     fun <T : Entity> buildEntity(entityType: EntityType<T>, rendererClass: Class<EntityRenderer<T>>) {
@@ -24,7 +25,7 @@ object RenderFactoryBuilder {
             try {
                 rendererClass.getConstructor(EntityRendererManager::class.java).newInstance(manager)
             } catch (e: Exception) {
-                e.printStackTrace()
+                HollowCore.LOGGER.error("Error, when creating renderer ${rendererClass.name} for entity ${entityType.registryName}: ", e)
                 throw e
             }
         }

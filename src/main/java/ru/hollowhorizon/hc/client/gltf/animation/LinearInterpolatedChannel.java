@@ -31,7 +31,7 @@ public abstract class LinearInterpolatedChannel extends InterpolatedChannel {
 			float alpha = local / delta;
 			
 			float[] previousPoint = values[previousIndex];
-			float[] nextPoint = values[nextIndex];
+			float[] nextPoint = timesS.length == 1 ? previousPoint : values[nextIndex];
 			
 			for(int i = 0; i < output.length; i++) {
 				float p = previousPoint[i];

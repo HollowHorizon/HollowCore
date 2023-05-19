@@ -63,7 +63,7 @@ public class HollowEventHandler {
         }
     }
 
-    @SubscribeEvent
+    //@SubscribeEvent
     @OnlyIn(Dist.CLIENT)
     public void onBlockClick(PlayerInteractEvent.RightClickBlock event) {
         BlockPos pos = event.getPos();

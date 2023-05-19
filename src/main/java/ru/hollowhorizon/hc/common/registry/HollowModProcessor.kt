@@ -146,6 +146,8 @@ object HollowModProcessor {
         }
         registerHandler<HollowPacketV2> { cont ->
             cont.whenClassTask = { clazz ->
+                HollowCore.LOGGER.info("Loading packet: ${clazz.simpleName}")
+
                 val packet = clazz.getConstructor().newInstance() as Packet<*>
 
                 HollowPacketV2Loader.register(packet)

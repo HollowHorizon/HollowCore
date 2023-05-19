@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.client.render.entity
 
 import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.renderer.IRenderTypeBuffer
 import net.minecraft.client.renderer.entity.EntityRenderer
@@ -117,7 +118,16 @@ class GLTFEntityRenderer<T>(manager: EntityRendererManager) :
         GL11.glEnable(GL11.GL_DEPTH_TEST)
         GL11.glEnable(GL11.GL_COLOR_MATERIAL)
         GL11.glEnable(GL11.GL_BLEND)
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+        GL11.glEnable(GL11.GL_ALPHA_TEST)
+        RenderSystem.enableBlend()
+        RenderSystem.blendFuncSeparate(
+            GlStateManager.SourceFactor.SRC_ALPHA,
+            GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+            GlStateManager.SourceFactor.ONE,
+            GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA
+        )
+
+        GL11.glAlphaFunc(516, 0.1f)
 
         RenderSystem.multMatrix(stack.last().pose())
         GL11.glRotatef(-yaw, 0.0f, 1.0f, 0.0f)

@@ -29,7 +29,7 @@ public abstract class SphericalLinearInterpolatedChannel extends InterpolatedCha
             float alpha = local / delta;
 
             float[] previousPoint = values[previousIndex];
-            float[] nextPoint = values[nextIndex];
+            float[] nextPoint = timesS.length == 1 ? previousPoint : values[nextIndex];
 
             // Adapted from javax.vecmath.Quat4f
             float ax = previousPoint[0];
