@@ -30,13 +30,6 @@ internal val TagModule = SerializersModule {
     }
 }
 
-internal val capabilities = SerializersModule {
-    polymorphic(HollowCapability::class) {
-        subclass(AnimatedEntityCapability::class, AnimatedEntityCapability.serializer())
-        subclass(HollowStoryCapability::class, HollowStoryCapability.serializer())
-    }
-}
-
 object CapabilityModule {
 
     @OptIn(InternalSerializationApi::class)

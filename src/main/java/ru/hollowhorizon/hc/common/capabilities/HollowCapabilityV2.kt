@@ -114,8 +114,7 @@ fun <T : HollowCapability> register(clazz: Class<T>) {
 }
 
 @Serializable
-abstract class HollowCapability {
-    open val consumeDataFromClient = false
+abstract class HollowCapability(val consumeDataFromClient: Boolean = false) {
 }
 
 fun <T : HollowCapability> T.serialize(): INBT {
@@ -127,20 +126,24 @@ fun deserialize(nbt: INBT): HollowCapability {
 }
 
 fun HollowCapability.syncClient(playerEntity: PlayerEntity) {
-    if (playerEntity.level.isClientSide) return //С клиента нельзя обновлять серверную часть
+    if (playerEntity.level.isClientSide && !this.consumeDataFromClient) return //С клиента нельзя обновлять серверную часть
 
     this.javaClass.createSyncPacketPlayer().send(this, playerEntity)
 }
 
 fun HollowCapability.syncEntity(entity: Entity) {
-    if (entity.level.isClientSide) return //С клиента нельзя обновлять серверную часть
+    if (entity.level.isClientSide && !this.consumeDataFromClient) return
 
     val packet = this.javaClass.createSyncPacketEntity()
-    packet.send(CapabilityForEntity(this, entity.id), PacketDistributor.TRACKING_ENTITY.with { entity });
+    if(entity.level.isClientSide) {
+        packet.send(CapabilityForEntity(this, entity.id))
+    } else {
+        packet.send(CapabilityForEntity(this, entity.id), PacketDistributor.TRACKING_ENTITY.with { entity })
+    }
 }
 
 fun HollowCapability.syncWorld(vararg players: PlayerEntity) {
-    if (players.first().level.isClientSide) return //С клиента нельзя обновлять серверную часть
+    if (players.first().level.isClientSide && !this.consumeDataFromClient) return //С клиента нельзя обновлять серверную часть
 
     val packet = this.javaClass.createSyncPacketClientLevel()
     players.forEach { packet.send(this, PacketDistributor.PLAYER.with { it as ServerPlayerEntity }) }

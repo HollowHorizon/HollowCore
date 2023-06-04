@@ -11,6 +11,7 @@ import net.minecraftforge.fml.network.NetworkDirection
 import net.minecraftforge.fml.network.NetworkEvent
 import net.minecraftforge.fml.network.PacketDistributor
 import org.jetbrains.kotlin.utils.addToStdlib.cast
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
 import ru.hollowhorizon.hc.client.utils.mc
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
@@ -68,7 +69,10 @@ open class Packet<T>(val function: Packet<T>.(PlayerEntity, T) -> Unit) {
 
     fun <E> onReceive(data: Packet<E>, ctx: Supplier<NetworkEvent.Context>) {
         ctx.get().packetHandled = true
-        if (FMLEnvironment.dist.isClient) function(mc.player!!, data.value.safeCast()!!)
+
+        HollowCore.LOGGER.info("Packet <${data.javaClass.simpleName}> received (${ctx.get().direction}) (${FMLEnvironment.dist})")
+
+        if (ctx.get().direction == NetworkDirection.PLAY_TO_CLIENT) function(mc.player!!, data.value.safeCast()!!)
         else function(ctx.get().sender!!, data.value.safeCast()!!)
 
     }

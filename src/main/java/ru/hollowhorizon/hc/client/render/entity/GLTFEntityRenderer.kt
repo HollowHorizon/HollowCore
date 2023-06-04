@@ -10,18 +10,25 @@ import net.minecraft.client.renderer.entity.LivingRenderer
 import net.minecraft.entity.LivingEntity
 import net.minecraft.entity.passive.IFlyingAnimal
 import net.minecraft.util.ResourceLocation
-import net.minecraft.util.math.MathHelper
-import org.lwjgl.opengl.*
+import net.minecraft.util.math.vector.Matrix4f
+import net.minecraft.util.math.vector.Vector3f
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL12
+import org.lwjgl.opengl.GL13
 import ru.hollowhorizon.hc.client.gltf.GlTFModelManager
 import ru.hollowhorizon.hc.client.gltf.IAnimatedEntity
 import ru.hollowhorizon.hc.client.gltf.animation.AnimationTypes
 import ru.hollowhorizon.hc.client.gltf.animation.GLTFAnimationManager
+import ru.hollowhorizon.hc.client.gltf.animation.PlayType
 import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
+import ru.hollowhorizon.hc.common.capabilities.syncEntity
 
 
 class GLTFEntityRenderer<T>(manager: EntityRendererManager) :
-        EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimatedEntity {
+    EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimatedEntity {
+
+    var currentAnimation: String = ""
 
     override fun getTextureLocation(entity: T): ResourceLocation {
         return ResourceLocation("hc", "textures/entity/test_entity.png")
@@ -29,65 +36,87 @@ class GLTFEntityRenderer<T>(manager: EntityRendererManager) :
 
     private fun preRender(entity: T, stack: MatrixStack, partialTick: Float) {
         val capability = entity.getCapability(HollowCapabilityV2.get<AnimatedEntityCapability>())
-                .orElseThrow { IllegalStateException("Animated Entity Capability Not Found!") }
+            .orElseThrow { IllegalStateException("Animated Entity Capability Not Found!") }
 
-        stack.last().pose().multiply(capability.transform)
+        //Изменение начального положения модели
+        stack.last().pose().multiply(Matrix4f().apply {
+            setIdentity()
+            translate(capability.transform.vecTransform())
+            multiply(Vector3f.XP.rotationDegrees(capability.transform.rX))
+            multiply(Vector3f.YP.rotationDegrees(capability.transform.rY))
+            multiply(Vector3f.ZP.rotationDegrees(capability.transform.rZ))
+            multiply(
+                Matrix4f.createScaleMatrix(
+                    capability.transform.sX,
+                    capability.transform.sY,
+                    capability.transform.sZ
+                )
+            )
+        })
 
         val templates = capability.animations
         val manager = capability.manager
 
         updateAnimations(entity, manager, templates)
 
-        manager.markedToRemove.forEach {
-            manager.animations.remove(it)
-        }
+        val autoAnimation = entity.animationList.find { it.name == this.currentAnimation }
+        autoAnimation?.update(entity.tickCount.toFloat(), PlayType.LOOPED)
 
-        manager.animations.removeIf { animation ->
-            entity.animationList.find { anim -> anim.name == animation.name }
-                    ?.update(animation.tick(partialTick), animation.loop) ?: false
+        val animation = manager.animationQueue.firstOrNull()
+        if (animation != null) {
+            val isEnded = entity.animationList.find { it.name == animation.name }
+                ?.update(animation.tick(partialTick), animation.playType) ?: false
+            if (isEnded) {
+                manager.animationQueue.removeFirst()
+
+                capability.syncEntity(entity)
+            }
         }
     }
 
     private fun updateAnimations(entity: T, manager: GLTFAnimationManager, templates: HashMap<AnimationTypes, String>) {
         if (!entity.isAlive) {
-            manager.setAnimation(templates.getOrDefault(AnimationTypes.DEATH, ""), true)
+            currentAnimation = templates.getOrDefault(AnimationTypes.DEATH, "")
             return
         }
 
-        if(entity is IFlyingAnimal) {
-            manager.setAnimation(templates.getOrDefault(AnimationTypes.FLY, ""), true)
+        if (entity is IFlyingAnimal) {
+            currentAnimation = templates.getOrDefault(AnimationTypes.FLY, "")
             return
         }
 
-        if(entity.isSleeping) {
-            manager.setAnimation(templates.getOrDefault(AnimationTypes.SLEEP, ""), true)
+        if (entity.isSleeping) {
+            currentAnimation = templates.getOrDefault(AnimationTypes.SLEEP, "")
             return
         }
 
-        if(entity.swinging) {
-            manager.setAnimation(templates.getOrDefault(AnimationTypes.SWING, ""))
+        if (entity.swinging) {
+            manager.addAnimation(templates.getOrDefault(AnimationTypes.SWING, ""), PlayType.ONCE)
+            return
         }
 
         if (entity.vehicle != null) {
-            manager.setAnimation(templates.getOrDefault(AnimationTypes.SIT, ""), true)
+            currentAnimation = templates.getOrDefault(AnimationTypes.SIT, "")
             return
         }
 
         if (entity.fallFlyingTicks > 4) {
-            manager.setAnimation(templates.getOrDefault(AnimationTypes.FALL, ""), true)
+            currentAnimation = templates.getOrDefault(AnimationTypes.FALL, "")
             return
         }
 
-        if (entity.animationSpeed > 0.01) {
-            val animation =
-                    if (entity.isVisuallySwimming) AnimationTypes.SWIM
-                    else if (entity.animationSpeed > 1.5f) AnimationTypes.RUN
-                    else if (entity.isShiftKeyDown) AnimationTypes.WALK_SNEAKED
-                    else AnimationTypes.WALK
-
-            manager.setAnimation(templates.getOrDefault(animation, ""))
+        currentAnimation = if (entity.animationSpeed > 0.01) {
+            templates.getOrDefault(
+                if (entity.isVisuallySwimming) AnimationTypes.SWIM
+                else if (entity.animationSpeed > 1.5f) AnimationTypes.RUN
+                else if (entity.isShiftKeyDown) AnimationTypes.WALK_SNEAKED
+                else AnimationTypes.WALK, ""
+            )
         } else {
-            manager.setAnimation(templates.getOrDefault(if (entity.isShiftKeyDown) AnimationTypes.IDLE_SNEAKED else AnimationTypes.IDLE, ""), true)
+            templates.getOrDefault(
+                if (entity.isShiftKeyDown) AnimationTypes.IDLE_SNEAKED else AnimationTypes.IDLE,
+                ""
+            )
         }
     }
 
@@ -101,7 +130,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererManager) :
         packedLight: Int
     ) {
         super.render(entity, yaw, particalTick, stack, p_225623_5_, packedLight)
-        if(entity.renderedGltfModel == null) return
+        if (entity.renderedGltfModel == null) return
 
         stack.pushPose()
 

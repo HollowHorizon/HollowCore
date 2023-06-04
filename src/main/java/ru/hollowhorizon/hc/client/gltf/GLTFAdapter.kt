@@ -17,7 +17,7 @@ object GLTFAdapter {
 
         //Немного костыльная проверка на то, экспортирована ли модель из BlockBench
         if("Blockbench" in generator && "glTF exporter" in generator) {
-            capability.transform.multiply(Vector3f.YP.rotationDegrees(180f)) //Поворот модели на 180 градусов, ибо какого-то хера BlockBench экспортирует модель в обратном направлении и все мобы ходят задом...
+            capability.transform.rY += 180f //Поворот модели на 180 градусов, ибо какого-то хера BlockBench экспортирует модель в обратном направлении и все мобы ходят задом...
         }
         //Я понятия не имею, почему при парсинге pbrMetallicRoughness надо переименовывать в extras, ибо при переносе через gson там вообще ни слова про это, но как вариант есть такой костыль
         json = json.replace("pbrMetallicRoughness", "extras")

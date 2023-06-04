@@ -41,6 +41,7 @@ class SyncCapabilityEntity : Packet<CapabilityForEntity>({ player, data ->
     data.apply {
         //Данная проверка нужна, чтобы Capability нельзя было изменить на клиенте и отправить на сервер
         //Зачастую это стало бы уязвимостью, а так со стороны сервера такие изменения будут отбрасываться
+        //В качестве исключения можно указать consumeDataFromClient на true
         if(capability.consumeDataFromClient || player.level.isClientSide) {
             val cap = HollowCapabilityV2.get(capability.javaClass)
 

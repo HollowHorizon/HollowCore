@@ -27,7 +27,7 @@ class TestEntity(type: EntityType<TestEntity>, world: World) : MobEntity(type, w
         super.onEffectAdded(effect)
     }
 
-    override fun tick() {
+        override fun tick() {
         this.navigation.moveTo(8.0, 56.0, 6.0, 0.3)
 
         super.tick()

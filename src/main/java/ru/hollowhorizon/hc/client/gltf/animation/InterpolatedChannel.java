@@ -8,6 +8,7 @@ public abstract class InterpolatedChannel {
      * The key frame times, in seconds
      */
     protected final float[] timesS;
+    protected float[] startPose;
 
     public InterpolatedChannel(float[] timesS) {
         this.timesS = timesS;
@@ -23,7 +24,11 @@ public abstract class InterpolatedChannel {
 
     public abstract void update(float timeS);
 
-    protected abstract float[] getListener();
+    public abstract float[] getListener();
+
+    public float[] getStartPose() {
+        return startPose;
+    }
 
     public static int computeIndex(float key, float[] keys) {
         int index = Arrays.binarySearch(keys, key);

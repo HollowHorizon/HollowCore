@@ -10,13 +10,19 @@ import ru.hollowhorizon.hc.client.utils.nbt.ForMatrix4f
 
 @HollowCapabilityV2(IAnimatedEntity::class)
 @Serializable
-class AnimatedEntityCapability : HollowCapability() {
+class AnimatedEntityCapability : HollowCapability(true) {
     var manager = GLTFAnimationManager()
     var model = "hc:models/entity/npc.geo.gltf"
     var animations = HashMap<AnimationTypes, String>()
     var textures = HashMap<String, String>()
-    @Serializable(ForMatrix4f::class)
-    var transform = Matrix4f().apply {
-        setIdentity()
-    }
+    var transform = Transform()
+}
+
+@Serializable
+data class Transform(
+    var tX: Float = 0f, var tY: Float = 0f, var tZ: Float = 0f,
+    var rX: Float = 0f, var rY: Float = 0f, var rZ: Float = 0f,
+    var sX: Float = 1.0f, var sY: Float = 1.0f, var sZ: Float = 1.0f,
+) {
+    fun vecTransform() = Vector3f(tX, tY, tZ)
 }

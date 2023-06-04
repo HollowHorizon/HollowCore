@@ -4,6 +4,7 @@ import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.io.Buffers;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
 import net.minecraft.resources.IResource;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.ModList;
@@ -11,6 +12,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.opengl.*;
 import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability;
+import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2Kt;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -50,6 +52,8 @@ public class GlTFModelManager {
                 GL11.glPushAttrib(GL11.GL_TEXTURE_BIT);
 
                 RenderedGltfModel model = new RenderedGltfModelGL40(new GltfModelReader().readWithoutReferences(capability, new BufferedInputStream(GLTFAdapter.prepare(GltfModelSources.getStream(capability.getModel()), capability))));
+
+                HollowCapabilityV2Kt.syncEntity(capability, (Entity) entity);
 
                 GL15.glBindBuffer(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 0);
                 GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, 0);
