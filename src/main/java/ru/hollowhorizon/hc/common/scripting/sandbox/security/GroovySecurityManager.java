@@ -27,25 +27,27 @@ public class GroovySecurityManager {
     public void initDefaults() {
         this.whiteListedClasses.add(NullObject.class);
         this.whiteListedClasses.add(Binding.class);
-        //this.whiteListedClasses.add(GroovyLogImpl.class);
-        //this.whiteListedClasses.add(LambdaClosure.class);
 
-        banPackage("java.lang.reflect");
-        banPackage("java.lang.invoke");
-        banPackage("java.net");
-        banPackage("java.rmi");
-        banPackage("java.security");
-        banPackage("groovy");
-        banPackage("org.codehaus.groovy");
-        banPackage("org.kohsuke");
-        banPackage("sun."); // sun contains so many classes where some of them seem useful and others can break EVERYTHING, so im just gonna ban all because im lazy
-        banPackage("javax.net");
-        banPackage("javax.security");
-        banPackage("javax.script");
-        banPackage("org.spongepowered");
-        banPackage("zone.rong.mixinbooter");
+        banPackages(
+                "java.lang.reflect",
+                "java.lang.invoke",
+                "java.net",
+                "java.rmi",
+                "java.security",
+                "groovy",
+                "org.codehaus.groovy",
+                "org.kohsuke",
+                "sun.",
+                "javax.net",
+                "javax.security",
+                "javax.script"
+        );
         banClasses(Runtime.class, ClassLoader.class);
         banMethods(System.class, "exit", "gc");
+    }
+
+    private void banPackages(String... packages) {
+        bannedPackages.addAll(Arrays.asList(packages));
     }
 
     public void banPackage(String packageName) {

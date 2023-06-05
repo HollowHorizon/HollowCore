@@ -4,6 +4,7 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.reflection.*;
+import ru.hollowhorizon.hc.common.scripting.api.GroovyBlacklist;
 import ru.hollowhorizon.hc.common.scripting.sandbox.mapper.GroovyDeobfMapper;
 import ru.hollowhorizon.hc.common.scripting.sandbox.mapper.RemappedCachedField;
 import ru.hollowhorizon.hc.common.scripting.sandbox.mapper.RemappedCachedMethod;
@@ -45,7 +46,7 @@ public class GroovyCodeFactory {
         return () -> Arrays.stream(cachedClass.getTheClass().getDeclaredConstructors())
                 .filter(c -> !c.isSynthetic()) // GROOVY-9245: exclude inner class ctors
                 .filter(c -> ReflectionUtils.checkCanSetAccessible(c, CachedClass.class))
-                //.filter(c -> !c.isAnnotationPresent(GroovyBlacklist.class))
+                .filter(c -> !c.isAnnotationPresent(GroovyBlacklist.class))
                 .map(c -> new CachedConstructor(cachedClass, c))
                 .toArray(CachedConstructor[]::new);
     }

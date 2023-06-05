@@ -11,21 +11,31 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.common.scripting.sandbox.mapper.GroovyDeobfMapper;
+import ru.hollowhorizon.hc.common.scripting.sandbox.security.GroovySecurityManager;
+import ru.hollowhorizon.hc.common.scripting.sandbox.security.SandboxSecurityException;
 
 @Mixin(value = MetaClassImpl.class, remap = false)
 public abstract class MetaClassImplMixin {
 
-    @Shadow protected abstract Object doInvokeMethod(Class sender, Object object, String methodName, Object[] originalArguments, boolean isCallToSuper, boolean fromInsideClass);
+    @Shadow
+    protected abstract Object doInvokeMethod(Class sender, Object object, String methodName, Object[] originalArguments, boolean isCallToSuper, boolean fromInsideClass);
 
-    @Shadow public abstract Object getProperty(Class sender, Object object, String name, boolean useSuper, boolean fromInsideClass);
+    @Shadow
+    public abstract Object getProperty(Class sender, Object object, String name, boolean useSuper, boolean fromInsideClass);
 
-    @Shadow @Final protected Class theClass;
+    @Shadow
+    @Final
+    protected Class theClass;
 
     @Redirect(method = "invokeMethod(Ljava/lang/Class;Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;ZZ)Ljava/lang/Object;", at = @At(value = "INVOKE", target = "Lgroovy/lang/MetaClassImpl;doInvokeMethod(Ljava/lang/Class;Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;ZZ)Ljava/lang/Object;"))
     public Object invokeMethod(MetaClassImpl instance, Class object, Object ownerClass, String methodName, Object[] args, boolean isCallToSuper, boolean fromInsideClass) {
         ClassNode owner = new ClassNode(ownerClass.getClass());
 
-        if(owner.getPackageName().startsWith("net.minecraft") || owner.getPackageName().startsWith("com.mojang")) {
+        if (!GroovySecurityManager.INSTANCE.isValidMethod(owner.getTypeClass(), methodName)) {
+            throw new SandboxSecurityException("Method " + owner.getTypeClass().getSimpleName() + "::" + methodName + " banned. Don't use it!");
+        }
+
+        if (owner.getPackageName().startsWith("net.minecraft") || owner.getPackageName().startsWith("com.mojang")) {
 
             String remappedName = GroovyDeobfMapper.getDeobfuscationMethodName(owner, methodName, args);
 
@@ -37,12 +47,12 @@ public abstract class MetaClassImplMixin {
         }
     }
 
-    @Inject(method = "getProperty(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;", at=@At("HEAD"), cancellable = true)
+    @Inject(method = "getProperty(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;", at = @At("HEAD"), cancellable = true)
     public void getProperty(Object receiver, String field, CallbackInfoReturnable<Object> cir) {
         Class<?> clazz = (Class<?>) receiver;
         ClassNode owner = new ClassNode(clazz);
 
-        if(owner.getPackageName().startsWith("net.minecraft") || owner.getPackageName().startsWith("com.mojang")) {
+        if (owner.getPackageName().startsWith("net.minecraft") || owner.getPackageName().startsWith("com.mojang")) {
 
             String remappedName = GroovyDeobfMapper.getObfuscatedFieldName(clazz, field);
 
