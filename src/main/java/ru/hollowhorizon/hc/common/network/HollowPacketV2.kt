@@ -10,7 +10,6 @@ import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.fml.network.NetworkDirection
 import net.minecraftforge.fml.network.NetworkEvent
 import net.minecraftforge.fml.network.PacketDistributor
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
 import ru.hollowhorizon.hc.client.utils.mc
@@ -64,7 +63,7 @@ open class Packet<T>(val function: Packet<T>.(PlayerEntity, T) -> Unit) {
     open fun <E> decode(buf: PacketBuffer): Packet<E> {
         val data = NBTFormat.deserializeNoInline(buf.readNbt()!!.get("data")!!, typeToken.rawType)
         this.value = data.safeCast()
-        return this.cast()
+        return this as Packet<E>
     }
 
     fun <E> onReceive(data: Packet<E>, ctx: Supplier<NetworkEvent.Context>) {

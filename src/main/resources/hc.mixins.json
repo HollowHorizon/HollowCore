@@ -9,10 +9,10 @@
     "CapabilityProviderMixin",
     "FMLModContainerMixin",
     "MixinLocateCommand",
-    "PathUtilMixin",
-    "ScriptJvmCompilerImplsMixin",
     "SimpleReloadableResourceManagerMixin",
-    "StructureBlockMixin"
+    "StructureBlockMixin",
+    "groovy.CompUnitClassGenMixin",
+    "groovy.MetaClassImplMixin"
   ],
   "client": [
   ],

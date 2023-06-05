@@ -1,5 +1,7 @@
 package ru.hollowhorizon.hc;
 
+import groovy.lang.Closure;
+import groovy.lang.GroovySystem;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.resources.IResourcePack;
@@ -40,7 +42,10 @@ import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
 import ru.hollowhorizon.hc.common.registry.*;
-import ru.hollowhorizon.hc.common.scripting.HSCompiler;
+import ru.hollowhorizon.hc.common.scripting.GroovyScript;
+import ru.hollowhorizon.hc.common.scripting.sandbox.LoadStage;
+import ru.hollowhorizon.hc.common.scripting.sandbox.mapper.GroovyDeobfMapper;
+import ru.hollowhorizon.hc.common.scripting.sandbox.security.GrSMetaClassCreationHandle;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
 import ru.hollowhorizon.hc.common.world.storage.HollowWorldData;
 
@@ -63,7 +68,9 @@ public class HollowCore {
         modBus.addListener(this::onAttribute);
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
-        HSCompiler.init();
+        GroovyDeobfMapper.init();
+        GroovySystem.getMetaClassRegistry().setMetaClassCreationHandle(GrSMetaClassCreationHandle.INSTANCE);
+        GroovyScript.getSandbox().run(LoadStage.PRE_INIT);
 
         GltfModelSources.INSTANCE.addSource(new PathSource(FMLPaths.GAMEDIR.get().resolve("hollowengine")));
 

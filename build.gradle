@@ -75,8 +75,10 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     mavenCentral()
-    maven { url = 'https://zoidberg.ukp.informatik.tu-darmstadt.de/artifactory/public-releases/' }
     maven { url 'https://jitpack.io' }
+    maven {
+        url = 'https://mvnrepository.com/artifact/org.apache.groovy/groovy'
+    }
     flatDir { dirs 'libs' }
 }
 
@@ -89,15 +91,6 @@ dependencies {
 
     shade 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10'
 
-    shade 'org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.8.10'
-    shade 'org.jetbrains.kotlin:kotlin-scripting-jvm:1.7.20-RC'
-
-    shade 'org.jetbrains.kotlin:kotlin-compiler-embeddable:1.8.10'
-    shade 'org.jetbrains.kotlin:kotlin-script-runtime:1.8.10'
-    shade 'org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.8.10'
-    shade 'org.jetbrains.kotlin:kotlin-scripting-dependencies:1.8.10'
-    shade 'org.jetbrains.kotlin:kotlin-scripting-dependencies-maven:1.8.10'
-
     shade 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
     shade 'org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.0'
 
@@ -106,23 +99,7 @@ dependencies {
     shade "com.labymedia:ultralight-java-gpu:0.4.12"
     shade "com.labymedia:ultralight-java-glfw-opengl-util:0.4.12"
 
-    shade (group: 'org.lwjgl', name: 'lwjgl-assimp', version: '3.2.2'){
-        exclude group: 'org.lwjgl', module: 'lwjgl'
-    }
-
-    shade 'gnu.trove:trove:1.0.2'
-
-    implementation('com.google.guava:guava') {
-        version {
-            strictly '21.0'
-        }
-    }
-
-    shade 'org.cadixdev:lorenz:0.5.8'
-    shade 'org.cadixdev:bombe:0.4.4'
-    shade 'me.jamiemansfield:string:0.1.0'
-
-    shade 'com.upokecenter:cbor:4.5.2'
+    shade 'org.apache.groovy:groovy:4.0.8'
 }
 
 jar {
