@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.common.scripting.sandbox;
 
+import groovy.lang.Binding;
 import groovy.lang.Closure;
 import groovy.util.GroovyScriptEngine;
 import groovy.util.ResourceException;
@@ -9,6 +10,7 @@ import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.LoggerLoader;
+import ru.hollowhorizon.hc.common.scripting.sandbox.context.IScriptContext;
 import ru.hollowhorizon.hc.common.scripting.sandbox.transformer.GroovyScriptCompiler;
 
 import java.io.File;
@@ -32,6 +34,10 @@ public class GroovyScriptSandbox extends GroovySandbox {
         registerBinding("log", HollowCore.LOGGER);
     }
 
+    public void applyContext(IScriptContext context) {
+        this.context = context;
+    }
+
     public void checkSyntax(Collection<File> scripts, Collection<File> libraries) {
         load(scripts, libraries, false, true);
     }
@@ -53,10 +59,9 @@ public class GroovyScriptSandbox extends GroovySandbox {
         try {
             super.execute(scripts, libraries, run, loadClasses);
         } catch (IOException | ScriptException | ResourceException e) {
-            HollowCore.LOGGER.error("An Exception occurred trying to run groovy!", e);
+            if (this.context != null) this.context.onError("An Exception occurred trying to run groovy!", e);
         } catch (Exception e) {
-            HollowCore.LOGGER.error(e);
-            e.printStackTrace();
+            if (this.context != null) this.context.onError(e);
         } finally {
             this.checkSyntaxMode = false;
         }
@@ -74,7 +79,7 @@ public class GroovyScriptSandbox extends GroovySandbox {
         try {
             result = closure.call(args);
         } catch (Exception e) {
-            HollowCore.LOGGER.error("An exception occurred while running a closure!", e);
+            if (this.context != null) this.context.onError("An exception occurred while running a closure!", e);
         } finally {
             stopRunning();
         }
@@ -85,9 +90,14 @@ public class GroovyScriptSandbox extends GroovySandbox {
     protected void initEngine(GroovyScriptEngine engine, CompilerConfiguration config) {
         config.addCompilationCustomizers(GroovyScriptCompiler.transformer());
         ImportCustomizer importCustomizer = new ImportCustomizer();
-        //importCustomizer.addStaticStars(GroovyHelper.class.getName(), MathHelper.class.getName());
         importCustomizer.addImports(DEFAULT_IMPORTS);
+        if (this.context != null) config.setScriptBaseClass(this.context.getBaseClass().getName());
         config.addCompilationCustomizers(importCustomizer);
+    }
+
+    @Override
+    protected void postInitBindings(Binding binding) {
+        if (this.context != null) this.context.getBindings().forEach(binding::setProperty);
     }
 
     @Override

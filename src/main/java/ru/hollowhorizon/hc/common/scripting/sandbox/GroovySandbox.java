@@ -12,6 +12,7 @@ import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.jetbrains.annotations.Nullable;
 import ru.hollowhorizon.hc.HollowCore;
+import ru.hollowhorizon.hc.common.scripting.sandbox.context.IScriptContext;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +33,7 @@ public abstract class GroovySandbox {
     // TODO
     private String currentScript = null;
     private int currentLine = -1;
+    protected IScriptContext context;
 
     @Nullable
     public static GroovySandbox getCurrentSandbox() {
@@ -74,7 +76,7 @@ public abstract class GroovySandbox {
         currentSandbox.set(this);
         preRun();
 
-        GroovyScriptEngine engine = new GroovyScriptEngine(this.scriptEnvironment);
+        GroovyScriptEngine engine = new GroovyScriptEngine(this.scriptEnvironment, Thread.currentThread().getContextClassLoader());
         CompilerConfiguration config = new CompilerConfiguration(CompilerConfiguration.DEFAULT);
         engine.setConfig(config);
         initEngine(engine, config);
@@ -103,21 +105,24 @@ public abstract class GroovySandbox {
             if (!executedClasses.contains(scriptFile)) {
                 Class<?> clazz = loadScriptClass(engine, scriptFile, true);
                 if (clazz == null) {
-                    HollowCore.LOGGER.error("Error loading script for {}", scriptFile.getPath());
-                    HollowCore.LOGGER.error("Did you forget to register your class file in your run config?");
-                    continue;
-                }
-                if (clazz.getSuperclass() != Script.class) {
-                    HollowCore.LOGGER.error("Class file '{}' should be defined in the runConfig in the classes property!", scriptFile);
+                    if (this.context != null) {
+                        this.context.onError("Error loading script for " + scriptFile.getPath());
+                        this.context.onError("Did you forget to register your class file in your run config?");
+                    }
                     continue;
                 }
                 if (shouldRunFile(scriptFile)) {
                     Script script = InvokerHelper.createScript(clazz, binding);
+
+                    if(this.context!=null) this.context.onRunScriptPre(script);
+
                     if (run) {
                         setCurrentScript(scriptFile.toString());
                         script.run();
                         setCurrentScript(null);
                     }
+
+                    if(this.context!=null) this.context.onRunScriptPost(script);
                 }
             }
         }
@@ -150,8 +155,7 @@ public abstract class GroovySandbox {
         try {
             result = closure.call(args);
         } catch (Exception e) {
-            HollowCore.LOGGER.error("Caught an exception trying to run a closure:");
-            e.printStackTrace();
+            if (this.context != null) this.context.onError("Caught an exception trying to run a closure:", e);
         } finally {
             stopRunning();
         }
@@ -159,6 +163,7 @@ public abstract class GroovySandbox {
     }
 
     protected void postInitBindings(Binding binding) {
+
     }
 
     protected void initEngine(GroovyScriptEngine engine, CompilerConfiguration config) {
@@ -177,10 +182,6 @@ public abstract class GroovySandbox {
 
     public boolean isRunning() {
         return this.running.get();
-    }
-
-    public Map<String, Object> getBindings() {
-        return bindings;
     }
 
     public String getCurrentScript() {
@@ -227,7 +228,7 @@ public abstract class GroovySandbox {
             // if the file is still not found something went wrong
         } catch (Exception e) {
             if (printError) {
-                HollowCore.LOGGER.error(e);
+                if (this.context != null) this.context.onError(e);
             }
         }
         return scriptClass;
