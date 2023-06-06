@@ -10,13 +10,13 @@ buildscript {
         classpath 'org.parchmentmc:librarian:1.+'
         classpath 'org.spongepowered:mixingradle:0.7.32'
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.20-RC'
-        classpath "gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7.1.2"
+        classpath "gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7.0.0"
     }
 }
 
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.7.20"
-    id "org.jetbrains.kotlin.plugin.serialization" version "1.7.20"
+    id "org.jetbrains.kotlin.jvm" version "1.8.10"
+    id "org.jetbrains.kotlin.plugin.serialization" version "1.8.10"
 }
 
 apply plugin: 'kotlin'

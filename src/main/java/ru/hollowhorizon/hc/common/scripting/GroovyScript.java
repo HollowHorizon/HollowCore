@@ -1,25 +1,30 @@
 package ru.hollowhorizon.hc.common.scripting;
 
 import groovy.lang.GroovySystem;
-import net.minecraftforge.fml.loading.FMLPaths;
-import ru.hollowhorizon.hc.common.scripting.sandbox.GroovySandbox;
+import net.minecraftforge.common.MinecraftForge;
+import ru.hollowhorizon.hc.common.scripting.events.ScriptEnvironmentEvent;
 import ru.hollowhorizon.hc.common.scripting.sandbox.GroovyScriptSandbox;
-import ru.hollowhorizon.hc.common.scripting.sandbox.LoadStage;
 import ru.hollowhorizon.hc.common.scripting.sandbox.mapper.GroovyDeobfMapper;
 import ru.hollowhorizon.hc.common.scripting.sandbox.security.GrSMetaClassCreationHandle;
 
 import java.net.MalformedURLException;
-import java.nio.file.Paths;
+import java.net.URL;
 
 public class GroovyScript {
     public static final GroovyScriptSandbox sandbox;
 
     static {
-        try {
-            sandbox = new GroovyScriptSandbox(Paths.get("C:\\Users\\user\\Desktop\\papka_with_papkami\\MyJavaProjects\\HollowCore\\run").resolve("hollowscript").toUri().toURL());
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
+        ScriptEnvironmentEvent event = new ScriptEnvironmentEvent();
+
+        MinecraftForge.EVENT_BUS.post(event);
+
+        sandbox = new GroovyScriptSandbox(event.getScriptFolders().stream().map(file -> {
+            try {
+                return file.toURI().toURL();
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }).toArray(URL[]::new));
     }
 
     public static GroovyScriptSandbox getSandbox() {
@@ -29,6 +34,6 @@ public class GroovyScript {
     public static void main(String[] args) {
         GroovyDeobfMapper.init();
         GroovySystem.getMetaClassRegistry().setMetaClassCreationHandle(GrSMetaClassCreationHandle.INSTANCE);
-        getSandbox().run(LoadStage.PRE_INIT);
+        getSandbox().execute("test.groovy");
     }
 }

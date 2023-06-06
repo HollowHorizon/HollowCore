@@ -1,79 +1,69 @@
 package ru.hollowhorizon.hc.common.scripting.sandbox;
 
-import groovy.lang.Binding;
 import groovy.lang.Closure;
 import groovy.util.GroovyScriptEngine;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
-import net.minecraftforge.fml.loading.FMLPaths;
+import org.apache.logging.log4j.Logger;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
-import org.jetbrains.annotations.Nullable;
 import ru.hollowhorizon.hc.HollowCore;
+import ru.hollowhorizon.hc.LoggerLoader;
 import ru.hollowhorizon.hc.common.scripting.sandbox.transformer.GroovyScriptCompiler;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 public class GroovyScriptSandbox extends GroovySandbox {
+    public static final Logger LOGGER = LoggerLoader.createLogger("ScriptingEngine");
 
     private static final String[] DEFAULT_IMPORTS = {
 
     };
-
-    private LoadStage currentLoadStage;
     private boolean checkSyntaxMode = false;
 
     public GroovyScriptSandbox(URL... scriptEnvironment) {
         super(scriptEnvironment);
-        /*
-        registerBinding("mods", ModSupport.INSTANCE);
-        registerBinding("log", GroovyLog.get());
-        registerBinding("EventManager", GroovyEventManager.INSTANCE);
-        registerBinding("eventManager", GroovyEventManager.INSTANCE);
-        registerBinding("event_manager", GroovyEventManager.INSTANCE);
-         */
+
+        registerBinding("log", HollowCore.LOGGER);
     }
 
-    public void checkSyntax() {
-        load(LoadStage.PRE_INIT, false, true);
-        for (LoadStage loadStage : LoadStage.getLoadStages()) {
-            if (loadStage != LoadStage.PRE_INIT) {
-                load(loadStage, false, false);
-            }
-        }
+    public void checkSyntax(Collection<File> scripts, Collection<File> libraries) {
+        load(scripts, libraries, false, true);
     }
 
-    public void checkSyntax(LoadStage loadStage) {
-        load(loadStage, false, true);
+    public void executeScripts(Collection<File> scripts, Collection<File> libraries) {
+        load(scripts, libraries, true, true);
     }
 
-    public void run(LoadStage currentLoadStage) {
-        load(currentLoadStage, true, true);
+    public void execute(Collection<String> scripts, Collection<String> libraries) {
+        executeScripts(scripts.stream().map(File::new).collect(Collectors.toList()), libraries.stream().map(File::new).collect(Collectors.toList()));
     }
 
-    public void load(LoadStage currentLoadStage, boolean run, boolean loadClasses) {
+    public void execute(String script) {
+        execute(Collections.singleton(script), Collections.emptyList());
+    }
+
+    protected void load(Collection<File> scripts, Collection<File> libraries, boolean run, boolean loadClasses) {
         this.checkSyntaxMode = !run;
-        this.currentLoadStage = Objects.requireNonNull(currentLoadStage);
         try {
-            super.load(run, loadClasses);
+            super.execute(scripts, libraries, run, loadClasses);
         } catch (IOException | ScriptException | ResourceException e) {
             HollowCore.LOGGER.error("An Exception occurred trying to run groovy!", e);
         } catch (Exception e) {
             HollowCore.LOGGER.error(e);
             e.printStackTrace();
         } finally {
-            this.currentLoadStage = null;
             this.checkSyntaxMode = false;
         }
     }
 
     @Override
-    public void load(boolean run, boolean loadClasses) throws Exception {
+    public void execute(Collection<File> scripts, Collection<File> libraries, boolean run, boolean loadClasses) throws Exception {
         throw new UnsupportedOperationException("Use run(Loader loader) instead!");
     }
 
@@ -92,11 +82,6 @@ public class GroovyScriptSandbox extends GroovySandbox {
     }
 
     @Override
-    protected void postInitBindings(Binding binding) {
-        binding.setVariable("globals", getBindings());
-    }
-
-    @Override
     protected void initEngine(GroovyScriptEngine engine, CompilerConfiguration config) {
         config.addCompilationCustomizers(GroovyScriptCompiler.transformer());
         ImportCustomizer importCustomizer = new ImportCustomizer();
@@ -108,18 +93,10 @@ public class GroovyScriptSandbox extends GroovySandbox {
     @Override
     protected void preRun() {
         if (this.checkSyntaxMode) {
-            HollowCore.LOGGER.info("Checking syntax in loader '{}'", this.currentLoadStage);
+            HollowCore.LOGGER.info("Checking scripts syntax.");
         } else {
-            HollowCore.LOGGER.info("Running scripts in loader '{}'", this.currentLoadStage);
+            HollowCore.LOGGER.info("Running scripts.");
         }
-        /*
-        MinecraftForge.EVENT_BUS.post(new ScriptRunEvent.Pre());
-        if (this.currentLoadStage.isReloadable() && !ReloadableRegistryManager.isFirstLoad()) {
-            ReloadableRegistryManager.onReload();
-            MinecraftForge.EVENT_BUS.post(new GroovyReloadEvent());
-        }
-        GroovyEventManager.INSTANCE.reset();
-         */
     }
 
     @Override
@@ -132,34 +109,5 @@ public class GroovyScriptSandbox extends GroovySandbox {
 
     @Override
     protected void postRun() {
-        /*
-        if (this.currentLoadStage == LoadStage.POST_INIT) {
-            ReloadableRegistryManager.afterScriptRun();
-        }
-        MinecraftForge.EVENT_BUS.post(new ScriptRunEvent.Post());
-        if (this.currentLoadStage == LoadStage.POST_INIT && ReloadableRegistryManager.isFirstLoad()) {
-            ReloadableRegistryManager.setLoaded();
-        }
-         */
-    }
-
-    @Override
-    public Collection<File> getClassFiles() {
-        //return GroovyScript.getRunConfig().getClassFiles();
-        return new ArrayList<>();
-    }
-
-    @Override
-    public Collection<File> getScriptFiles() {
-        //return GroovyScript.getRunConfig().getSortedFiles(this.currentLoadStage.getName());
-        ArrayList<File> files = new ArrayList<>();
-        files.add(new File("test.groovy"));
-        files.add(new File("test2.groovy"));
-        return files;
-    }
-
-    @Nullable
-    public LoadStage getCurrentLoader() {
-        return currentLoadStage;
     }
 }

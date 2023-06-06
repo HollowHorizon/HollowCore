@@ -70,7 +70,7 @@ public abstract class GroovySandbox {
         currentSandbox.set(null);
     }
 
-    public void load(boolean run, boolean loadClasses) throws Exception {
+    protected void execute(Collection<File> scripts, Collection<File> libraries, boolean run, boolean loadClasses) throws Exception {
         currentSandbox.set(this);
         preRun();
 
@@ -86,10 +86,10 @@ public abstract class GroovySandbox {
         try {
             if (loadClasses) {
                 // load and run any configured class files
-                loadClassScripts(engine, binding, executedClasses, run);
+                loadClassScripts(engine, libraries, binding, executedClasses, run);
             }
             // now run all script files
-            loadScripts(engine, binding, executedClasses, run);
+            loadScripts(engine, scripts, binding, executedClasses, run);
         } finally {
             running.set(false);
             postRun();
@@ -98,8 +98,8 @@ public abstract class GroovySandbox {
         }
     }
 
-    protected void loadScripts(GroovyScriptEngine engine, Binding binding, Set<File> executedClasses, boolean run) {
-        for (File scriptFile : getScriptFiles()) {
+    protected void loadScripts(GroovyScriptEngine engine, Collection<File> scripts, Binding binding, Set<File> executedClasses, boolean run) {
+        for (File scriptFile : scripts) {
             if (!executedClasses.contains(scriptFile)) {
                 Class<?> clazz = loadScriptClass(engine, scriptFile, true);
                 if (clazz == null) {
@@ -123,8 +123,8 @@ public abstract class GroovySandbox {
         }
     }
 
-    protected void loadClassScripts(GroovyScriptEngine engine, Binding binding, Set<File> executedClasses, boolean run) {
-        for (File classFile : getClassFiles()) {
+    protected void loadClassScripts(GroovyScriptEngine engine, Collection<File> scripts, Binding binding, Set<File> executedClasses, boolean run) {
+        for (File classFile : scripts) {
             Class<?> clazz = loadScriptClass(engine, classFile, false);
             if (clazz == null) {
                 // loading script fails if the file is a script that depends on a class file that isn't loaded yet
@@ -174,9 +174,6 @@ public abstract class GroovySandbox {
     protected void postRun() {
     }
 
-    public abstract Collection<File> getClassFiles();
-
-    public abstract Collection<File> getScriptFiles();
 
     public boolean isRunning() {
         return this.running.get();
