@@ -50,9 +50,7 @@ shadowJar {
     def shadowPackages = [
             'kotlin',
             'org.intellij',
-            'org.jetbrains',
-            'groovy',
-            'org.codehaus.groovy'
+            'org.jetbrains'
     ]
 
     shadowPackages.forEach {
