@@ -49,6 +49,8 @@ public abstract class MetaClassImplMixin {
 
     @Inject(method = "getProperty(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;", at = @At("HEAD"), cancellable = true)
     public void getProperty(Object receiver, String field, CallbackInfoReturnable<Object> cir) {
+        if(!(receiver instanceof Class)) return;
+
         Class<?> clazz = (Class<?>) receiver;
         ClassNode owner = new ClassNode(clazz);
 
