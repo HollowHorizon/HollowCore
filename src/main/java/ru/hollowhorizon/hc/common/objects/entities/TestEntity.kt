@@ -13,15 +13,11 @@ import ru.hollowhorizon.hc.client.gltf.RenderedGltfModel
 import ru.hollowhorizon.hc.client.gltf.animation.AnimationTypes
 import ru.hollowhorizon.hc.client.gltf.animation.GLTFAnimation
 import ru.hollowhorizon.hc.client.gltf.animation.loadAnimations
+import ru.hollowhorizon.hc.client.gltf.animations.AnimationManager
 import ru.hollowhorizon.hc.common.capabilities.*
 
 class TestEntity(type: EntityType<TestEntity>, world: World) : MobEntity(type, world), IAnimatedEntity,
     ICapabilitySyncer {
-
-
-    init {
-        this.getCapability<AnimatedEntityCapability>().syncEntity(this)
-    }
 
     override fun onEffectAdded(effect: EffectInstance) {
         super.onEffectAdded(effect)
@@ -39,6 +35,7 @@ class TestEntity(type: EntityType<TestEntity>, world: World) : MobEntity(type, w
 
             renderedGltfModel = GlTFModelManager.getOrCreate(this, animCapability)
             animationList = renderedGltfModel!!.loadAnimations()
+            animationManager = AnimationManager(renderedGltfModel!!)
 
             AnimationTypes.values().forEach { type ->
                 tryAddAnimation(type, animCapability, animationList)
@@ -105,7 +102,7 @@ class TestEntity(type: EntityType<TestEntity>, world: World) : MobEntity(type, w
     }
 
     override var renderedGltfModel: RenderedGltfModel? = null
-
+    override var animationManager: AnimationManager? = null
     override var animationList: List<GLTFAnimation> = ArrayList()
 
 }

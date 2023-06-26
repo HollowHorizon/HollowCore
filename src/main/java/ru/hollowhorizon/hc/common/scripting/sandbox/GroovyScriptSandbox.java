@@ -91,7 +91,8 @@ public class GroovyScriptSandbox extends GroovySandbox {
         config.addCompilationCustomizers(GroovyScriptCompiler.transformer());
         ImportCustomizer importCustomizer = new ImportCustomizer();
         importCustomizer.addImports(DEFAULT_IMPORTS);
-        if (this.context != null) config.setScriptBaseClass(this.context.getBaseClass().getName());
+        if (this.context != null && this.context.getBaseClass() != null)
+            config.setScriptBaseClass(this.context.getBaseClass().getName());
         config.addCompilationCustomizers(importCustomizer);
     }
 

@@ -41,6 +41,7 @@ import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
 import ru.hollowhorizon.hc.common.registry.*;
+import ru.hollowhorizon.hc.common.scripting.GroovyScript;
 import ru.hollowhorizon.hc.common.scripting.sandbox.mapper.GroovyDeobfMapper;
 import ru.hollowhorizon.hc.common.scripting.sandbox.security.GrSMetaClassCreationHandle;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
@@ -113,6 +114,7 @@ public class HollowCore {
 
     //『Pre-Init』
     private void setup(final FMLCommonSetupEvent event) {
+        //GroovyScript.init();
 
         ModCapabilities.init();
         NetworkHandler.register();

@@ -20,6 +20,15 @@ public class HollowJavaUtils {
         }
     }
 
+    public static boolean hasResource(ResourceLocation location) {
+        try {
+            getResource(location);
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public static <R, K extends R> K castDarkMagic(R original) {
         return (K) original;

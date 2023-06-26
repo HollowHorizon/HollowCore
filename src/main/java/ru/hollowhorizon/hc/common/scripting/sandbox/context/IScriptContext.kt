@@ -4,7 +4,7 @@ import groovy.lang.Script
 
 interface IScriptContext {
     val bindings: Map<String, Object>
-    val baseClass: Class<*>
+    val baseClass: Class<*>?
 
     fun onError(message: String, throwable: Throwable?)
     fun onError(throwable: Throwable) = onError("Error!", throwable)

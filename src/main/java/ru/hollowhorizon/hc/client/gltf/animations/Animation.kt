@@ -1,43 +1,62 @@
-package ru.hollowhorizon.hc.client.gltf.animation
+package ru.hollowhorizon.hc.client.gltf.animations
 
 import de.javagl.jgltf.model.AccessorFloatData
 import de.javagl.jgltf.model.AnimationModel
+import de.javagl.jgltf.model.NodeModel
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.gltf.animation.CubicSplineInterpolatedChannel
+import ru.hollowhorizon.hc.client.gltf.animation.LinearInterpolatedChannel
+import ru.hollowhorizon.hc.client.gltf.animation.SphericalLinearInterpolatedChannel
+import ru.hollowhorizon.hc.client.gltf.animation.StepInterpolatedChannel
 
-object GltfAnimationCreator {
+class Animation(val name: String, val channels: Map<NodeModel, List<AnimationFrame>>) {
+    var partialTickO = 0f
+    var time = 0
 
-    @JvmStatic
-    fun createGltfAnimation(animationModel: AnimationModel): List<InterpolatedChannel> {
-        val channels = animationModel.channels
-        val interpolatedChannels: MutableList<InterpolatedChannel> = ArrayList(channels.size)
+    fun compute(node: NodeModel, partialTick: Float): AnimationFrame {
+        if (partialTickO > partialTick) time++
+        partialTickO = partialTick
 
-        for (channel in channels) {
+        val frames = channels[node]
+
+        if (frames != null) {
+            val currentFrame = time % frames.size
+            val lastFrame = if (currentFrame == 0) 0 else currentFrame - 1
+
+            return AnimationFrame.blend(frames[lastFrame], frames[currentFrame], partialTick)
+        }
+
+        throw AnimationException("Frames Not Found")
+    }
+
+    fun shouldApply(node: NodeModel): Boolean = node in channels.keys
+}
+
+val AnimationModel.animation: Animation
+    get() {
+        val animationData = HashMap<NodeModel, List<AnimationFrame>>()
+
+        for (channel in this.channels) {
             val sampler = channel.sampler
             val input = sampler.input
             val inputData = input.accessorData
-            if (inputData !is AccessorFloatData) {
-                HollowCore.LOGGER.warn(
-                    "Input data is not an AccessorFloatData, but "
-                            + inputData.javaClass
-                )
-                continue
-            }
-            val inputFloatData = inputData
             val output = sampler.output
             val outputData = output.accessorData
-            if (outputData !is AccessorFloatData) {
-                HollowCore.LOGGER.warn(
-                    "Output data is not an AccessorFloatData, but "
-                            + outputData.javaClass
-                )
+
+            if (inputData !is AccessorFloatData) {
+                HollowCore.LOGGER.warn("Input data is not an AccessorFloatData, but {}", inputData.javaClass)
                 continue
             }
-            val outputFloatData = outputData
-            val numKeyElements = inputFloatData.numElements
-            val keys = FloatArray(numKeyElements)
-            for (e in 0 until numKeyElements) {
-                keys[e] = inputFloatData[e]
+            if (outputData !is AccessorFloatData) {
+                HollowCore.LOGGER.warn("Output data is not an AccessorFloatData, but {}", outputData.javaClass)
+                continue
             }
+
+            val numKeyElements = inputData.numElements
+
+            val keys = FloatArray(numKeyElements)
+            for (e in 0 until numKeyElements) keys[e] = inputData[e]
+
             var globalIndex = 0
             var numComponentsPerElement: Int
             var values: Array<FloatArray>
@@ -61,7 +80,7 @@ object GltfAnimationCreator {
                                 val components = values[e]
                                 var c = 0
                                 while (c < numComponentsPerElement) {
-                                    components[c] = outputFloatData[globalIndex++]
+                                    components[c] = outputData[globalIndex++]
                                     c++
                                 }
                                 e++
@@ -85,7 +104,7 @@ object GltfAnimationCreator {
                                 val components = values[e]
                                 var c = 0
                                 while (c < numComponentsPerElement) {
-                                    components[c] = outputFloatData[globalIndex++]
+                                    components[c] = outputData[globalIndex++]
                                     c++
                                 }
                                 e++
@@ -113,7 +132,7 @@ object GltfAnimationCreator {
                                     val components = elements[i]
                                     var c = 0
                                     while (c < numComponentsPerElement) {
-                                        components[c] = outputFloatData[globalIndex++]
+                                        components[c] = outputData[globalIndex++]
                                         c++
                                     }
                                     i++
@@ -148,7 +167,7 @@ object GltfAnimationCreator {
                                 val components = values[e]
                                 var c = 0
                                 while (c < numComponentsPerElement) {
-                                    components[c] = outputFloatData[globalIndex++]
+                                    components[c] = outputData[globalIndex++]
                                     c++
                                 }
                                 e++
@@ -172,7 +191,7 @@ object GltfAnimationCreator {
                                 val components = values[e]
                                 var c = 0
                                 while (c < numComponentsPerElement) {
-                                    components[c] = outputFloatData[globalIndex++]
+                                    components[c] = outputData[globalIndex++]
                                     c++
                                 }
                                 e++
@@ -199,7 +218,7 @@ object GltfAnimationCreator {
                                     val components = elements[i]
                                     var c = 0
                                     while (c < numComponentsPerElement) {
-                                        components[c] = outputFloatData[globalIndex++]
+                                        components[c] = outputData[globalIndex++]
                                         c++
                                     }
                                     i++
@@ -234,7 +253,7 @@ object GltfAnimationCreator {
                                 val components = values[e]
                                 var c = 0
                                 while (c < numComponentsPerElement) {
-                                    components[c] = outputFloatData[globalIndex++]
+                                    components[c] = outputData[globalIndex++]
                                     c++
                                 }
                                 e++
@@ -258,7 +277,7 @@ object GltfAnimationCreator {
                                 val components = values[e]
                                 var c = 0
                                 while (c < numComponentsPerElement) {
-                                    components[c] = outputFloatData[globalIndex++]
+                                    components[c] = outputData[globalIndex++]
                                     c++
                                 }
                                 e++
@@ -285,7 +304,7 @@ object GltfAnimationCreator {
                                     val components = elements[i]
                                     var c = 0
                                     while (c < numComponentsPerElement) {
-                                        components[c] = outputFloatData[globalIndex++]
+                                        components[c] = outputData[globalIndex++]
                                         c++
                                     }
                                     i++
@@ -320,7 +339,7 @@ object GltfAnimationCreator {
                                 val components = values[e]
                                 var c = 0
                                 while (c < numComponentsPerElement) {
-                                    components[c] = outputFloatData[globalIndex++]
+                                    components[c] = outputData[globalIndex++]
                                     c++
                                 }
                                 e++
@@ -345,7 +364,7 @@ object GltfAnimationCreator {
                                 val components = values[e]
                                 var c = 0
                                 while (c < numComponentsPerElement) {
-                                    components[c] = outputFloatData[globalIndex++]
+                                    components[c] = outputData[globalIndex++]
                                     c++
                                 }
                                 e++
@@ -373,7 +392,7 @@ object GltfAnimationCreator {
                                     val components = elements[i]
                                     var c = 0
                                     while (c < numComponentsPerElement) {
-                                        components[c] = outputFloatData[globalIndex++]
+                                        components[c] = outputData[globalIndex++]
                                         c++
                                     }
                                     i++
@@ -403,6 +422,5 @@ object GltfAnimationCreator {
                 )
             }
         }
-        return interpolatedChannels
+        return Animation(this.name, animationData)
     }
-}

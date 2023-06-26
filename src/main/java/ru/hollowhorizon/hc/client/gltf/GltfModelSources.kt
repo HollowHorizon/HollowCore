@@ -33,7 +33,7 @@ class ResourceLocationSource : Source {
     override fun getSource(data: String): InputStream {
         val rl = data.rl
 
-        if(!Minecraft.getInstance().resourceManager.hasResource(rl)) throw IOException("Model with path: $rl not found!")
+        if(!HollowJavaUtils.hasResource(rl)) throw IOException("Model with path: $rl not found!")
 
         return HollowJavaUtils.getResource(data.rl)
     }
