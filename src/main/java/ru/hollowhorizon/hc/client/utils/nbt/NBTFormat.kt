@@ -8,6 +8,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.modules.*
 import net.minecraft.nbt.*
+import net.minecraft.util.math.BlockPos
 import ru.hollowhorizon.hc.common.capabilities.*
 import java.io.InputStream
 import java.io.OutputStream
@@ -28,6 +29,9 @@ internal val TagModule = SerializersModule {
         subclass(ListNBT::class, ForNbtList)
         subclass(CompoundNBT::class, ForCompoundNBT)
     }
+    contextual(ForBlockPos)
+    contextual(ForResourceLocation)
+    contextual(ForSoundEvent)
 }
 
 object CapabilityModule {

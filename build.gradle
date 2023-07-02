@@ -9,14 +9,14 @@ buildscript {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1+', changing: true
         classpath 'org.parchmentmc:librarian:1.+'
         classpath 'org.spongepowered:mixingradle:0.7.32'
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.20-RC'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0-RC'
         classpath "gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7.0.0"
     }
 }
 
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.8.10"
-    id "org.jetbrains.kotlin.plugin.serialization" version "1.8.10"
+    id "org.jetbrains.kotlin.jvm" version "1.9.0-RC"
+    id "org.jetbrains.kotlin.plugin.serialization" version "1.9.0-RC"
 }
 
 apply plugin: 'kotlin'
@@ -96,10 +96,20 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     minecraft 'net.minecraftforge:forge:1.16.5-36.2.39'
 
-    shade 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10'
+    shade 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0-RC'
+
+    shade 'org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.9.0-RC'
+    shade 'org.jetbrains.kotlin:kotlin-scripting-jvm:1.9.0-RC'
+
+    shade 'org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.9.0-RC'
+    shade 'org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:1.9.0-RC'
+    shade 'org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.0-RC'
+    shade 'org.jetbrains.kotlin:kotlin-script-runtime:1.9.0-RC'
 
     shade 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
     shade 'org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.0'
+
+    shade 'gnu.trove:trove:1.0.2'
 
     shade "com.labymedia:ultralight-java-base:0.4.12"
     shade "com.labymedia:ultralight-java-databind:0.4.12"
@@ -116,10 +126,12 @@ shadowJar {
     archiveClassifier = ''
 
     def shadowPackages = [
+            'gnu.trove'
+            /*
             'kotlin',
             'org.intellij',
             'org.jetbrains'
-    ]
+    */]
 
     shadowPackages.forEach {
         relocate(it, "ru.hollowhorizon.repack.$it")

@@ -22,6 +22,7 @@ object HollowCapabilityStorageV2 {
         return providers.filter { it.second.invoke().cap == cap }.map { it.first }
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun registerAll() {
         capabilities.forEach {
             register(it as Class<HollowCapability>)

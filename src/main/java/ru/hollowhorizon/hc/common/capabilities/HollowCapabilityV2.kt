@@ -80,7 +80,7 @@ class HollowCapabilitySerializer<T : Any>(val cap: Capability<T>) : ICapabilityS
         return NBTFormat.serializeNoInline(instance, TypeToken.of(instance.javaClass).rawType)
     }
 
-
+    @Suppress("UNCHECKED_CAST")
     override fun deserializeNBT(nbt: INBT) {
         instance = NBTFormat.deserializeNoInline(nbt, TypeToken.of(instance.javaClass).rawType) as T
     }

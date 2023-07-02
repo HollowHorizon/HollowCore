@@ -24,7 +24,6 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
-import ru.hollowhorizon.hc.client.screens.HTMLScreen;
 import ru.hollowhorizon.hc.common.animations.CutsceneStartHandler;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapability;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2;
@@ -59,7 +58,7 @@ public class HollowEventHandler {
     public void onOpen(GuiOpenEvent event) {
         if (event.getGui() instanceof MainMenuScreen) {
             event.setCanceled(true);
-            Minecraft.getInstance().setScreen(new HTMLScreen());
+            //Minecraft.getInstance().setScreen(new HTMLScreen());
         }
     }
 
@@ -70,7 +69,7 @@ public class HollowEventHandler {
         Block block = event.getWorld().getBlockState(pos).getBlock();
         if(block.is(Blocks.BEACON)) {
             event.setCanceled(true);
-            Minecraft.getInstance().setScreen(new HTMLScreen());
+            //Minecraft.getInstance().setScreen(new HTMLScreen());
         }
     }
 

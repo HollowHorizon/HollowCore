@@ -12,7 +12,11 @@
     "SimpleReloadableResourceManagerMixin",
     "StructureBlockMixin",
     "groovy.CompUnitClassGenMixin",
-    "groovy.MetaClassImplMixin"
+    "groovy.MetaClassImplMixin",
+    "kotlin.KotlinCoreEnvironmentMixin",
+    "kotlin.LazyJavaClassMemberScopeAccessor",
+    "kotlin.LazyJavaScopeMixin",
+    "kotlin.LazyJavaStaticClassScopeAccessor"
   ],
   "client": [
   ],

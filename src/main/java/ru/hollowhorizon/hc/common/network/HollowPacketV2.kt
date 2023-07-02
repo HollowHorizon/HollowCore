@@ -60,6 +60,7 @@ open class Packet<T>(val function: Packet<T>.(PlayerEntity, T) -> Unit) {
         })
     }
 
+    @Suppress("UNCHECKED_CAST")
     open fun <E> decode(buf: PacketBuffer): Packet<E> {
         val data = NBTFormat.deserializeNoInline(buf.readNbt()!!.get("data")!!, typeToken.rawType)
         this.value = data.safeCast()
