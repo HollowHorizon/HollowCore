@@ -9,10 +9,14 @@
     "CapabilityProviderMixin",
     "FMLModContainerMixin",
     "MixinLocateCommand",
-    "PathUtilMixin",
-    "ScriptJvmCompilerImplsMixin",
     "SimpleReloadableResourceManagerMixin",
-    "StructureBlockMixin"
+    "StructureBlockMixin",
+    "kotlin.KotlinCoreEnvironmentMixin",
+    "kotlin.LazyJavaClassDescriptorAccessor",
+    "kotlin.LazyJavaClassMemberScopeAccessor",
+    "kotlin.LazyJavaScopeMixin",
+    "kotlin.LazyJavaStaticClassScopeAccessor",
+    "kotlin.OverridingUtilMixin"
   ],
   "client": [
   ],

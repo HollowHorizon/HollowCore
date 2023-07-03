@@ -40,7 +40,7 @@ import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
 import ru.hollowhorizon.hc.common.registry.*;
-import ru.hollowhorizon.hc.common.scripting.HSCompiler;
+import ru.hollowhorizon.hc.common.scripting.kotlin.TestKt;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
 import ru.hollowhorizon.hc.common.world.storage.HollowWorldData;
 
@@ -62,8 +62,6 @@ public class HollowCore {
         modBus.addListener(this::loadEnd);
         modBus.addListener(this::onAttribute);
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
-
-        HSCompiler.init();
 
         GltfModelSources.INSTANCE.addSource(new PathSource(FMLPaths.GAMEDIR.get().resolve("hollowengine")));
 
@@ -110,6 +108,7 @@ public class HollowCore {
 
     //『Pre-Init』
     private void setup(final FMLCommonSetupEvent event) {
+        //GroovyScript.init();
 
         ModCapabilities.init();
         NetworkHandler.register();

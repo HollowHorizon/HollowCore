@@ -43,7 +43,6 @@ import de.javagl.jgltf.model.v2.MaterialModelV2.AlphaMode;
 import de.javagl.jgltf.model.v2.gl.Materials;
 import net.minecraft.util.ResourceLocation;
 import ru.hollowhorizon.hc.client.gltf.GlTFModelManager;
-import ru.hollowhorizon.hc.client.gltf.GltfModelSources;
 import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability;
 
 import java.nio.ByteBuffer;
@@ -634,33 +633,24 @@ public class GltfModelCreatorV2 {
      * @param animationChannel The {@link AnimationChannel}
      * @return The {@link Channel}
      */
-    private Channel createChannel(
-            Animation animation, AnimationChannel animationChannel) {
-        List<AnimationSampler> samplers =
-                Optionals.of(animation.getSamplers());
+    private Channel createChannel(Animation animation, AnimationChannel animationChannel) {
+        List<AnimationSampler> samplers = Optionals.of(animation.getSamplers());
 
         int samplerIndex = animationChannel.getSampler();
         AnimationSampler animationSampler = samplers.get(samplerIndex);
 
         int inputAccessorIndex = animationSampler.getInput();
-        AccessorModel inputAccessorModel =
-                gltfModel.getAccessorModel(inputAccessorIndex);
+        AccessorModel inputAccessorModel = gltfModel.getAccessorModel(inputAccessorIndex);
 
         int outputAccessorIndex = animationSampler.getOutput();
-        AccessorModel outputAccessorModel =
-                gltfModel.getAccessorModel(outputAccessorIndex);
+        AccessorModel outputAccessorModel = gltfModel.getAccessorModel(outputAccessorIndex);
 
-        String interpolationString =
-                animationSampler.getInterpolation();
-        Interpolation interpolation =
-                interpolationString == null ? Interpolation.LINEAR :
-                        Interpolation.valueOf(interpolationString);
+        String interpolationString = animationSampler.getInterpolation();
+        Interpolation interpolation = interpolationString == null ? Interpolation.LINEAR : Interpolation.valueOf(interpolationString);
 
-        AnimationModel.Sampler sampler = new DefaultSampler(
-                inputAccessorModel, interpolation, outputAccessorModel);
+        AnimationModel.Sampler sampler = new DefaultSampler(inputAccessorModel, interpolation, outputAccessorModel);
 
-        AnimationChannelTarget animationChannelTarget =
-                animationChannel.getTarget();
+        AnimationChannelTarget animationChannelTarget = animationChannel.getTarget();
 
         Integer nodeIndex = animationChannelTarget.getNode();
         NodeModel nodeModel = null;
@@ -672,9 +662,7 @@ public class GltfModelCreatorV2 {
         }
         String path = animationChannelTarget.getPath();
 
-        Channel channel =
-                new DefaultChannel(sampler, nodeModel, path);
-        return channel;
+        return new DefaultChannel(sampler, nodeModel, path);
     }
 
     /**
@@ -943,10 +931,11 @@ public class GltfModelCreatorV2 {
                 DefaultImageModel imageModel = gltfModel.getImageModel(imageIndex);
                 String name = texture.getName();
 
-                if(name != null) {
+                if (name != null) {
                     HashMap<String, String> data = capability.getTextures();
 
-                    if(data.containsKey(name)) imageModel.setImageData(GlTFModelManager.getInstance().getImageResource(data.get(name)));
+                    if (data.containsKey(name))
+                        imageModel.setImageData(GlTFModelManager.getInstance().getImageResource(data.get(name)));
                 }
 
                 textureModel.setImageModel(imageModel);

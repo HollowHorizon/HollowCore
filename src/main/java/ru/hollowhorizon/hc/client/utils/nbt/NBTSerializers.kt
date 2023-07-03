@@ -5,7 +5,10 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.*
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.encodeStructure
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.*
 import net.minecraft.util.ResourceLocation
@@ -25,100 +28,89 @@ private inline fun <T> missingField(missingField: String, deserializing: String,
     return defaultValue()
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = net.minecraft.util.math.BlockPos::class)
+
 object ForBlockPos : KSerializer<BlockPos> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("BlockPos", PrimitiveKind.LONG)
     override fun serialize(encoder: Encoder, value: BlockPos) = encoder.encodeLong(value.asLong())
     override fun deserialize(decoder: Decoder): BlockPos = BlockPos.of(decoder.decodeLong())
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = ResourceLocation::class)
+
 object ForResourceLocation : KSerializer<ResourceLocation> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Identifier", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: ResourceLocation) = encoder.encodeString(value.toString())
     override fun deserialize(decoder: Decoder): ResourceLocation = ResourceLocation(decoder.decodeString())
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = SoundEvent::class)
+
 object ForSoundEvent : KSerializer<SoundEvent> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("SoundEvent", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: SoundEvent) {
         encoder.encodeString(ForgeRegistries.SOUND_EVENTS.getKey(value).toString())
     }
 
-    override fun deserialize(decoder: Decoder): SoundEvent = ForgeRegistries.SOUND_EVENTS.getValue(decoder.decodeString().rl)
-        ?: SoundEvents.ITEM_PICKUP
+    override fun deserialize(decoder: Decoder): SoundEvent =
+        ForgeRegistries.SOUND_EVENTS.getValue(decoder.decodeString().rl)
+            ?: SoundEvents.ITEM_PICKUP
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = ByteNBT::class)
+
 object ForByteNBT : KSerializer<ByteNBT> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ByteNBT", PrimitiveKind.BYTE)
     override fun serialize(encoder: Encoder, value: ByteNBT) = encoder.encodeByte(value.asByte)
     override fun deserialize(decoder: Decoder): ByteNBT = ByteNBT.valueOf(decoder.decodeByte())
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = ShortNBT::class)
+
 object ForShortNBT : KSerializer<ShortNBT> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ShortNBT", PrimitiveKind.SHORT)
     override fun serialize(encoder: Encoder, value: ShortNBT) = encoder.encodeShort(value.asShort)
     override fun deserialize(decoder: Decoder): ShortNBT = ShortNBT.valueOf(decoder.decodeShort())
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = IntNBT::class)
+
 object ForIntNBT : KSerializer<IntNBT> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("IntNBT", PrimitiveKind.INT)
     override fun serialize(encoder: Encoder, value: IntNBT) = encoder.encodeInt(value.asInt)
     override fun deserialize(decoder: Decoder): IntNBT = IntNBT.valueOf(decoder.decodeInt())
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = LongNBT::class)
+
 object ForLongNBT : KSerializer<LongNBT> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("LongNBT", PrimitiveKind.LONG)
     override fun serialize(encoder: Encoder, value: LongNBT) = encoder.encodeLong(value.asLong)
     override fun deserialize(decoder: Decoder): LongNBT = LongNBT.valueOf(decoder.decodeLong())
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = FloatNBT::class)
+
 object ForFloatNBT : KSerializer<FloatNBT> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("FloatNBT", PrimitiveKind.FLOAT)
     override fun serialize(encoder: Encoder, value: FloatNBT) = encoder.encodeFloat(value.asFloat)
     override fun deserialize(decoder: Decoder): FloatNBT = FloatNBT.valueOf(decoder.decodeFloat())
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = DoubleNBT::class)
+
 object ForDoubleNBT : KSerializer<DoubleNBT> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("DoubleNBT", PrimitiveKind.DOUBLE)
     override fun serialize(encoder: Encoder, value: DoubleNBT) = encoder.encodeDouble(value.asDouble)
     override fun deserialize(decoder: Decoder): DoubleNBT = DoubleNBT.valueOf(decoder.decodeDouble())
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = StringNBT::class)
+
 object ForStringNBT : KSerializer<StringNBT> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("StringNBT", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: StringNBT) = encoder.encodeString(value.asString)
     override fun deserialize(decoder: Decoder): StringNBT = StringNBT.valueOf(decoder.decodeString())
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = EndNBT::class)
+
 object ForNbtNull : KSerializer<EndNBT> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("EndNBT", PrimitiveKind.BYTE)
     override fun serialize(encoder: Encoder, value: EndNBT) = encoder.encodeByte(0)
     override fun deserialize(decoder: Decoder): EndNBT = EndNBT.INSTANCE.also { decoder.decodeByte() }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = ByteArrayNBT::class)
+
 object ForByteArrayNBT : KSerializer<ByteArrayNBT> {
     override val descriptor: SerialDescriptor = PublicisedListLikeDescriptorImpl(ForByteNBT.descriptor, "ByteArrayNBT")
 
@@ -129,8 +121,7 @@ object ForByteArrayNBT : KSerializer<ByteArrayNBT> {
         ByteArrayNBT(ListSerializer(ForByteNBT).deserialize(decoder).map { it.asByte })
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = IntArrayNBT::class)
+
 object ForIntArrayNBT : KSerializer<IntArrayNBT> {
     override val descriptor: SerialDescriptor = PublicisedListLikeDescriptorImpl(ForIntNBT.descriptor, "IntArrayNBT")
 
@@ -141,8 +132,7 @@ object ForIntArrayNBT : KSerializer<IntArrayNBT> {
         IntArrayNBT(ListSerializer(ForIntNBT).deserialize(decoder).map { it.asInt })
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = Matrix4f::class)
+
 object ForMatrix4f : KSerializer<Matrix4f> {
     override val descriptor: SerialDescriptor = PublicisedListLikeDescriptorImpl(ForFloatNBT.descriptor, "Matrix4f")
 
@@ -158,8 +148,7 @@ object ForMatrix4f : KSerializer<Matrix4f> {
         Matrix4f(ListSerializer(ForFloatNBT).deserialize(decoder).map { it.asFloat }.toFloatArray())
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = LongArrayNBT::class)
+
 object ForLongArrayNBT : KSerializer<LongArrayNBT> {
     override val descriptor: SerialDescriptor = PublicisedListLikeDescriptorImpl(ForLongNBT.descriptor, "LongArrayNBT")
 
@@ -171,7 +160,7 @@ object ForLongArrayNBT : KSerializer<LongArrayNBT> {
 }
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
-@Serializer(forClass = INBT::class)
+
 object ForTag : KSerializer<INBT> {
     override val descriptor: SerialDescriptor =
         buildSerialDescriptor("kotlinx.serialization.Polymorphic", PolymorphicKind.OPEN) {
@@ -196,8 +185,7 @@ object ForTag : KSerializer<INBT> {
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = ListNBT::class)
+
 object ForNbtList : KSerializer<ListNBT> {
     override val descriptor: SerialDescriptor = PublicisedListLikeDescriptorImpl(ForTag.descriptor, "ListNBT")
 
@@ -212,8 +200,7 @@ object ForNbtList : KSerializer<ListNBT> {
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = CompoundNBT::class)
+
 object ForCompoundNBT : KSerializer<CompoundNBT> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("NbtCompound") {
         mapSerialDescriptor(PrimitiveSerialDescriptor("Key", PrimitiveKind.STRING), ForTag.descriptor)
@@ -243,8 +230,7 @@ object ForCompoundNBT : KSerializer<CompoundNBT> {
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = ItemStack::class)
+
 object ForItemStack : KSerializer<ItemStack> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("ItemStack") {
         element("tag", ForCompoundNBT.descriptor)
@@ -279,8 +265,7 @@ object ForItemStack : KSerializer<ItemStack> {
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = UUID::class)
+
 object ForUuid : KSerializer<UUID> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Uuid") {
         element("most", Long.serializer().descriptor)
@@ -338,7 +323,7 @@ object ForUuid : KSerializer<UUID> {
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
+
 internal sealed class PublicisedListLikeDescriptor(val elementDesc: SerialDescriptor) : SerialDescriptor {
     override val kind: SerialKind get() = StructureKind.LIST
     override val elementsCount: Int = 1
@@ -374,8 +359,7 @@ internal sealed class PublicisedListLikeDescriptor(val elementDesc: SerialDescri
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = Vector3d::class)
+
 object ForVector3d : KSerializer<Vector3d> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Vector3d") {
         element("x", Double.serializer().descriptor)
@@ -446,8 +430,7 @@ object ForVector3d : KSerializer<Vector3d> {
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializer(forClass = Vector3f::class)
+
 object ForVector3f : KSerializer<Vector3f> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Vector3f") {
         element("x", Float.serializer().descriptor)
@@ -516,6 +499,6 @@ object ForVector3f : KSerializer<Vector3f> {
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
+
 internal open class PublicisedListLikeDescriptorImpl(elementDesc: SerialDescriptor, override val serialName: String) :
     PublicisedListLikeDescriptor(elementDesc)

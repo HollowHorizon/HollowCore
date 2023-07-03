@@ -5,10 +5,12 @@ import de.javagl.jgltf.model.AnimationModel
 import ru.hollowhorizon.hc.HollowCore
 
 object GltfAnimationCreator {
+
     @JvmStatic
     fun createGltfAnimation(animationModel: AnimationModel): List<InterpolatedChannel> {
         val channels = animationModel.channels
         val interpolatedChannels: MutableList<InterpolatedChannel> = ArrayList(channels.size)
+
         for (channel in channels) {
             val sampler = channel.sampler
             val input = sampler.input
@@ -41,12 +43,16 @@ object GltfAnimationCreator {
             var values: Array<FloatArray>
             var valuesCubic: Array<Array<FloatArray>>
             val nodeModel = channel.nodeModel
+
+            HollowCore.LOGGER.info("node model object: {}", nodeModel)
+
             val path = channel.path
             var interpolation: AnimationModel.Interpolation
             when (path) {
                 "translation" -> {
                     numComponentsPerElement = outputData.getNumComponentsPerElement()
                     interpolation = sampler.interpolation
+                    HollowCore.LOGGER.info("translation: {}", nodeModel.translation)
                     when (interpolation) {
                         AnimationModel.Interpolation.STEP -> {
                             values = Array(numKeyElements) { FloatArray(numComponentsPerElement) }
@@ -84,6 +90,7 @@ object GltfAnimationCreator {
                                 }
                                 e++
                             }
+
                             interpolatedChannels.add(object : LinearInterpolatedChannel(keys, values) {
                                 override fun getListener(): FloatArray {
                                     var translation = nodeModel.translation
@@ -132,6 +139,7 @@ object GltfAnimationCreator {
                 "rotation" -> {
                     numComponentsPerElement = outputData.getNumComponentsPerElement()
                     interpolation = sampler.interpolation
+                    HollowCore.LOGGER.info("rotation: {}", nodeModel.rotation)
                     when (interpolation) {
                         AnimationModel.Interpolation.STEP -> {
                             values = Array(numKeyElements) { FloatArray(numComponentsPerElement) }
@@ -217,6 +225,7 @@ object GltfAnimationCreator {
                 "scale" -> {
                     numComponentsPerElement = outputData.getNumComponentsPerElement()
                     interpolation = sampler.interpolation
+                    HollowCore.LOGGER.info("scale: {}", nodeModel.scale)
                     when (interpolation) {
                         AnimationModel.Interpolation.STEP -> {
                             values = Array(numKeyElements) { FloatArray(numComponentsPerElement) }
@@ -301,6 +310,7 @@ object GltfAnimationCreator {
 
                 "weights" -> {
                     interpolation = sampler.interpolation
+                    HollowCore.LOGGER.info("weights: {}", nodeModel.weights)
                     when (interpolation) {
                         AnimationModel.Interpolation.STEP -> {
                             numComponentsPerElement = outputData.getTotalNumComponents() / numKeyElements
