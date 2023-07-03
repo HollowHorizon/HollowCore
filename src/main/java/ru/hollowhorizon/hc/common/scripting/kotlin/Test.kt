@@ -24,16 +24,26 @@ abstract class Script
 
 
 fun main() {
+
+
     val text = """
             package ru.hollow.test
             
-            import net.minecraft.util.math.vector.Vector3d
+            import com.mojang.blaze3d.matrix.MatrixStack
+            import net.minecraft.client.gui.screen.Screen
+            import ru.hollowhorizon.hc.client.utils.mcText
             
-            val a = Vector3d.ZERO.add(1.0, 1.0, 1.0)
-            var b = Vector3d.ZERO.normalize()
+            class Test: Screen("".mcText) {
+                override fun init() {
+                    super.init()
+                }
             
-            println(a.y)
-            println(b)
+                override fun render(pMatrixStack: MatrixStack, pMouseX: Int, pMouseY: Int, pPartialTicks: Float) {
+                    super.render(pMatrixStack, pMouseX, pMouseY, pPartialTicks)
+                }
+            }
+            
+            val test = Test()
         """.trimIndent()
 
     val hostConfiguration = defaultJvmScriptingHostConfiguration
