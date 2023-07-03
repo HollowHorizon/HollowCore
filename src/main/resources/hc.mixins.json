@@ -11,8 +11,6 @@
     "MixinLocateCommand",
     "SimpleReloadableResourceManagerMixin",
     "StructureBlockMixin",
-    "groovy.CompUnitClassGenMixin",
-    "groovy.MetaClassImplMixin",
     "kotlin.KotlinCoreEnvironmentMixin",
     "kotlin.LazyJavaClassDescriptorAccessor",
     "kotlin.LazyJavaClassMemberScopeAccessor",

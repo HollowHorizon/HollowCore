@@ -86,9 +86,6 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
-    maven {
-        url = 'https://mvnrepository.com/artifact/org.apache.groovy/groovy'
-    }
     flatDir { dirs 'libs' }
 }
 
@@ -110,13 +107,6 @@ dependencies {
     shade 'org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.0'
 
     shade 'gnu.trove:trove:1.0.2'
-
-    shade "com.labymedia:ultralight-java-base:0.4.12"
-    shade "com.labymedia:ultralight-java-databind:0.4.12"
-    shade "com.labymedia:ultralight-java-gpu:0.4.12"
-    shade "com.labymedia:ultralight-java-glfw-opengl-util:0.4.12"
-
-    shade 'org.apache.groovy:groovy:4.0.8'
 }
 
 shadowJar {
