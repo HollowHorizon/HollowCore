@@ -32,8 +32,11 @@ fun main() {
             import com.mojang.blaze3d.matrix.MatrixStack
             import net.minecraft.client.gui.screen.Screen
             import ru.hollowhorizon.hc.client.utils.mcText
+            import net.minecraft.client.Minecraft
             
             class Test: Screen("".mcText) {
+                val textureManager = Minecraft.getInstance().textureManager
+            
                 override fun init() {
                     super.init()
                 }
@@ -57,12 +60,12 @@ fun main() {
                 text.toScriptSource(),
                 createJvmCompilationConfigurationFromTemplate<Script>()
             ).also { result ->
-                result.reports.forEach { HollowCore.LOGGER.info("Compile Error: {}", it.render(withStackTrace = true)) }
+                result.reports.forEach { HollowCore.LOGGER.info("Compile Info: {}", it.render(withStackTrace = true)) }
             }.valueOrThrow()
 
             val evaluator = BasicJvmScriptEvaluator()
             val exec = runBlocking { evaluator(compiled, ScriptEvaluationConfiguration {}) }.also { result ->
-                result.reports.forEach { HollowCore.LOGGER.info("Ebal Error: {}", it.render(withStackTrace = true)) }
+                result.reports.forEach { HollowCore.LOGGER.info("Eval Info: {}", it.render(withStackTrace = true)) }
             }.valueOrThrow()
 
             (compiled as KJvmCompiledScript).saveScriptToJar(File("test.jar"))

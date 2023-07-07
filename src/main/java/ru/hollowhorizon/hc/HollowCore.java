@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc;
 
+import net.minecraft.client.gui.screen.MainMenuScreen;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.resources.IResourcePack;
@@ -57,6 +58,9 @@ public class HollowCore {
     public static final boolean DEBUG_MODE = true;
 
     public HollowCore() {
+        HollowCore.LOGGER.info("MainMenu ClassLoader: {}", MainMenuScreen.class.getClassLoader());
+        HollowCore.LOGGER.info("HollowCore ClassLoader: {}", HollowCore.class.getClassLoader());
+
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::setup);
         modBus.addListener(this::loadEnd);

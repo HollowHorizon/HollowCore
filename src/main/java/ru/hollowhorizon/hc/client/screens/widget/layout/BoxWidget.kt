@@ -357,7 +357,7 @@ class ScreenPos(val raw: Int, private val maxWidth: Int, private val maxHeight: 
     }
 }
 
-fun ILayoutConsumer.box(name: String = "", builder: BoxBuilder.() -> Unit): BoxWidget {
+fun ILayoutConsumer.box(builder: BoxBuilder.() -> Unit): BoxWidget {
     val boxBuilder = BoxBuilder(this.x(), this.y(), this.width(), this.height())
     boxBuilder.builder()
     val box = BoxWidget(

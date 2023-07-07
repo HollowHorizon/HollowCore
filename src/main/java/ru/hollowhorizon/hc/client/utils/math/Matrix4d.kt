@@ -280,10 +280,10 @@ class Matrix4d(
     }
 
     fun scale(v: Vector3d): Matrix4d {
-        return scaleGeneric(v.x, v.y, v.z, this)
+        return scaleGeneric(v.x, v.y, v.z)
     }
 
-    private fun scaleGeneric(x: Double, y: Double, z: Double, dest: Matrix4d): Matrix4d {
+    private fun scaleGeneric(x: Double, y: Double, z: Double): Matrix4d {
         if (properties and PROPERTY_IDENTITY == 0) setIdentity()
         val one = absEqualsOne(x) && absEqualsOne(y) && absEqualsOne(z)
         m00 = x

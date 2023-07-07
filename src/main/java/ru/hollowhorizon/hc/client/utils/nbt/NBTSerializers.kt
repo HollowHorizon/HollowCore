@@ -202,6 +202,7 @@ object ForNbtList : KSerializer<ListNBT> {
 
 
 object ForCompoundNBT : KSerializer<CompoundNBT> {
+    @OptIn(ExperimentalSerializationApi::class)
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("NbtCompound") {
         mapSerialDescriptor(PrimitiveSerialDescriptor("Key", PrimitiveKind.STRING), ForTag.descriptor)
     }
@@ -244,6 +245,7 @@ object ForItemStack : KSerializer<ItemStack> {
     }
 
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun deserialize(decoder: Decoder): ItemStack {
         val dec = decoder.beginStructure(descriptor)
 
@@ -282,6 +284,7 @@ object ForUuid : KSerializer<UUID> {
         compositeOutput.endStructure(descriptor)
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun deserialize(decoder: Decoder): UUID {
         val dec: CompositeDecoder = decoder.beginStructure(descriptor)
 
@@ -323,10 +326,12 @@ object ForUuid : KSerializer<UUID> {
     }
 }
 
-
+@ExperimentalSerializationApi
 internal sealed class PublicisedListLikeDescriptor(val elementDesc: SerialDescriptor) : SerialDescriptor {
+    @OptIn(ExperimentalSerializationApi::class)
     override val kind: SerialKind get() = StructureKind.LIST
     override val elementsCount: Int = 1
+
 
     override fun getElementName(index: Int): String = index.toString()
     override fun getElementIndex(name: String): Int =
@@ -350,8 +355,7 @@ internal sealed class PublicisedListLikeDescriptor(val elementDesc: SerialDescri
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is PublicisedListLikeDescriptor) return false
-        if (elementDesc == other.elementDesc && serialName == other.serialName) return true
-        return false
+        return elementDesc == other.elementDesc && serialName == other.serialName
     }
 
     override fun hashCode(): Int {
@@ -380,6 +384,7 @@ object ForVector3d : KSerializer<Vector3d> {
         compositeOutput.endStructure(descriptor)
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun deserialize(decoder: Decoder): Vector3d {
         val dec: CompositeDecoder = decoder.beginStructure(descriptor)
 
@@ -449,6 +454,7 @@ object ForVector3f : KSerializer<Vector3f> {
         compositeOutput.endStructure(descriptor)
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun deserialize(decoder: Decoder): Vector3f {
         val dec: CompositeDecoder = decoder.beginStructure(descriptor)
 
@@ -500,5 +506,6 @@ object ForVector3f : KSerializer<Vector3f> {
 }
 
 
+@OptIn(ExperimentalSerializationApi::class)
 internal open class PublicisedListLikeDescriptorImpl(elementDesc: SerialDescriptor, override val serialName: String) :
     PublicisedListLikeDescriptor(elementDesc)

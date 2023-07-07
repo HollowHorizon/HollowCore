@@ -11,12 +11,9 @@
     "MixinLocateCommand",
     "SimpleReloadableResourceManagerMixin",
     "StructureBlockMixin",
-    "kotlin.KotlinCoreEnvironmentMixin",
-    "kotlin.LazyJavaClassDescriptorAccessor",
-    "kotlin.LazyJavaClassMemberScopeAccessor",
-    "kotlin.LazyJavaScopeMixin",
-    "kotlin.LazyJavaStaticClassScopeAccessor",
-    "kotlin.OverridingUtilMixin"
+    "kotlin.BinaryJavaClassMixin",
+    "kotlin.JvmCompilationUtilMixin",
+    "kotlin.KotlinCoreEnvironmentMixin"
   ],
   "client": [
   ],
