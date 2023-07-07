@@ -17,7 +17,7 @@ import net.minecraftforge.common.util.LazyOptional
 import net.minecraftforge.fml.network.PacketDistributor
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
-import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
+import ru.hollowhorizon.hc.client.utils.nbt.CAPABILITY_SERIALIZER
 import ru.hollowhorizon.hc.client.utils.nbt.deserialize
 import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
@@ -77,12 +77,12 @@ class HollowCapabilitySerializer<T : Any>(val cap: Capability<T>) : ICapabilityS
     }
 
     override fun serializeNBT(): INBT {
-        return NBTFormat.serializeNoInline(instance, TypeToken.of(instance.javaClass).rawType)
+        return CAPABILITY_SERIALIZER.serializeNoInline(instance, TypeToken.of(instance.javaClass).rawType)
     }
 
     @Suppress("UNCHECKED_CAST")
     override fun deserializeNBT(nbt: INBT) {
-        instance = NBTFormat.deserializeNoInline(nbt, TypeToken.of(instance.javaClass).rawType) as T
+        instance = CAPABILITY_SERIALIZER.deserializeNoInline(nbt, TypeToken.of(instance.javaClass).rawType) as T
     }
 }
 
@@ -114,15 +114,14 @@ fun <T : HollowCapability> register(clazz: Class<T>) {
 }
 
 @Serializable
-abstract class HollowCapability(val consumeDataFromClient: Boolean = false) {
-}
+abstract class HollowCapability(val consumeDataFromClient: Boolean = false)
 
 fun <T : HollowCapability> T.serialize(): INBT {
-    return NBTFormat.serializeNoInline(HollowJavaUtils.castDarkMagic(this), this::class.java)
+    return CAPABILITY_SERIALIZER.serializeNoInline(HollowJavaUtils.castDarkMagic(this), this::class.java)
 }
 
 fun deserialize(nbt: INBT): HollowCapability {
-    return NBTFormat.deserialize(nbt)
+    return CAPABILITY_SERIALIZER.deserialize(nbt)
 }
 
 fun HollowCapability.syncClient(playerEntity: PlayerEntity) {
@@ -135,7 +134,7 @@ fun HollowCapability.syncEntity(entity: Entity) {
     if (entity.level.isClientSide && !this.consumeDataFromClient) return
 
     val packet = this.javaClass.createSyncPacketEntity()
-    if(entity.level.isClientSide) {
+    if (entity.level.isClientSide) {
         packet.send(CapabilityForEntity(this, entity.id))
     } else {
         packet.send(CapabilityForEntity(this, entity.id), PacketDistributor.TRACKING_ENTITY.with { entity })

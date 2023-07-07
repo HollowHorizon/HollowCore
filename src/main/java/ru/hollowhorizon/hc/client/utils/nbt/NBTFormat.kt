@@ -9,6 +9,7 @@ import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.modules.*
 import net.minecraft.nbt.*
 import net.minecraft.util.math.BlockPos
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.common.capabilities.*
 import java.io.InputStream
 import java.io.OutputStream
@@ -46,14 +47,17 @@ object CapabilityModule {
             }
 
             HollowCapabilityStorageV2.capabilities.forEach {
+                HollowCore.LOGGER.info("Registering capability serializer: {}", it.name)
                 subclass(it as Class<HollowCapability>)
             }
         }
     }
 }
 
-sealed class NBTFormat(context: SerializersModule = EmptySerializersModule()) : SerialFormat {
-    override val serializersModule = context + TagModule + CapabilityModule.build()
+val CAPABILITY_SERIALIZER by lazy { NBTFormat(CapabilityModule.build()) }
+
+open class NBTFormat(context: SerializersModule = EmptySerializersModule()) : SerialFormat {
+    override val serializersModule = context + TagModule
 
     companion object Default : NBTFormat()
 
