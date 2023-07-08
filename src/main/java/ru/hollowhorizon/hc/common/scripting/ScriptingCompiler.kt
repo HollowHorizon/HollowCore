@@ -2,12 +2,16 @@ package ru.hollowhorizon.hc.common.scripting
 
 import kotlinx.coroutines.runBlocking
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler.saveScriptToJar
+import ru.hollowhorizon.hc.common.scripting.kotlin.loadScriptFromJar
+import ru.hollowhorizon.hc.common.scripting.kotlin.loadScriptHashCode
 import java.io.File
 import java.io.FileOutputStream
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
+import kotlin.script.experimental.api.defaultImports
+import kotlin.script.experimental.api.dependencies
 import kotlin.script.experimental.api.valueOrThrow
 import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.host.toScriptSource
@@ -15,6 +19,7 @@ import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
 import kotlin.script.experimental.jvm.impl.*
 import kotlin.script.experimental.jvmhost.JvmScriptCompiler
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
+import kotlin.script.experimental.util.PropertiesCollection
 
 object ScriptingCompiler {
     inline fun <reified T : Any> compileText(code: String): CompiledScript {
@@ -29,7 +34,7 @@ object ScriptingCompiler {
             compiler(code.toScriptSource(), compilationConfiguration)
                 .valueOrThrow() as KJvmCompiledScript
         }
-        return CompiledScript("code.kts", code.hashCode(), compiled)
+        return CompiledScript("code.kts", code.hashCode().toString(), compiled, null)
     }
 
     inline fun <reified T : Any> compileFile(script: File): CompiledScript {
@@ -38,18 +43,27 @@ object ScriptingCompiler {
         val compilationConfiguration = createJvmCompilationConfigurationFromTemplate<T>()
 
         return runBlocking {
+            val compiledJar = script.parentFile.resolve(script.name+".jar")
+            val hashcode = script.readText().hashCode().toString()
+
+            if(compiledJar.exists() && compiledJar.loadScriptHashCode()==hashcode) {
+                return@runBlocking CompiledScript(
+                    script.name, hashcode,
+                    compiledJar.loadScriptFromJar(), null
+                )
+            }
 
             val compiler = JvmScriptCompiler(hostConfiguration)
 
-            CompiledScript(
-                script.name, script.readText().hashCode(),
+            return@runBlocking CompiledScript(
+                script.name, hashcode,
                 compiler(FileScriptSource(script), compilationConfiguration)
-                    .valueOrThrow() as KJvmCompiledScript
+                    .valueOrThrow() as KJvmCompiledScript, compiledJar
             )
         }
     }
 
-    fun KJvmCompiledScript.saveScriptToJar(outputJar: File) {
+    fun KJvmCompiledScript.saveScriptToJar(outputJar: File, hash: String) {
         HollowCore.LOGGER.info("saving script jar to: {}", outputJar.absolutePath)
         // Get the compiled module, which contains the output files
         val module = getCompiledModule().let { module ->
@@ -62,7 +76,8 @@ object ScriptingCompiler {
             val manifest = Manifest().apply {
                 mainAttributes.apply {
                     putValue("Manifest-Version", "1.0")
-                    putValue("Created-By", "JetBrains Kotlin")
+                    putValue("Created-By", "HollowCore ScriptingEngine")
+                    putValue("Script-Hashcode", hash)
                     putValue("Main-Class", scriptClassFQName)
                 }
             }
@@ -71,7 +86,7 @@ object ScriptingCompiler {
             JarOutputStream(fileStream, manifest).use { jar ->
                 // Write sanitized compiled script metadata
                 jar.putNextEntry(JarEntry(scriptMetadataPath(scriptClassFQName)))
-                jar.write(copyWithoutModule().toBytes())
+                jar.write(copyWithoutModule().apply(::shrinkSerializableScriptData).toBytes())
                 jar.closeEntry()
 
                 // Write each output file
@@ -87,4 +102,10 @@ object ScriptingCompiler {
             fileStream.flush()
         }
     }
+}
+
+
+private fun shrinkSerializableScriptData(compiledScript: KJvmCompiledScript) {
+    (compiledScript.compilationConfiguration.entries() as? MutableSet<Map.Entry<PropertiesCollection.Key<*>, Any?>>)
+        ?.removeIf { it.key == ScriptCompilationConfiguration.dependencies || it.key == ScriptCompilationConfiguration.defaultImports }
 }

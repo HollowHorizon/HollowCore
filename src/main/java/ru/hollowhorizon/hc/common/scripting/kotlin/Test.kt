@@ -1,7 +1,9 @@
 package ru.hollowhorizon.hc.common.scripting.kotlin
 
 import kotlinx.coroutines.runBlocking
+import net.minecraftforge.registries.ForgeRegistries
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.utils.rl
 import java.io.File
 import java.io.FileOutputStream
 import java.util.jar.JarEntry
@@ -24,7 +26,7 @@ abstract class Script
 
 
 fun main() {
-
+    ForgeRegistries.ITEMS.getValue("my_super_mod:my_item".rl)!!.descriptionId
 
     val text = """
             package ru.hollow.test

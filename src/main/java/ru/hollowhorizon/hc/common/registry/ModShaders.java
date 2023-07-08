@@ -53,7 +53,7 @@ public class ModShaders {
         HollowCore.LOGGER.info("init all shaders");
 
 
-        initShader(ASSIMP_SHADER, e);
+        //initShader(ASSIMP_SHADER, e);
     }
 
     private static void initShader(ShaderProgram program, AddReloadListenerEvent e) {

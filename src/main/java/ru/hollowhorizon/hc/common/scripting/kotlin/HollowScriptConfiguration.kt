@@ -9,6 +9,8 @@ import java.net.URL
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 import kotlin.script.experimental.api.*
+import kotlin.script.experimental.host.FileBasedScriptSource
+import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.jvm.dependenciesFromClassContext
 import kotlin.script.experimental.jvm.dependenciesFromClassloader
 import kotlin.script.experimental.jvm.jvm
@@ -55,12 +57,15 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
             files.add(FMLLoader.getForgePath().toFile())
             files.addAll(FMLLoader.getMCPaths().map { it.toFile() })
 
-            var libraries = FMLLoader.getGamePath().resolve("libraries").toFile().walk().filter { it.name.endsWith(".jar") }.toList()
+            var libraries =
+                FMLLoader.getGamePath().resolve("libraries").toFile().walk().filter { it.name.endsWith(".jar") }
+                    .toList()
 
             if (libraries.isEmpty()) {
                 //Такое может произойти, если какой-то умник засунул папку с библиотеками не пойми куда, например как это сделали TLauncher и CurseForge App
 
-                var exampleLibrary = File(findClasspathEntry("org.apache.logging.log4j.Logger")) //Попробуем найти библиотеку, которая точно существует
+                var exampleLibrary =
+                    File(findClasspathEntry("org.apache.logging.log4j.Logger")) //Попробуем найти библиотеку, которая точно существует
                 while (exampleLibrary.name != "libraries") {
                     if (exampleLibrary.parentFile == null) break
                     exampleLibrary = exampleLibrary.parentFile
@@ -74,7 +79,10 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
             }
             files.addAll(libraries)
 
-            dependenciesFromClassloader(classLoader = TransformingClassLoader.getSystemClassLoader(), unpackJarCollections = true)
+            dependenciesFromClassloader(
+                classLoader = TransformingClassLoader.getSystemClassLoader(),
+                unpackJarCollections = true
+            )
         } else dependenciesFromClassContext(HollowScriptConfiguration::class, wholeClasspath = true)
 
         updateClasspath(files)
@@ -87,17 +95,36 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
 
     }
 
-//    defaultImports(
-//        //"ru.hollowhorizon.hc.common.scripting.annotations.Import",
-//        //"kotlin.script.experimental.dependencies.DependsOn",
-//        //"kotlin.script.experimental.dependencies.Repository"
-//    )
+    defaultImports(
+        Import::class
+    )
 
     refineConfiguration {
-        //onAnnotations(DependsOn::class, Repository::class, Import::class, handler = HollowScriptConfigurator())
+        onAnnotations(Import::class, handler = HollowScriptConfigurator())
     }
 
     ide {
         acceptedLocations(ScriptAcceptedLocation.Everywhere)
     }
 })
+
+class HollowScriptConfigurator : RefineScriptCompilationConfigurationHandler {
+    override operator fun invoke(context: ScriptConfigurationRefinementContext) = processAnnotations(context)
+
+    private fun processAnnotations(context: ScriptConfigurationRefinementContext): ResultWithDiagnostics<ScriptCompilationConfiguration> {
+        val annotations = context.collectedData?.get(ScriptCollectedData.foundAnnotations)?.takeIf { it.isNotEmpty() }
+            ?: return context.compilationConfiguration.asSuccess()
+
+        val scriptBaseDir = (context.script as? FileBasedScriptSource)?.file?.parentFile
+
+        val importedSources = annotations.flatMap {
+            (it as? Import)?.paths?.map { sourceName ->
+                FileScriptSource(scriptBaseDir?.resolve(sourceName) ?: File(sourceName))
+            } ?: emptyList()
+        }
+
+        return ScriptCompilationConfiguration(context.compilationConfiguration) {
+            if (importedSources.isNotEmpty()) importScripts.append(importedSources)
+        }.asSuccess()
+    }
+}
