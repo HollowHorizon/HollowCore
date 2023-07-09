@@ -17,5 +17,3 @@ class AnimationLayer(var priority: Float, val animation: Animation) {
     fun update(node: NodeModel, partialTick: Float): AnimationFrame =
         animation.compute(node, partialTick)
 }
-
-

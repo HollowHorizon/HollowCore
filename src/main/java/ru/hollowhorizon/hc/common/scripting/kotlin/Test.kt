@@ -26,7 +26,7 @@ abstract class Script
 
 
 fun main() {
-    ForgeRegistries.ITEMS.getValue("my_super_mod:my_item".rl)!!.descriptionId
+    ForgeRegistries.ITEMS.getValue("my_super_mod:my_item2".rl)!!.descriptionId
 
     val text = """
             package ru.hollow.test

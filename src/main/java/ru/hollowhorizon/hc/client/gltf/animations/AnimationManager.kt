@@ -10,6 +10,10 @@ class AnimationManager(val model: RenderedGltfModel) {
         layers.forEach(AnimationLayer::preUpdate)
         layers.removeIf { it.priority < 0.0f }
 
+        layers.forEach { layer ->
+
+        }
+
         nodeModels.forEach { node ->
             val frames = layers.filter { it.shouldApply(node) }.map { it.priority to it.update(node, partialTick) }
 
@@ -17,15 +21,11 @@ class AnimationManager(val model: RenderedGltfModel) {
         }
     }
 
-    fun addLayer(layer: AnimationLayer) {
-        layers += layer
-    }
+    fun addLayer(layer: AnimationLayer) = layers.add(layer)
 
-    fun addLayer(priority: Float, animation: Animation) {
-        addLayer(AnimationLayer(priority, animation))
-    }
+    fun addLayer(priority: Float, animation: Animation) = addLayer(AnimationLayer(priority, animation))
 
-    fun addLayer(animation: Animation) {
-        addLayer(0.5f, animation)
-    }
+    fun addLayer(animation: Animation) = addLayer(0.5f, animation)
+
+    fun removeLayer(layer: AnimationLayer) = layers.remove(layer)
 }
