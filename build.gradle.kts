@@ -43,6 +43,10 @@ java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 }
 
+configurations {
+    implementation.get().extendsFrom(this["shadow"])
+}
+
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
     kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all", "-Xopt-in=kotlin.RequiresOptIn")

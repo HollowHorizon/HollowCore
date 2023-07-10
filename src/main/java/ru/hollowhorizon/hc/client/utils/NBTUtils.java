@@ -35,66 +35,7 @@ public class NBTUtils {
         }
     };
 
-    public static final HollowNBTSerializer<File> FILE_SERIALIZER = new HollowNBTSerializer<File>("file_serialiser") {
-        @Override
-        public File fromNBT(CompoundNBT nbt) {
-            String fileName = nbt.getString("name");
-            byte[] bytes = nbt.getByteArray("data");
 
-            Path path = FMLPaths.CONFIGDIR.get().resolve("hollow-core").resolve("cache").resolve(fileName);
-            File file = path.toFile();
-            HollowJavaUtils.initPath(file);
-            System.out.println("file path init: " + file);
-            try {
-                Files.write(path, bytes);
-            } catch (IOException e) {
-                HollowCore.LOGGER.error("Can't create file");
-                e.printStackTrace();
-            }
-
-            return file;
-        }
-
-        @Override
-        public CompoundNBT toNBT(File value) {
-            try {
-                InputStream stream = Files.newInputStream(value.toPath());
-                byte[] bytes = new byte[stream.available()];
-                DataInputStream dis = new DataInputStream(stream);
-                dis.readFully(bytes);
-                CompoundNBT nbt = new CompoundNBT();
-                nbt.putString("name", value.getName());
-                nbt.putByteArray("data", bytes);
-                return nbt;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return new CompoundNBT();
-            }
-        }
-    };
-
-    //    public static final HollowNBTSerializer<HollowCapability<?>> HOLLOW_CAPABILITY_SERIALIZER = new HollowNBTSerializer<HollowCapability<?>>("hollow_capability_serializer") {
-//        @Override
-//        public HollowCapability<?> fromNBT(CompoundNBT nbt) {
-//            String nbts = nbt.getString("cap");
-//
-//            String[] s = nbts.split(":");
-//            ResourceLocation location = new ResourceLocation(s[0], s[1]);
-//
-//            Capability<HollowCapability<?>> capability = HollowCapabilities.CAPABILITIES.get(location);
-//            HollowCapability<?> capabilityInstance = capability.getDefaultInstance();
-//            capabilityInstance.readNBT(nbt.getCompound("nbt"));
-//            return capabilityInstance;
-//        }
-//
-//        @Override
-//        public CompoundNBT toNBT(HollowCapability<?> value) {
-//            CompoundNBT compound = new CompoundNBT();
-//            compound.putString("cap", value.getRegistryName().toString());
-//            compound.put("nbt", value.writeNBT());
-//            return compound;
-//        }
-//    };
     public static final HollowNBTSerializer<Integer> INTEGER_SERIALIZER = new HollowNBTSerializer<Integer>("int") {
         @Override
         public Integer fromNBT(CompoundNBT nbt) {

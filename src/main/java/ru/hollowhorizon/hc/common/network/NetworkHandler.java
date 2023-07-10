@@ -36,20 +36,6 @@ public class NetworkHandler {
         }
 
         HollowCoreChannel.registerMessage(PACKET_INDEX++,
-                HollowPacketToClient.class,
-                HollowPacketToClient::encode,
-                HollowPacketToClient::decode,
-                HollowPacketToClient::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-
-        HollowCoreChannel.registerMessage(PACKET_INDEX++,
-                HollowPacketToServer.class,
-                HollowPacketToServer::encode,
-                HollowPacketToServer::decode,
-                HollowPacketToServer::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
-
-        HollowCoreChannel.registerMessage(PACKET_INDEX++,
                 UpdateStoryEventToServer.class,
                 UpdateStoryEventToServer::encode,
                 UpdateStoryEventToServer::decode,
