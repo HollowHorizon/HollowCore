@@ -11,13 +11,11 @@ import net.minecraftforge.fml.network.NetworkDirection
 import net.minecraftforge.fml.network.NetworkEvent
 import net.minecraftforge.fml.network.PacketDistributor
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
+import ru.hollowhorizon.hc.client.utils.JavaHacks
 import ru.hollowhorizon.hc.client.utils.mc
-import ru.hollowhorizon.hc.client.utils.nbt.CAPABILITY_SERIALIZER
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
-import ru.hollowhorizon.hc.common.capabilities.HollowCapability
 import java.util.*
 import java.util.function.Supplier
 
@@ -54,21 +52,17 @@ open class Packet<T>(val function: Packet<T>.(PlayerEntity, T) -> Unit) {
     open fun <E> encode(data: Packet<E>, buf: PacketBuffer) {
         if (data.value == null) throw IllegalStateException("Packet(${data::class.java}) value is null!")
 
-        val serializer = if (data.value is HollowCapability) CAPABILITY_SERIALIZER else NBTFormat
-
         buf.writeNbt(CompoundNBT().apply {
             put(
                 "data",
-                serializer.serializeNoInline(HollowJavaUtils.castDarkMagic(data.value), typeToken.rawType)
+                NBTFormat.serializeNoInline(JavaHacks.forceCast(data.value), typeToken.rawType)
             )
         })
     }
 
     @Suppress("UNCHECKED_CAST")
     open fun <E> decode(buf: PacketBuffer): Packet<E> {
-        val serializer =
-            if (typeToken.rawType.isAssignableFrom(HollowCapability::class.java)) CAPABILITY_SERIALIZER else NBTFormat
-        val data = serializer.deserializeNoInline(buf.readNbt()!!.get("data")!!, typeToken.rawType)
+        val data = NBTFormat.deserializeNoInline(buf.readNbt()!!.get("data")!!, typeToken.rawType)
         this.value = data.safeCast()
         return this as Packet<E>
     }

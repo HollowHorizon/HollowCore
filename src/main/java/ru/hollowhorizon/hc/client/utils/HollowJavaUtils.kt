@@ -28,11 +28,7 @@ object HollowJavaUtils {
         }
     }
 
-    @JvmStatic
-    @Suppress("UNCHECKED_CAST")
-    fun <R, K : R?> castDarkMagic(original: R): K {
-        return original as K
-    }
+
 
     @JvmStatic
     fun initPath(file: File) {

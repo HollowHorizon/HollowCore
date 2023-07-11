@@ -2,7 +2,6 @@ package ru.hollowhorizon.hc;
 
 import net.minecraft.client.gui.screen.MainMenuScreen;
 import net.minecraft.entity.Entity;
-import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.resources.IResourcePack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
@@ -32,7 +31,6 @@ import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
-import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat;
 import ru.hollowhorizon.hc.common.animations.AnimationManager;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2;
 import ru.hollowhorizon.hc.common.commands.HollowCommands;
@@ -41,13 +39,11 @@ import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
 import ru.hollowhorizon.hc.common.registry.*;
-import ru.hollowhorizon.hc.common.scripting.kotlin.TestKt;
 import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
 import ru.hollowhorizon.hc.common.world.storage.HollowWorldData;
 
 import java.util.ArrayList;
 
-import static ru.hollowhorizon.hc.common.objects.entities.data.AnimationDataParametersKt.ANIMATION_MANAGER;
 
 @HollowMod(HollowCore.MODID)
 @Mod(HollowCore.MODID)
@@ -112,11 +108,8 @@ public class HollowCore {
 
     //『Pre-Init』
     private void setup(final FMLCommonSetupEvent event) {
-        //GroovyScript.init();
-
         ModCapabilities.init();
         NetworkHandler.register();
-        DataSerializers.registerSerializer(ANIMATION_MANAGER);
 
         event.enqueueWork(ModStructures::postInit);
         event.enqueueWork(ModStructurePieces::registerPieces);

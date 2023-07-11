@@ -16,8 +16,8 @@ import net.minecraftforge.common.capabilities.ICapabilitySerializable
 import net.minecraftforge.common.util.LazyOptional
 import net.minecraftforge.fml.network.PacketDistributor
 import org.objectweb.asm.Type
-import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
-import ru.hollowhorizon.hc.client.utils.nbt.CAPABILITY_SERIALIZER
+import ru.hollowhorizon.hc.client.utils.JavaHacks.forceCast
+import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.deserialize
 import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
@@ -77,12 +77,12 @@ class HollowCapabilitySerializer<T : Any>(val cap: Capability<T>) : ICapabilityS
     }
 
     override fun serializeNBT(): INBT {
-        return CAPABILITY_SERIALIZER.serializeNoInline(instance, TypeToken.of(instance.javaClass).rawType)
+        return NBTFormat.serializeNoInline(instance, TypeToken.of(instance.javaClass).rawType)
     }
 
     @Suppress("UNCHECKED_CAST")
     override fun deserializeNBT(nbt: INBT) {
-        instance = CAPABILITY_SERIALIZER.deserializeNoInline(nbt, TypeToken.of(instance.javaClass).rawType) as T
+        instance = NBTFormat.deserializeNoInline(nbt, TypeToken.of(instance.javaClass).rawType) as T
     }
 }
 
@@ -117,11 +117,11 @@ fun <T : HollowCapability> register(clazz: Class<T>) {
 abstract class HollowCapability(val consumeDataFromClient: Boolean = false)
 
 fun <T : HollowCapability> T.serialize(): INBT {
-    return CAPABILITY_SERIALIZER.serializeNoInline(HollowJavaUtils.castDarkMagic(this), this::class.java)
+    return NBTFormat.serializeNoInline(forceCast(this), this::class.java)
 }
 
 fun deserialize(nbt: INBT): HollowCapability {
-    return CAPABILITY_SERIALIZER.deserialize(nbt)
+    return NBTFormat.deserialize(nbt)
 }
 
 fun HollowCapability.syncClient(playerEntity: PlayerEntity) {

@@ -17,18 +17,20 @@ import org.lwjgl.opengl.GL12
 import org.lwjgl.opengl.GL13
 import ru.hollowhorizon.hc.client.gltf.GlTFModelManager
 import ru.hollowhorizon.hc.client.gltf.IAnimatedEntity
-import ru.hollowhorizon.hc.client.gltf.animation.AnimationTypes
-import ru.hollowhorizon.hc.client.gltf.animation.GLTFAnimationManager
-import ru.hollowhorizon.hc.client.gltf.animation.PlayType
+import ru.hollowhorizon.hc.client.gltf.animations.AnimationLoader
+import ru.hollowhorizon.hc.client.gltf.animations.AnimationManager
+import ru.hollowhorizon.hc.client.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
-import ru.hollowhorizon.hc.common.capabilities.syncEntity
+import kotlin.properties.Delegates
 
 
 class GLTFEntityRenderer<T>(manager: EntityRendererManager) :
     EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimatedEntity {
-
-    var currentAnimation: String = ""
+    private var currentAnimation: String by Delegates.observable("") { property, oldValue, newValue ->
+        changed = oldValue != newValue
+    }
+    var changed = false
 
     override fun getTextureLocation(entity: T): ResourceLocation {
         return ResourceLocation("hc", "textures/entity/test_entity.png")
@@ -55,66 +57,63 @@ class GLTFEntityRenderer<T>(manager: EntityRendererManager) :
         })
 
         val templates = capability.animations
-        val manager = capability.manager
+        val manager = entity.animationManager ?: return
 
         updateAnimations(entity, manager, templates)
 
-        val autoAnimation = entity.animationList.find { it.name == this.currentAnimation }
-        autoAnimation?.update(entity.tickCount.toFloat(), PlayType.LOOPED)
-
-        val animation = manager.animationQueue.firstOrNull()
-        if (animation != null) {
-            val isEnded = entity.animationList.find { it.name == animation.name }
-                ?.update(animation.tick(partialTick), animation.playType) ?: false
-            if (isEnded) {
-                manager.animationQueue.removeFirst()
-
-                capability.syncEntity(entity)
-            }
+        if (changed && currentAnimation != "") {
+            manager.setAnimation(currentAnimation)
+            changed = false
         }
+
+        manager.update(partialTick)
     }
 
-    private fun updateAnimations(entity: T, manager: GLTFAnimationManager, templates: HashMap<AnimationTypes, String>) {
+    private fun updateAnimations(entity: T, manager: AnimationManager, templates: HashMap<AnimationType, String>) {
         if (!entity.isAlive) {
-            currentAnimation = templates.getOrDefault(AnimationTypes.DEATH, "")
+            currentAnimation = templates.getOrDefault(AnimationType.DEATH, "")
             return
         }
 
         if (entity is IFlyingAnimal) {
-            currentAnimation = templates.getOrDefault(AnimationTypes.FLY, "")
+            currentAnimation = templates.getOrDefault(AnimationType.FLY, "")
             return
         }
 
         if (entity.isSleeping) {
-            currentAnimation = templates.getOrDefault(AnimationTypes.SLEEP, "")
+            currentAnimation = templates.getOrDefault(AnimationType.SLEEP, "")
             return
         }
 
         if (entity.swinging) {
-            manager.addAnimation(templates.getOrDefault(AnimationTypes.SWING, ""), PlayType.ONCE)
+            val anim = AnimationLoader.createAnimation(
+                entity.renderedGltfModel?.gltfModel ?: return,
+                templates.getOrDefault(AnimationType.SWING, "")
+            ) ?: return
+            manager.addLayer(anim)
             return
         }
 
         if (entity.vehicle != null) {
-            currentAnimation = templates.getOrDefault(AnimationTypes.SIT, "")
+            currentAnimation = templates.getOrDefault(AnimationType.SIT, "")
             return
         }
 
         if (entity.fallFlyingTicks > 4) {
-            currentAnimation = templates.getOrDefault(AnimationTypes.FALL, "")
+            currentAnimation = templates.getOrDefault(AnimationType.FALL, "")
             return
         }
 
         currentAnimation = if (entity.animationSpeed > 0.01) {
             templates.getOrDefault(
-                if (entity.isVisuallySwimming) AnimationTypes.SWIM
-                else if (entity.animationSpeed > 1.5f) AnimationTypes.RUN
-                else if (entity.isShiftKeyDown) AnimationTypes.WALK_SNEAKED
-                else AnimationTypes.WALK, ""
+                if (entity.isVisuallySwimming) AnimationType.SWIM
+                else if (entity.animationSpeed > 1.5f) AnimationType.RUN
+                else if (entity.isShiftKeyDown) AnimationType.WALK_SNEAKED
+                else AnimationType.WALK, ""
             )
         } else {
             templates.getOrDefault(
-                if (entity.isShiftKeyDown) AnimationTypes.IDLE_SNEAKED else AnimationTypes.IDLE,
+                if (entity.isShiftKeyDown) AnimationType.IDLE_SNEAKED else AnimationType.IDLE,
                 ""
             )
         }

@@ -54,12 +54,16 @@ object CapabilityModule {
     }
 }
 
-val CAPABILITY_SERIALIZER by lazy { NBTFormat(CapabilityModule.build()) }
+val MAPPINGS_SERIALIZER by lazy { NBTFormat() }
 
 open class NBTFormat(context: SerializersModule = EmptySerializersModule()) : SerialFormat {
     override val serializersModule = context + TagModule
 
-    companion object Default : NBTFormat()
+    companion object Default : NBTFormat(CapabilityModule.build()) {
+        init {
+            HollowCore.LOGGER.info("Default Serializer loaded!")
+        }
+    }
 
     @Serializable
     data class Initializator(val value: String)

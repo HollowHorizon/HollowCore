@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.client.gltf;
 
-import de.javagl.jgltf.model.GltfModel;
 import de.javagl.jgltf.model.io.Buffers;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import net.minecraft.client.Minecraft;
@@ -11,13 +10,13 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.opengl.*;
+import ru.hollowhorizon.hc.client.gltf.animations.AnimationType;
 import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2Kt;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -64,6 +63,8 @@ public class GlTFModelManager {
                 GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
 
                 GL11.glPopAttrib();
+
+                AnimationType.load(model.gltfModel, capability);
 
                 return model;
             } catch (IOException e) {

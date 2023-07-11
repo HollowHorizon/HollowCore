@@ -3,13 +3,13 @@ package ru.hollowhorizon.hc.common.scripting.mappings
 
 import kotlinx.serialization.Serializable
 import org.objectweb.asm.tree.ClassNode
-import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
+import ru.hollowhorizon.hc.client.utils.nbt.MAPPINGS_SERIALIZER
 import ru.hollowhorizon.hc.client.utils.nbt.deserialize
 import ru.hollowhorizon.hc.client.utils.nbt.loadAsNBT
 
 object HollowMappings {
     @JvmField
-    val MAPPINGS = NBTFormat.deserialize<Mappings>(
+    val MAPPINGS = MAPPINGS_SERIALIZER.deserialize<Mappings>(
         (HollowMappings.javaClass.getResourceAsStream("/mappings.nbt")
             ?: throw IllegalStateException("Mappings file not found!"))
             .loadAsNBT()
