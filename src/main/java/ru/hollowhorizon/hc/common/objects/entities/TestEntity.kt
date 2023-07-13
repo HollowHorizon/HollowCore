@@ -9,13 +9,7 @@ import net.minecraftforge.common.capabilities.Capability
 import ru.hollowhorizon.hc.client.gltf.GlTFModelManager
 import ru.hollowhorizon.hc.client.gltf.IAnimatedEntity
 import ru.hollowhorizon.hc.client.gltf.RenderedGltfModel
-import ru.hollowhorizon.hc.client.gltf.animations.AnimationManager
-import ru.hollowhorizon.hc.client.gltf.animations.AnimationTarget
-import ru.hollowhorizon.hc.client.gltf.animations.CodeLayer
-import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability
-import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
-import ru.hollowhorizon.hc.common.capabilities.ICapabilitySyncer
-import ru.hollowhorizon.hc.common.capabilities.getCapability
+import ru.hollowhorizon.hc.common.capabilities.*
 
 class TestEntity(type: EntityType<TestEntity>, world: World) : MobEntity(type, world), IAnimatedEntity,
     ICapabilitySyncer {
@@ -30,7 +24,8 @@ class TestEntity(type: EntityType<TestEntity>, world: World) : MobEntity(type, w
     }
 
     override fun tick() {
-        this.navigation.moveTo(8.0, 56.0, 6.0, 0.3)
+
+        this.level.getNearestPlayer(this, -1.0)?.let { this.navigation.moveTo(it, 0.3) }
 
         super.tick()
     }
@@ -39,13 +34,18 @@ class TestEntity(type: EntityType<TestEntity>, world: World) : MobEntity(type, w
         if (capability == HollowCapabilityV2.get<AnimatedEntityCapability>() && level.isClientSide) {
             val animCapability = this.getCapability<AnimatedEntityCapability>()
 
-            renderedGltfModel = GlTFModelManager.getOrCreate(this, animCapability)
-            animationManager = AnimationManager(renderedGltfModel!!)
+            model = GlTFModelManager.getOrCreate(animCapability.model).apply {
+                manager.addAnimation("animation.npcsteve.happy")
+                manager.addAnimation("animation.npcsteve.blinking")
+            }
+
+
+
+            animCapability.syncEntity(this)
         }
     }
 
 
-    override var renderedGltfModel: RenderedGltfModel? = null
-    override var animationManager: AnimationManager? = null
+    override var model: RenderedGltfModel? = null
 
 }

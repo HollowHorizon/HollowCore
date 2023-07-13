@@ -46,7 +46,7 @@ public class GltfModels
      * @throws IllegalArgumentException If the given asset has an 
      * unknown version
      */
-    public static GltfModel create(AnimatedEntityCapability capability, GltfAsset gltfAsset)
+    public static GltfModel create(GltfAsset gltfAsset)
     {
         if (gltfAsset instanceof GltfAssetV1)
         {
@@ -56,7 +56,7 @@ public class GltfModels
         if (gltfAsset instanceof GltfAssetV2)
         {
             GltfAssetV2 gltfAssetV2 = (GltfAssetV2)gltfAsset;
-            return GltfModelCreatorV2.create(capability, gltfAssetV2);
+            return GltfModelCreatorV2.create(gltfAssetV2);
         }
         throw new IllegalArgumentException(
             "The glTF asset has an unknown version: " + gltfAsset);

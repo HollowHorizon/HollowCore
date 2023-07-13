@@ -35,41 +35,6 @@ public class NetworkHandler {
             );
         }
 
-        HollowCoreChannel.registerMessage(PACKET_INDEX++,
-                UpdateStoryEventToServer.class,
-                UpdateStoryEventToServer::encode,
-                UpdateStoryEventToServer::decode,
-                UpdateStoryEventToServer::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER));
-
-        HollowCoreChannel.registerMessage(PACKET_INDEX++,
-                UpdateStoryEventToClient.class,
-                UpdateStoryEventToClient::encode,
-                UpdateStoryEventToClient::decode,
-                UpdateStoryEventToClient::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-
-        HollowCoreChannel.registerMessage(PACKET_INDEX++,
-                StartStoryEventToClient.class,
-                StartStoryEventToClient::encode,
-                StartStoryEventToClient::decode,
-                StartStoryEventToClient::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-
-        HollowCoreChannel.registerMessage(PACKET_INDEX++,
-                StopStoryEventToClient.class,
-                StopStoryEventToClient::encode,
-                StopStoryEventToClient::decode,
-                StopStoryEventToClient::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-
-        HollowCoreChannel.registerMessage(PACKET_INDEX,
-                StartDialogueToClient.class,
-                StartDialogueToClient::encode,
-                StartDialogueToClient::decode,
-                StartDialogueToClient::onReceived,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-
         PACKET_TASKS.forEach(Runnable::run);
     }
 }

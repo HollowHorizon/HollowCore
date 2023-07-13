@@ -7,7 +7,6 @@ import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.StringTextComponent;
 import org.lwjgl.opengl.GL11;
-import ru.hollowhorizon.hc.client.screens.DialogueScreen;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -88,7 +87,6 @@ public class SliderWidget extends Widget {
         blit(stack, this.x, this.y, 0, 0, this.width, this.height, this.width, this.height);
         renderLeftArrow(stack, mouseX, mouseY);
         renderRightArrow(stack, mouseX, mouseY);
-        DialogueScreen.drawStringNoShadow(stack, Minecraft.getInstance().font, new StringTextComponent(sliderValue + ""), this.x + this.width / 2 - Minecraft.getInstance().font.width(sliderValue + "") / 2, this.y + this.height / 2 - 4, 0xFFFFFF, 0xFF);
         stack.popPose();
     }
 

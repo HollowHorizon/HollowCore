@@ -39,7 +39,6 @@ import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
 import ru.hollowhorizon.hc.common.registry.*;
-import ru.hollowhorizon.hc.common.story.events.StoryEventListener;
 import ru.hollowhorizon.hc.common.world.storage.HollowWorldData;
 
 import java.util.ArrayList;
@@ -128,7 +127,7 @@ public class HollowCore {
 
     //『Post-Init』
     private void loadEnd(final FMLLoadCompleteEvent event) {
-        StoryEventListener.init();
+
     }
 
     //『server』

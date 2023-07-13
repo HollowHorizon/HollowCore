@@ -131,7 +131,7 @@ fun HollowCapability.syncClient(playerEntity: PlayerEntity) {
 }
 
 fun HollowCapability.syncEntity(entity: Entity) {
-    if (entity.level.isClientSide && !this.consumeDataFromClient) return
+    if (entity.level.isClientSide && !this.consumeDataFromClient) return //С клиента нельзя обновлять серверную часть
 
     val packet = this.javaClass.createSyncPacketEntity()
     if (entity.level.isClientSide) {

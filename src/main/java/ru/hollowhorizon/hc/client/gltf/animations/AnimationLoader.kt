@@ -2,24 +2,18 @@ package ru.hollowhorizon.hc.client.gltf.animations
 
 import de.javagl.jgltf.model.*
 import de.javagl.jgltf.model.io.GltfModelReader
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.screen.IngameMenuScreen
 import net.minecraft.util.math.MathHelper
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.acos
 
-object AnimationLoader {
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val c = AnimatedEntityCapability()
-        val model = GltfModelReader().readWithoutReferences(c, HollowJavaUtils.getResource(c.model.rl))
-        //val anims = model.animationModels.map { createAnimation(it) }
 
-        //println(anims)
-    }
+object AnimationLoader {
 
     fun createAnimation(model: GltfModel, name: String): Animation? {
         return createAnimation(model.nodeModels, model.animationModels.find { it.name == name } ?: return null)
@@ -41,14 +35,25 @@ object AnimationLoader {
             }
 
             val target = AnimationTarget.valueOf(channel.path.uppercase())
-            return@mapNotNull AnimationData(target, readAnimationData(sampler, target, outputData, timeKeys).apply {
+            return@mapNotNull Pair(target, readAnimationData(sampler, target, outputData, timeKeys).apply {
                 this.node = channel.nodeModel
             })
         }
 
-        val data = animData.groupBy { it.interpolator.node }
+        val data = animData.groupBy { it.second.node }
+        val result = HashMap<NodeModel, AnimationData>()
 
-        return Animation(animationModel.name, data)
+        data.forEach { (key, values) ->
+            result[key] = AnimationData(
+                key,
+                values.find { it.first == AnimationTarget.TRANSLATION }?.second,
+                values.find { it.first == AnimationTarget.ROTATION }?.second,
+                values.find { it.first == AnimationTarget.SCALE }?.second,
+                values.find { it.first == AnimationTarget.WEIGHTS }?.second,
+            )
+        }
+
+        return Animation(animationModel.name, result)
     }
 
     private fun readAnimationData(
@@ -124,17 +129,10 @@ object AnimationLoader {
     }
 }
 
-private fun List<AnimationData>.merge(second: List<AnimationData>): List<AnimationData> {
-    val mutable = ArrayList(this)
-    mutable.removeIf { v -> second.any { v.target == it.target } }
-    mutable.addAll(second)
-    return mutable
-}
-
 abstract class Interpolator<T>(val keys: FloatArray, val values: Array<T>) {
-    abstract fun compute(time: Float, priority: Float): FloatArray
+    abstract fun compute(time: Float): FloatArray
 
-    val maxTime = keys.max()
+    val maxTime = keys.last()
 
     val Float.animIndex: Int
         get() {
@@ -148,14 +146,12 @@ abstract class Interpolator<T>(val keys: FloatArray, val values: Array<T>) {
     lateinit var node: NodeModel
 
     class Step(keys: FloatArray, values: Array<FloatArray>) : Interpolator<FloatArray>(keys, values) {
-        override fun compute(time: Float, priority: Float) = values[time.animIndex].copyOf().apply {
-            for (i in this.indices) this[i] *= priority
-        }
+        override fun compute(time: Float) = values[time.animIndex].copyOf()
 
     }
 
     class Linear(keys: FloatArray, values: Array<FloatArray>) : Interpolator<FloatArray>(keys, values) {
-        override fun compute(time: Float, priority: Float): FloatArray {
+        override fun compute(time: Float): FloatArray {
             if (time <= keys.first() || keys.size == 1) return values.first()
             else if (time >= keys.last()) return values.last()
             else {
@@ -169,14 +165,14 @@ abstract class Interpolator<T>(val keys: FloatArray, val values: Array<T>) {
                 return FloatArray(previousPoint.size) { i ->
                     val p = previousPoint[i]
                     val n = nextPoint[i]
-                    return@FloatArray (p + alpha * (n - p)) * priority
+                    return@FloatArray p + alpha * (n - p)
                 }
             }
         }
     }
 
     class SphericalLinear(keys: FloatArray, values: Array<FloatArray>) : Interpolator<FloatArray>(keys, values) {
-        override fun compute(time: Float, priority: Float): FloatArray {
+        override fun compute(time: Float): FloatArray {
             if (time <= keys.first() || keys.size == 1) return values.first()
             else if (time >= keys.last()) return values.last()
             else {
@@ -221,10 +217,10 @@ abstract class Interpolator<T>(val keys: FloatArray, val values: Array<T>) {
                 }
 
                 return floatArrayOf(
-                    (s0 * ax + s1 * bx) * priority,
-                    (s0 * ay + s1 * by) * priority,
-                    (s0 * az + s1 * bz) * priority,
-                    (s0 * aw + s1 * bw) * priority
+                    s0 * ax + s1 * bx,
+                    s0 * ay + s1 * by,
+                    s0 * az + s1 * bz,
+                    s0 * aw + s1 * bw
                 )
             }
         }
@@ -233,7 +229,7 @@ abstract class Interpolator<T>(val keys: FloatArray, val values: Array<T>) {
 
     class CubicSpline(keys: FloatArray, values: Array<Array<FloatArray>>) :
         Interpolator<Array<FloatArray>>(keys, values) {
-        override fun compute(time: Float, priority: Float): FloatArray {
+        override fun compute(time: Float): FloatArray {
             if (time <= keys.first() || keys.size == 1) return values.first()[1]
             else if (time >= keys.last()) return values.last()[1]
             else {
@@ -261,7 +257,7 @@ abstract class Interpolator<T>(val keys: FloatArray, val values: Array<T>) {
                     val pt = previousOutputTangent[i] * delta
                     val n = nextPoint[i]
                     val nt = nextInputTangent[i] * delta
-                    return@FloatArray (aa * p + ab * pt + ac * n + ad * nt) * priority
+                    return@FloatArray aa * p + ab * pt + ac * n + ad * nt
                 }
             }
         }

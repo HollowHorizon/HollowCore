@@ -29,7 +29,6 @@ import ru.hollowhorizon.hc.common.capabilities.HollowCapability;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2Kt;
 import ru.hollowhorizon.hc.common.capabilities.ICapabilityUpdater;
-import ru.hollowhorizon.hc.common.story.events.StoryEventStarter;
 
 public class HollowEventHandler {
     @HollowConfig("enable_blur")
@@ -115,7 +114,6 @@ public class HollowEventHandler {
 
         CutsceneStartHandler.startUncompletedCutscene(player);
 
-        StoryEventStarter.startAll(player);
 
         //update capabilities on clients
         for (Capability<?> cap : HollowCapabilityStorageV2.INSTANCE.getCapabilitiesForClass(PlayerEntity.class)) {

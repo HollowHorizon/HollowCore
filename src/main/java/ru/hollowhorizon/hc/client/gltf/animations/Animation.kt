@@ -4,17 +4,40 @@ import de.javagl.jgltf.model.GltfModel
 import de.javagl.jgltf.model.NodeModel
 import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability
 
-class Animation(val name: String, val animationData: Map<NodeModel, List<AnimationData>>) {
-    val maxTime = animationData.maxOf { data -> data.value.maxOfOrNull { it.interpolator.maxTime } ?: 0f }.let {
-        if (it == 0f) return@let 1f else it
+class Animation(val name: String, val animationData: Map<NodeModel, AnimationData>) {
+    val maxTime = animationData.maxOf { it.value.maxTime }.let {
+        if(it == 0f) 0.0001f else it
     }
 
-    fun hasNode(node: NodeModel) = animationData.contains(node)
+    fun hasNode(node: NodeModel, target: AnimationTarget): Boolean {
+        val data = animationData[node] ?: return false
 
-    fun compute(node: NodeModel, priority: Float, time: Float): Map<AnimationTarget, FloatArray> {
-        return animationData[node]?.associate { anim ->
-            anim.target to anim.interpolator.compute(time, priority)
-        } ?: emptyMap()
+        return when(target) {
+            AnimationTarget.TRANSLATION -> data.translation != null
+            AnimationTarget.ROTATION -> data.rotation != null
+            AnimationTarget.SCALE -> data.scale != null
+            AnimationTarget.WEIGHTS -> data.weights != null
+        }
+    }
+
+    fun compute(node: NodeModel, target: AnimationTarget, time: Float): FloatArray? {
+        return animationData[node]?.let {
+            when (target) {
+                AnimationTarget.TRANSLATION -> it.translation?.compute(time)
+                AnimationTarget.ROTATION -> it.rotation?.compute(time)
+                AnimationTarget.SCALE -> it.scale?.compute(time)
+                AnimationTarget.WEIGHTS -> it.weights?.compute(time)
+            }
+        }
+    }
+
+    fun apply(node: NodeModel, time: Float) {
+        animationData[node]?.let { anim ->
+            node.translation = anim.translation?.compute(time)
+            node.rotation = anim.rotation?.compute(time)
+            node.scale = anim.scale?.compute(time)
+            node.weights = anim.weights?.compute(time)
+        }
     }
 
     override fun toString() = name
@@ -22,12 +45,26 @@ class Animation(val name: String, val animationData: Map<NodeModel, List<Animati
     companion object {
         fun createFromPose(model: List<NodeModel>): Animation {
             return Animation("%BIND_POSE%", model.associate { node ->
-                val list = arrayListOf<AnimationData>()
-                if (node.translation != null) list.add(AnimationData(AnimationTarget.TRANSLATION, Interpolator.Step(floatArrayOf(0f), arrayOf(node.translation))))
-                if (node.rotation != null) list.add(AnimationData(AnimationTarget.ROTATION, Interpolator.Step(floatArrayOf(0f), arrayOf(node.rotation))))
-                if (node.scale != null) list.add(AnimationData(AnimationTarget.SCALE, Interpolator.Step(floatArrayOf(0f), arrayOf(node.scale))))
-                if (node.weights != null) list.add(AnimationData(AnimationTarget.WEIGHTS, Interpolator.Step(floatArrayOf(0f), arrayOf(node.weights))))
-                return@associate node to list
+
+                return@associate node to AnimationData(
+                    node,
+                    Interpolator.Step(
+                        floatArrayOf(0f),
+                        arrayOf(node.translation?.copyOf() ?: floatArrayOf(0f, 0f, 0f))
+                    ),
+                    Interpolator.Step(
+                        floatArrayOf(0f),
+                        arrayOf(node.rotation?.copyOf() ?: floatArrayOf(0f, 0f, 0f, 1f))
+                    ),
+                    Interpolator.Step(
+                        floatArrayOf(0f),
+                        arrayOf(node.scale?.copyOf() ?: floatArrayOf(1f, 1f, 1f))
+                    ),
+                    Interpolator.Step(
+                        floatArrayOf(0f),
+                        arrayOf(node.weights?.copyOf() ?: floatArrayOf())
+                    ),
+                )
             })
         }
     }
@@ -82,6 +119,26 @@ enum class PlayType {
     fun stopOnEnd(): Boolean = this == ONCE
 }
 
-class AnimationData(val target: AnimationTarget, val interpolator: Interpolator<*>)
+class AnimationData(
+    val node: NodeModel,
+    val translation: Interpolator<*>?,
+    val rotation: Interpolator<*>?,
+    val scale: Interpolator<*>?,
+    val weights: Interpolator<*>?
+) {
+    val maxTime = maxOf(
+        translation?.maxTime ?: 0f,
+        rotation?.maxTime ?: 0f,
+        scale?.maxTime ?: 0f,
+        weights?.maxTime ?: 0f,
+    )
+}
+
+class ComputeResult(
+    val translation: FloatArray?,
+    val rotation: FloatArray?,
+    val scale: FloatArray?,
+    val weights: FloatArray?,
+)
 
 enum class AnimationTarget { TRANSLATION, ROTATION, SCALE, WEIGHTS }

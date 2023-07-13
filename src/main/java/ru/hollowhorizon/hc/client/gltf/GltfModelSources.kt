@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.client.gltf
 
-import net.minecraft.client.Minecraft
 import net.minecraft.util.ResourceLocation
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
 import ru.hollowhorizon.hc.client.utils.rl
@@ -28,13 +27,10 @@ interface Source {
 }
 
 class ResourceLocationSource : Source {
-    override fun hasSource(data: String) = ResourceLocation.isValidResourceLocation(data)
+    override fun hasSource(data: String) =
+        ResourceLocation.isValidResourceLocation(data) && HollowJavaUtils.hasResource(data.rl)
 
     override fun getSource(data: String): InputStream {
-        val rl = data.rl
-
-        if(!HollowJavaUtils.hasResource(rl)) throw IOException("Model with path: $rl not found!")
-
         return HollowJavaUtils.getResource(data.rl)
     }
 }

@@ -68,11 +68,11 @@ public class GltfModelCreatorV2 {
      * @param gltfAsset The {@link GltfAssetV2}
      * @return The {@link GltfModel}
      */
-    public static DefaultGltfModel create(AnimatedEntityCapability capability, GltfAssetV2 gltfAsset) {
+    public static DefaultGltfModel create(GltfAssetV2 gltfAsset) {
         DefaultGltfModel gltfModel = new DefaultGltfModel();
         GltfModelCreatorV2 creator =
                 new GltfModelCreatorV2(gltfAsset, gltfModel);
-        creator.create(capability);
+        creator.create();
         return gltfModel;
     }
 
@@ -108,7 +108,7 @@ public class GltfModelCreatorV2 {
     /**
      * Create and initialize all models
      */
-    void create(AnimatedEntityCapability capability) {
+    void create() {
         transferGltfPropertyElements(gltf, gltfModel);
 
         createAccessorModels();
@@ -134,7 +134,7 @@ public class GltfModelCreatorV2 {
         initNodeModels();
         initSceneModels();
         initSkinModels();
-        initTextureModels(capability);
+        initTextureModels();
         initMaterialModels();
 
         initExtensionsModel();
@@ -917,7 +917,7 @@ public class GltfModelCreatorV2 {
     /**
      * Initialize the {@link TextureModel} instances
      */
-    private void initTextureModels(AnimatedEntityCapability capability) {
+    private void initTextureModels() {
         List<Texture> textures = Optionals.of(gltf.getTextures());
         for (int i = 0; i < textures.size(); i++) {
             Texture texture = textures.get(i);
@@ -930,13 +930,6 @@ public class GltfModelCreatorV2 {
             if (imageIndex != null) {
                 DefaultImageModel imageModel = gltfModel.getImageModel(imageIndex);
                 String name = texture.getName();
-
-                if (name != null) {
-                    HashMap<String, String> data = capability.getTextures();
-
-                    if (data.containsKey(name))
-                        imageModel.setImageData(GlTFModelManager.getInstance().getImageResource(data.get(name)));
-                }
 
                 textureModel.setImageModel(imageModel);
             }

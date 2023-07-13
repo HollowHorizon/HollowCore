@@ -1,33 +1,28 @@
 package ru.hollowhorizon.hc.client.gltf.animations
 
 import de.javagl.jgltf.model.NodeModel
-import net.minecraft.entity.LivingEntity
+import ru.hollowhorizon.hc.HollowCore
 
 interface ILayer {
-    val priority: Float
+    var priority: Float
 
-    fun compute(node: NodeModel, time: Float): Map<AnimationTarget, FloatArray>
+    fun compute(node: NodeModel, target: AnimationTarget, time: Float): FloatArray?
+
     fun update(partialTick: Float) {}
 }
 
-class AnimationLayer(val animation: Animation, override val priority: Float) : ILayer {
-    override fun compute(node: NodeModel, time: Float) =
-        animation.compute(node, priority, time % animation.maxTime)
-}
-
-class CodeLayer(
-    val action: (NodeModel) -> Map<AnimationTarget, FloatArray>,
-    override val priority: Float
-) : ILayer {
-    override fun compute(node: NodeModel, time: Float) = action(node)
+class AnimationLayer(val animation: Animation, override var priority: Float) : ILayer {
+    override fun compute(node: NodeModel, target: AnimationTarget, time: Float) =
+        animation.compute(node, target, time % animation.maxTime)
 
 }
 
 class SmoothLayer(
+    private var bindPose: Animation,
     private var first: Animation?,
     private var second: Animation?,
-    override val priority: Float,
-    private val switchTime: Float = 0.5f
+    override var priority: Float,
+    private val switchSpeed: Float = 2.0f
 ) : ILayer {
     private var switchPriority = 1.0f
     val current: Animation?
@@ -35,32 +30,50 @@ class SmoothLayer(
 
     override fun update(partialTick: Float) {
         if (switchPriority > 0f) {
-            switchPriority -= (switchTime * partialTick) / 60f
-            if (switchPriority < 0f) switchPriority = 0f
+            switchPriority -= (switchSpeed * partialTick) / 20f
+            if (switchPriority < 0f) {
+                HollowCore.LOGGER.info("COMPLETE!")
+                switchPriority = 0f
+            }
         }
     }
 
-    override fun compute(node: NodeModel, time: Float): Map<AnimationTarget, FloatArray> {
-        val f = first?.hasNode(node)
-        val s = second?.hasNode(node)
-        if (f != s) {
-            return if (f == true) {
-                emptyMap()
-            } else {
-                second!!.compute(node, 1.0f, time % second!!.maxTime)
-            }
-        }
+    override fun compute(node: NodeModel, target: AnimationTarget, time: Float): FloatArray? {
+        val f = first?.hasNode(node, target) ?: false
+        val s = second?.hasNode(node, target) ?: false
 
-        val c1 = first?.compute(node, switchPriority, time % first!!.maxTime) ?: emptyMap()
-        val c2 = second?.compute(node, 1.0f - switchPriority, time % second!!.maxTime) ?: emptyMap()
+        return if(f && s) blend(node, target, first!!, second!!, time)
+        else if(s && switchPriority < 1f) second!!.compute(node, target, time % second!!.maxTime)
+        else if(f && switchPriority > 0f) blend(node, target, first!!, bindPose, time)
+        else null
+    }
 
-        return listOf(c1, c2).flatMap { it.entries }.groupBy({ it.key }, { it.value })
-            .map { it.key to it.value.sumWithPriority(1.0f) }.toMap()
+    private fun blend(
+        node: NodeModel,
+        target: AnimationTarget,
+        first: Animation,
+        second: Animation,
+        time: Float
+    ): FloatArray? {
+        val c1 = first.compute(node, target, time % first.maxTime)
+        val c2 = second.compute(node, target, time % second.maxTime)
+
+        return blend(c1, c2, switchPriority)
     }
 
     fun push(animation: Animation) {
         first = second
         second = animation
         switchPriority = 1.0f
+        HollowCore.LOGGER.info("RESET!")
+    }
+}
+
+private fun blend(first: FloatArray?, second: FloatArray?, factor: Float): FloatArray? {
+    return if (first == null && second == null) null
+    else if(first != null && second == null || factor == 1f) first
+    else if(first == null || factor == 0f) second
+    else first.apply {
+        for(i in this.indices) this[i] = this[i] * factor + second!![i] * (1.0f - factor)
     }
 }

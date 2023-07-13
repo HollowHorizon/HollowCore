@@ -3,16 +3,13 @@ package ru.hollowhorizon.hc.client.gltf;
 import de.javagl.jgltf.model.io.Buffers;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
 import net.minecraft.resources.IResource;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.opengl.*;
-import ru.hollowhorizon.hc.client.gltf.animations.AnimationType;
 import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability;
-import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2Kt;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -23,16 +20,13 @@ import java.util.function.Supplier;
 
 public class GlTFModelManager {
     private static GlTFModelManager INSTANCE;
-
+    private final Map<ResourceLocation, Supplier<ByteBuffer>> loadedBufferResources = new HashMap<>();
+    private final Map<String, Supplier<ByteBuffer>> loadedImageResources = new HashMap<>();
+    private final Map<String, RenderedGltfModel> renderedModels = new HashMap<>();
+    private final boolean isOptiFineExist;
     private int glProgramSkinning = -1;
     private int defaultColorMap;
     private int defaultNormalMap;
-
-    private final Map<ResourceLocation, Supplier<ByteBuffer>> loadedBufferResources = new HashMap<>();
-    private final Map<String, Supplier<ByteBuffer>> loadedImageResources = new HashMap<>();
-    private final Map<IAnimatedEntity, RenderedGltfModel> renderedModels = new HashMap<>();
-
-    private final boolean isOptiFineExist;
 
     public GlTFModelManager() {
         INSTANCE = this;
@@ -40,8 +34,8 @@ public class GlTFModelManager {
         isOptiFineExist = ModList.get().isLoaded("optifine");
     }
 
-    public static RenderedGltfModel getOrCreate(IAnimatedEntity entity, AnimatedEntityCapability capability) {
-        return INSTANCE.renderedModels.computeIfAbsent(entity, (path) -> {
+    public static RenderedGltfModel getOrCreate(String modelPath) {
+        return INSTANCE.renderedModels.computeIfAbsent(modelPath, (path) -> {
             try {
                 GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, 0);
                 GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, 0);
@@ -50,9 +44,7 @@ public class GlTFModelManager {
 
                 GL11.glPushAttrib(GL11.GL_TEXTURE_BIT);
 
-                RenderedGltfModel model = new RenderedGltfModelGL40(new GltfModelReader().readWithoutReferences(capability, new BufferedInputStream(GLTFAdapter.prepare(GltfModelSources.getStream(capability.getModel()), capability))));
-
-                HollowCapabilityV2Kt.syncEntity(capability, (Entity) entity);
+                RenderedGltfModel model = new RenderedGltfModelGL40(new GltfModelReader().readWithoutReferences(new BufferedInputStream(GLTFAdapter.prepare(GltfModelSources.getStream(modelPath)))));
 
                 GL15.glBindBuffer(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 0);
                 GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, 0);
@@ -63,8 +55,6 @@ public class GlTFModelManager {
                 GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
 
                 GL11.glPopAttrib();
-
-                AnimationType.load(model.gltfModel, capability);
 
                 return model;
             } catch (IOException e) {
@@ -131,6 +121,10 @@ public class GlTFModelManager {
         });
     }
 
+    public static GlTFModelManager getInstance() {
+        return INSTANCE;
+    }
+
     public int getGlProgramSkinning() {
         return glProgramSkinning;
     }
@@ -179,12 +173,12 @@ public class GlTFModelManager {
                 @Override
                 public synchronized ByteBuffer get() {
                     if (bufferData == null) {
-						try {
-							bufferData = Buffers.create(IOUtils.toByteArray(new BufferedInputStream(GltfModelSources.INSTANCE.getStream(location))));
-						} catch (IOException e) {
-							throw new RuntimeException(e);
-						}
-					}
+                        try {
+                            bufferData = Buffers.create(IOUtils.toByteArray(new BufferedInputStream(GltfModelSources.INSTANCE.getStream(location))));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                     return bufferData;
                 }
 
@@ -195,9 +189,5 @@ public class GlTFModelManager {
 
     public boolean isShaderModActive() {
         return isOptiFineExist;
-    }
-
-    public static GlTFModelManager getInstance() {
-        return INSTANCE;
     }
 }

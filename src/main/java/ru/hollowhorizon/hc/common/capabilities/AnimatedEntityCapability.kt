@@ -7,7 +7,9 @@ import ru.hollowhorizon.hc.client.gltf.animations.AnimationType
 
 @HollowCapabilityV2(IAnimatedEntity::class)
 @Serializable
-class AnimatedEntityCapability : HollowCapability(true) {
+class AnimatedEntityCapability : HollowCapability() {
+    val animationsToStart = HashSet<String>()
+    val animationsToStop = HashSet<String>()
     var model = "hc:models/entity/npc.geo.gltf"
     var animations = HashMap<AnimationType, String>()
     var textures = HashMap<String, String>()

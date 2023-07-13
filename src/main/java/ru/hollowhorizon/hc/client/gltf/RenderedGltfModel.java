@@ -12,10 +12,12 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
 import ru.hollowhorizon.hc.HollowCore;
+import ru.hollowhorizon.hc.client.gltf.animations.AnimationManager;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.*;
+import java.util.function.Supplier;
 
 public class RenderedGltfModel {
 
@@ -85,16 +87,18 @@ public class RenderedGltfModel {
     protected final Map<MeshPrimitiveModel, AccessorModel> meshPrimitiveModelToTangentsAccessorModel = new IdentityHashMap<MeshPrimitiveModel, AccessorModel>();
     protected final Map<MeshPrimitiveModel, Pair<Map<String, AccessorModel>, List<Map<String, AccessorModel>>>> meshPrimitiveModelToUnindexed = new IdentityHashMap<MeshPrimitiveModel, Pair<Map<String, AccessorModel>, List<Map<String, AccessorModel>>>>();
     protected final Map<BufferViewModel, Integer> bufferViewModelToGlBufferView = new IdentityHashMap<BufferViewModel, Integer>();
-    protected final Map<TextureModel, Integer> textureModelToGlTexture = new IdentityHashMap<TextureModel, Integer>();
+    public final Map<TextureModel, Integer> textureModelToGlTexture = new IdentityHashMap<TextureModel, Integer>();
     protected final Map<Object, Material> extrasToMaterial = new IdentityHashMap<Object, Material>();
 
     public final GltfModel gltfModel;
 
     public final List<RenderedGltfScene> renderedGltfScenes;
+    public final AnimationManager manager;
 
     protected RenderedGltfModel(GltfModel gltfModel, List<RenderedGltfScene> renderedGltfScenes) {
         this.gltfModel = gltfModel;
         this.renderedGltfScenes = renderedGltfScenes;
+        this.manager = new AnimationManager(this);
     }
 
     public RenderedGltfModel(GltfModel gltfModel) {
@@ -103,7 +107,7 @@ public class RenderedGltfModel {
         renderedGltfScenes = new ArrayList<RenderedGltfScene>(sceneModels.size());
         ArrayList<Runnable> tasks = new ArrayList<>();
         processSceneModels(tasks, sceneModels);
-        //tasks.forEach(Runnable::run);
+        this.manager = new AnimationManager(this);
     }
 
     protected void processSceneModels(List<Runnable> gltfRenderData, List<SceneModel> sceneModels) {
@@ -2974,38 +2978,38 @@ public class RenderedGltfModel {
 
         public void initMaterialCommand(List<Runnable> gltfRenderData, RenderedGltfModel renderedModel) {
             List<TextureModel> textureModels = renderedModel.gltfModel.getTextureModels();
-            int colorMap = baseColorTexture == null ? GlTFModelManager.getInstance().getDefaultColorMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(baseColorTexture.index));
-            int normalMap = normalTexture == null ? GlTFModelManager.getInstance().getDefaultNormalMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(normalTexture.index));
-            int specularMap = specularTexture == null ? GlTFModelManager.getInstance().getDefaultSpecularMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(specularTexture.index));
+            Supplier<Integer> colorMap = () -> baseColorTexture == null ? GlTFModelManager.getInstance().getDefaultColorMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(baseColorTexture.index));
+            Supplier<Integer> normalMap = () -> normalTexture == null ? GlTFModelManager.getInstance().getDefaultNormalMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(normalTexture.index));
+            Supplier<Integer> specularMap = () -> specularTexture == null ? GlTFModelManager.getInstance().getDefaultSpecularMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(specularTexture.index));
             if (doubleSided) {
                 vanillaMaterialCommand = () -> {
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap.get());
                     GL11.glColor4f(baseColorFactor[0], baseColorFactor[1], baseColorFactor[2], baseColorFactor[3]);
                     GL11.glDisable(GL11.GL_CULL_FACE);
                 };
                 shaderModMaterialCommand = () -> {
                     GL13.glActiveTexture(COLOR_MAP_INDEX);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap.get());
                     GL13.glActiveTexture(NORMAL_MAP_INDEX);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, normalMap);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, normalMap.get());
                     GL13.glActiveTexture(SPECULAR_MAP_INDEX);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, specularMap);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, specularMap.get());
                     GL11.glColor4f(baseColorFactor[0], baseColorFactor[1], baseColorFactor[2], baseColorFactor[3]);
                     GL11.glDisable(GL11.GL_CULL_FACE);
                 };
             } else {
                 vanillaMaterialCommand = () -> {
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap.get());
                     GL11.glColor4f(baseColorFactor[0], baseColorFactor[1], baseColorFactor[2], baseColorFactor[3]);
                     GL11.glEnable(GL11.GL_CULL_FACE);
                 };
                 shaderModMaterialCommand = () -> {
                     GL13.glActiveTexture(COLOR_MAP_INDEX);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap.get());
                     GL13.glActiveTexture(NORMAL_MAP_INDEX);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, normalMap);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, normalMap.get());
                     GL13.glActiveTexture(SPECULAR_MAP_INDEX);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, specularMap);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, specularMap.get());
                     GL11.glColor4f(baseColorFactor[0], baseColorFactor[1], baseColorFactor[2], baseColorFactor[3]);
                     GL11.glEnable(GL11.GL_CULL_FACE);
                 };
@@ -3068,7 +3072,7 @@ public class RenderedGltfModel {
                 pixelData = PixelDatas.createErrorPixelData();
             }
 
-            Integer glTextureNew = GL11.glGenTextures();
+            int glTextureNew = GL11.glGenTextures();
             gltfRenderData.add(() -> GL11.glDeleteTextures(glTextureNew));
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, glTextureNew);
             GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, pixelData.getWidth(), pixelData.getHeight(), 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixelData.getPixelsRGBA());

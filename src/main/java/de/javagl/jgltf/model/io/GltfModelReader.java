@@ -62,7 +62,7 @@ public final class GltfModelReader
     {
         GltfAssetReader gltfAssetReader = new GltfAssetReader();
         GltfAsset gltfAsset = gltfAssetReader.read(uri);
-        return createModel(capability, gltfAsset);
+        return createModel(gltfAsset);
     }
 
     /**
@@ -76,7 +76,7 @@ public final class GltfModelReader
     {
         GltfAssetReader gltfAssetReader = new GltfAssetReader();
         GltfAsset gltfAsset = gltfAssetReader.read(path);
-        return createModel(capability, gltfAsset);
+        return createModel(gltfAsset);
     }
 
     /**
@@ -95,41 +95,40 @@ public final class GltfModelReader
     {
         try (InputStream inputStream = uri.toURL().openStream())
         {
-            GltfModel gltfModel = readWithoutReferences(capability, inputStream);
+            GltfModel gltfModel = readWithoutReferences(inputStream);
             return gltfModel;
         }
     }
     
     /**
      * Read the {@link GltfModel} from the given input stream. In contrast
-     * to the {@link #read(URI)} method, this method will not resolve any 
+     * to the {@link #read(URI)} method, this method will not resolve any
      * references that are contained in the {@link GltfAsset}. <br>
      * <br>
      * This is mainly intended for binary- or embedded glTF assets that do not
      * have external references.
-     * 
+     *
      * @param inputStream The input stream to read from
      * @return The {@link GltfModel}
      * @throws IOException If an IO error occurs
      */
-    public GltfModel readWithoutReferences(AnimatedEntityCapability capability, InputStream inputStream)
+    public GltfModel readWithoutReferences(InputStream inputStream)
         throws IOException
     {
         GltfAssetReader gltfAssetReader = new GltfAssetReader();
         GltfAsset gltfAsset = 
             gltfAssetReader.readWithoutReferences(inputStream);
-        return createModel(capability, gltfAsset);
+        return createModel(gltfAsset);
     }
     
     /**
      * Creates a {@link GltfModel} instance from the given {@link GltfAsset}
      *
-     * @param capability some data, for dynamically changing model data (like textures)
-     * @param gltfAsset  The {@link GltfAsset}
+     * @param gltfAsset The {@link GltfAsset}
      * @return The {@link GltfModel}
      * @throws IOException If the given asset has an unknown version
      */
-    private static GltfModel createModel(AnimatedEntityCapability capability, GltfAsset gltfAsset) throws IOException
+    private static GltfModel createModel(GltfAsset gltfAsset) throws IOException
     {
         if (gltfAsset instanceof GltfAssetV1)
         {
@@ -139,7 +138,7 @@ public final class GltfModelReader
         if (gltfAsset instanceof GltfAssetV2)
         {
             GltfAssetV2 gltfAssetV2 = (GltfAssetV2)gltfAsset;
-            return GltfModelCreatorV2.create(capability, gltfAssetV2);
+            return GltfModelCreatorV2.create(gltfAssetV2);
         }
         throw new IOException(
             "The glTF asset has an unknown version: " + gltfAsset);
