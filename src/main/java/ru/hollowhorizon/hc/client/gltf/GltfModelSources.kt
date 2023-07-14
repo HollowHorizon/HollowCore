@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.client.gltf
 
+import net.minecraft.server.MinecraftServer
 import net.minecraft.util.ResourceLocation
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
 import ru.hollowhorizon.hc.client.utils.rl
