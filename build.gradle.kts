@@ -39,7 +39,7 @@ version = "1.1.0"
 project.setProperty("archivesBaseName", "hc")
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 configurations {
@@ -47,12 +47,12 @@ configurations {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "17"
     kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all", "-Xopt-in=kotlin.RequiresOptIn")
 }
 
 configure<UserDevExtension> {
-    mappings("parchment", "2022.03.06-1.16.5")
+    mappings("parchment", "2023.06.26-1.19.4")
 
     accessTransformer("src/main/resources/META-INF/accesstransformer.cfg")
 
@@ -87,7 +87,7 @@ dependencies {
     val minecraft = configurations["minecraft"]
     val shadow = configurations["shadow"]
 
-    minecraft("net.minecraftforge:forge:1.16.5-36.2.39")
+    minecraft("net.minecraftforge:forge:1.19.4-45.1.16")
 
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
 
