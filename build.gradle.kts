@@ -87,7 +87,7 @@ dependencies {
     val minecraft = configurations["minecraft"]
     val shadow = configurations["shadow"]
 
-    minecraft("net.minecraftforge:forge:1.19.4-45.1.16")
+    minecraft("net.minecraftforge:forge:1.19.2-43.2.21")
 
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
 
