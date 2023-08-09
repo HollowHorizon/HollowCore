@@ -10,6 +10,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -31,6 +34,7 @@ import ru.hollowhorizon.hc.client.gltf.GltfModelSources;
 import ru.hollowhorizon.hc.client.gltf.PathSource;
 import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
+import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2;
@@ -76,6 +80,7 @@ public class HollowCore {
             //модели
             new GlTFModelManager();
             modBus.addListener(GlTFModelManager::clientSetup);
+            modBus.addListener(this::onRendererCreating);
 
             GPUMemoryManager.Companion.getInstance().initialize();
 
@@ -133,6 +138,10 @@ public class HollowCore {
         //event.put(ModEntities.TEST_ENTITY_V2, TestEntity.createMobAttributes().build());
     }
 
+    @OnlyIn(Dist.CLIENT)
+    private void onRendererCreating(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(ModEntities.TEST_ENTITY.get(), GLTFEntityRenderer::new);
+    }
 
     private void configSave(ServerStoppedEvent event) {
         HollowCoreConfig.save();

@@ -13,6 +13,7 @@ import net.minecraftforge.common.MinecraftForge
 import ru.hollowhorizon.hc.HollowCore
 
 object RenderFactoryBuilder {
+    @JvmStatic
     fun <T : Entity> buildEntity(entityType: EntityType<T>, rendererClass: Class<EntityRenderer<T>>) {
         MinecraftForge.EVENT_BUS.addListener<EntityRenderersEvent.RegisterRenderers> { event ->
             event.registerEntityRenderer(entityType) { manager ->
