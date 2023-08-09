@@ -40,6 +40,6 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "lasted"
           prerelease: false
-          title: "[AUTHOMATIC BUILD]"
+          title: "[AUTHOMATIC BUILD 1.16.5]"
           files: |
             build/libs/*.jar
