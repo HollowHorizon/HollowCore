@@ -1,13 +1,13 @@
 package ru.hollowhorizon.hc.common.objects.items;
 
-import net.minecraft.data.BlockStateVariantBuilder;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.IArmorMaterial;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.data.models.blockstates.PropertyDispatch;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.DeferredRegister;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
 
@@ -17,39 +17,40 @@ public class HollowArmor<T extends ArmorItem> {
     private final T legs;
     private final T boots;
 
-    public HollowArmor(BlockStateVariantBuilder.ITriFunction<IArmorMaterial, EquipmentSlotType, Item.Properties, T> armor, IArmorMaterial material, Item.Properties properties) {
-        this.helm = armor.apply(material, EquipmentSlotType.HEAD, properties);
-        this.chest = armor.apply(material, EquipmentSlotType.CHEST, properties);
-        this.legs = armor.apply(material, EquipmentSlotType.LEGS, properties);
-        this.boots = armor.apply(material, EquipmentSlotType.FEET, properties);
+    public HollowArmor(PropertyDispatch.TriFunction<ArmorMaterial, EquipmentSlot, Item.Properties, T> armor, ArmorMaterial material, Item.Properties properties) {
+        
+        this.helm = armor.apply(material, EquipmentSlot.HEAD, properties);
+        this.chest = armor.apply(material, EquipmentSlot.CHEST, properties);
+        this.legs = armor.apply(material, EquipmentSlot.LEGS, properties);
+        this.boots = armor.apply(material, EquipmentSlot.FEET, properties);
     }
 
     public static <T extends ArmorItem> boolean isFullSet(LivingEntity entity, HollowArmor<T> armor) {
-        ItemStack head = entity.getItemBySlot(EquipmentSlotType.HEAD);
-        ItemStack chest = entity.getItemBySlot(EquipmentSlotType.CHEST);
-        ItemStack legs = entity.getItemBySlot(EquipmentSlotType.LEGS);
-        ItemStack feet = entity.getItemBySlot(EquipmentSlotType.FEET);
+        ItemStack head = entity.getItemBySlot(EquipmentSlot.HEAD);
+        ItemStack chest = entity.getItemBySlot(EquipmentSlot.CHEST);
+        ItemStack legs = entity.getItemBySlot(EquipmentSlot.LEGS);
+        ItemStack feet = entity.getItemBySlot(EquipmentSlot.FEET);
 
         return head.getItem() == armor.helm && chest.getItem() == armor.chest && legs.getItem() == armor.legs && feet.getItem() == armor.boots;
     }
 
-    public static <T extends ArmorItem> void damagePart(LivingEntity entity, EquipmentSlotType target, int damage) {
+    public static <T extends ArmorItem> void damagePart(LivingEntity entity, EquipmentSlot target, int damage) {
         ItemStack armorItem = entity.getItemBySlot(target);
 
         armorItem.hurtAndBreak(damage, entity, (entity1 -> {}));
     }
 
-    public static <T extends ArmorItem> boolean hasPart(LivingEntity entity, HollowArmor<T> armor, EquipmentSlotType target) {
+    public static <T extends ArmorItem> boolean hasPart(LivingEntity entity, HollowArmor<T> armor, EquipmentSlot target) {
         ItemStack arm = entity.getItemBySlot(target);
 
         return arm.getItem() == armor.helm || arm.getItem() == armor.chest || arm.getItem() == armor.legs || arm.getItem() == armor.boots;
     }
 
     public static <T extends ArmorItem> boolean isContainsAnyPart(LivingEntity entity, HollowArmor<T> armor) {
-        ItemStack head = entity.getItemBySlot(EquipmentSlotType.HEAD);
-        ItemStack chest = entity.getItemBySlot(EquipmentSlotType.CHEST);
-        ItemStack legs = entity.getItemBySlot(EquipmentSlotType.LEGS);
-        ItemStack feet = entity.getItemBySlot(EquipmentSlotType.FEET);
+        ItemStack head = entity.getItemBySlot(EquipmentSlot.HEAD);
+        ItemStack chest = entity.getItemBySlot(EquipmentSlot.CHEST);
+        ItemStack legs = entity.getItemBySlot(EquipmentSlot.LEGS);
+        ItemStack feet = entity.getItemBySlot(EquipmentSlot.FEET);
 
         return head.getItem() == armor.helm || chest.getItem() == armor.chest || legs.getItem() == armor.legs || feet.getItem() == armor.boots;
     }

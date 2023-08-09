@@ -1,10 +1,11 @@
 package ru.hollowhorizon.hc.common.capabilities
 
-import net.minecraft.entity.Entity
-import net.minecraft.tileentity.TileEntity
-import net.minecraft.util.ResourceLocation
-import net.minecraft.world.World
-import net.minecraft.world.chunk.Chunk
+import net.minecraft.client.Minecraft
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.entity.BlockEntity
+import net.minecraft.world.level.chunk.ChunkAccess
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.event.AttachCapabilitiesEvent
 import ru.hollowhorizon.hc.client.utils.toRL
@@ -38,7 +39,7 @@ object HollowCapabilityStorageV2 {
     }
 
     @JvmStatic
-    fun registerProvidersWorld(event: AttachCapabilitiesEvent<World>) {
+    fun registerProvidersWorld(event: AttachCapabilitiesEvent<Level>) {
         providers.filter { it.first.isInstance(event.`object`) }.forEach {
             val inst = it.second()
             event.addCapability(inst.cap.createName(), inst)
@@ -46,7 +47,7 @@ object HollowCapabilityStorageV2 {
     }
 
     @JvmStatic
-    fun registerProvidersTile(event: AttachCapabilitiesEvent<TileEntity>) {
+    fun registerProvidersTile(event: AttachCapabilitiesEvent<BlockEntity>) {
         providers.filter { it.first.isInstance(event.`object`) }.forEach {
             val inst = it.second()
             event.addCapability(inst.cap.createName(), inst)
@@ -54,7 +55,7 @@ object HollowCapabilityStorageV2 {
     }
 
     @JvmStatic
-    fun registerProvidersChunk(event: AttachCapabilitiesEvent<Chunk>) {
+    fun registerProvidersChunk(event: AttachCapabilitiesEvent<ChunkAccess>) {
         providers.filter { it.first.isInstance(event.`object`) }.forEach {
             val inst = it.second()
             event.addCapability(inst.cap.createName(), inst)

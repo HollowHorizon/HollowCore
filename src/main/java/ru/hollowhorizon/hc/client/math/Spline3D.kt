@@ -1,10 +1,12 @@
 package ru.hollowhorizon.hc.client.math
 
-import com.mojang.blaze3d.matrix.MatrixStack
-import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import net.minecraft.util.math.vector.Vector3d
-import org.lwjgl.opengl.GL11
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.blaze3d.vertex.Tesselator
+import com.mojang.blaze3d.vertex.VertexFormat
+import com.mojang.math.Vector3d
+import net.minecraft.client.renderer.GameRenderer
 import ru.hollowhorizon.hc.client.render.OpenGLUtils
 import java.util.*
 import kotlin.math.abs
@@ -182,11 +184,12 @@ class Spline3D {
         return splineZ!!.getDx(t)
     }
 
-    fun draw(stack: MatrixStack) {
-        val tessellator = Tessellator.getInstance()
+    fun draw(stack: PoseStack) {
+        RenderSystem.setShader { GameRenderer.getPositionTexShader() }
+        val tessellator = Tesselator.getInstance()
         val bufferbuilder = tessellator.builder
 
-        bufferbuilder.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR)
+        bufferbuilder.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR)
 
         var last: Vector3d? = null
         for (i in 0..100) {

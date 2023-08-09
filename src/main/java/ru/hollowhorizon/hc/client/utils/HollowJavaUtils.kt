@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.client.utils
 
 import net.minecraft.client.Minecraft
-import net.minecraft.util.ResourceLocation
+import net.minecraft.resources.ResourceLocation
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import java.io.File
@@ -14,18 +14,14 @@ object HollowJavaUtils {
     @OnlyIn(Dist.CLIENT)
     fun getResource(location: ResourceLocation): InputStream {
         return try {
-            Minecraft.getInstance().resourceManager.getResource(location).inputStream
+            Minecraft.getInstance().resourceManager.getResource(location).orElseThrow().open()
         } catch (e: Exception) {
             Thread.currentThread().contextClassLoader.getResourceAsStream("assets/" + location.namespace + "/" + location.path) ?: throw FileNotFoundException("Resource $location not found!")
         }
     }
 
     fun hasResource(location: ResourceLocation): Boolean {
-        return try {
-            Minecraft.getInstance().resourceManager.hasResource(location)
-        } catch (ex: Exception) {
-            Thread.currentThread().contextClassLoader.getResourceAsStream("assets/" + location.namespace + "/" + location.path) != null
-        }
+        return Minecraft.getInstance().resourceManager.getResource(location).isPresent
     }
 
 

@@ -27,9 +27,9 @@ public class HollowKeyHandler {
         return String.format("key.%s.%s", MODID, name);
     }
 
-    public static void onKeyInput(InputEvent.KeyInputEvent event) {
+    public static void onKeyInput(InputEvent.Key event) {
         //if (OPEN_EVENT_LIST.isActiveAndMatches(InputMappings.getKey(event.getKey(), event.getScanCode())) && Minecraft.getInstance().screen == null) {
-            //Minecraft.getInstance().setScreen(new EventListScreen(new ArrayList<>()));
+        //Minecraft.getInstance().setScreen(new EventListScreen(new ArrayList<>()));
         //}
     }
 

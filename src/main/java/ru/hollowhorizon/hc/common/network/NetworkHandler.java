@@ -1,11 +1,11 @@
 package ru.hollowhorizon.hc.common.network;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 import ru.hollowhorizon.hc.common.network.messages.*;
 
 import java.util.ArrayList;
@@ -19,8 +19,8 @@ public class NetworkHandler {
     public static int PACKET_INDEX = 0;
     public static final List<Runnable> PACKET_TASKS = new ArrayList<>();
 
-    public static <MSG> void sendMessageToClient(MSG messageToClient, PlayerEntity player) {
-        HollowCoreChannel.sendTo(messageToClient, ((ServerPlayerEntity) player).connection.connection, NetworkDirection.PLAY_TO_CLIENT);
+    public static <MSG> void sendMessageToClient(MSG messageToClient, Player player) {
+        HollowCoreChannel.sendTo(messageToClient, ((ServerPlayer) player).connection.connection, NetworkDirection.PLAY_TO_CLIENT);
     }
 
     public static <MSG> void sendMessageToServer(MSG messageToServer) {

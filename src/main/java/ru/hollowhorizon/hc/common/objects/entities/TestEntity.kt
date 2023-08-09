@@ -1,26 +1,28 @@
 package ru.hollowhorizon.hc.common.objects.entities
 
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.MobEntity
-import net.minecraft.entity.ai.goal.LookRandomlyGoal
-import net.minecraft.potion.EffectInstance
-import net.minecraft.world.World
+import net.minecraft.client.renderer.EffectInstance
+import net.minecraft.world.effect.MobEffectInstance
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.Mob
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal
+import net.minecraft.world.level.Level
 import net.minecraftforge.common.capabilities.Capability
 import ru.hollowhorizon.hc.client.gltf.GlTFModelManager
 import ru.hollowhorizon.hc.client.gltf.IAnimatedEntity
 import ru.hollowhorizon.hc.client.gltf.RenderedGltfModel
 import ru.hollowhorizon.hc.common.capabilities.*
 
-class TestEntity(type: EntityType<TestEntity>, world: World) : MobEntity(type, world), IAnimatedEntity,
+class TestEntity(type: EntityType<TestEntity>, world: Level) : Mob(type, world), IAnimatedEntity,
     ICapabilitySyncer {
 
     override fun registerGoals() {
         super.registerGoals()
-        this.goalSelector.addGoal(1, LookRandomlyGoal(this))
+        this.goalSelector.addGoal(1, RandomLookAroundGoal(this))
     }
 
-    override fun onEffectAdded(effect: EffectInstance) {
-        super.onEffectAdded(effect)
+    override fun onEffectAdded(pInstance: MobEffectInstance, pEntity: Entity?) {
+        super.onEffectAdded(pInstance, pEntity)
     }
 
     override fun tick() {

@@ -1,30 +1,35 @@
 package ru.hollowhorizon.hc.common.objects.tiles;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.world.GameType;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 import ru.hollowhorizon.hc.common.registry.ModTileEntities;
 
-public class SaveObeliskTile extends HollowTileEntity implements ITickableTileEntity {
+public class SaveObeliskTile extends HollowTileEntity {
     private boolean isAnimating = false;
     private boolean isActivated = false;
 
-    public SaveObeliskTile() {
-        super(ModTileEntities.SAVE_OBELISK_TILE);
+    public SaveObeliskTile(BlockPos pos, BlockState state) {
+        super(ModTileEntities.SAVE_OBELISK_TILE, pos, state);
     }
 
-    @Override
-    public void tick() {
-        if (this.level != null) {
 
-            if (!this.level.isClientSide) {
-                ServerWorld world = (ServerWorld) this.level;
 
-                for (ServerPlayerEntity player : world.players()) {
+    public static <T extends BlockEntity> void tick(Level level, BlockPos pos, BlockState state, T tile) {
+        if (level != null) {
+
+            if (!level.isClientSide) {
+                ServerLevel world = (ServerLevel) level;
+
+                for (ServerPlayer player : world.players()) {
                     boolean isAdventureMode = player.gameMode.getGameModeForPlayer() == GameType.ADVENTURE;
-                    if (player.distanceToSqr(this.worldPosition.getX(), this.worldPosition.getY(), this.worldPosition.getZ()) > 64 * 64) {
+                    if (player.distanceToSqr(pos.getX(), pos.getY(), pos.getZ()) > 64 * 64) {
                         if (!isAdventureMode) {
                             player.setGameMode(GameType.ADVENTURE);
                         }
@@ -44,16 +49,18 @@ public class SaveObeliskTile extends HollowTileEntity implements ITickableTileEn
     }
 
     @Override
-    public void saveNBT(CompoundNBT nbt) {
+    public void saveNBT(CompoundTag nbt) {
         nbt.putBoolean("is_activated", isActivated);
     }
 
     @Override
-    public void loadNBT(CompoundNBT nbt) {
+    public void loadNBT(CompoundTag nbt) {
         if(nbt.contains("is_activated")) isActivated = nbt.getBoolean("is_activated");
     }
 
     public boolean isActivated() {
         return isActivated;
     }
+
+
 }

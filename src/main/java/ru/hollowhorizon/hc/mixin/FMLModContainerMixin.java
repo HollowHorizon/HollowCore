@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor;
 
@@ -25,12 +26,13 @@ public abstract class FMLModContainerMixin {
             remap = false
     )
     public void fmlModConstructingHook(CallbackInfo ci) {
+        HollowCore.LOGGER.info("Hook working!");
         FMLModContainer modContainer = (FMLModContainer) (Object) this;
         String modId = modContainer.getModId();
-        HollowModProcessor.INSTANCE.init();
+        //HollowModProcessor.INSTANCE.init();
         if (modClass.isAnnotationPresent(HollowMod.class)) {
-            HollowModProcessor.INSTANCE.run(modId, scanResults);
+            //HollowModProcessor.INSTANCE.run(modId, scanResults);
         }
-        HollowModProcessor.INSTANCE.postInit(modId);
+        //HollowModProcessor.INSTANCE.postInit(modId);
     }
 }

@@ -1,13 +1,12 @@
 package ru.hollowhorizon.hc.common.handlers;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import ru.hollowhorizon.hc.common.events.action.ActionPackage;
 import ru.hollowhorizon.hc.common.events.action.ActionStorage;
 import ru.hollowhorizon.hc.common.events.action.HollowAction;
@@ -25,11 +24,11 @@ public class DelayHandler {
         MinecraftForge.EVENT_BUS.addListener(DelayHandler::onPlayerLeave);
     }
 
-    public static void addDelayForAction(int ticks, HollowAction action, ServerPlayerEntity player) {
+    public static void addDelayForAction(int ticks, HollowAction action, ServerPlayer player) {
         addDelayForAction(ticks, ActionStorage.getName(action), player);
     }
 
-    public static void addDelayForAction(int ticks, String action, ServerPlayerEntity player) {
+    public static void addDelayForAction(int ticks, String action, ServerPlayer player) {
         if (actions.containsKey(player.getUUID().toString())) {
             ActionPackage pack = new ActionPackage(action, ticks);
             if (!actions.get(player.getUUID().toString()).contains(pack))
@@ -72,7 +71,7 @@ public class DelayHandler {
     }
 
     private static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-        PlayerEntity player = event.getPlayer();
+        var player = event.getEntity();
         String uuid = player.getUUID().toString();
         //if (!actions.containsKey(uuid)) actions.put(uuid, ActionsData.INSTANCE.getAllActions(player));
         //else {
@@ -84,7 +83,7 @@ public class DelayHandler {
     }
 
     private static void onPlayerLeave(PlayerEvent.PlayerLoggedOutEvent event) {
-        String playerId = event.getPlayer().getUUID().toString();
+        String playerId = event.getEntity().getUUID().toString();
 
         if (actions.containsKey(playerId)) {
             List<ActionPackage> pack = actions.get(playerId);
@@ -94,7 +93,7 @@ public class DelayHandler {
 
     }
 
-    private static void onServerStop(FMLServerStoppingEvent event) {
+    private static void onServerStop(ServerStoppedEvent event) {
         event.getServer().getPlayerList().getPlayers().forEach(player -> {
             if (actions.containsKey(player.getUUID().toString())) {
                 //actions.get(player.getUUID().toString()).forEach((pack) -> ActionsData.INSTANCE.addActionData(player.getUUID().toString(), pack.getAction(), pack.getDelay()));

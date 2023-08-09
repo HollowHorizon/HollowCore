@@ -1,10 +1,10 @@
 package ru.hollowhorizon.hc.client.screens.widget.list;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.StringTextComponent;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import ru.hollowhorizon.hc.client.screens.util.Alignment;
 import ru.hollowhorizon.hc.client.screens.util.WidgetPlacement;
 import ru.hollowhorizon.hc.client.screens.widget.HollowWidget;
@@ -15,19 +15,19 @@ import ru.hollowhorizon.hc.client.utils.ScissorUtil;
 import java.util.List;
 
 public class ListWidget extends HollowWidget {
-    private final List<Widget> listWidgets;
+    private final List<AbstractWidget> listWidgets;
     protected boolean autoSize = false;
     private VerticalSliderWidget slider;
     private int maxHeight;
     private int currentHeight = 0;
     private boolean isSliderInit = false;
 
-    public ListWidget(List<Widget> widgets) {
+    public ListWidget(List<AbstractWidget> widgets) {
         this(widgets, 0, 0, 0, 0);
     }
 
-    public ListWidget(List<Widget> widgets, int x, int y, int width, int height) {
-        super(x, y, width, height, new StringTextComponent("LIST_WIDGET"));
+    public ListWidget(List<AbstractWidget> widgets, int x, int y, int width, int height) {
+        super(x, y, width, height, Component.literal("LIST_WIDGET"));
 
         this.listWidgets = widgets;
 
@@ -35,7 +35,7 @@ public class ListWidget extends HollowWidget {
     }
 
     @Override
-    public void playDownSound(SoundHandler p_230988_1_) {
+    public void playDownSound(SoundManager p_230988_1_) {
     }
 
     @Override
@@ -43,7 +43,7 @@ public class ListWidget extends HollowWidget {
         initSlider();
 
         int y = 5;
-        for (Widget widget : listWidgets) {
+        for (AbstractWidget widget : listWidgets) {
             y += widget.getHeight() + 5;
         }
         y -= this.height;
@@ -52,7 +52,7 @@ public class ListWidget extends HollowWidget {
         this.widgets.clear();
 
         y = this.y + 5 - currentHeight;
-        for (Widget widget : listWidgets) {
+        for (AbstractWidget widget : listWidgets) {
             if (widget instanceof WidgetBox) {
                 WidgetBox box = (WidgetBox) widget;
 
@@ -74,7 +74,7 @@ public class ListWidget extends HollowWidget {
             }
         }
 
-        this.addWidgets(listWidgets.toArray(new Widget[0]));
+        this.addWidgets(listWidgets.toArray(new AbstractWidget[0]));
     }
 
     private void initSlider() {
@@ -91,7 +91,7 @@ public class ListWidget extends HollowWidget {
     }
 
     @Override
-    public void renderButton(MatrixStack stack, int mouseX, int mouseY, float ticks) {
+    public void renderButton(PoseStack stack, int mouseX, int mouseY, float ticks) {
         this.slider.render(stack, mouseX, mouseY, ticks);
 
         ScissorUtil.start(this.x, this.y, this.width, this.height);
@@ -119,7 +119,7 @@ public class ListWidget extends HollowWidget {
     public boolean mouseScrolled(double mouseX, double mouseY, double scroll) {
         if (maxHeight > 0) {
             currentHeight -= scroll * 5;
-            currentHeight = MathHelper.clamp(currentHeight, 0, maxHeight);
+            currentHeight = Mth.clamp(currentHeight, 0, maxHeight);
             if (this.slider != null) {
                 this.slider.setScroll(currentHeight / (maxHeight + 0.0F));
             }

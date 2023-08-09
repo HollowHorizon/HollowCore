@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.client.utils.math;
 
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Vector3f;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
 
 public class VectorHelper {
     static final Vector3f X_AXIS = new Vector3f(1.0F, 0.0F, 0.0F);

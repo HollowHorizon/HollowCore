@@ -2,12 +2,12 @@ package ru.hollowhorizon.hc.client.render.font
 
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
-import net.minecraft.client.renderer.GLAllocation
 import org.lwjgl.opengl.GL11
 import java.awt.image.BufferedImage
+import java.nio.ByteBuffer
 
 object TextureUtil {
-    private val DATA_BUFFER = GLAllocation.createByteBuffer(16777216).asIntBuffer()
+    private val DATA_BUFFER = ByteBuffer.allocateDirect(16777216).asIntBuffer()
 
     fun uploadTextureImage(textureId: Int, texture: BufferedImage): Int {
         return uploadTextureImageAllocate(textureId, texture, false, false)
@@ -23,7 +23,7 @@ object TextureUtil {
     }
 
     fun allocateTextureImpl(glTextureId: Int, mipmapLevels: Int, width: Int, height: Int) {
-        RenderSystem.assertThread { RenderSystem.isOnRenderThreadOrInit() }
+        RenderSystem.assertOnRenderThreadOrInit()
         RenderSystem.deleteTexture(glTextureId)
         GlStateManager._bindTexture(glTextureId)
         if (mipmapLevels >= 0) {

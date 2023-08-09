@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.client.screens
 
-import net.minecraft.client.gui.widget.TextFieldWidget
-import net.minecraft.client.gui.widget.button.Button
+import net.minecraft.client.gui.components.Button
+import net.minecraft.client.gui.components.EditBox
 import ru.hollowhorizon.hc.client.screens.util.Alignment
 import ru.hollowhorizon.hc.client.screens.widget.layout.PlacementType
 import ru.hollowhorizon.hc.client.screens.widget.layout.WidgetBuilder
@@ -112,7 +112,7 @@ class UIScreen : HollowScreen("".toSTC()) {
 
                     elements {
                         for(i in 0..10) {
-                            +TextFieldWidget(font, 0, 0, 90.pc.h().value * 4, 90.pc.h().value, "T${i}".mcText)
+                            +EditBox(font, 0, 0, 90.pc.h().value * 4, 90.pc.h().value, "T${i}".mcText)
                         }
                     }
                 }

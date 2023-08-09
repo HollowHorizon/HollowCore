@@ -1,59 +1,41 @@
 package ru.hollowhorizon.hc.common.objects.tiles;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SUpdateTileEntityPacket;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
 
-public abstract class HollowTileEntity extends TileEntity {
-    public HollowTileEntity(TileEntityType<?> tileEntityType) {
-        super(tileEntityType);
-    }
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 
-    //при загрузке тайла отправляет на клиент
-    public SUpdateTileEntityPacket getUpdatePacket() {
-        CompoundNBT nbt = new CompoundNBT();
-        this.save(nbt);
-
-        return new SUpdateTileEntityPacket(this.worldPosition, 42, nbt);
+public abstract class HollowTileEntity extends BlockEntity {
+    public HollowTileEntity(BlockEntityType<?> tileEntityType, BlockPos pos, BlockState state) {
+        super(tileEntityType, pos, state);
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket pkt) {
-        if (level != null) {
-            BlockState blockState = level.getBlockState(worldPosition);
-            this.load(blockState, pkt.getTag());
-        }
-    }
-
-    //создаёт тег
-    @Override
-    public CompoundNBT getUpdateTag() {
-        CompoundNBT nbt = new CompoundNBT();
-        this.save(nbt);
+    public CompoundTag getUpdateTag() {
+        CompoundTag nbt = new CompoundTag();
+        this.saveNBT(nbt);
         return nbt;
     }
 
-    //считывает информацию из nbt в этот класс
+
+    //при загрузке тайла отправляет на клиент
     @Override
-    public void handleUpdateTag(BlockState blockState, CompoundNBT lastTag) {
-        this.load(blockState, lastTag);
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override
-    public CompoundNBT save(CompoundNBT nbt) {
-        saveNBT(nbt);
-        return super.save(nbt);
-    }
-
-    @Override
-    public void load(BlockState state, CompoundNBT nbt) {
+    public void load(CompoundTag nbt) {
         loadNBT(nbt);
-        super.load(state, nbt);
+        super.load(nbt);
     }
 
-    public abstract void saveNBT(CompoundNBT nbt);
-    public abstract void loadNBT(CompoundNBT nbt);
+    public abstract void saveNBT(CompoundTag nbt);
+    public abstract void loadNBT(CompoundTag nbt);
 }

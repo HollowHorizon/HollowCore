@@ -1,11 +1,10 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
+import com.mojang.math.Quaternion
+import com.mojang.math.Vector3f
+import com.mojang.math.Vector4f
 import net.minecraft.client.renderer.texture.TextureManager
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.math.vector.Quaternion
-import net.minecraft.util.math.vector.Vector2f
-import net.minecraft.util.math.vector.Vector3f
-import net.minecraft.util.math.vector.Vector4f
+import net.minecraft.resources.ResourceLocation
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -72,7 +71,7 @@ object GltfTree {
         val b = buffer
         return when (listType) {
             GltfType.SCALAR -> List(count) { b.next(t) }
-            GltfType.VEC2 -> List(count) { Vector2f(b.next(t).toFloat(), b.next(t).toFloat()) }
+            GltfType.VEC2 -> List(count) { Pair(b.next(t).toFloat(), b.next(t).toFloat()) }
             GltfType.VEC3 -> List(count) { Vector3f(b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat()) }
             GltfType.VEC4 -> List(count) { Vector4f(b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat()) }
             GltfType.MAT2 -> error("Unsupported")

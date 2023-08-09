@@ -2,19 +2,21 @@ package ru.hollowhorizon.hc.common.capabilities
 
 import com.google.common.reflect.TypeToken
 import kotlinx.serialization.Serializable
-import net.minecraft.entity.Entity
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.entity.player.ServerPlayerEntity
-import net.minecraft.nbt.INBT
-import net.minecraft.util.Direction
-import net.minecraft.world.World
+import net.minecraft.core.Direction
+import net.minecraft.nbt.Tag
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
+import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.capabilities.Capability
-import net.minecraftforge.common.capabilities.Capability.IStorage
 import net.minecraftforge.common.capabilities.CapabilityManager
 import net.minecraftforge.common.capabilities.CapabilityProvider
 import net.minecraftforge.common.capabilities.ICapabilitySerializable
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent
 import net.minecraftforge.common.util.LazyOptional
-import net.minecraftforge.fml.network.PacketDistributor
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
+import net.minecraftforge.network.PacketDistributor
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.client.utils.JavaHacks.forceCast
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
@@ -55,18 +57,17 @@ inline fun <reified T : HollowCapability> CapabilityProvider<*>.useCapability(
         task(it)
         if (update) {
             when (this) {
-                is PlayerEntity -> it.syncClient(this)
+                is Player -> it.syncClient(this)
                 is Entity -> it.syncEntity(this)
-                is World -> it.syncWorld(*this.players().toTypedArray())
+                is Level -> it.syncWorld(*this.players().toTypedArray())
             }
         }
     }
 }
 
 @Suppress("UnstableApiUsage")
-class HollowCapabilitySerializer<T : Any>(val cap: Capability<T>) : ICapabilitySerializable<INBT> {
-    var instance: T = cap.defaultInstance
-        ?: throw NullPointerException("Default instance of capability ${cap.name} is null! May be you forgot to add default constructor?")
+class HollowCapabilitySerializer<T : Any>(val cap: Capability<T>) : ICapabilitySerializable<Tag> {
+    lateinit var instance: T
 
     @Suppress("unchecked_cast")
     override fun <T : Any> getCapability(cap: Capability<T>, side: Direction?): LazyOptional<T> {
@@ -76,55 +77,34 @@ class HollowCapabilitySerializer<T : Any>(val cap: Capability<T>) : ICapabilityS
         return LazyOptional.empty()
     }
 
-    override fun serializeNBT(): INBT {
+    override fun serializeNBT(): Tag {
         return NBTFormat.serializeNoInline(instance, TypeToken.of(instance.javaClass).rawType)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun deserializeNBT(nbt: INBT) {
+    override fun deserializeNBT(nbt: Tag) {
         instance = NBTFormat.deserializeNoInline(nbt, TypeToken.of(instance.javaClass).rawType) as T
     }
 }
 
 fun <T : HollowCapability> register(clazz: Class<T>) {
-    CapabilityManager.INSTANCE.register(
-        clazz,
-        object : IStorage<T> {
-            override fun writeNBT(
-                capability: Capability<T>,
-                instance: T,
-                side: Direction?,
-            ): INBT {
-                throw UnsupportedOperationException("HollowCapability serialization proceed by custom serializer, look HollowCapabilitySerializer class")
-            }
-
-            override fun readNBT(
-                capability: Capability<T>,
-                instance: T,
-                side: Direction?,
-                nbt: INBT,
-            ) {
-                throw UnsupportedOperationException("HollowCapability serialization proceed by custom serializer, look HollowCapabilitySerializer class")
-            }
-        }
-    ) {
-        clazz.getConstructor().newInstance()
-            ?: throw RuntimeException("Cannot create instance of Capability $clazz, Make default values of parameters")
+    FMLJavaModLoadingContext.get().modEventBus.addListener<RegisterCapabilitiesEvent> {
+        it.register(clazz)
     }
 }
 
 @Serializable
 abstract class HollowCapability(val consumeDataFromClient: Boolean = false)
 
-fun <T : HollowCapability> T.serialize(): INBT {
+fun <T : HollowCapability> T.serialize(): Tag {
     return NBTFormat.serializeNoInline(forceCast(this), this::class.java)
 }
 
-fun deserialize(nbt: INBT): HollowCapability {
+fun deserialize(nbt: Tag): HollowCapability {
     return NBTFormat.deserialize(nbt)
 }
 
-fun HollowCapability.syncClient(playerEntity: PlayerEntity) {
+fun HollowCapability.syncClient(playerEntity: Player) {
     if (playerEntity.level.isClientSide && !this.consumeDataFromClient) return //С клиента нельзя обновлять серверную часть
 
     this.javaClass.createSyncPacketPlayer().send(this, playerEntity)
@@ -141,15 +121,15 @@ fun HollowCapability.syncEntity(entity: Entity) {
     }
 }
 
-fun HollowCapability.syncWorld(vararg players: PlayerEntity) {
+fun HollowCapability.syncWorld(vararg players: Player) {
     if (players.first().level.isClientSide && !this.consumeDataFromClient) return //С клиента нельзя обновлять серверную часть
 
     val packet = this.javaClass.createSyncPacketClientLevel()
-    players.forEach { packet.send(this, PacketDistributor.PLAYER.with { it as ServerPlayerEntity }) }
+    players.forEach { packet.send(this, PacketDistributor.PLAYER.with { it as ServerPlayer }) }
 }
 
 //Пакет синхронизирующий данные моба у конкретного игрока
-fun HollowCapability.syncEntityForPlayer(entity: Entity, player: ServerPlayerEntity) {
+fun HollowCapability.syncEntityForPlayer(entity: Entity, player: ServerPlayer) {
     val packet = this.javaClass.createSyncPacketEntity()
     packet.send(CapabilityForEntity(this, entity.id), player)
 }

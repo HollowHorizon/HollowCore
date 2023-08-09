@@ -1,31 +1,32 @@
 package ru.hollowhorizon.hc.common.registry
 
-import net.minecraft.block.Block
-import net.minecraft.client.gui.screen.inventory.ContainerScreen
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
 import net.minecraft.client.renderer.entity.EntityRenderer
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer
-import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityType
-import net.minecraft.inventory.container.Container
-import net.minecraft.inventory.container.ContainerType
-import net.minecraft.item.BlockItem
-import net.minecraft.item.Item
-import net.minecraft.item.crafting.IRecipeSerializer
-import net.minecraft.particles.ParticleType
-import net.minecraft.tileentity.TileEntity
-import net.minecraft.tileentity.TileEntityType
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.SoundEvent
-import net.minecraft.world.gen.feature.structure.Structure
+import net.minecraft.core.particles.ParticleType
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.sounds.SoundEvent
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.inventory.MenuType
+import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.crafting.RecipeSerializer
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.entity.BlockEntity
+import net.minecraft.world.level.block.entity.BlockEntityType
+import net.minecraft.world.level.levelgen.feature.Feature
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraftforge.fml.ModLoadingContext
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.forgespi.language.ModFileScanData
 import net.minecraftforge.registries.DeferredRegister
 import net.minecraftforge.registries.ForgeRegistries
 import net.minecraftforge.registries.IForgeRegistry
-import net.minecraftforge.registries.IForgeRegistryEntry
+import net.minecraftforge.registries.NewRegistryEvent
+import net.minecraftforge.registries.RegisterEvent
+import net.minecraftforge.registries.RegistryObject
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.registy.HollowRegister
@@ -33,7 +34,6 @@ import ru.hollowhorizon.hc.api.utils.HollowCommand
 import ru.hollowhorizon.hc.client.render.entity.RenderFactoryBuilder
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.client.utils.HollowPack
-import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
 import ru.hollowhorizon.hc.common.commands.HollowCommands
@@ -52,22 +52,22 @@ import java.lang.reflect.Modifier
 
 object HollowModProcessor {
     private val ANNOTATIONS: HashMap<Type, (AnnotationContainer<*>) -> Unit> = hashMapOf()
+    private var isInitialized = false
 
     @Suppress("UNCHECKED_CAST")
-    fun init() {
+    private fun init() {
+        if(isInitialized) return
+        isInitialized = true
         registerHandler<HollowRegister> { cont ->
             cont.whenObjectTask = whenObjectTask@{ field ->
                 val name =
                     if (cont.annotation.value == "") cont.targetName.lowercase() else cont.annotation.value.lowercase()
+
                 val data = field.get(null)
                 val hasAutoModel = cont.annotation.auto_model
                 val model = cont.annotation.renderer
-                val hasModel = model != "" && FMLEnvironment.dist.isClient //всё что связано с рендером должно быть ТОЛЬКО на клиенте
-
-                //По идеи регистрация дважды не должна происходить, но на всякий случай
-                if (data is IForgeRegistryEntry<*> && data.registryName != null) {
-                    return@whenObjectTask
-                }
+                val hasModel =
+                    model != "" && FMLEnvironment.dist.isClient //всё что связано с рендером должно быть ТОЛЬКО на клиенте
 
                 when (data) {
                     is Block -> {
@@ -91,7 +91,7 @@ object HollowModProcessor {
                     }
 
                     is EntityType<*> -> {
-                        Registries.getRegistry(ForgeRegistries.ENTITIES, cont.modId).register(name) { data }
+                        Registries.getRegistry(ForgeRegistries.ENTITY_TYPES, cont.modId).register(name) { data }
 
                         if (hasModel) {
                             RenderFactoryBuilder.buildEntity(
@@ -101,21 +101,23 @@ object HollowModProcessor {
 
                     }
 
-                    is TileEntityType<*> -> {
-                        Registries.getRegistry(ForgeRegistries.TILE_ENTITIES, cont.modId).register(name) { data }
+                    is BlockEntityType<*> -> {
+                        Registries.getRegistry(ForgeRegistries.BLOCK_ENTITY_TYPES, cont.modId).register(name) { data }
 
                         if (hasModel) {
-                            RenderFactoryBuilder.buildTileEntity(data as TileEntityType<TileEntity>, Class.forName(model) as Class<TileEntityRenderer<TileEntity>>)
+                            RenderFactoryBuilder.buildTileEntity(
+                                data as BlockEntityType<BlockEntity>,
+                                Class.forName(model) as Class<BlockEntityRenderer<BlockEntity>>
+                            )
                         }
                     }
 
                     is SoundEvent -> {
-                        if (data.registryName != null) return@whenObjectTask
                         Registries.getRegistry(ForgeRegistries.SOUND_EVENTS, cont.modId).register(name) { data }
                     }
 
-                    is Structure<*> -> {
-                        Registries.getRegistry(ForgeRegistries.STRUCTURE_FEATURES, cont.modId).register(name) { data }
+                    is Feature<*> -> {
+                        Registries.getRegistry(ForgeRegistries.FEATURES, cont.modId).register(name) { data }
                     }
 
                     is HollowArmor<*> -> {
@@ -125,16 +127,13 @@ object HollowModProcessor {
                         data.registerItems(Registries.getRegistry(ForgeRegistries.ITEMS, cont.modId), name)
                     }
 
-                    is IRecipeSerializer<*> -> {
+                    is RecipeSerializer<*> -> {
                         Registries.getRegistry(ForgeRegistries.RECIPE_SERIALIZERS, cont.modId).register(name) { data }
                     }
 
-                    is ContainerType<*> -> {
-                        Registries.getRegistry(ForgeRegistries.CONTAINERS, cont.modId).register(name) { data }
+                    is MenuType<*> -> {
+                        Registries.getRegistry(ForgeRegistries.MENU_TYPES, cont.modId).register(name) { data }
 
-                        if (hasModel) {
-                            RenderFactoryBuilder.buildContainerScreen(data as ContainerType<Container>, Class.forName(model) as Class<ContainerScreen<Container>>)
-                        }
                     }
 
                     is ParticleType<*> -> {
@@ -170,15 +169,24 @@ object HollowModProcessor {
         }
     }
 
-    @Synchronized
-    fun run(modId: String, scanResults: ModFileScanData) {
+    @JvmStatic
+    fun initMod() {
+        init()
 
+        val container = ModLoadingContext.get().activeContainer
+
+        run(container.modId, container.modInfo.owningFile.file.scanResult)
+    }
+
+    @Synchronized
+    private fun run(modId: String, scanResults: ModFileScanData) {
+        HollowCore.LOGGER.info("Pre-loading: {}", modId)
 
         scanResults.annotations.stream().filter { it.annotationType in ANNOTATIONS.keys }.forEach { data ->
             val type = data.annotationType
 
-            try {
-                val containerClass = Class.forName(data.classType.className)
+            FMLJavaModLoadingContext.get().modEventBus.addListener<RegisterEvent> {
+                val containerClass = Class.forName(data.clazz.className)
 
                 when (data.targetType) {
                     ElementType.FIELD -> {
@@ -197,8 +205,6 @@ object HollowModProcessor {
                         HollowCore.LOGGER.error("Annotation target type ${data.targetType} not supported! Only FIELD, METHOD and TYPE are supported!")
                     }
                 }
-            } catch (e: Exception) {
-                HollowCore.LOGGER.info("Cant load class \"${data.classType.className}\". May be you forgot @OnlyIn(Dist.CLIENT) annotation?", e)
             }
         }
 
@@ -267,14 +273,6 @@ object HollowModProcessor {
     private inline fun <reified T : Any> registerHandler(noinline task: (AnnotationContainer<T>) -> Unit) {
         ANNOTATIONS[Type.getType(T::class.java)] = task as (AnnotationContainer<*>) -> Unit
     }
-
-    fun postInit(modId: String) {
-        if (modId != HollowCore.MODID) return
-
-        //Обработчик NBT первый раз грузится долго, поэтому его лучше загрузить в отдельном потоке
-        //Также важно, что он запускается ПОСЛЕ [HollowModProcessor], т.к. там добавляются данные для полиморфической сериализации!
-
-    }
 }
 
 private fun Field.isStatic(): Boolean {
@@ -289,7 +287,7 @@ object Registries {
     private val REGISTRIES: HashMap<IForgeRegistry<*>, HashMap<String, DeferredRegister<*>>> = hashMapOf()
 
     @Suppress("UNCHECKED_CAST")
-    fun <B : IForgeRegistryEntry<B>> getRegistry(registryType: IForgeRegistry<B>, modId: String): DeferredRegister<B> {
+    fun <B> getRegistry(registryType: IForgeRegistry<B>, modId: String): DeferredRegister<B> {
         val registriesFor = REGISTRIES.computeIfAbsent(registryType) { hashMapOf() }
 
         val registry = registriesFor.computeIfAbsent(modId) {

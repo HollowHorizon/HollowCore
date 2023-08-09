@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.client.screens.widget;
 
-import net.minecraft.util.text.StringTextComponent;
+
+import net.minecraft.network.chat.Component;
 
 public class WidgetBox extends HollowWidget {
     private final int sizeX;
@@ -11,7 +12,7 @@ public class WidgetBox extends HollowWidget {
     private final int boxSizeY;
 
     public WidgetBox(int x, int y, int width, int height, int sizeX, int sizeY, int boarderX, int boarderY) {
-        super(x, y, width, height, new StringTextComponent("WIDGET_BOX"));
+        super(x, y, width, height, Component.literal("WIDGET_BOX"));
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.boarderX = boarderX;

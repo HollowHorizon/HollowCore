@@ -7,23 +7,18 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.modules.SerializersModule
-import net.minecraft.nbt.ByteNBT
-import net.minecraft.nbt.CollectionNBT
-import net.minecraft.nbt.CompoundNBT
-import net.minecraft.nbt.INBT
-import net.minecraft.nbt.NumberNBT
-import net.minecraft.nbt.StringNBT
+import net.minecraft.nbt.*
 
-internal fun <T> NBTFormat.readNbt(element: INBT, deserializer: DeserializationStrategy<T>): T {
+internal fun <T> NBTFormat.readNbt(element: Tag, deserializer: DeserializationStrategy<T>): T {
     val input = when (element) {
-        is CompoundNBT -> NBTReader(this, element)
-        is CollectionNBT<*> -> TagListDecoder(this, element)
+        is CompoundTag -> NBTReader(this, element)
+        is CollectionTag<*> -> TagListDecoder(this, element)
         else -> TagPrimitiveReader(this, element)
     }
     return input.decodeSerializableValue(deserializer)
 }
 
-internal inline fun <reified T : INBT> cast(obj: INBT): T {
+internal inline fun <reified T : Tag> cast(obj: Tag): T {
     check(obj is T) { "Expected ${T::class} but found ${obj::class}" }
     return obj
 }
@@ -31,7 +26,7 @@ internal inline fun <reified T : INBT> cast(obj: INBT): T {
 private inline fun <reified T> Any.cast() = this as T
 
 @OptIn(ExperimentalSerializationApi::class)
-private sealed class AbstractNBTReader(val format: NBTFormat, open val map: INBT) : NamedValueNbtDecoder() {
+private sealed class AbstractNBTReader(val format: NBTFormat, open val map: Tag) : NamedValueNbtDecoder() {
 
     override val serializersModule: SerializersModule
         get() = format.serializersModule
@@ -62,11 +57,11 @@ private sealed class AbstractNBTReader(val format: NBTFormat, open val map: INBT
         }
     }
 
-    protected open fun getValue(tag: String): INBT {
+    protected open fun getValue(tag: String): Tag {
         return currentElement(tag)
     }
 
-    protected abstract fun currentElement(tag: String): INBT
+    protected abstract fun currentElement(tag: String): Tag
 
     override fun decodeTaggedChar(tag: String): Char {
         val o = getValue(tag)
@@ -83,7 +78,7 @@ private sealed class AbstractNBTReader(val format: NBTFormat, open val map: INBT
 
     override fun decodeTaggedNotNullMark(tag: String): Boolean {
         // If we don't do this assigment it fails. I have no clue why. This is a quantum bug, it cannot be debugged.
-        val byteValue = (currentElement(tag) as? ByteNBT)?.asByte
+        val byteValue = (currentElement(tag) as? ByteTag)?.asByte
         return byteValue != NbtFormatNull
     }
 
@@ -95,22 +90,22 @@ private sealed class AbstractNBTReader(val format: NBTFormat, open val map: INBT
     override fun decodeTaggedLong(tag: String) = getNumberValue(tag, { asLong }, { toLong() })
     override fun decodeTaggedFloat(tag: String) = getNumberValue(tag, { asFloat }, { toFloat() })
     override fun decodeTaggedDouble(tag: String) = getNumberValue(tag, { asDouble }, { toDouble() })
-    override fun decodeTaggedString(tag: String): String = getValue(tag).cast<StringNBT>().asString
+    override fun decodeTaggedString(tag: String): String = getValue(tag).cast<StringTag>().asString
 
-    override fun decodeTaggedTag(key: String): INBT = getValue(key)
+    override fun decodeTaggedTag(key: String): Tag = getValue(key)
 
     private inline fun <T> getNumberValue(
         tag: String,
-        getter: NumberNBT.() -> T,
+        getter: NumericTag.() -> T,
         stringGetter: String.() -> T
     ): T {
         val value = getValue(tag)
-        return if (value is NumberNBT) value.getter()
-        else value.cast<StringNBT>().asString.stringGetter()
+        return if (value is NumericTag) value.getter()
+        else value.cast<NumericTag>().asString.stringGetter()
     }
 }
 
-private open class NBTReader(json: NBTFormat, override val map: CompoundNBT) : AbstractNBTReader(json, map) {
+private open class NBTReader(json: NBTFormat, override val map: CompoundTag) : AbstractNBTReader(json, map) {
     private var position = 0
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -124,11 +119,11 @@ private open class NBTReader(json: NBTFormat, override val map: CompoundNBT) : A
         return CompositeDecoder.DECODE_DONE
     }
 
-    override fun currentElement(tag: String): INBT = map.get(tag)!!
+    override fun currentElement(tag: String): Tag = map.get(tag)!!
 
 }
 
-private class NbtMapDecoder(json: NBTFormat, override val map: CompoundNBT) : NBTReader(json, map) {
+private class NbtMapDecoder(json: NBTFormat, override val map: CompoundTag) : NBTReader(json, map) {
     private val keys = map.allKeys.toList()
     private val size: Int = keys.size * 2
     private var position = -1
@@ -146,8 +141,8 @@ private class NbtMapDecoder(json: NBTFormat, override val map: CompoundNBT) : NB
         return CompositeDecoder.DECODE_DONE
     }
 
-    override fun currentElement(tag: String): INBT {
-        return if (position % 2 == 0) StringNBT.valueOf(tag) else map.get(tag)!!
+    override fun currentElement(tag: String): Tag {
+        return if (position % 2 == 0) StringTag.valueOf(tag) else map.get(tag)!!
     }
 
     override fun endStructure(descriptor: SerialDescriptor) {
@@ -155,7 +150,7 @@ private class NbtMapDecoder(json: NBTFormat, override val map: CompoundNBT) : NB
     }
 }
 
-private class NullableListDecoder(json: NBTFormat, override val map: CompoundNBT) : NBTReader(json, map) {
+private class NullableListDecoder(json: NBTFormat, override val map: CompoundTag) : NBTReader(json, map) {
     private val size: Int = map.size()
     private var position = -1
 
@@ -170,7 +165,7 @@ private class NullableListDecoder(json: NBTFormat, override val map: CompoundNBT
         return CompositeDecoder.DECODE_DONE
     }
 
-    override fun currentElement(tag: String): INBT {
+    override fun currentElement(tag: String): Tag {
         return map[tag]!!
     }
 
@@ -179,13 +174,13 @@ private class NullableListDecoder(json: NBTFormat, override val map: CompoundNBT
     }
 }
 
-private class TagListDecoder(json: NBTFormat, override val map: CollectionNBT<*>) : AbstractNBTReader(json, map) {
+private class TagListDecoder(json: NBTFormat, override val map: CollectionTag<*>) : AbstractNBTReader(json, map) {
     private val size = map.size
     private var currentIndex = -1
 
     override fun elementName(descriptor: SerialDescriptor, index: Int): String = (index).toString()
 
-    override fun currentElement(tag: String): INBT {
+    override fun currentElement(tag: String): Tag {
         return map[tag.toInt()]
     }
 
@@ -200,14 +195,14 @@ private class TagListDecoder(json: NBTFormat, override val map: CollectionNBT<*>
 
 internal const val PRIMITIVE_TAG = "primitive"
 
-private class TagPrimitiveReader(json: NBTFormat, override val map: INBT) : AbstractNBTReader(json, map) {
+private class TagPrimitiveReader(json: NBTFormat, override val map: Tag) : AbstractNBTReader(json, map) {
 
     init {
         pushTag(PRIMITIVE_TAG)
     }
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int  = 0
 
-    override fun currentElement(tag: String): INBT {
+    override fun currentElement(tag: String): Tag {
         require(tag === PRIMITIVE_TAG) { "This input can only handle primitives with '$PRIMITIVE_TAG' tag" }
         return map
     }

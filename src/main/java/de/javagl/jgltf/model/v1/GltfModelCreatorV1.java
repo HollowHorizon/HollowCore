@@ -132,7 +132,7 @@ import de.javagl.jgltf.model.io.v1.GltfAssetV1;
 import de.javagl.jgltf.model.v1.gl.DefaultModels;
 import de.javagl.jgltf.model.v1.gl.GltfDefaults;
 import de.javagl.jgltf.model.v1.gl.TechniqueStatesFunctionsModels;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.lwjgl.BufferUtils;

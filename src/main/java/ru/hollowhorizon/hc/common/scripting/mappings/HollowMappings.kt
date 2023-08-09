@@ -6,18 +6,47 @@ import org.objectweb.asm.tree.ClassNode
 import ru.hollowhorizon.hc.client.utils.nbt.MAPPINGS_SERIALIZER
 import ru.hollowhorizon.hc.client.utils.nbt.deserialize
 import ru.hollowhorizon.hc.client.utils.nbt.loadAsNBT
+import java.io.DataInputStream
+import java.io.InputStream
 
 object HollowMappings {
     @JvmField
-    val MAPPINGS = MAPPINGS_SERIALIZER.deserialize<Mappings>(
-        (HollowMappings.javaClass.getResourceAsStream("/mappings.nbt")
+    val MAPPINGS = MAPPINGS_SERIALIZER.deserialize<Mappings>(run {
+        val stream = (HollowMappings.javaClass.getResourceAsStream("/mappings.nbt")
             ?: throw IllegalStateException("Mappings file not found!"))
-            .loadAsNBT()
+
+        return@run DataInputStream(stream).loadAsNBT()
+    }
     )
+}
+
+fun main() {
+    val mapping = Mappings.loadFromTSRG(Mappings.Companion::class.java.getResourceAsStream("/output.tsrg")!!)
+
+    println(mapping)
 }
 
 @Serializable
 data class Mappings(val mappings: HashSet<ClassMapping>) {
+    companion object {
+        fun loadFromTSRG(stream: InputStream): Mappings {
+            val mappings = HashSet<ClassMapping>()
+            var lastClass: ClassMapping? = null
+            stream.bufferedReader().forEachLine { line ->
+                if (!line.startsWith("\t")) { //Если идёт класс
+                    val data = line.replace("/", ".").replace("$", ".").split(" ")
+                    mappings.add(ClassMapping(data[0], data[1]).apply { lastClass = this })
+                } else if (!line.startsWith("\t\t")) { //Если идёт метод или параметр
+                    val data = line.substringAfter("\t").replace("/", ".").replace("$", ".").split(" ")
+                    if(data.size == 3) lastClass?.methods?.add(MethodMapping(data[0], data[2], data[1]))
+                    else lastClass?.fields?.add(FieldMapping(data[0], data[1]))
+                }
+            }
+            stream.close()
+            return Mappings(mappings)
+        }
+    }
+
     val fields = mappings.flatMap { it.fields.map { f -> f.srgName to f.mcpName } }.toMap()
     val methods = mappings.flatMap { it.methods.map { m -> m.srgName to m.mcpName } }.toMap()
 

@@ -1,8 +1,8 @@
 package ru.hollowhorizon.hc.client.render.shaders;
 
-import net.minecraft.resources.IResourceManager;
-import net.minecraft.resources.IResourceManagerReloadListener;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-public class AssetShaderObject extends AbstractShaderObject implements IResourceManagerReloadListener {
+public class AssetShaderObject extends AbstractShaderObject implements ResourceManagerReloadListener {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -32,7 +32,7 @@ public class AssetShaderObject extends AbstractShaderObject implements IResource
     }
 
     @Override
-    public void onResourceManagerReload(IResourceManager resourceManager) {
+    public void onResourceManagerReload(ResourceManager resourceManager) {
         source = null;
         dirty = true;
     }

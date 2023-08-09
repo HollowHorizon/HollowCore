@@ -1,7 +1,6 @@
 package ru.hollowhorizon.hc.client.utils;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
 
@@ -52,7 +51,7 @@ public class ScissorUtil {
         }
 
         public static ScissorBox fromScreenSpace(int x, int y, int width, int height) {
-            final MainWindow window = Minecraft.getInstance().getWindow();
+            var window = Minecraft.getInstance().getWindow();
             final double scale = window.getGuiScale();
             return new ScissorBox(
                     (int) (x * scale),

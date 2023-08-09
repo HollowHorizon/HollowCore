@@ -1,6 +1,6 @@
 package ru.hollowhorizon.hc.client.render.shaders;
 
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
 import java.util.function.Consumer;

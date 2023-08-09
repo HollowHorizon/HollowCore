@@ -1,10 +1,12 @@
 package ru.hollowhorizon.hc.client.screens.widget
 
-import com.mojang.blaze3d.matrix.MatrixStack
-import net.minecraft.client.audio.SoundHandler
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.gui.widget.Widget
-import net.minecraftforge.fml.client.gui.GuiUtils
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.client.gui.components.AbstractWidget
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
+import net.minecraft.client.sounds.SoundManager
+import net.minecraft.network.chat.Style
+import net.minecraft.util.FormattedCharSequence
 import ru.hollowhorizon.hc.client.utils.ScissorUtil
 import ru.hollowhorizon.hc.client.utils.toSTC
 
@@ -39,7 +41,7 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
         }
 
 
-    override fun renderButton(stack: MatrixStack, mouseX: Int, mouseY: Int, ticks: Float) {
+    override fun renderButton(stack: PoseStack, mouseX: Int, mouseY: Int, ticks: Float) {
         val originMX = mouseX.toOriginX()
         val originMY = mouseY.toOriginY()
 
@@ -55,19 +57,24 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
         ScissorUtil.pop()
 
         stack.popPose()
-        if (Screen.hasAltDown()) GuiUtils.drawHoveringText(
+
+
+        if (Screen.hasAltDown()) renderTooltipInternal(
             stack,
-            listOf("x$originMX y${-originMY}".toSTC()),
+            listOf(
+                ClientTooltipComponent.create(
+                    FormattedCharSequence.forward(
+                        "x$originMX y${-originMY}",
+                        Style.EMPTY
+                    )
+                )
+            ),
             mouseX,
-            mouseY,
-            width,
-            height,
-            -1,
-            font
+            mouseY
         )
     }
 
-    override fun renderWidget(widget: Widget, stack: MatrixStack, mouseX: Int, mouseY: Int, ticks: Float) {
+    override fun renderWidget(widget: AbstractWidget, stack: PoseStack, mouseX: Int, mouseY: Int, ticks: Float) {
         if (widget is IOriginBlackList) {
             stack.pushPose()
             stack.scale(1 / scale, 1 / scale, 1f)
@@ -88,7 +95,7 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
         return true
     }
 
-    override fun widgetMouseClicked(widget: Widget, mouseX: Double, mouseY: Double, button: Int): Boolean {
+    override fun widgetMouseClicked(widget: AbstractWidget, mouseX: Double, mouseY: Double, button: Int): Boolean {
         return if (widget is IOriginBlackList) {
             super.widgetMouseClicked(widget, mouseX, mouseY, button)
         } else {
@@ -103,7 +110,7 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
         return super.mouseReleased(mouseX, mouseY, button)
     }
 
-    override fun widgetMouseReleased(widget: Widget, mouseX: Double, mouseY: Double, button: Int): Boolean {
+    override fun widgetMouseReleased(widget: AbstractWidget, mouseX: Double, mouseY: Double, button: Int): Boolean {
         return if (widget is IOriginBlackList) {
             super.widgetMouseReleased(widget, mouseX, mouseY, button)
         } else {
@@ -122,7 +129,7 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
         super.mouseMoved(mouseX, mouseY)
     }
 
-    override fun widgetMouseMoved(widget: Widget, mouseX: Double, mouseY: Double) {
+    override fun widgetMouseMoved(widget: AbstractWidget, mouseX: Double, mouseY: Double) {
         if (widget is IOriginBlackList) {
             super.widgetMouseMoved(widget, mouseX, mouseY)
         } else {
@@ -131,7 +138,7 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
     }
 
     override fun widgetMouseDragged(
-        widget: Widget,
+        widget: AbstractWidget,
         mouseX: Double,
         mouseY: Double,
         button: Int,
@@ -154,7 +161,7 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
         return super.mouseScrolled(mouseX, mouseY, scroll)
     }
 
-    override fun widgetMouseScrolled(widget: Widget, mouseX: Double, mouseY: Double, scroll: Double): Boolean {
+    override fun widgetMouseScrolled(widget: AbstractWidget, mouseX: Double, mouseY: Double, scroll: Double): Boolean {
         return if (widget is IOriginBlackList) {
             super.widgetMouseScrolled(widget, mouseX, mouseY, scroll)
         } else {
@@ -162,7 +169,7 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
         }
     }
 
-    override fun playDownSound(p_230988_1_: SoundHandler) {
+    override fun playDownSound(p_230988_1_: SoundManager) {
         //звука не будет :)
     }
 

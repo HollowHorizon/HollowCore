@@ -1,28 +1,30 @@
 package ru.hollowhorizon.hc.client.screens;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.IGuiEventListener;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.Widget;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import ru.hollowhorizon.hc.client.screens.util.Alignment;
 import ru.hollowhorizon.hc.client.screens.widget.HollowWidget;
 import ru.hollowhorizon.hc.client.screens.widget.layout.ILayoutConsumer;
+import ru.hollowhorizon.hc.mixin.ScreenAccessor;
 
 public class HollowScreen extends Screen implements ILayoutConsumer {
     private TextureManager textureManager;
 
-    public HollowScreen(ITextComponent screenText) {
+    public HollowScreen(Component screenText) {
         super(screenText);
     }
 
     public HollowScreen() {
-        this(new StringTextComponent(""));
+        this(Component.literal(""));
     }
 
     @Override
@@ -32,13 +34,13 @@ public class HollowScreen extends Screen implements ILayoutConsumer {
 
     @Override
     public void mouseMoved(double mouseX, double mouseY) {
-        this.children.forEach(widget -> widget.mouseMoved(mouseX, mouseY));
+        ((ScreenAccessor) this).children().forEach(widget -> widget.mouseMoved(mouseX, mouseY));
         super.mouseMoved(mouseX, mouseY);
     }
 
     @Override
     public void tick() {
-        this.children.forEach(widget -> {
+        ((ScreenAccessor) this).children().forEach(widget -> {
             if (widget instanceof HollowWidget) ((HollowWidget) widget).tick();
         });
     }
@@ -60,10 +62,10 @@ public class HollowScreen extends Screen implements ILayoutConsumer {
     }
 
     public void bind(String modid, String path) {
-        this.textureManager.bind(new ResourceLocation(modid, "textures/" + path));
+        this.textureManager.bindForSetup(new ResourceLocation(modid, "textures/" + path));
     }
 
-    public void drawString(MatrixStack stack, ITextComponent text, Alignment alignment, int offsetX, int offsetY, int color) {
+    public void drawString(PoseStack stack, Component text, Alignment alignment, int offsetX, int offsetY, int color) {
         this.font.draw(
                 stack, text,
                 getAlignmentPosX(alignment, offsetX, this.width, this.font.width(text)),
@@ -72,7 +74,7 @@ public class HollowScreen extends Screen implements ILayoutConsumer {
         );
     }
 
-    public void drawString(MatrixStack stack, String text, Alignment positionAlignment, int offsetX, int offsetY, int color) {
+    public void drawString(PoseStack stack, String text, Alignment positionAlignment, int offsetX, int offsetY, int color) {
         this.font.draw(
                 stack, text,
                 getAlignmentPosX(positionAlignment, offsetX, this.width, this.font.width(text)),
@@ -81,19 +83,19 @@ public class HollowScreen extends Screen implements ILayoutConsumer {
         );
     }
 
-    public void betterBlit(MatrixStack stack, Alignment positionAlignment, int offsetX, int offsetY, int targetWidth, int targetHeight) {
+    public void betterBlit(PoseStack stack, Alignment positionAlignment, int offsetX, int offsetY, int targetWidth, int targetHeight) {
         betterBlit(stack, positionAlignment, offsetX, offsetY, targetWidth, targetHeight, targetWidth, targetHeight, 0, 0);
     }
 
-    public void betterBlit(MatrixStack stack, Alignment positionAlignment, int offsetX, int offsetY, int targetWidth, int targetHeight, float size) {
+    public void betterBlit(PoseStack stack, Alignment positionAlignment, int offsetX, int offsetY, int targetWidth, int targetHeight, float size) {
         betterBlit(stack, positionAlignment, offsetX, offsetY, targetWidth, targetHeight, targetWidth, targetHeight, 0, 0, size);
     }
 
-    public void betterBlit(MatrixStack stack, Alignment alignment, int offsetX, int offsetY, int targetWidth, int targetHeight, int imageWidth, int imageHeight, int texX, int texY) {
+    public void betterBlit(PoseStack stack, Alignment alignment, int offsetX, int offsetY, int targetWidth, int targetHeight, int imageWidth, int imageHeight, int texX, int texY) {
         betterBlit(stack, alignment, offsetX, offsetY, targetWidth, targetHeight, imageWidth, imageHeight, texX, texY, 1.0F);
     }
 
-    public void betterBlit(MatrixStack stack, Alignment alignment, int offsetX, int offsetY, int targetWidth, int targetHeight, int imageWidth, int imageHeight, int texX, int texY, float size) {
+    public void betterBlit(PoseStack stack, Alignment alignment, int offsetX, int offsetY, int targetWidth, int targetHeight, int imageWidth, int imageHeight, int texX, int texY, float size) {
         blit(
                 stack,
                 getAlignmentPosX(alignment, offsetX, this.width, targetWidth, size),
@@ -102,16 +104,16 @@ public class HollowScreen extends Screen implements ILayoutConsumer {
         );
     }
 
-    public void addButtons(Widget... widgets) {
-        for (Widget w : widgets) {
-            this.addButton(w);
+    public void addButtons(AbstractWidget... widgets) {
+        for (AbstractWidget w : widgets) {
+            this.addRenderableWidget(w);
         }
     }
 
     @Override
     public boolean mouseReleased(double p_231048_1_, double p_231048_3_, int p_231048_5_) {
         boolean value = false;
-        for (Widget widget : this.buttons) {
+        for (GuiEventListener widget : this.children()) {
             value = value || widget.mouseReleased(p_231048_1_, p_231048_3_, p_231048_5_);
         }
         return value;
@@ -120,19 +122,19 @@ public class HollowScreen extends Screen implements ILayoutConsumer {
     @Override
     public boolean mouseDragged(double p_231045_1_, double p_231045_3_, int p_231045_5_, double p_231045_6_, double p_231045_8_) {
         boolean value = false;
-        for (IGuiEventListener widget : this.children) {
+        for (GuiEventListener widget : this.children()) {
             value = value || widget.mouseDragged(p_231045_1_, p_231045_3_, p_231045_5_, p_231045_6_, p_231045_8_);
         }
         return value;
     }
 
-    public void betterFillGradient(MatrixStack stack, int x, int y, int width, int height, int color1, int color2) {
+    public void betterFillGradient(PoseStack stack, int x, int y, int width, int height, int color1, int color2) {
         fillGradient(stack, x, y, x + width, y + height, 0x66000000, 0xCC000000);
     }
 
     @Override
-    public void addLayoutWidget(@NotNull Widget widget) {
-        this.addButton(widget);
+    public void addLayoutWidget(@NotNull AbstractWidget widget) {
+        this.addRenderableWidget(widget);
     }
 
     @Override

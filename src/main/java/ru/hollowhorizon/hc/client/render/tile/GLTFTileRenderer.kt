@@ -1,15 +1,15 @@
 package ru.hollowhorizon.hc.client.render.tile
 
-import com.mojang.blaze3d.matrix.MatrixStack
-import net.minecraft.client.renderer.IRenderTypeBuffer
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher
-import net.minecraft.entity.LivingEntity
-import net.minecraft.tileentity.TileEntity
+
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
+import net.minecraft.world.level.block.entity.BlockEntity
 import ru.hollowhorizon.hc.client.gltf.IAnimatedEntity
 
-class GLTFTileRenderer<T>(dispatcher: TileEntityRendererDispatcher) :
-    TileEntityRenderer<T>(dispatcher) where T : TileEntity, T : IAnimatedEntity {
+class GLTFTileRenderer<T>(val dispatcher: BlockEntityRendererProvider.Context) :
+    BlockEntityRenderer<T> where T : BlockEntity, T : IAnimatedEntity {
 
 
     fun preRender(tile: T) {
@@ -29,8 +29,8 @@ class GLTFTileRenderer<T>(dispatcher: TileEntityRendererDispatcher) :
     override fun render(
         tile: T,
         particalTick: Float,
-        stack: MatrixStack,
-        p_225616_4_: IRenderTypeBuffer,
+        stack: PoseStack,
+        p_225616_4_: MultiBufferSource,
         p_225616_5_: Int,
         p_225616_6_: Int,
     ) {

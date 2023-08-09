@@ -1,22 +1,19 @@
 package ru.hollowhorizon.hc.client.utils
 
-import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.AbstractGui
-import net.minecraft.client.gui.FontRenderer
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.renderer.texture.Texture
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.CompoundNBT
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.text.ITextComponent
-import net.minecraft.util.text.StringTextComponent
-import net.minecraft.util.text.TranslationTextComponent
+import net.minecraft.client.gui.Font
+import net.minecraft.client.gui.GuiComponent.blit
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.renderer.texture.AbstractTexture
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStack
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.registries.IForgeRegistry
-import net.minecraftforge.registries.IForgeRegistryEntry
 import ru.hollowhorizon.hc.HollowCore
 import java.io.InputStream
 
@@ -41,19 +38,19 @@ fun ResourceLocation.toIS(): InputStream {
 val ResourceLocation.stream: InputStream
     get() = HollowJavaUtils.getResource(this)
 
-fun String.toSTC(): ITextComponent {
-    return StringTextComponent(this)
+fun String.toSTC(): Component {
+    return Component.literal(this)
 }
 
-val String.mcText: ITextComponent
-    get() = StringTextComponent(this)
+val String.mcText: Component
+    get() = Component.literal(this)
 
-fun String.toTTC(): ITextComponent {
-    return TranslationTextComponent(this)
+fun String.toTTC(): Component {
+    return Component.translatable(this)
 }
 
-val String.mcTranslate: ITextComponent
-    get() = TranslationTextComponent(this)
+val String.mcTranslate: Component
+    get() = Component.translatable(this)
 
 @OnlyIn(Dist.CLIENT)
 fun Screen.open() {
@@ -61,22 +58,22 @@ fun Screen.open() {
 }
 
 @OnlyIn(Dist.CLIENT)
-fun ResourceLocation.toTexture(): Texture {
-    val texture: Texture? = mc.textureManager.getTexture(this)
+fun ResourceLocation.toTexture(): AbstractTexture {
+    val texture: AbstractTexture? = mc.textureManager.getTexture(this)
     return if (texture == null) {
         HollowCore.LOGGER.warn("Texture \"$this\" not found")
-        mc.textureManager.getTexture("textures/block/beacon.png".toRL())!!
+        mc.textureManager.getTexture("textures/block/beacon.png".toRL())
     } else texture
 }
 
 @OnlyIn(Dist.CLIENT)
-fun Texture.render(stack: MatrixStack, x: Int, y: Int, width: Int, height: Int) {
+fun AbstractTexture.render(stack: PoseStack, x: Int, y: Int, width: Int, height: Int) {
     this.bind()
-    AbstractGui.blit(stack, x, y, 0F, 0F, width, height, width, height)
+    blit(stack, x, y, 0F, 0F, width, height, width, height)
 }
 
 @OnlyIn(Dist.CLIENT)
-fun FontRenderer.drawScaled(stack: MatrixStack, text: ITextComponent, x: Int, y: Int, color: Int, scale: Float) {
+fun Font.drawScaled(stack: PoseStack, text: Component, x: Int, y: Int, color: Int, scale: Float) {
     stack.pushPose()
     stack.translate((x).toDouble(), (y).toDouble(), 0.0)
     stack.scale(scale, scale, 0F)
@@ -85,7 +82,7 @@ fun FontRenderer.drawScaled(stack: MatrixStack, text: ITextComponent, x: Int, y:
 }
 
 @OnlyIn(Dist.CLIENT)
-fun FontRenderer.drawScaledEnd(stack: MatrixStack, text: ITextComponent, x: Int, y: Int, color: Int, scale: Float) {
+fun Font.drawScaledEnd(stack: PoseStack, text: Component, x: Int, y: Int, color: Int, scale: Float) {
     stack.pushPose()
     stack.translate((x).toDouble(), (y).toDouble(), 0.0)
     stack.scale(scale, scale, 0F)
@@ -94,7 +91,7 @@ fun FontRenderer.drawScaledEnd(stack: MatrixStack, text: ITextComponent, x: Int,
 }
 
 @OnlyIn(Dist.CLIENT)
-fun FontRenderer.drawCentredScaled(stack: MatrixStack, text: ITextComponent, x: Int, y: Int, color: Int, scale: Float) {
+fun Font.drawCentredScaled(stack: PoseStack, text: Component, x: Int, y: Int, color: Int, scale: Float) {
     stack.pushPose()
     stack.translate((x).toDouble(), (y).toDouble(), 0.0)
     stack.scale(scale, scale, 0F)
@@ -113,16 +110,16 @@ fun Int.toRGBA(): RGBA {
 
 data class RGBA(val r: Float, val g: Float, val b: Float, val a: Float)
 
-fun <V : IForgeRegistryEntry<V>> ResourceLocation.valueFrom(registry: IForgeRegistry<V>): V {
+fun <V> ResourceLocation.valueFrom(registry: IForgeRegistry<V>): V {
     return registry.getValue(this) ?: throw IllegalArgumentException("Value $this not found in registry $registry")
 }
 
-fun Item.stack(count: Int = 1, nbt: CompoundNBT? = null): ItemStack {
+fun Item.stack(count: Int = 1, nbt: CompoundTag? = null): ItemStack {
     return ItemStack(this, count, nbt)
 }
 
 @OnlyIn(Dist.CLIENT)
-fun MatrixStack.use(usable: MatrixStack.() -> Unit) {
+fun PoseStack.use(usable: PoseStack.() -> Unit) {
     this.pushPose()
     usable()
     this.popPose()

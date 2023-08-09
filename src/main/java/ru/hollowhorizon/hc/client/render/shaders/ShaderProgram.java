@@ -5,9 +5,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.shader.ShaderUniform;
-import net.minecraft.resources.IResourceManager;
-import net.minecraft.resources.IResourceManagerReloadListener;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import ru.hollowhorizon.hc.HollowCore;
@@ -19,7 +18,7 @@ import java.util.function.Consumer;
 import java.util.function.IntSupplier;
 
 
-public class ShaderProgram implements IResourceManagerReloadListener {
+public class ShaderProgram implements ResourceManagerReloadListener {
 
     private final List<ShaderObject> shaders;
     private final List<Uniform> uniforms;
@@ -74,7 +73,7 @@ public class ShaderProgram implements IResourceManagerReloadListener {
                 int j = intsupplier.getAsInt();
                 if (j != -1) {
                     RenderSystem.bindTexture(j);
-                    ShaderUniform.uploadInteger(this.samplerLocations.get(i), i);
+                    com.mojang.blaze3d.shaders.Uniform.uploadInteger(this.samplerLocations.get(i), i);
                 }
             }
         }
@@ -122,10 +121,10 @@ public class ShaderProgram implements IResourceManagerReloadListener {
 
     private void updateLocations() {
         this.samplerLocations.clear();
-        RenderSystem.assertThread(RenderSystem::isOnRenderThread);
+        RenderSystem.assertOnRenderThread();
 
         for (String s : this.samplerNames) {
-            int j = ShaderUniform.glGetUniformLocation(this.programId, s);
+            int j = com.mojang.blaze3d.shaders.Uniform.glGetUniformLocation(this.programId, s);
             if (j == -1) {
                 HollowCore.LOGGER.warn("Shader {} could not find sampler named {} in the specified shader program.", this.getProgramId(), s);
             } else {
@@ -152,10 +151,10 @@ public class ShaderProgram implements IResourceManagerReloadListener {
     }
 
     @Override
-    public void onResourceManagerReload(IResourceManager resourceManager) {
+    public void onResourceManagerReload(ResourceManager resourceManager) {
         for (ShaderObject shader : shaders) {
-            if (shader instanceof IResourceManagerReloadListener) {
-                ((IResourceManagerReloadListener) shader).onResourceManagerReload(resourceManager);
+            if (shader instanceof ResourceManagerReloadListener) {
+                ((ResourceManagerReloadListener) shader).onResourceManagerReload(resourceManager);
             }
         }
         compile();

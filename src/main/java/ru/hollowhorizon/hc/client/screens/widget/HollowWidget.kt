@@ -1,26 +1,32 @@
 package ru.hollowhorizon.hc.client.screens.widget
 
-import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.*
 import net.minecraft.client.Minecraft
-import net.minecraft.client.audio.SoundHandler
-import net.minecraft.client.gui.FontRenderer
-import net.minecraft.client.gui.widget.Widget
+import net.minecraft.client.gui.components.AbstractWidget
+import net.minecraft.client.gui.narration.NarrationElementOutput
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
+import net.minecraft.client.renderer.GameRenderer
+import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.texture.TextureManager
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.text.ITextComponent
+import net.minecraft.client.sounds.SoundManager
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.item.ItemStack
+import net.minecraftforge.client.ForgeHooksClient
 import ru.hollowhorizon.hc.client.screens.HollowScreen
 import ru.hollowhorizon.hc.client.screens.util.Alignment
 import ru.hollowhorizon.hc.client.screens.widget.layout.ILayoutConsumer
 
-open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComponent) :
-    Widget(x, y, width, height, text), ILayoutConsumer {
+open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: Component) :
+    AbstractWidget(x, y, width, height, text), ILayoutConsumer {
     @JvmField
-    val widgets = ArrayList<Widget>()
+    val widgets = ArrayList<AbstractWidget>()
     protected val textureManager: TextureManager = Minecraft.getInstance().textureManager
-    protected val font: FontRenderer = Minecraft.getInstance().font
+    protected val font = Minecraft.getInstance().font
     private var isInitialized = false
 
-    override fun renderButton(stack: MatrixStack, mouseX: Int, mouseY: Int, ticks: Float) {
+    override fun renderButton(stack: PoseStack, mouseX: Int, mouseY: Int, ticks: Float) {
         if (!isInitialized) {
             init()
             isInitialized = true
@@ -33,17 +39,17 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
         }
     }
 
-    open fun renderWidget(widget: Widget, stack: MatrixStack, mouseX: Int, mouseY: Int, ticks: Float) {
+    open fun renderWidget(widget: AbstractWidget, stack: PoseStack, mouseX: Int, mouseY: Int, ticks: Float) {
         widget.render(stack, mouseX, mouseY, ticks)
     }
 
     open fun init() {}
-    fun <T : Widget> addWidget(widget: T): T {
+    fun <T : AbstractWidget> addWidget(widget: T): T {
         widgets.add(widget)
         return widget
     }
 
-    fun addWidgets(vararg widgets: Widget) {
+    fun addWidgets(vararg widgets: AbstractWidget) {
         this.widgets.addAll(listOf(*widgets))
     }
 
@@ -58,7 +64,7 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
         return super.mouseClicked(mouseX, mouseY, button) || isClicked
     }
 
-    open fun widgetMouseClicked(widget: Widget, mouseX: Double, mouseY: Double, button: Int): Boolean {
+    open fun widgetMouseClicked(widget: AbstractWidget, mouseX: Double, mouseY: Double, button: Int): Boolean {
         return widget.mouseClicked(mouseX, mouseY, button)
     }
 
@@ -73,7 +79,7 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
         return super.mouseReleased(mouseX, mouseY, button) || isReleased
     }
 
-    open fun widgetMouseReleased(widget: Widget, mouseX: Double, mouseY: Double, button: Int): Boolean {
+    open fun widgetMouseReleased(widget: AbstractWidget, mouseX: Double, mouseY: Double, button: Int): Boolean {
         return widget.mouseReleased(mouseX, mouseY, button)
     }
 
@@ -90,7 +96,7 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
     }
 
     open fun widgetMouseDragged(
-        widget: Widget,
+        widget: AbstractWidget,
         mouseX: Double,
         mouseY: Double,
         button: Int,
@@ -111,7 +117,7 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
         return super.mouseScrolled(mouseX, mouseY, scroll) || isScrolled
     }
 
-    open fun widgetMouseScrolled(widget: Widget, mouseX: Double, mouseY: Double, scroll: Double): Boolean {
+    open fun widgetMouseScrolled(widget: AbstractWidget, mouseX: Double, mouseY: Double, scroll: Double): Boolean {
         return widget.mouseScrolled(mouseX, mouseY, scroll)
     }
 
@@ -125,7 +131,7 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
         super.mouseMoved(mouseX, mouseY)
     }
 
-    open fun widgetMouseMoved(widget: Widget, mouseX: Double, mouseY: Double) {
+    open fun widgetMouseMoved(widget: AbstractWidget, mouseX: Double, mouseY: Double) {
         widget.mouseMoved(mouseX, mouseY)
     }
 
@@ -162,19 +168,24 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
         return super.charTyped(character, p_231042_2_) || isTyped
     }
 
+    override fun updateNarration(pNarrationElementOutput: NarrationElementOutput) {
+
+    }
+
     fun bind(modid: String, path: String) {
-        textureManager.bind(ResourceLocation(modid, "textures/$path"))
+        textureManager.bindForSetup(ResourceLocation(modid, "textures/$path"))
     }
 
     fun bind(path: ResourceLocation) {
-        textureManager.bind(path)
+        textureManager.bindForSetup(path)
     }
 
-    override fun playDownSound(p_230988_1_: SoundHandler) {}
+
+    override fun playDownSound(pHandler: SoundManager) {}
 
     @JvmOverloads
     fun betterBlit(
-        stack: MatrixStack,
+        stack: PoseStack,
         alignment: Alignment,
         offsetX: Int,
         offsetY: Int,
@@ -223,8 +234,186 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
         }
     }
 
-    override fun addLayoutWidget(widget: Widget) {
+    override fun addLayoutWidget(widget: AbstractWidget) {
         this.addWidget(widget)
+    }
+
+    open fun renderTooltipInternal(
+        pPoseStack: PoseStack,
+        pClientTooltipComponents: List<ClientTooltipComponent>,
+        pMouseX: Int,
+        pMouseY: Int
+    ) {
+        if (!pClientTooltipComponents.isEmpty()) {
+            val preEvent = ForgeHooksClient.onRenderTooltipPre(
+                ItemStack.EMPTY,
+                pPoseStack,
+                pMouseX,
+                pMouseY,
+                width,
+                height,
+                pClientTooltipComponents,
+                this.font,
+                font
+            )
+            if (preEvent.isCanceled) return
+            var i = 0
+            var j = if (pClientTooltipComponents.size == 1) -2 else 0
+            for (clienttooltipcomponent in pClientTooltipComponents) {
+                val k = clienttooltipcomponent.getWidth(preEvent.font)
+                if (k > i) {
+                    i = k
+                }
+                j += clienttooltipcomponent.height
+            }
+            var j2 = preEvent.x + 12
+            var k2 = preEvent.y - 12
+            if (j2 + i > width) {
+                j2 -= 28 + i
+            }
+            if (k2 + j + 6 > height) {
+                k2 = height - j - 6
+            }
+            pPoseStack.pushPose()
+            val f: Float = Minecraft.getInstance().itemRenderer.blitOffset
+            Minecraft.getInstance().itemRenderer.blitOffset = 400.0f
+            val tesselator = Tesselator.getInstance()
+            val bufferbuilder = tesselator.builder
+            RenderSystem.setShader { GameRenderer.getPositionColorShader() }
+            bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR)
+            val matrix4f = pPoseStack.last().pose()
+            val colorEvent = ForgeHooksClient.onRenderTooltipColor(
+                ItemStack.EMPTY,
+                pPoseStack,
+                j2,
+                k2,
+                preEvent.font,
+                pClientTooltipComponents
+            )
+            fillGradient(
+                matrix4f,
+                bufferbuilder,
+                j2 - 3,
+                k2 - 4,
+                j2 + i + 3,
+                k2 - 3,
+                400,
+                colorEvent.backgroundStart,
+                colorEvent.backgroundStart
+            )
+            fillGradient(
+                matrix4f,
+                bufferbuilder,
+                j2 - 3,
+                k2 + j + 3,
+                j2 + i + 3,
+                k2 + j + 4,
+                400,
+                colorEvent.backgroundEnd,
+                colorEvent.backgroundEnd
+            )
+            fillGradient(
+                matrix4f,
+                bufferbuilder,
+                j2 - 3,
+                k2 - 3,
+                j2 + i + 3,
+                k2 + j + 3,
+                400,
+                colorEvent.backgroundStart,
+                colorEvent.backgroundEnd
+            )
+            fillGradient(
+                matrix4f,
+                bufferbuilder,
+                j2 - 4,
+                k2 - 3,
+                j2 - 3,
+                k2 + j + 3,
+                400,
+                colorEvent.backgroundStart,
+                colorEvent.backgroundEnd
+            )
+            fillGradient(
+                matrix4f,
+                bufferbuilder,
+                j2 + i + 3,
+                k2 - 3,
+                j2 + i + 4,
+                k2 + j + 3,
+                400,
+                colorEvent.backgroundStart,
+                colorEvent.backgroundEnd
+            )
+            fillGradient(
+                matrix4f,
+                bufferbuilder,
+                j2 - 3,
+                k2 - 3 + 1,
+                j2 - 3 + 1,
+                k2 + j + 3 - 1,
+                400,
+                colorEvent.borderStart,
+                colorEvent.borderEnd
+            )
+            fillGradient(
+                matrix4f,
+                bufferbuilder,
+                j2 + i + 2,
+                k2 - 3 + 1,
+                j2 + i + 3,
+                k2 + j + 3 - 1,
+                400,
+                colorEvent.borderStart,
+                colorEvent.borderEnd
+            )
+            fillGradient(
+                matrix4f,
+                bufferbuilder,
+                j2 - 3,
+                k2 - 3,
+                j2 + i + 3,
+                k2 - 3 + 1,
+                400,
+                colorEvent.borderStart,
+                colorEvent.borderStart
+            )
+            fillGradient(
+                matrix4f,
+                bufferbuilder,
+                j2 - 3,
+                k2 + j + 2,
+                j2 + i + 3,
+                k2 + j + 3,
+                400,
+                colorEvent.borderEnd,
+                colorEvent.borderEnd
+            )
+            RenderSystem.enableDepthTest()
+            RenderSystem.disableTexture()
+            RenderSystem.enableBlend()
+            RenderSystem.defaultBlendFunc()
+            BufferUploader.drawWithShader(bufferbuilder.end())
+            RenderSystem.disableBlend()
+            RenderSystem.enableTexture()
+            val source = MultiBufferSource.immediate(Tesselator.getInstance().builder)
+            pPoseStack.translate(0.0, 0.0, 400.0)
+            var l1 = k2
+            for (i2 in pClientTooltipComponents.indices) {
+                val component = pClientTooltipComponents[i2]
+                component.renderText(preEvent.font, j2, l1, matrix4f, source)
+                l1 += component.height + if (i2 == 0) 2 else 0
+            }
+            source.endBatch()
+            pPoseStack.popPose()
+            l1 = k2
+            for (l2 in pClientTooltipComponents.indices) {
+                val component = pClientTooltipComponents[l2]
+                component.renderImage(preEvent.font, j2, l1, pPoseStack, Minecraft.getInstance().itemRenderer, 400)
+                l1 += component.height + if (l2 == 0) 2 else 0
+            }
+            Minecraft.getInstance().itemRenderer.blitOffset = f
+        }
     }
 
     override fun x() = this.x
@@ -237,6 +426,6 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: ITextComp
     }
 
     open fun tick() {
-        this.widgets.forEach { if(it is HollowWidget) it.tick() }
+        this.widgets.forEach { if (it is HollowWidget) it.tick() }
     }
 }

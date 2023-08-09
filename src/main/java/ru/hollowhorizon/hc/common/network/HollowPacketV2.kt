@@ -1,15 +1,14 @@
 package ru.hollowhorizon.hc.common.network
 
 import com.google.common.reflect.TypeToken
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.nbt.CompoundNBT
-import net.minecraft.network.IPacket
-import net.minecraft.network.PacketBuffer
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.world.entity.player.Player
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.fml.loading.FMLEnvironment
-import net.minecraftforge.fml.network.NetworkDirection
-import net.minecraftforge.fml.network.NetworkEvent
-import net.minecraftforge.fml.network.PacketDistributor
+import net.minecraftforge.network.NetworkDirection
+import net.minecraftforge.network.NetworkEvent
+import net.minecraftforge.network.PacketDistributor
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.JavaHacks
 import ru.hollowhorizon.hc.client.utils.mc
@@ -24,16 +23,16 @@ import java.util.function.Supplier
 annotation class HollowPacketV2(val toTarget: Dist = Dist.DEDICATED_SERVER)
 
 @Suppress("UnstableApiUsage")
-open class Packet<T>(val function: Packet<T>.(PlayerEntity, T) -> Unit) {
+open class Packet<T>(val function: Packet<T>.(Player, T) -> Unit) {
     var direction: Optional<NetworkDirection> = Optional.empty()
     var value: T? = null
     var typeToken: TypeToken<T> = object : TypeToken<T>(javaClass) {}
 
-    constructor(function: Packet<T>.(PlayerEntity, T) -> Unit, token: Class<T>) : this(function) {
+    constructor(function: Packet<T>.(Player, T) -> Unit, token: Class<T>) : this(function) {
         typeToken = TypeToken.of(token)
     }
 
-    fun send(data: T, vararg players: PlayerEntity) {
+    fun send(data: T, vararg players: Player) {
         this.value = data
         if (players.isEmpty()) {
             NetworkHandler.sendMessageToServer(this)
@@ -49,10 +48,10 @@ open class Packet<T>(val function: Packet<T>.(PlayerEntity, T) -> Unit) {
         NetworkHandler.HollowCoreChannel.send(distributor, this)
     }
 
-    open fun <E> encode(data: Packet<E>, buf: PacketBuffer) {
+    open fun <E> encode(data: Packet<E>, buf: FriendlyByteBuf) {
         if (data.value == null) throw IllegalStateException("Packet(${data::class.java}) value is null!")
 
-        buf.writeNbt(CompoundNBT().apply {
+        buf.writeNbt(CompoundTag().apply {
             put(
                 "data",
                 NBTFormat.serializeNoInline(JavaHacks.forceCast(data.value), typeToken.rawType)
@@ -61,7 +60,7 @@ open class Packet<T>(val function: Packet<T>.(PlayerEntity, T) -> Unit) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    open fun <E> decode(buf: PacketBuffer): Packet<E> {
+    open fun <E> decode(buf: FriendlyByteBuf): Packet<E> {
         val data = NBTFormat.deserializeNoInline(buf.readNbt()!!.get("data")!!, typeToken.rawType)
         this.value = data.safeCast()
         return this as Packet<E>
@@ -78,7 +77,7 @@ open class Packet<T>(val function: Packet<T>.(PlayerEntity, T) -> Unit) {
     }
 }
 
-fun Packet<*>.toVanillaPacket(): IPacket<*> =
+fun Packet<*>.toVanillaPacket(): net.minecraft.network.protocol.Packet<*> =
     NetworkHandler.HollowCoreChannel.toVanillaPacket(this, NetworkDirection.PLAY_TO_CLIENT)
 
 @Suppress("UNCHECKED_CAST")

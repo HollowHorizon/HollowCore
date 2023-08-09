@@ -10,6 +10,7 @@ import sun.reflect.ReflectionFactory
 
 class FormatPomModel : UserDataHolderBase(), PomModel {
     override fun runTransaction(transaction: PomTransaction) {
+
         (transaction as PomTransactionBase).run()
     }
 

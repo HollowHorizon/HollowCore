@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.common.registry;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;

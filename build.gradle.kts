@@ -1,8 +1,13 @@
+import com.github.jengelman.gradle.plugins.shadow.relocation.RelocateClassContext
+import com.github.jengelman.gradle.plugins.shadow.relocation.RelocatePathContext
+import com.github.jengelman.gradle.plugins.shadow.relocation.Relocator
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import net.minecraftforge.gradle.userdev.UserDevExtension
+import org.codehaus.plexus.util.SelectorUtils
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.regex.Pattern
 
 buildscript {
     repositories {
@@ -12,11 +17,11 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("net.minecraftforge.gradle:ForgeGradle:5.1+") { isChanging = true }
+        classpath("net.minecraftforge.gradle:ForgeGradle:5+") { isChanging = true }
         classpath("org.parchmentmc:librarian:1.+")
         classpath("org.spongepowered:mixingradle:0.7.32")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0-RC")
-        classpath("gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7.0.0")
+        classpath("gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7+")
     }
 }
 
@@ -42,17 +47,15 @@ java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
-configurations {
-    implementation.get().extendsFrom(this["shadow"])
-}
-
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "17"
     kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all", "-Xopt-in=kotlin.RequiresOptIn")
 }
 
 configure<UserDevExtension> {
-    mappings("parchment", "2023.06.26-1.19.4")
+    //copyIdeResources.set(true)
+
+    mappings("parchment", "2022.11.27-1.19.2")
 
     accessTransformer("src/main/resources/META-INF/accesstransformer.cfg")
 
@@ -75,13 +78,25 @@ configure<UserDevExtension> {
             source(the<JavaPluginExtension>().sourceSets.getByName("main"))
         }
     }
+
+    runs.all {
+        lazyToken("minecraft_classpath") {
+            configurations["library"].copyRecursive().resolve().joinToString(File.pathSeparator) { it.absolutePath }
+        }
+    }
 }
+
 
 repositories {
     mavenCentral()
     maven { url = uri("https://jitpack.io") }
-    flatDir { dirs("libs") }
+    flatDir {
+        dirs("libs")
+        dirs("build/libs")
+    }
 }
+
+val shadowCompileOnly by configurations.creating
 
 dependencies {
     val minecraft = configurations["minecraft"]
@@ -92,27 +107,53 @@ dependencies {
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
 
     shadow("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0-RC")
+    shadow("org.jetbrains.kotlin:kotlin-stdlib-common:1.9.0-RC")
 
     shadow("org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.9.0-RC")
     shadow("org.jetbrains.kotlin:kotlin-scripting-jvm:1.9.0-RC")
 
     shadow("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.9.0-RC")
-    shadow("org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:1.9.0-RC")
-    shadow("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.0-RC")
+    shadowCompileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.0-RC")
+
     shadow("org.jetbrains.kotlin:kotlin-script-runtime:1.9.0-RC")
 
     shadow("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    shadow("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4")
+    shadow("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
     shadow("org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.0")
+    shadow("com.google.code.gson:gson:2.10.1")
+    shadow("com.google.guava:guava:32.1.2-jre")
 
     shadow("gnu.trove:trove:1.0.2")
 }
 
+val copyJar by tasks.registering(Copy::class) {
+    from("build/libs/hc-1.1.0.jar")
+    into("C:\\Users\\user\\Twitch\\Minecraft\\Instances\\Instances\\test1\\mods")
+}
+
+
+
+val library = configurations.create("library")
+
+configurations {
+    //library - 3rd-party library (not a mod)
+    //shade - dep that should be shaded
+    implementation.get().extendsFrom(library)
+    library.extendsFrom(this["shadow"])
+
+    compileOnly.get().extendsFrom(shadowCompileOnly)
+}
+
 tasks.getByName("build").dependsOn("shadowJar")
+tasks.getByName("shadowJar").finalizedBy("copyJar")
 
 tasks.getByName<ShadowJar>("shadowJar") {
+    //minimize()
+
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-    configurations = listOf(project.configurations.getByName("shadow"))
+    configurations = listOf(project.configurations.getByName("shadow"), project.configurations.getByName("shadowCompileOnly"))
 
     val shadowPackages = listOf(
         "gnu.trove"
@@ -121,6 +162,14 @@ tasks.getByName<ShadowJar>("shadowJar") {
     shadowPackages.forEach {
         relocate(it, "ru.hollowhorizon.repack.$it")
     }
+
+    //Нужно переименовать все пакеты с названием "native" в "notnative" потому что JDK отказывается загружать пакеты с такими именами
+    relocate(HollowRelocator("native", "notnative", ArrayList<String>(), ArrayList<String>(), true))
+//    exclude {
+//        val res = it.relativePath.contains("native") && it.relativePath.contains("org.jetbrains")
+//        project.logger.info("Testing: $it")
+//        res
+//    }
 
     archiveClassifier.set("")
 
@@ -134,6 +183,7 @@ tasks.getByName<ShadowJar>("shadowJar") {
 
 tasks.getByName<Jar>("jar") {
     archiveClassifier.set("original")
+
     manifest {
         attributes(
             mapOf(
@@ -144,10 +194,186 @@ tasks.getByName<Jar>("jar") {
                 "Implementation-Version" to version,
                 "Implementation-Vendor" to "HollowHorizon",
                 "Implementation-Timestamp" to ZonedDateTime.now()
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ"))
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")),
+                "MixinConfigs" to "hc.mixins.json"
             )
         )
     }
 
     finalizedBy("reobfJar")
+}
+
+class HollowRelocator : Relocator {
+    @get:Input
+    val patternIn: String
+
+    @get:Input
+    val pathPatternIn: String
+
+    @get:Input
+    val shadedPatternIn: String
+
+    @get:Input
+    val shadedPathPatternIn: String
+
+    @get:Input
+    val includesIn: HashSet<String>
+
+    @get:Input
+    val excludesIn: HashSet<String>
+
+    @get:Input
+    val rawStringIn: Boolean
+
+    constructor(patt: String, shadedPattern: String, includes: List<String>, excludes: List<String>) : this(
+        patt,
+        shadedPattern,
+        includes,
+        excludes,
+        false
+    )
+
+    constructor(
+        patt: String,
+        shadedPattern: String,
+        includes: List<String>,
+        excludes: List<String>,
+        rawString: Boolean
+    ) {
+        this.rawStringIn = rawString
+
+        if (rawString) {
+            this.pathPatternIn = patt
+            this.shadedPathPatternIn = shadedPattern
+
+            this.patternIn = patt // fix null error
+            this.shadedPatternIn = shadedPattern // fix null error
+        } else {
+            this.patternIn = patt.replace('/', '.')
+            this.pathPatternIn = patt.replace('.', '/')
+
+            this.shadedPatternIn = shadedPattern.replace('/', '.')
+            this.shadedPathPatternIn = shadedPattern.replace('.', '/')
+        }
+
+        this.includesIn = normalizePatterns(*includes.toTypedArray())
+        this.excludesIn = normalizePatterns(*excludes.toTypedArray())
+    }
+
+    fun include(pattern: String): HollowRelocator {
+        this.includesIn.addAll(normalizePatterns(pattern))
+        return this
+    }
+
+    fun exclude(pattern: String): HollowRelocator {
+        this.excludesIn.addAll(normalizePatterns(pattern))
+        return this
+    }
+
+    private fun normalizePatterns(vararg patterns: String): HashSet<String> {
+        val normalized = LinkedHashSet<String>()
+
+        if (patterns.isNotEmpty()) {
+
+            for (pattern in patterns) {
+                // Regex patterns don't need to be normalized and stay as is
+                if (pattern.startsWith(SelectorUtils.REGEX_HANDLER_PREFIX)) {
+                    normalized.add(pattern)
+                    continue
+                }
+
+                val classPattern = pattern.replace('.', '/')
+
+                normalized.add(classPattern)
+
+                if (classPattern.endsWith("/*")) {
+                    val packagePattern = classPattern.substring(0, classPattern.lastIndexOf('/'))
+                    normalized.add(packagePattern)
+                }
+            }
+        }
+
+        return normalized
+    }
+
+    private fun isIncluded(path: String): Boolean {
+        if (includesIn.isNotEmpty()) {
+            for (include in includesIn) {
+                if (SelectorUtils.matchPath(include, path, "/", true)) {
+                    return true
+                }
+            }
+            return false
+        }
+        return true
+    }
+
+    private fun isExcluded(path: String): Boolean {
+        if (excludesIn.isNotEmpty()) {
+            for (exclude in excludesIn) {
+                if (SelectorUtils.matchPath(exclude, path, "/", true)) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    override fun canRelocatePath(path: String): Boolean {
+        var pathMutable = path
+        if (rawStringIn) {
+            return Pattern.compile(pathPatternIn).matcher(pathMutable).find()
+        }
+
+        // If string is too short - no need to perform expensive string operations
+        if (pathMutable.length < pathPatternIn.length) {
+            return false
+        }
+
+        if (pathMutable.endsWith(".class")) {
+            // Safeguard against strings containing only ".class"
+            if (pathMutable.length == 6) {
+                return false
+            }
+            pathMutable = pathMutable.substring(0, pathMutable.length - 6)
+        }
+
+        // Allow for annoying option of an extra / on the front of a path. See MSHADE-119 comes from getClass().getResource("/a/b/c.properties").
+        val pathStartsWithPattern =
+            if (pathMutable.first() == '/') path.startsWith(pathPatternIn, 1) else path.startsWith(pathPatternIn)
+        if (pathStartsWithPattern) {
+            return isIncluded(pathMutable) && !isExcluded(pathMutable)
+        }
+        return false
+    }
+
+    override fun canRelocateClass(className: String): Boolean {
+        return !rawStringIn &&
+                className.indexOf('/') < 0 &&
+                canRelocatePath(className.replace('.', '/'))
+    }
+
+    override fun relocatePath(context: RelocatePathContext): String {
+        val path = context.path
+        context.stats.relocate(pathPatternIn, shadedPathPatternIn)
+        return if (rawStringIn) {
+            path.replace(pathPatternIn, shadedPathPatternIn)
+        } else {
+            path.replaceFirst(pathPatternIn, shadedPathPatternIn)
+        }
+    }
+
+    override fun relocateClass(context: RelocateClassContext): String {
+        val clazz = context.className
+        context.stats.relocate(pathPatternIn, shadedPathPatternIn)
+        return clazz.replaceFirst(patternIn, shadedPatternIn)
+    }
+
+    override fun applyToSourceContent(sourceContent: String): String {
+        return if (rawStringIn) {
+            sourceContent
+        } else {
+            sourceContent.replace("\\b$patternIn", shadedPatternIn)
+        }
+    }
 }

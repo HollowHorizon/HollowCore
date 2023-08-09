@@ -1,6 +1,6 @@
 package ru.hollowhorizon.hc.common.registry;
 
-import net.minecraftforge.fml.network.NetworkDirection;
+import net.minecraftforge.network.NetworkDirection;
 import ru.hollowhorizon.hc.api.utils.HollowPacketInstance;
 
 import java.lang.reflect.Field;

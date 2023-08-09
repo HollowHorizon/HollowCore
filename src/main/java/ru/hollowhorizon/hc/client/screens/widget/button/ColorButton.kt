@@ -1,12 +1,12 @@
 package ru.hollowhorizon.hc.client.screens.widget.button
 
-import com.mojang.blaze3d.matrix.MatrixStack
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
-import net.minecraft.util.text.ITextComponent
-import net.minecraft.util.text.StringTextComponent
+import net.minecraft.network.chat.Component
 import ru.hollowhorizon.hc.client.utils.drawCentredScaled
 import ru.hollowhorizon.hc.client.utils.mc
+import ru.hollowhorizon.hc.client.utils.mcText
 import ru.hollowhorizon.hc.client.utils.toRL
 
 class ColorButton @JvmOverloads constructor(
@@ -14,24 +14,23 @@ class ColorButton @JvmOverloads constructor(
     y: Int,
     width: Int,
     height: Int,
-    text: ITextComponent = StringTextComponent(""),
-    pressable: BasePressable,
+    text: Component = "".mcText,
+    pressable: BaseButton.() -> Unit,
     private val buttonColor: Int,
     private val buttonColorHovered: Int = buttonColor,
     textColor: Int = 0xFFFFFF,
     textColorHovered: Int = 0xF0F0F0,
-    tooltip: ITextComponent = StringTextComponent(""),
+    tooltip: Component = "".mcText,
     textScale: Float = 1.0F,
 ) : BaseButton(x, y, width, height, text, pressable, "".toRL(), textColor, textColorHovered, tooltip, textScale) {
 
-    override fun render(stack: MatrixStack, x: Int, y: Int, f: Float) {
+    override fun render(stack: PoseStack, x: Int, y: Int, f: Float) {
         val minecraft = Minecraft.getInstance()
         val fr = minecraft.font
         val isHovered = isCursorAtButton(x, y)
 
         RenderSystem.enableBlend()
         RenderSystem.defaultBlendFunc()
-        RenderSystem.defaultAlphaFunc()
         stack.pushPose()
 
         fill(

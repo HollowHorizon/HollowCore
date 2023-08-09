@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.common.objects.blocks;
 
-import net.minecraft.item.Item;
+
+import net.minecraft.world.item.Item;
 
 public interface IBlockProperties {
     Item.Properties getProperties();

@@ -1,12 +1,13 @@
 package ru.hollowhorizon.hc.client.screens.widget
 
-import com.mojang.blaze3d.matrix.MatrixStack
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.math.MathHelper
-import net.minecraft.util.text.StringTextComponent
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.Mth
+import ru.hollowhorizon.hc.client.utils.mcText
+
 
 class HorizontalSliderWidget(x: Int, y: Int, width: Int, height: Int, private val texture: ResourceLocation) :
-    HollowWidget(x, y, width, height, StringTextComponent("")),
+    HollowWidget(x, y, width, height, "".mcText),
     IOriginBlackList {
     private var maxWidth = 0
     private var xWidth = 0
@@ -38,10 +39,10 @@ class HorizontalSliderWidget(x: Int, y: Int, width: Int, height: Int, private va
     }
 
     fun clamp(value: Int): Int {
-        return MathHelper.clamp(value, x + 10, x + width - 10)
+        return Mth.clamp(value, x + 10, x + width - 10)
     }
 
-    override fun renderButton(stack: MatrixStack, mouseX: Int, mouseY: Int, ticks: Float) {
+    override fun renderButton(stack: PoseStack, mouseX: Int, mouseY: Int, ticks: Float) {
         super.renderButton(stack, mouseX, mouseY, ticks)
         if (isClicked) {
             xWidth = clamp(mouseX)

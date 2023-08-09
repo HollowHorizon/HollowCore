@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.client.config;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 import net.minecraftforge.fml.loading.FMLPaths;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 
@@ -79,7 +79,7 @@ public class HollowCoreConfig {
                     } else if (field.getType().equals(float.class)) {
                         double d = configuration.get(config.value());
                         float data = (float) d;
-                        field.set(null, MathHelper.lerp(data, config.min(), config.max()));
+                        field.set(null, Mth.lerp(data, config.min(), config.max()));
                     } else if (field.getType().equals(int.class)) {
                         int data = configuration.get(config.value());
                         field.set(null, data);

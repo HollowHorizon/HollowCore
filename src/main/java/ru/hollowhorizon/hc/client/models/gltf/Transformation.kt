@@ -1,9 +1,10 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
-import com.mojang.blaze3d.systems.RenderSystem
-import net.minecraft.util.math.vector.Matrix4f
-import net.minecraft.util.math.vector.Quaternion
-import net.minecraft.util.math.vector.Vector3f
+import com.mojang.math.Matrix4f
+import com.mojang.math.Quaternion
+import com.mojang.math.Vector3f
+import org.lwjgl.opengl.GL11
+import java.nio.FloatBuffer
 
 /**
  * Class that represents a transformation that consists in translation, rotation and scale,
@@ -80,7 +81,8 @@ data class Transformation(
     fun glMultiply() {
         val matrix = getMatrixVec()
         matrix.transpose()
-        RenderSystem.multMatrix(matrix)
+        val buffer = FloatBuffer.allocate(16)
+        GL11.glMultMatrixf(buffer.apply { matrix.store(buffer) })
     }
 
     /**

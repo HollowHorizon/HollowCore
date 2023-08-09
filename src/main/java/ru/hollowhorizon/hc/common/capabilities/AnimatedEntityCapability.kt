@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.common.capabilities
 
+import com.mojang.math.Vector3f
 import kotlinx.serialization.Serializable
-import net.minecraft.util.math.vector.Vector3f
 import ru.hollowhorizon.hc.client.gltf.IAnimatedEntity
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationType
 

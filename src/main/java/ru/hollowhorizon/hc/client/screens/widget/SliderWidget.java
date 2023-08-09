@@ -1,11 +1,12 @@
 package ru.hollowhorizon.hc.client.screens.widget;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
 import java.math.BigDecimal;
@@ -14,7 +15,7 @@ import java.util.function.Consumer;
 
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 
-public class SliderWidget extends Widget {
+public class SliderWidget extends AbstractWidget {
     private static final ResourceLocation SLIDER_BASE = new ResourceLocation(MODID, "textures/gui/buttons/slider_base.png");
     private static final ResourceLocation ARROW_LEFT = new ResourceLocation(MODID, "textures/gui/buttons/arrow_left.png");
     private static final ResourceLocation ARROW_RIGHT = new ResourceLocation(MODID, "textures/gui/buttons/arrow_right.png");
@@ -28,7 +29,7 @@ public class SliderWidget extends Widget {
     private float multiplier = 1.0F;
 
     public SliderWidget(int x, int y, int width, int height) {
-        super(x, y, width, height, new StringTextComponent(""));
+        super(x, y, width, height, Component.literal(""));
         this.x = x;
         this.y = y;
     }
@@ -77,13 +78,13 @@ public class SliderWidget extends Widget {
     }
 
     @Override
-    public void playDownSound(SoundHandler p_230988_1_) {
+    public void playDownSound(SoundManager p_230988_1_) {
     }
 
     @Override
-    public void render(MatrixStack stack, int mouseX, int mouseY, float p_230430_4_) {
+    public void render(PoseStack stack, int mouseX, int mouseY, float p_230430_4_) {
         stack.pushPose();
-        Minecraft.getInstance().getTextureManager().bind(SLIDER_BASE);
+        Minecraft.getInstance().getTextureManager().bindForSetup(SLIDER_BASE);
         blit(stack, this.x, this.y, 0, 0, this.width, this.height, this.width, this.height);
         renderLeftArrow(stack, mouseX, mouseY);
         renderRightArrow(stack, mouseX, mouseY);
@@ -133,25 +134,25 @@ public class SliderWidget extends Widget {
         return false;
     }
 
-    public void renderLeftArrow(MatrixStack stack, int mouseX, int mouseY) {
+    public void renderLeftArrow(PoseStack stack, int mouseX, int mouseY) {
         stack.pushPose();
         GL11.glPushMatrix();
         if (isCursorAtLeftButton(mouseX, mouseY)) {
             GL11.glColor4f(0.546F, 0.546F, 0.546F, 1.0F);
         }
-        Minecraft.getInstance().getTextureManager().bind(ARROW_LEFT);
+        Minecraft.getInstance().getTextureManager().bindForSetup(ARROW_LEFT);
         blit(stack, this.x, this.y, 0, 0, this.height, this.height, this.height, this.height);
         GL11.glPopMatrix();
         stack.popPose();
     }
 
-    public void renderRightArrow(MatrixStack stack, int mouseX, int mouseY) {
+    public void renderRightArrow(PoseStack stack, int mouseX, int mouseY) {
         stack.pushPose();
         GL11.glPushMatrix();
         if (isCursorAtRightButton(mouseX, mouseY)) {
             GL11.glColor4f(0.546F, 0.546F, 0.546F, 1.0F);
         }
-        Minecraft.getInstance().getTextureManager().bind(ARROW_RIGHT);
+        Minecraft.getInstance().getTextureManager().bindForSetup(ARROW_RIGHT);
         blit(stack, this.x + this.width - this.height, this.y, 0, 0, this.height, this.height, this.height, this.height);
         GL11.glPopMatrix();
         stack.popPose();
@@ -168,5 +169,10 @@ public class SliderWidget extends Widget {
     public void setValue(double value) {
         this.sliderValue = (float) value;
         this.sliderValue = round(this.sliderValue, 3);
+    }
+
+    @Override
+    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+
     }
 }

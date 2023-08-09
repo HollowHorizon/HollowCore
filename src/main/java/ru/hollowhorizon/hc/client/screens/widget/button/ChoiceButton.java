@@ -1,63 +1,47 @@
 package ru.hollowhorizon.hc.client.screens.widget.button;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistries;
-import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler;
 
 import javax.annotation.Nonnull;
 
 public class ChoiceButton extends Button {
-    int x;
-    int y;
-    int width;
-    int height;
-    ITextComponent text;
 
-    public ChoiceButton(int x, int y, int width, int height, ITextComponent text, IPressable onPress) {
+    public ChoiceButton(int x, int y, int width, int height, Component text, OnPress onPress) {
         super(x, y, width, height, text, onPress);
-        this.width = width;
-        this.height = height;
-        this.x = x;
-        this.y = y;
-        this.text = text;
-    }
-
-    public ITextComponent getText() {
-        return text;
     }
 
     @Override
-    public void playDownSound(SoundHandler soundHandler) {
-        soundHandler.play(SimpleSound.forUI(ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("hc:choice_button")), 1));
+    public void playDownSound(SoundManager soundHandler) {
+        soundHandler.play(SimpleSoundInstance.forUI(ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("hc:choice_button")), 1));
     }
 
     @Override
-    public void render(@Nonnull MatrixStack stack, int x, int y, float f) {
+    public void render(@Nonnull PoseStack stack, int x, int y, float f) {
         Minecraft minecraft = Minecraft.getInstance();
-        FontRenderer fr = minecraft.font;
+        Font fr = minecraft.font;
         stack.pushPose();
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.defaultAlphaFunc();
 
-        minecraft.getTextureManager().bind(new ResourceLocation("hc", "textures/gui/lore/button_1.png"));
+        minecraft.getTextureManager().bindForSetup(new ResourceLocation("hc", "textures/gui/lore/button_1.png"));
         blit(stack, this.x, this.y, 0, isCursorAtButton(x, y) ? this.height : 0, 16, this.height, 16, this.height * 2);
-        minecraft.getTextureManager().bind(new ResourceLocation("hc", "textures/gui/lore/button_3.png"));
+        minecraft.getTextureManager().bindForSetup(new ResourceLocation("hc", "textures/gui/lore/button_3.png"));
         blit(stack, this.x + 16, this.y, 0, isCursorAtButton(x, y) ? this.height : 0, this.width - 32, this.height, this.width - 32, this.height * 2);
-        minecraft.getTextureManager().bind(new ResourceLocation("hc", "textures/gui/lore/button_2.png"));
+        minecraft.getTextureManager().bindForSetup(new ResourceLocation("hc", "textures/gui/lore/button_2.png"));
         blit(stack, this.x + this.width - 16, this.y, 0, isCursorAtButton(x, y) ? this.height : 0, 16, this.height, 16, this.height * 2);
 
         stack.translate(0.0D, 0.0D, 120.0D);
-        fr.draw(stack, this.text, this.x + this.width / 2F - fr.width(text) / 2F , this.y + this.height / 4f, 0xFFFFFF);
+        fr.draw(stack, this.getMessage(), this.x + this.width / 2F - fr.width(this.getMessage()) / 2F , this.y + this.height / 4f, 0xFFFFFF);
 
         stack.popPose();
     }

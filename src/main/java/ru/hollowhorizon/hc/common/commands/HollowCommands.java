@@ -2,8 +2,8 @@ package ru.hollowhorizon.hc.common.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import kotlin.Pair;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import org.jetbrains.annotations.NotNull;
 
 import javax.script.ScriptEngineManager;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 public class HollowCommands {
     private static final ArrayList<Pair<String, Runnable>> commands = new ArrayList<>();
 
-    public static void register(CommandDispatcher<CommandSource> dispatcher) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         commands.forEach((pair) -> {
             String name = pair.getFirst();
             Runnable runnable = pair.getSecond();

@@ -1,18 +1,18 @@
 package ru.hollowhorizon.hc.client.screens.widget;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.widget.Widget;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
 
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 
-public class VolumeWidget extends Widget {
+public class VolumeWidget extends AbstractWidget {
     public static final ResourceLocation VOLUME_SLIDER = new ResourceLocation(MODID, "textures/gui/icons/volume_slider.png");
     private final ResourceLocation VOLUME_ICON = new ResourceLocation(MODID, "textures/gui/icons/volume.png");
     private final ResourceLocation VOLUME_BAR = new ResourceLocation(MODID, "textures/gui/icons/volume_bar.png");
@@ -22,11 +22,11 @@ public class VolumeWidget extends Widget {
     private boolean isMouseDragged = false;
 
     public VolumeWidget(int x, int y, int width, int height) {
-        super(x, y, width, height, new StringTextComponent(""));
+        super(x, y, width, height, Component.literal(""));
     }
 
     @Override
-    public void playDownSound(SoundHandler p_230988_1_) {
+    public void playDownSound(SoundManager p_230988_1_) {
 
     }
 
@@ -49,12 +49,12 @@ public class VolumeWidget extends Widget {
     }
 
     @Override
-    public void render(MatrixStack stack, int mouseX, int mouseY, float p_230430_4_) {
+    public void render(PoseStack stack, int mouseX, int mouseY, float p_230430_4_) {
         TextureManager tm = Minecraft.getInstance().getTextureManager();
         boolean isCursorAt = isCursorAtButton(mouseX, mouseY);
         boolean isCursorAtSlider = isCursorAtSlider(mouseX, mouseY);
 
-        tm.bind(VOLUME_ICON);
+        tm.bindForSetup(VOLUME_ICON);
         blit(stack, this.x, this.y, 0, isCursorAtSlider ? this.height : 0, this.width / 4, this.height, this.width / 4, this.height * 2);
 
         if (!lastCursorState && isCursorAt) {
@@ -68,7 +68,7 @@ public class VolumeWidget extends Widget {
                 return;
             }
 
-            tm.bind(VOLUME_BAR);
+            tm.bindForSetup(VOLUME_BAR);
             blit(stack, this.x + this.width / 4, this.y + this.height / 2 - 1, 0, 0, this.width - this.width / 3, this.height / 4, this.width - this.width / 3, this.height / 4);
 
             if (isMouseDragged) slider.setPos(mouseX);
@@ -84,6 +84,11 @@ public class VolumeWidget extends Widget {
 
     public boolean isCursorAtSlider(int mouseX, int mouseY) {
         return mouseX >= this.x && mouseX <= this.x + (this.width) && mouseY >= this.y && mouseY <= this.y + this.height;
+    }
+
+    @Override
+    public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+
     }
 
     static class VolumeSlider {
@@ -113,11 +118,11 @@ public class VolumeWidget extends Widget {
             this.position = pos;
         }
 
-        public void render(MatrixStack stack, int x, int y) {
+        public void render(PoseStack stack, int x, int y) {
             TextureManager tm = Minecraft.getInstance().getTextureManager();
 
-            tm.bind(VolumeWidget.VOLUME_SLIDER);
-            AbstractGui.blit(stack, position - this.width / 8, this.y, 0, isCursorAtSlider(x, y) ? this.height : 0, this.width / 4, this.height, this.width / 4, this.height * 2);
+            tm.bindForSetup(VolumeWidget.VOLUME_SLIDER);
+            blit(stack, position - this.width / 8, this.y, 0, isCursorAtSlider(x, y) ? this.height : 0, this.width / 4, this.height, this.width / 4, this.height * 2);
         }
 
         public boolean isCursorAtSlider(int mouseX, int mouseY) {

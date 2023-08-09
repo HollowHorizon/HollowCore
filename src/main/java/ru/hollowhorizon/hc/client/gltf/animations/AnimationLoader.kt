@@ -1,14 +1,8 @@
 package ru.hollowhorizon.hc.client.gltf.animations
 
 import de.javagl.jgltf.model.*
-import de.javagl.jgltf.model.io.GltfModelReader
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.screen.IngameMenuScreen
-import net.minecraft.util.math.MathHelper
+import net.minecraft.util.Mth
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
-import ru.hollowhorizon.hc.client.utils.rl
-import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability
 import java.util.*
 import kotlin.math.acos
 
@@ -208,9 +202,9 @@ abstract class Interpolator<T>(val keys: FloatArray, val values: Array<T>) {
                 val s1: Float
                 if (1.0 - dot > epsilon) {
                     val omega = acos(dot)
-                    val invSinOmega = 1.0f / MathHelper.sin(omega)
-                    s0 = MathHelper.sin((1.0f - alpha) * omega) * invSinOmega
-                    s1 = MathHelper.sin(alpha * omega) * invSinOmega
+                    val invSinOmega = 1.0f / Mth.sin(omega)
+                    s0 = Mth.sin((1.0f - alpha) * omega) * invSinOmega
+                    s1 = Mth.sin(alpha * omega) * invSinOmega
                 } else {
                     s0 = 1.0f - alpha
                     s1 = alpha

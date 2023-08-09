@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.mixin;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityDispatcher;
 import net.minecraftforge.common.capabilities.CapabilityProvider;
@@ -21,11 +21,11 @@ public abstract class CapabilityProviderMixin implements ICapabilityUpdater {
     @Shadow private boolean valid;
 
     @Override
-    public void updateCapability(@NotNull Capability<?> capability, @NotNull INBT newValue) {
+    public void updateCapability(@NotNull Capability<?> capability, @NotNull Tag newValue) {
         final CapabilityDispatcher disp = getCapabilities();
 
         if(valid && disp != null) {
-            CompoundNBT nbt = new CompoundNBT();
+            CompoundTag nbt = new CompoundTag();
             String name = capability.getName();
             nbt.put("hc_capabilities:"+name.toLowerCase(), newValue);
             disp.deserializeNBT(nbt);

@@ -1,15 +1,16 @@
 package ru.hollowhorizon.hc.client.gltf;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import de.javagl.jgltf.model.io.Buffers;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.IResource;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraftforge.client.event.ModelEvent;
+import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.opengl.*;
-import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -64,61 +65,56 @@ public class GlTFModelManager {
         });
     }
 
-    public static void clientSetup(FMLClientSetupEvent event) {
-        event.getMinecraftSupplier().get().execute(() -> {
-            int glShader = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
-            GL20.glShaderSource(glShader,
-                    "#version 430\r\n"
-                            + "layout(location = 0) in vec4 joint;"
-                            + "layout(location = 1) in vec4 weight;"
-                            + "layout(location = 2) in vec3 position;"
-                            + "layout(location = 3) in vec3 normal;"
-                            + "layout(location = 4) in vec4 tangent;"
-                            + "layout(std430, binding = 0) readonly buffer jointMatrixBuffer {mat4 jointMatrices[];};"
-                            + "out vec3 outPosition;"
-                            + "out vec3 outNormal;"
-                            + "out vec4 outTangent;"
-                            + "void main() {"
-                            + "mat4 skinMatrix ="
-                            + " weight.x * jointMatrices[int(joint.x)] +"
-                            + " weight.y * jointMatrices[int(joint.y)] +"
-                            + " weight.z * jointMatrices[int(joint.z)] +"
-                            + " weight.w * jointMatrices[int(joint.w)];"
-                            + "outPosition = (skinMatrix * vec4(position, 1.0)).xyz;"
-                            + "mat3 upperLeft = mat3(skinMatrix);"
-                            + "outNormal = upperLeft * normal;"
-                            + "outTangent.xyz = upperLeft * tangent.xyz;"
-                            + "outTangent.w = tangent.w;"
-                            + "}");
-            GL20.glCompileShader(glShader);
+    public static void clientSetup(RegisterClientReloadListenersEvent event) {
+        int glShader = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
+        GL20.glShaderSource(glShader,
+                "#version 430\r\n"
+                        + "layout(location = 0) in vec4 joint;"
+                        + "layout(location = 1) in vec4 weight;"
+                        + "layout(location = 2) in vec3 position;"
+                        + "layout(location = 3) in vec3 normal;"
+                        + "layout(location = 4) in vec4 tangent;"
+                        + "layout(std430, binding = 0) readonly buffer jointMatrixBuffer {mat4 jointMatrices[];};"
+                        + "out vec3 outPosition;"
+                        + "out vec3 outNormal;"
+                        + "out vec4 outTangent;"
+                        + "void main() {"
+                        + "mat4 skinMatrix ="
+                        + " weight.x * jointMatrices[int(joint.x)] +"
+                        + " weight.y * jointMatrices[int(joint.y)] +"
+                        + " weight.z * jointMatrices[int(joint.z)] +"
+                        + " weight.w * jointMatrices[int(joint.w)];"
+                        + "outPosition = (skinMatrix * vec4(position, 1.0)).xyz;"
+                        + "mat3 upperLeft = mat3(skinMatrix);"
+                        + "outNormal = upperLeft * normal;"
+                        + "outTangent.xyz = upperLeft * tangent.xyz;"
+                        + "outTangent.w = tangent.w;"
+                        + "}");
+        GL20.glCompileShader(glShader);
 
-            INSTANCE.glProgramSkinning = GL20.glCreateProgram();
-            GL20.glAttachShader(INSTANCE.glProgramSkinning, glShader);
-            GL20.glDeleteShader(glShader);
-            GL30.glTransformFeedbackVaryings(INSTANCE.glProgramSkinning, new CharSequence[]{"outPosition", "outNormal", "outTangent"}, GL30.GL_SEPARATE_ATTRIBS);
-            GL20.glLinkProgram(INSTANCE.glProgramSkinning);
+        INSTANCE.glProgramSkinning = GL20.glCreateProgram();
+        GL20.glAttachShader(INSTANCE.glProgramSkinning, glShader);
+        GL20.glDeleteShader(glShader);
+        GL30.glTransformFeedbackVaryings(INSTANCE.glProgramSkinning, new CharSequence[]{"outPosition", "outNormal", "outTangent"}, GL30.GL_SEPARATE_ATTRIBS);
+        GL20.glLinkProgram(INSTANCE.glProgramSkinning);
 
-            GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, 0);
-            GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, 0);
-            GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, 0);
-            GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 4);
+        GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, 0);
+        GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, 0);
+        GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, 0);
+        GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 4);
 
-            GL11.glPushAttrib(GL11.GL_TEXTURE_BIT);
+        INSTANCE.defaultColorMap = GL11.glGenTextures();
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, INSTANCE.defaultColorMap);
+        GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, 2, 2, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, Buffers.create(new byte[]{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}));
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
 
-            INSTANCE.defaultColorMap = GL11.glGenTextures();
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, INSTANCE.defaultColorMap);
-            GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, 2, 2, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, Buffers.create(new byte[]{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}));
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0);
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
+        INSTANCE.defaultNormalMap = GL11.glGenTextures();
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, INSTANCE.defaultNormalMap);
+        GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, 2, 2, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, Buffers.create(new byte[]{-128, -128, -1, -1, -128, -128, -1, -1, -128, -128, -1, -1, -128, -128, -1, -1}));
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
 
-            INSTANCE.defaultNormalMap = GL11.glGenTextures();
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, INSTANCE.defaultNormalMap);
-            GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, 2, 2, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, Buffers.create(new byte[]{-128, -128, -1, -1, -128, -128, -1, -1, -128, -128, -1, -1, -128, -128, -1, -1}));
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0);
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0);
-
-            GL11.glPopAttrib();
-        });
     }
 
     public static GlTFModelManager getInstance() {
@@ -150,8 +146,9 @@ public class GlTFModelManager {
                 @Override
                 public synchronized ByteBuffer get() {
                     if (bufferData == null) {
-                        try (IResource resource = Minecraft.getInstance().getResourceManager().getResource(l)) {
-                            bufferData = Buffers.create(IOUtils.toByteArray(new BufferedInputStream(resource.getInputStream())));
+                        try {
+                            Resource resource = Minecraft.getInstance().getResourceManager().getResource(l).orElseThrow();
+                            bufferData = Buffers.create(IOUtils.toByteArray(new BufferedInputStream(resource.open())));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

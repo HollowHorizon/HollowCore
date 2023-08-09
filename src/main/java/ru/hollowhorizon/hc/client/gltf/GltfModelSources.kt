@@ -1,10 +1,9 @@
 package ru.hollowhorizon.hc.client.gltf
 
-import net.minecraft.server.MinecraftServer
-import net.minecraft.util.ResourceLocation
+import net.minecraft.resources.ResourceLocation
+import net.minecraftforge.registries.ForgeRegistries
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
 import ru.hollowhorizon.hc.client.utils.rl
-import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Path
 import kotlin.io.path.exists

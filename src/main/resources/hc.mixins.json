@@ -1,21 +1,25 @@
 {
-  "required": true,
-  "minVersion": "0.8",
   "package": "ru.hollowhorizon.hc.mixin",
-  "compatibilityLevel": "JAVA_8",
-  "refmap": "hc.refmap.json",
+  "required": true,
+  "refmap": "mixin.refmap.json",
+  "target": "@env(DEFAULT)",
+  "minVersion": "0.8",
+  "compatibilityLevel": "JAVA_17",
   "mixins": [
     "CapabilityManagerMixin",
     "CapabilityProviderMixin",
+    "EventBusMixin",
     "FMLModContainerMixin",
-    "MixinLocateCommand",
-    "SimpleReloadableResourceManagerMixin",
+    "ListTagAccessor",
+    "PrimaryLevelDataMixin",
     "StructureBlockMixin",
     "kotlin.BinaryJavaClassMixin",
     "kotlin.JvmCompilationUtilMixin",
     "kotlin.KotlinCoreEnvironmentMixin"
   ],
   "client": [
+    "ScreenAccessor",
+    "WorldListEntryMixin"
   ],
   "injectors": {
     "defaultRequire": 1

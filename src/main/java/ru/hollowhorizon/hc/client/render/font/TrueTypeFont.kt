@@ -1,12 +1,14 @@
 package ru.hollowhorizon.hc.client.render.font
 
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import com.mojang.blaze3d.vertex.Tesselator
+import com.mojang.blaze3d.vertex.VertexFormat
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.Tessellator
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats
-import net.minecraft.resources.IResource
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.text.TextFormatting
+import net.minecraft.client.renderer.GameRenderer
+import net.minecraft.network.chat.TextColor
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.packs.resources.Resource
 import org.lwjgl.opengl.GL11
 import java.awt.Font
 import java.awt.Graphics2D
@@ -30,11 +32,12 @@ class TrueTypeFont(private var font: Font, var scale: Float = 1.0f) {
     }
 
     constructor(resource: ResourceLocation, fontSize: Int, scale: Float) : this(with(Minecraft.getInstance()) {
-        val r: IResource = Minecraft.getInstance().resourceManager.getResource(resource)
+        val r: Resource = Minecraft.getInstance().resourceManager.getResource(resource).orElseThrow()
 
-        val stream: InputStream = r.inputStream
+        val stream: InputStream = r.open()
         val environment = GraphicsEnvironment.getLocalGraphicsEnvironment()
         val font = Font.createFont(0, stream)
+        stream.close()
         environment.registerFont(font)
         return@with font.deriveFont(0, fontSize.toFloat())
     }, scale)
@@ -49,20 +52,20 @@ class TrueTypeFont(private var font: Font, var scale: Float = 1.0f) {
         val r = (color shr 16 and 255).toFloat() / 255.0f
         val g = (color shr 8 and 255).toFloat() / 255.0f
         val b = (color and 255).toFloat() / 255.0f
-        RenderSystem.color4f(r, g, b, 1.0f)
+        GL11.glColor4f(r, g, b, 1.0f)
         RenderSystem.enableBlend()
-        RenderSystem.pushMatrix()
-        RenderSystem.translatef(x, y, 0.0f)
-        RenderSystem.scalef(scale, scale, 1.0f)
+        GL11.glPushMatrix()
+        GL11.glTranslatef(x, y, 0f)
+        GL11.glScalef(scale, scale, 1f)
         var i = 0.0f
         val var10: Iterator<*> = cache.glyphs.iterator()
         while (var10.hasNext()) {
             val gl: Glyph = var10.next() as Glyph
             if (gl.type != GlyphType.NORMAL) {
                 if (gl.type == GlyphType.RESET) {
-                    RenderSystem.color4f(r, g, b, 1.0f)
+                    GL11.glColor4f(r, g, b, 1.0f)
                 } else if (gl.type == GlyphType.COLOR) {
-                    RenderSystem.color4f(
+                    GL11.glColor4f(
                         (gl.color shr 16 and 255).toFloat() / 255.0f,
                         (gl.color shr 8 and 255).toFloat() / 255.0f,
                         (gl.color and 255).toFloat() / 255.0f,
@@ -83,8 +86,8 @@ class TrueTypeFont(private var font: Font, var scale: Float = 1.0f) {
             }
         }
         RenderSystem.disableBlend()
-        RenderSystem.popMatrix()
-        RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f)
+        GL11.glPopMatrix()
+        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f)
     }
 
     private fun getOrCreateCache(text: String): GlyphCache {
@@ -102,7 +105,7 @@ class TrueTypeFont(private var font: Font, var scale: Float = 1.0f) {
                         val g = Glyph(this)
                         if (index < 16) {
                             g.type = GlyphType.COLOR
-                            g.color = TextFormatting.getByCode(next)?.color ?: 0
+                            g.color = TextColor.parseColor(next.toString())?.value ?: 0
                         } else if (index == 16) {
                             g.type = GlyphType.RANDOM
                         } else if (index == 17) {
@@ -187,15 +190,16 @@ class TrueTypeFont(private var font: Font, var scale: Float = 1.0f) {
         val f = 0.00390625f
         val f1 = 0.00390625f
         val zLevel = 0
-        with(Tessellator.getInstance().builder) {
-            begin(7, DefaultVertexFormats.POSITION_TEX)
+        RenderSystem.setShader { GameRenderer.getPositionTexShader() }
+        with(Tesselator.getInstance().builder) {
+            begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX)
             vertex(x.toDouble(), (y + height).toDouble(), zLevel.toDouble()).uv(textureX * f, (textureY + height) * f1)
                 .endVertex()
             vertex((x + width).toDouble(), (y + height).toDouble(), zLevel.toDouble()).uv((textureX + width) * f, (textureY + height) * f1).endVertex()
             vertex((x + width).toDouble(), y.toDouble(), zLevel.toDouble()).uv((textureX + width) * f, textureY * f1).endVertex()
             vertex(x.toDouble(), y.toDouble(), zLevel.toDouble()).uv(textureX * f, textureY * f1).endVertex()
         }
-        Tessellator.getInstance().end()
+        Tesselator.getInstance().end()
     }
 
     fun width(text: String): Int {

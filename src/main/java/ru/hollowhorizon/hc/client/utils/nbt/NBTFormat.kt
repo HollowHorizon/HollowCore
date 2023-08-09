@@ -8,27 +8,29 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.modules.*
 import net.minecraft.nbt.*
-import net.minecraft.util.math.BlockPos
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.common.capabilities.*
+import ru.hollowhorizon.hc.common.capabilities.HollowCapability
+import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 
 internal val TagModule = SerializersModule {
-    polymorphic(INBT::class) {
-        subclass(ByteNBT::class, ForByteNBT)
-        subclass(ShortNBT::class, ForShortNBT)
-        subclass(IntNBT::class, ForIntNBT)
-        subclass(LongNBT::class, ForLongNBT)
-        subclass(FloatNBT::class, ForFloatNBT)
-        subclass(DoubleNBT::class, ForDoubleNBT)
-        subclass(StringNBT::class, ForStringNBT)
-        subclass(EndNBT::class, ForNbtNull)
-        subclass(ByteArrayNBT::class, ForByteArrayNBT)
-        subclass(IntArrayNBT::class, ForIntArrayNBT)
-        subclass(LongArrayNBT::class, ForLongArrayNBT)
-        subclass(ListNBT::class, ForNbtList)
-        subclass(CompoundNBT::class, ForCompoundNBT)
+    polymorphic(Tag::class) {
+        subclass(ByteTag::class, ForByteNBT)
+        subclass(ShortTag::class, ForShortNBT)
+        subclass(IntTag::class, ForIntNBT)
+        subclass(LongTag::class, ForLongNBT)
+        subclass(FloatTag::class, ForFloatNBT)
+        subclass(DoubleTag::class, ForDoubleNBT)
+        subclass(StringTag::class, ForStringNBT)
+        subclass(EndTag::class, ForNbtNull)
+        subclass(ByteArrayTag::class, ForByteArrayNBT)
+        subclass(IntArrayTag::class, ForIntArrayNBT)
+        subclass(LongArrayTag::class, ForLongArrayNBT)
+        subclass(ListTag::class, ForNbtList)
+        subclass(CompoundTag::class, ForCompoundNBT)
     }
     contextual(ForBlockPos)
     contextual(ForResourceLocation)
@@ -41,7 +43,7 @@ object CapabilityModule {
     @Suppress("unchecked_cast")
     fun build() = SerializersModule {
         polymorphic(HollowCapability::class) {
-            fun <B: HollowCapability> subclass(c: Class<B>) {
+            fun <B : HollowCapability> subclass(c: Class<B>) {
                 val klass = c.kotlin
                 subclass(klass, klass.serializer())
             }
@@ -75,11 +77,11 @@ open class NBTFormat(context: SerializersModule = EmptySerializersModule()) : Se
         }
     }
 
-    fun <T> serialize(serializer: SerializationStrategy<T>, obj: T): INBT {
+    fun <T> serialize(serializer: SerializationStrategy<T>, obj: T): Tag {
         return writeNbt(obj, serializer)
     }
 
-    fun <T> deserialize(deserializer: DeserializationStrategy<T>, tag: INBT): T {
+    fun <T> deserialize(deserializer: DeserializationStrategy<T>, tag: Tag): T {
         return readNbt(tag, deserializer)
     }
 }
@@ -101,36 +103,36 @@ internal inline fun <T, R1 : T, R2 : T> selectMapMode(
     }
 }
 
-fun INBT.save(stream: OutputStream) {
-    if (this is CompoundNBT) {
-        CompressedStreamTools.writeCompressed(this, stream)
-    } else {
-        CompressedStreamTools.writeCompressed(CompoundNBT().apply { put("nbt", this) }, stream)
-    }
+fun Tag.save(stream: DataOutputStream) {
+    NbtIo.writeUnnamedTag(this, stream)
 }
 
-fun InputStream.loadAsNBT(): INBT {
-    return CompressedStreamTools.readCompressed(this)
+fun Tag.save(stream: OutputStream) = this.save(DataOutputStream(stream))
+
+fun DataInputStream.loadAsNBT(): Tag {
+    return NbtIo.read(this)
 }
 
-inline fun <reified T> NBTFormat.serialize(value: T): INBT {
+fun InputStream.loadAsNBT() = DataInputStream(this).loadAsNBT()
+
+inline fun <reified T> NBTFormat.serialize(value: T): Tag {
     return serialize(serializersModule.serializer(), value)
 }
 
 @Suppress("UnstableApiUsage")
 @OptIn(ExperimentalSerializationApi::class)
-fun <T : Any> NBTFormat.serializeNoInline(value: T, cl: Class<T>): INBT {
+fun <T : Any> NBTFormat.serializeNoInline(value: T, cl: Class<T>): Tag {
     val typeToken = TypeToken.of(cl)
     return serialize(serializersModule.serializer(typeToken.type), value)
 }
 
-inline fun <reified T> NBTFormat.deserialize(tag: INBT): T {
+inline fun <reified T> NBTFormat.deserialize(tag: Tag): T {
     return deserialize(serializersModule.serializer(), tag)
 }
 
 @Suppress("UnstableApiUsage", "UNCHECKED_CAST")
 @OptIn(ExperimentalSerializationApi::class)
-fun <T : Any> NBTFormat.deserializeNoInline(tag: INBT, cl: Class<out T>): T {
+fun <T : Any> NBTFormat.deserializeNoInline(tag: Tag, cl: Class<out T>): T {
     val typeToken = TypeToken.of(cl)
     return deserialize(serializersModule.serializer(typeToken.type), tag) as T
 }

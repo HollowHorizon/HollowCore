@@ -1,17 +1,14 @@
 package ru.hollowhorizon.hc.client.screens.widget.button
 
-import com.mojang.blaze3d.matrix.MatrixStack
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.widget.button.Button
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.text.ITextComponent
-import net.minecraft.util.text.StringTextComponent
-import net.minecraftforge.api.distmarker.Dist
-import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import ru.hollowhorizon.hc.client.screens.widget.HollowWidget
 import ru.hollowhorizon.hc.client.utils.drawCentredScaled
-import ru.hollowhorizon.hc.client.utils.drawScaled
 import ru.hollowhorizon.hc.client.utils.mc
+import ru.hollowhorizon.hc.client.utils.mcText
 import javax.annotation.Nonnull
 
 
@@ -20,28 +17,28 @@ open class BaseButton @JvmOverloads constructor(
     y: Int,
     width: Int,
     height: Int,
-    protected val text: ITextComponent = StringTextComponent(""),
-    private val pressable: BasePressable,
+    protected val text: Component = "".mcText,
+    private val pressable: BaseButton.() -> Unit,
     private val texLocation: ResourceLocation,
     protected val textColor: Int = 0xFFFFFF,
     protected val textColorHovered: Int = 0xF0F0F0,
-    protected val tooltip: ITextComponent = StringTextComponent(""),
+    protected val tooltip: Component = "".mcText,
     protected val textScale: Float = 1.0F,
-) : Button(x, y, width, height, text, { }) {
+) : HollowWidget(x, y, width, height, text) {
     var isClickable = true
 
-    override fun render(@Nonnull stack: MatrixStack, x: Int, y: Int, f: Float) {
+    override fun render(@Nonnull stack: PoseStack, x: Int, y: Int, f: Float) {
         val minecraft = Minecraft.getInstance()
         val fr = minecraft.font
         val isHovered = isCursorAtButton(x, y)
 
         RenderSystem.enableBlend()
         RenderSystem.defaultBlendFunc()
-        RenderSystem.defaultAlphaFunc()
+
         stack.pushPose()
         stack.translate(0.0, 0.0, 700.0)
 
-        minecraft.getTextureManager().bind(texLocation)
+        minecraft.getTextureManager().bindForSetup(texLocation)
         blit(
             stack, this.x, this.y, 0f, (if (isHovered) height else 0).toFloat(), width, height, width, height * 2
         )
@@ -59,16 +56,17 @@ open class BaseButton @JvmOverloads constructor(
         }
     }
 
-    override fun onPress() {
-        if(isClickable) pressable.onPress(this)
+    fun onPress() {
+        if (isClickable) pressable.invoke(this)
     }
 
     fun isCursorAtButton(cursorX: Int, cursorY: Int): Boolean {
         return cursorX >= x && cursorY >= y && cursorX <= x + width && cursorY <= y + height && isClickable
     }
 
-    @OnlyIn(Dist.CLIENT)
-    fun interface BasePressable {
-        fun onPress(button: Button)
+    override fun clicked(pMouseX: Double, pMouseY: Double): Boolean {
+        return super.clicked(pMouseX, pMouseY).apply {
+            if (this) onPress()
+        }
     }
 }

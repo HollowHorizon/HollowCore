@@ -5,8 +5,8 @@ import com.google.common.graph.MutableGraph;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.IResource;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraftforge.fml.loading.toposort.TopologicalSort;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -132,8 +132,9 @@ public class GlslProcessor {
         }
 
         private static List<String> loadResource(ResourceLocation location) {
-            try (IResource resource = Minecraft.getInstance().getResourceManager().getResource(location)) {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
+            try {
+                Resource resource = Minecraft.getInstance().getResourceManager().getResource(location).orElseThrow();
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.open(), StandardCharsets.UTF_8))) {
                     return reader.lines().collect(Collectors.toList());
                 }
             } catch (IOException ex) {

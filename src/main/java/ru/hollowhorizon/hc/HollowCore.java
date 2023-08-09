@@ -1,22 +1,24 @@
 package ru.hollowhorizon.hc;
 
-import net.minecraft.client.gui.screen.MainMenuScreen;
-import net.minecraft.entity.Entity;
-import net.minecraft.resources.IResourcePack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
+import net.minecraft.SharedConstants;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
-import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -31,17 +33,15 @@ import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
-import ru.hollowhorizon.hc.common.animations.AnimationManager;
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2;
 import ru.hollowhorizon.hc.common.commands.HollowCommands;
 import ru.hollowhorizon.hc.common.handlers.DelayHandler;
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
-import ru.hollowhorizon.hc.common.registry.*;
-import ru.hollowhorizon.hc.common.world.storage.HollowWorldData;
-
-import java.util.ArrayList;
+import ru.hollowhorizon.hc.common.registry.ModCapabilities;
+import ru.hollowhorizon.hc.common.registry.ModEntities;
+import ru.hollowhorizon.hc.common.registry.ModShaders;
 
 
 @HollowMod(HollowCore.MODID)
@@ -53,13 +53,14 @@ public class HollowCore {
     public static final boolean DEBUG_MODE = true;
 
     public HollowCore() {
-        HollowCore.LOGGER.info("MainMenu ClassLoader: {}", MainMenuScreen.class.getClassLoader());
-        HollowCore.LOGGER.info("HollowCore ClassLoader: {}", HollowCore.class.getClassLoader());
+        //HollowModProcessor.initMod();
+        LOGGER.info("Starting HollowCore...");
 
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::setup);
         modBus.addListener(this::loadEnd);
         modBus.addListener(this::onAttribute);
+        modBus.addListener(this::onResourcePackAdd);
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
         GltfModelSources.INSTANCE.addSource(new PathSource(FMLPaths.GAMEDIR.get().resolve("hollowengine")));
@@ -84,24 +85,39 @@ public class HollowCore {
         DelayHandler.init();
         //команды
         forgeBus.addListener(this::registerCommands);
-        forgeBus.addListener(AnimationManager::tick);
-
-        //структуры
-        forgeBus.addListener(EventPriority.HIGHEST, ModStructures::onBiomeLoad);
 
         //мод
         forgeBus.register(this);
 
         forgeBus.addGenericListener(Entity.class, HollowCapabilityStorageV2::registerProvidersEntity);
-        forgeBus.addGenericListener(TileEntity.class, HollowCapabilityStorageV2::registerProvidersTile);
-        forgeBus.addGenericListener(Chunk.class, HollowCapabilityStorageV2::registerProvidersChunk);
-        forgeBus.addGenericListener(World.class, HollowCapabilityStorageV2::registerProvidersWorld);
+        forgeBus.addGenericListener(BlockEntity.class, HollowCapabilityStorageV2::registerProvidersTile);
+        forgeBus.addGenericListener(ChunkAccess.class, HollowCapabilityStorageV2::registerProvidersChunk);
+        forgeBus.addGenericListener(Level.class, HollowCapabilityStorageV2::registerProvidersWorld);
 
         forgeBus.addListener(this::configSave);
+
+        ModEntities.ENTITIES.register(modBus);
     }
 
-    public static void onResourcePackAdd(ArrayList<IResourcePack> packs) {
-        packs.add(HollowPack.getPackInstance());
+    public void onResourcePackAdd(AddPackFindersEvent event) {
+        event.addRepositorySource((adder, creator) -> {
+            var pack = HollowPack.getPackInstance();
+            adder.accept(
+                    creator.create(
+                            pack.getName(),
+                            Component.literal(pack.getName()),
+                            true,
+                            () -> pack,
+                            new PackMetadataSection(
+                                    Component.translatable("fml.resources.modresources", 1),
+                                    PackType.CLIENT_RESOURCES.getVersion(SharedConstants.getCurrentVersion())
+                            ),
+                            Pack.Position.TOP,
+                            PackSource.BUILT_IN,
+                            pack.isHidden()
+                    )
+            );
+        });
     }
 
 
@@ -110,18 +126,15 @@ public class HollowCore {
         ModCapabilities.init();
         NetworkHandler.register();
 
-        event.enqueueWork(ModStructures::postInit);
-        event.enqueueWork(ModStructurePieces::registerPieces);
-
     }
 
     private void onAttribute(EntityAttributeCreationEvent event) {
-        event.put(ModEntities.TEST_ENTITY, TestEntity.createMobAttributes().build());
-        event.put(ModEntities.TEST_ENTITY_V2, TestEntity.createMobAttributes().build());
+        event.put(ModEntities.TEST_ENTITY.get(), TestEntity.createMobAttributes().build());
+        //event.put(ModEntities.TEST_ENTITY_V2, TestEntity.createMobAttributes().build());
     }
 
 
-    private void configSave(FMLServerStoppedEvent event) {
+    private void configSave(ServerStoppedEvent event) {
         HollowCoreConfig.save();
     }
 
@@ -131,11 +144,6 @@ public class HollowCore {
     }
 
     //『server』
-    @SubscribeEvent
-    public static void onServerStarting(FMLServerStartingEvent event) {
-        HollowWorldData.INSTANCE = event.getServer().overworld()
-                .getChunkSource().getDataStorage().computeIfAbsent(HollowWorldData::new, "hollow_world_data");
-    }
 
     private void registerCommands(RegisterCommandsEvent event) {
         HollowCommands.register(event.getDispatcher());

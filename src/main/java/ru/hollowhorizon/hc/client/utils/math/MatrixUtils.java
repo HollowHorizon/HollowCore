@@ -1,8 +1,9 @@
 package ru.hollowhorizon.hc.client.utils.math;
 
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.util.math.vector.Vector4f;
+
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
+import com.mojang.math.Vector4f;
 
 import java.nio.FloatBuffer;
 

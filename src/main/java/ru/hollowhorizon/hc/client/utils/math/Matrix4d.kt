@@ -1,10 +1,10 @@
 package ru.hollowhorizon.hc.client.utils.math
 
-import net.minecraft.util.math.MathHelper
-import net.minecraft.util.math.vector.Matrix4f
-import net.minecraft.util.math.vector.Quaternion
-import net.minecraft.util.math.vector.Vector3d
-import net.minecraft.util.math.vector.Vector3f
+import com.mojang.math.Matrix4f
+import com.mojang.math.Quaternion
+import com.mojang.math.Vector3d
+import com.mojang.math.Vector3f
+import net.minecraft.util.Mth
 import java.nio.FloatBuffer
 import kotlin.math.sqrt
 
@@ -226,12 +226,12 @@ class Matrix4d(
     }
 
     fun rotateAffineZYX(angleZ: Double, angleY: Double, angleX: Double, dest: Matrix4d): Matrix4d {
-        val sinX = MathHelper.sin(angleX.toFloat()).toDouble()
-        val cosX: Double = MathHelper.sin(angleX.toFloat() + HALF_PI_F).toDouble()
-        val sinY = MathHelper.sin(angleY.toFloat()).toDouble()
-        val cosY: Double = MathHelper.sin(angleY.toFloat() + HALF_PI_F).toDouble()
-        val sinZ = MathHelper.sin(angleZ.toFloat()).toDouble()
-        val cosZ: Double = MathHelper.sin(angleZ.toFloat() + HALF_PI_F).toDouble()
+        val sinX = Mth.sin(angleX.toFloat()).toDouble()
+        val cosX: Double = Mth.sin(angleX.toFloat() + HALF_PI_F).toDouble()
+        val sinY = Mth.sin(angleY.toFloat()).toDouble()
+        val cosY: Double = Mth.sin(angleY.toFloat() + HALF_PI_F).toDouble()
+        val sinZ = Mth.sin(angleZ.toFloat()).toDouble()
+        val cosZ: Double = Mth.sin(angleZ.toFloat() + HALF_PI_F).toDouble()
         val m_sinZ = -sinZ
         val m_sinY = -sinY
         val m_sinX = -sinX
@@ -273,9 +273,9 @@ class Matrix4d(
 
     fun getEulerAnglesZYX(): Vector3d {
         return Vector3d(
-            MathHelper.atan2(m12, m22),
-            MathHelper.atan2(-m02, sqrt(1.0 - m02 * m02)),
-            MathHelper.atan2(m01, m00)
+            Mth.atan2(m12, m22),
+            Mth.atan2(-m02, sqrt(1.0 - m02 * m02)),
+            Mth.atan2(m01, m00)
         )
     }
 

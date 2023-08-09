@@ -1,17 +1,17 @@
 package ru.hollowhorizon.hc.client.render.entity
 
-import com.mojang.blaze3d.matrix.MatrixStack
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
-import net.minecraft.client.renderer.IRenderTypeBuffer
+import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.math.Matrix4f
+import com.mojang.math.Vector3f
+import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.entity.EntityRenderer
-import net.minecraft.client.renderer.entity.EntityRendererManager
-import net.minecraft.client.renderer.entity.LivingRenderer
-import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.passive.IFlyingAnimal
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.math.vector.Matrix4f
-import net.minecraft.util.math.vector.Vector3f
+import net.minecraft.client.renderer.entity.EntityRendererProvider
+import net.minecraft.client.renderer.entity.LivingEntityRenderer
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.animal.FlyingAnimal
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL12
 import org.lwjgl.opengl.GL13
@@ -22,9 +22,10 @@ import ru.hollowhorizon.hc.client.gltf.animations.AnimationManager
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
+import java.nio.FloatBuffer
 
 
-class GLTFEntityRenderer<T>(manager: EntityRendererManager) :
+class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimatedEntity {
 
 
@@ -37,8 +38,8 @@ class GLTFEntityRenderer<T>(manager: EntityRendererManager) :
         entity: T,
         yaw: Float,
         particalTick: Float,
-        stack: MatrixStack,
-        p_225623_5_: IRenderTypeBuffer,
+        stack: PoseStack,
+        p_225623_5_: MultiBufferSource,
         packedLight: Int
     ) {
         super.render(entity, yaw, particalTick, stack, p_225623_5_, packedLight)
@@ -48,7 +49,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererManager) :
 
         preRender(entity, stack, particalTick)
 
-        val packedOverlay: Int = LivingRenderer.getOverlayCoords(entity, particalTick)
+        val packedOverlay: Int = LivingEntityRenderer.getOverlayCoords(entity, particalTick)
 
         GL11.glPushMatrix()
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
@@ -70,7 +71,8 @@ class GLTFEntityRenderer<T>(manager: EntityRendererManager) :
 
         GL11.glAlphaFunc(516, 0.1f)
 
-        RenderSystem.multMatrix(stack.last().pose())
+        GL11.glMultMatrixf(FloatBuffer.allocate(16).apply { stack.last().pose().store(this) })
+
         GL11.glRotatef(-yaw, 0.0f, 1.0f, 0.0f)
 
         GL13.glMultiTexCoord2s(
@@ -107,7 +109,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererManager) :
         stack.popPose()
     }
 
-    private fun preRender(entity: T, stack: MatrixStack, partialTick: Float) {
+    private fun preRender(entity: T, stack: PoseStack, partialTick: Float) {
         val capability = entity.getCapability(HollowCapabilityV2.get<AnimatedEntityCapability>())
             .orElseThrow { IllegalStateException("Animated Entity Capability Not Found!") }
 
@@ -152,7 +154,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererManager) :
             return
         }
 
-        if (entity is IFlyingAnimal) {
+        if (entity is FlyingAnimal) {
             manager.currentAnimation = templates.getOrDefault(AnimationType.FLY, "")
             return
         }

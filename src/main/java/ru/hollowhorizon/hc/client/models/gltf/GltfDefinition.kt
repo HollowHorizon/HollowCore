@@ -4,9 +4,9 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
+import com.mojang.math.*
 import kotlinx.serialization.Serializable
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.math.vector.*
+import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
 import ru.hollowhorizon.hc.client.utils.rl
 import java.io.InputStream
@@ -25,13 +25,6 @@ internal class Vector3Deserializer : JsonDeserializer<Vector3f> {
     override fun deserialize(json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext?): Vector3f {
         val arr = json.asJsonArray
         return Vector3f(arr[0].asFloat, arr[1].asFloat, arr[2].asFloat)
-    }
-}
-
-internal class Vector2Deserializer : JsonDeserializer<Vector2f> {
-    override fun deserialize(json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext?): Vector2f {
-        val arr = json.asJsonArray
-        return Vector2f(arr[0].asFloat, arr[1].asFloat)
     }
 }
 
@@ -54,7 +47,6 @@ object GltfDefinition {
     private val GSON = GsonBuilder()
         .registerTypeAdapter(Vector4f::class.java, Vector4Deserializer())
         .registerTypeAdapter(Vector3f::class.java, Vector3Deserializer())
-        .registerTypeAdapter(Vector2f::class.java, Vector2Deserializer())
         .registerTypeAdapter(Quaternion::class.java, QuaternionDeserializer())
         .registerTypeAdapter(Matrix4f::class.java, Matrix4Deserializer())
         .create()

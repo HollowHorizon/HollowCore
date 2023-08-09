@@ -8,23 +8,24 @@ import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.modules.SerializersModule
 import net.minecraft.nbt.*
+import ru.hollowhorizon.hc.mixin.ListTagAccessor
 
-internal fun <T> NBTFormat.writeNbt(value: T, serializer: SerializationStrategy<T>): INBT {
-    lateinit var result: INBT
+internal fun <T> NBTFormat.writeNbt(value: T, serializer: SerializationStrategy<T>): Tag {
+    lateinit var result: Tag
 
-    if(value == null) return EndNBT.INSTANCE
+    if (value == null) return EndTag.INSTANCE
 
-    if(isPrimitiveType(value)) {
-        when(value) {
-            is Byte -> result = ByteNBT.valueOf(value)
-            is Short -> result = ShortNBT.valueOf(value)
-            is Int -> result = IntNBT.valueOf(value)
-            is Long -> result = LongNBT.valueOf(value)
-            is Float -> result = FloatNBT.valueOf(value)
-            is Double -> result = DoubleNBT.valueOf(value)
-            is Boolean -> result = ByteNBT.valueOf(value)
-            is Char -> result = StringNBT.valueOf(value.toString())
-            is String -> result = StringNBT.valueOf(value)
+    if (isPrimitiveType(value)) {
+        when (value) {
+            is Byte -> result = ByteTag.valueOf(value)
+            is Short -> result = ShortTag.valueOf(value)
+            is Int -> result = IntTag.valueOf(value)
+            is Long -> result = LongTag.valueOf(value)
+            is Float -> result = FloatTag.valueOf(value)
+            is Double -> result = DoubleTag.valueOf(value)
+            is Boolean -> result = ByteTag.valueOf(value)
+            is Char -> result = StringTag.valueOf(value.toString())
+            is String -> result = StringTag.valueOf(value)
         }
         return result
     }
@@ -35,7 +36,7 @@ internal fun <T> NBTFormat.writeNbt(value: T, serializer: SerializationStrategy<
 }
 
 fun <T> isPrimitiveType(value: T): Boolean {
-    return when(value) {
+    return when (value) {
         is Byte, is Short, is Int, is Long, is Float, is Double, is Boolean, is Char, is String -> true
         else -> false
     }
@@ -44,7 +45,7 @@ fun <T> isPrimitiveType(value: T): Boolean {
 @OptIn(ExperimentalSerializationApi::class)
 private sealed class AbstractNBTWriter(
     val format: NBTFormat,
-    val nodeConsumer: (INBT) -> Unit
+    val nodeConsumer: (Tag) -> Unit
 ) : NamedValueTagEncoder() {
 
     final override val serializersModule: SerializersModule
@@ -54,27 +55,27 @@ private sealed class AbstractNBTWriter(
     private var writePolymorphic = false
 
     override fun composeName(parentName: String, childName: String): String = childName
-    abstract fun putElement(key: String, element: INBT)
-    abstract fun getCurrent(): INBT
+    abstract fun putElement(key: String, element: Tag)
+    abstract fun getCurrent(): Tag
 
-    override fun encodeTaggedNull(tag: String) = putElement(tag, ByteNBT.valueOf(NbtFormatNull))
+    override fun encodeTaggedNull(tag: String) = putElement(tag, ByteTag.valueOf(NbtFormatNull))
 
-    override fun encodeTaggedInt(tag: String, value: Int) = putElement(tag, IntNBT.valueOf(value))
-    override fun encodeTaggedByte(tag: String, value: Byte) = putElement(tag, ByteNBT.valueOf(value))
-    override fun encodeTaggedShort(tag: String, value: Short) = putElement(tag, ShortNBT.valueOf(value))
-    override fun encodeTaggedLong(tag: String, value: Long) = putElement(tag, LongNBT.valueOf(value))
-    override fun encodeTaggedFloat(tag: String, value: Float) = putElement(tag, FloatNBT.valueOf(value))
-    override fun encodeTaggedDouble(tag: String, value: Double) = putElement(tag, DoubleNBT.valueOf(value))
-    override fun encodeTaggedBoolean(tag: String, value: Boolean) = putElement(tag, ByteNBT.valueOf(value))
-    override fun encodeTaggedChar(tag: String, value: Char) = putElement(tag, StringNBT.valueOf(value.toString()))
-    override fun encodeTaggedString(tag: String, value: String) = putElement(tag, StringNBT.valueOf(value))
+    override fun encodeTaggedInt(tag: String, value: Int) = putElement(tag, IntTag.valueOf(value))
+    override fun encodeTaggedByte(tag: String, value: Byte) = putElement(tag, ByteTag.valueOf(value))
+    override fun encodeTaggedShort(tag: String, value: Short) = putElement(tag, ShortTag.valueOf(value))
+    override fun encodeTaggedLong(tag: String, value: Long) = putElement(tag, LongTag.valueOf(value))
+    override fun encodeTaggedFloat(tag: String, value: Float) = putElement(tag, FloatTag.valueOf(value))
+    override fun encodeTaggedDouble(tag: String, value: Double) = putElement(tag, DoubleTag.valueOf(value))
+    override fun encodeTaggedBoolean(tag: String, value: Boolean) = putElement(tag, ByteTag.valueOf(value))
+    override fun encodeTaggedChar(tag: String, value: Char) = putElement(tag, StringTag.valueOf(value.toString()))
+    override fun encodeTaggedString(tag: String, value: String) = putElement(tag, StringTag.valueOf(value))
     override fun encodeTaggedEnum(tag: String, enumDescriptor: SerialDescriptor, ordinal: Int) =
-        putElement(tag, StringNBT.valueOf(enumDescriptor.getElementName(ordinal)))
+        putElement(tag, StringTag.valueOf(enumDescriptor.getElementName(ordinal)))
 
-    override fun encodeTaggedTag(key: String, tag: INBT) = putElement(key, tag)
+    override fun encodeTaggedTag(key: String, tag: Tag) = putElement(key, tag)
 
     override fun encodeTaggedValue(tag: String, value: Any) {
-        putElement(tag, StringNBT.valueOf(value.toString()))
+        putElement(tag, StringTag.valueOf(value.toString()))
     }
 
     override fun elementName(descriptor: SerialDescriptor, index: Int): String {
@@ -104,7 +105,7 @@ private sealed class AbstractNBTWriter(
 
         if (writePolymorphic) {
             writePolymorphic = false
-            encoder.putElement("type", StringNBT.valueOf(descriptor.serialName))
+            encoder.putElement("type", StringTag.valueOf(descriptor.serialName))
         }
 
         return encoder
@@ -115,31 +116,31 @@ private sealed class AbstractNBTWriter(
     }
 }
 
-private open class NBTWriter(format: NBTFormat, nodeConsumer: (INBT) -> Unit) :
+private open class NBTWriter(format: NBTFormat, nodeConsumer: (Tag) -> Unit) :
     AbstractNBTWriter(format, nodeConsumer) {
 
-    protected val content: CompoundNBT = CompoundNBT()
+    protected val content: CompoundTag = CompoundTag()
 
-    override fun putElement(key: String, element: INBT) {
+    override fun putElement(key: String, element: Tag) {
         content.put(key, element)
     }
 
-    override fun getCurrent(): INBT = content
+    override fun getCurrent(): Tag = content
 }
 
-private class NbtMapEncoder(format: NBTFormat, nodeConsumer: (INBT) -> Unit) : NBTWriter(format, nodeConsumer) {
+private class NbtMapEncoder(format: NBTFormat, nodeConsumer: (Tag) -> Unit) : NBTWriter(format, nodeConsumer) {
     private lateinit var key: String
 
-    override fun putElement(key: String, element: INBT) {
+    override fun putElement(key: String, element: Tag) {
         val idx = key.toInt()
         // writing key
         when {
             idx % 2 == 0 -> this.key = when (element) {
-                is CompoundNBT, is CollectionNBT<*>, is EndNBT -> throw compoundTagInvalidKeyKind(
+                is CompoundTag, is CollectionTag<*>, is EndTag -> throw compoundTagInvalidKeyKind(
                     when (element) {
-                        is CompoundNBT -> ForCompoundNBT.descriptor
-                        is CollectionNBT<*> -> ForNbtList.descriptor
-                        is EndNBT -> ForNbtNull.descriptor
+                        is CompoundTag -> ForCompoundNBT.descriptor
+                        is CollectionTag<*> -> ForNbtList.descriptor
+                        is EndTag -> ForNbtNull.descriptor
                         else -> error("impossible")
                     }
                 )
@@ -151,34 +152,34 @@ private class NbtMapEncoder(format: NBTFormat, nodeConsumer: (INBT) -> Unit) : N
         }
     }
 
-    override fun getCurrent(): INBT = content
+    override fun getCurrent(): Tag = content
 
 }
 
-private class NullableListEncoder(format: NBTFormat, nodeConsumer: (INBT) -> Unit) : NBTWriter(format, nodeConsumer) {
-    override fun putElement(key: String, element: INBT) {
+private class NullableListEncoder(format: NBTFormat, nodeConsumer: (Tag) -> Unit) : NBTWriter(format, nodeConsumer) {
+    override fun putElement(key: String, element: Tag) {
         content.put(key, element)
     }
 
-    override fun getCurrent(): INBT = content
+    override fun getCurrent(): Tag = content
 
 }
 
-private fun ListNBT.addAnyTag(index: Int, tag: INBT) {
-    this.list.add(index, tag)
+private fun ListTag.addAnyTag(index: Int, tag: Tag) {
+    (this as ListTagAccessor).list().add(index, tag)
 }
 
-private class NbtListEncoder(json: NBTFormat, nodeConsumer: (INBT) -> Unit) :
+private class NbtListEncoder(json: NBTFormat, nodeConsumer: (Tag) -> Unit) :
     AbstractNBTWriter(json, nodeConsumer) {
-    private val list: ListNBT = ListNBT()
+    private val list: ListTag = ListTag()
 
     override fun elementName(descriptor: SerialDescriptor, index: Int): String = index.toString()
 
 
-    override fun putElement(key: String, element: INBT) {
+    override fun putElement(key: String, element: Tag) {
         val idx = key.toInt()
         list.addAnyTag(idx, element)
     }
 
-    override fun getCurrent(): INBT = list
+    override fun getCurrent(): Tag = list
 }

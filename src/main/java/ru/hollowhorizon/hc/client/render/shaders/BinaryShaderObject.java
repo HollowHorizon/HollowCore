@@ -1,10 +1,10 @@
 package ru.hollowhorizon.hc.client.render.shaders;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.IResource;
-import net.minecraft.resources.IResourceManager;
-import net.minecraft.resources.IResourceManagerReloadListener;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.BufferUtils;
@@ -19,7 +19,7 @@ import java.nio.ByteOrder;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-public class BinaryShaderObject extends NamedShaderObject implements IResourceManagerReloadListener {
+public class BinaryShaderObject extends NamedShaderObject implements ResourceManagerReloadListener {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -58,7 +58,7 @@ public class BinaryShaderObject extends NamedShaderObject implements IResourceMa
             ByteBuffer sourceBuffer = BufferUtils.createByteBuffer(source.length).order(ByteOrder.nativeOrder());
             sourceBuffer.put(source);
             sourceBuffer.flip();
-            GL46.glShaderBinary(new int[] { shaderId }, binaryType.getGLCode(), sourceBuffer);
+            GL46.glShaderBinary(new int[]{shaderId}, binaryType.getGLCode(), sourceBuffer);
 
             specializationCallback.accept(constantCache);
             GL46.glSpecializeShader(shaderId, entryPoint, constantCache.getIndices(), constantCache.getValues());
@@ -81,13 +81,14 @@ public class BinaryShaderObject extends NamedShaderObject implements IResourceMa
     }
 
     @Override
-    public void onResourceManagerReload(IResourceManager resourceManager) {
+    public void onResourceManagerReload(ResourceManager resourceManager) {
         dirty = true;
     }
 
     private byte[] getRawSource() {
-        try (IResource resource = Minecraft.getInstance().getResourceManager().getResource(asset)) {
-            try (InputStream istream = resource.getInputStream()) {
+        try {
+            Resource resource = Minecraft.getInstance().getResourceManager().getResource(asset).orElseThrow();
+            try (InputStream istream = resource.open()) {
                 ByteArrayOutputStream ostream = new ByteArrayOutputStream();
                 byte[] buffer = new byte[1024];
                 int read;

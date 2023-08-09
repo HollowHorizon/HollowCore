@@ -1,9 +1,9 @@
 package ru.hollowhorizon.hc.client.utils.math
 
-import com.mojang.blaze3d.matrix.MatrixStack
-import com.mojang.blaze3d.vertex.IVertexBuilder
-import net.minecraft.util.math.vector.Vector3d
-import net.minecraft.util.math.vector.Vector3f
+import com.mojang.blaze3d.vertex.BufferBuilder
+import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.blaze3d.vertex.VertexBuffer
+import com.mojang.math.Vector3f
 import ru.hollowhorizon.hc.client.utils.RGBA
 
 /**
@@ -62,10 +62,10 @@ operator fun Vector3f.unaryMinus(): Vector3f {
  * [IVertexBuilder] extensions
  */
 
-operator fun IVertexBuilder.plusAssign(v: VertexExt) {
+operator fun BufferBuilder.plusAssign(v: VertexExt) {
     this.vertex(v.stack.last().pose(), v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
     this.color(v.rgba.r, v.rgba.g, v.rgba.b, v.rgba.a)
     this.endVertex()
 }
 
-class VertexExt(val stack: MatrixStack, val x: Int, val y: Int, val z: Int, val rgba: RGBA)
+class VertexExt(val stack: PoseStack, val x: Int, val y: Int, val z: Int, val rgba: RGBA)

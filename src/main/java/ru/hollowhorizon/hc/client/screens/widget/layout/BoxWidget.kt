@@ -1,10 +1,10 @@
 package ru.hollowhorizon.hc.client.screens.widget.layout
 
-import com.mojang.blaze3d.matrix.MatrixStack
+import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
-import net.minecraft.client.audio.SoundHandler
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.gui.widget.Widget
+import net.minecraft.client.gui.components.AbstractWidget
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.sounds.SoundManager
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.screens.DrawUtils
 import ru.hollowhorizon.hc.client.screens.util.Alignment
@@ -18,12 +18,13 @@ class BoxWidget(
     y: Int,
     width: Int,
     height: Int,
-    val renderer: (MatrixStack, Int, Int, Int, Int) -> Unit,
+    val renderer: (PoseStack, Int, Int, Int, Int) -> Unit,
     val padding: SizePair,
 ) : OriginWidget(x, y, width, height) {
     override var canScale = false
 
-    override fun playDownSound(p_230988_1_: SoundHandler) {}
+
+    override fun playDownSound(p_230988_1_: SoundManager) {}
 
     var verticalSlider: VerticalSliderWidget? = null
     var horizontalSlider: HorizontalSliderWidget? = null
@@ -51,7 +52,7 @@ class BoxWidget(
         }
     }
 
-    override fun renderButton(stack: MatrixStack, mouseX: Int, mouseY: Int, ticks: Float) {
+    override fun renderButton(stack: PoseStack, mouseX: Int, mouseY: Int, ticks: Float) {
         checkSliders()
 
         renderer(stack, x, y, width, height)
@@ -125,7 +126,7 @@ class BoxWidget(
 }
 
 class BoxBuilder(val x0: Int, val y0: Int, val maxWidth: Int, val maxHeight: Int) {
-    val widgets: MutableList<Widget> = ArrayList()
+    val widgets: MutableList<AbstractWidget> = ArrayList()
     var align: IPlacement = Alignment.CENTER
     var size: SizePair = 90.pc x 90.pc
 
@@ -133,7 +134,7 @@ class BoxBuilder(val x0: Int, val y0: Int, val maxWidth: Int, val maxHeight: Int
     var pos: SizePair = 0.px x 0.px
     var padding: SizePair = 0.px x 0.px
 
-    var renderer: (MatrixStack, Int, Int, Int, Int) -> Unit = { _, _, _, _, _ -> }
+    var renderer: (PoseStack, Int, Int, Int, Int) -> Unit = { _, _, _, _, _ -> }
 
     var alignElements: IPlacement = Alignment.CENTER
     var placementType: PlacementType = PlacementType.VERTICAL
@@ -161,7 +162,7 @@ class BoxBuilder(val x0: Int, val y0: Int, val maxWidth: Int, val maxHeight: Int
         widgets.addAll(widgetBuilder.widgets)
     }
 
-    fun add(widget: Widget) {
+    fun add(widget: AbstractWidget) {
         widgets.add(widget)
     }
 
@@ -190,7 +191,7 @@ class WidgetBuilder(
     val prev: BoxBuilder,
 ) : ILayoutConsumer {
     val font = Minecraft.getInstance().font
-    val widgets: MutableList<Widget> = ArrayList()
+    val widgets: MutableList<AbstractWidget> = ArrayList()
 
     val Int.px
         get() = ScreenPos(this, prev.width(), prev.height(), prev.padding)
@@ -207,15 +208,15 @@ class WidgetBuilder(
         return ScreenPos(this.value + another.value, prev.width(), prev.height(), prev.padding)
     }
 
-    operator fun <T : Widget> T.unaryPlus(): T {
+    operator fun <T : AbstractWidget> T.unaryPlus(): T {
         widgets.add(this)
         val align = prev.alignElements
 
         when (prev.placementType) {
             PlacementType.GRID -> {
-                val sizedWidgets = arrayListOf<List<Widget>>()
+                val sizedWidgets = arrayListOf<List<AbstractWidget>>()
 
-                var currentRow = arrayListOf<Widget>()
+                var currentRow = arrayListOf<AbstractWidget>()
                 var currentRowWidth = 0
                 var maxHeight = 0
 
@@ -294,7 +295,7 @@ class WidgetBuilder(
         return this
     }
 
-    override fun addLayoutWidget(widget: Widget) {
+    override fun addLayoutWidget(widget: AbstractWidget) {
         widgets.add(widget)
     }
 

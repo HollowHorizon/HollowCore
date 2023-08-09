@@ -2,10 +2,10 @@ package ru.hollowhorizon.hc.client.utils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.minecraft.block.Block;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +29,6 @@ public class VoxelShapeHelper {
         });
         VoxelShape root = shapes.get(0);
         shapes.remove(0);
-        return VoxelShapes.or(root, shapes.toArray(new VoxelShape[0]));
+        return Shapes.or(root, shapes.toArray(new VoxelShape[0]));
     }
 }

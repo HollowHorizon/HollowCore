@@ -1,9 +1,9 @@
 package ru.hollowhorizon.hc.client.screens.widget;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.StringTextComponent;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
@@ -16,7 +16,7 @@ public class VerticalSliderWidget extends HollowWidget implements IOriginBlackLi
     private Consumer<Float> consumer = (f) -> {};
 
     public VerticalSliderWidget(int x, int y, int w, int h, ResourceLocation texture) {
-        super(x, y, w, h, new StringTextComponent(""));
+        super(x, y, w, h, Component.literal(""));
         this.texture = texture;
 
         if (w > h)
@@ -41,11 +41,11 @@ public class VerticalSliderWidget extends HollowWidget implements IOriginBlackLi
     }
 
     public int clamp(int value) {
-        return MathHelper.clamp(value, this.y + 10, this.y + this.height - 10);
+        return Mth.clamp(value, this.y + 10, this.y + this.height - 10);
     }
 
     @Override
-    public void renderButton(@NotNull MatrixStack stack, int mouseX, int mouseY, float ticks) {
+    public void renderButton(@NotNull PoseStack stack, int mouseX, int mouseY, float ticks) {
         super.renderButton(stack, mouseX, mouseY, ticks);
 
         if (isClicked) {

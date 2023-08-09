@@ -1,15 +1,16 @@
 package ru.hollowhorizon.hc.client.render.shaders;
 
+import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.minecraft.util.math.vector.Matrix3f;
-import net.minecraft.util.math.vector.Matrix4f;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL21;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL40;
 import ru.hollowhorizon.hc.client.utils.math.MatrixUtils;
 
+import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,31 +30,27 @@ public class ShaderUniformCache implements UniformCache {
     }
 
     private static double[] toArrayD(Matrix3f matrix) {
+        var buffer = FloatBuffer.allocate(9);
+        matrix.store(buffer);
+        var array = buffer.array();
+
         return new double[]{
-                matrix.m00,
-                matrix.m01,
-                matrix.m02,
-                matrix.m10,
-                matrix.m11,
-                matrix.m12,
-                matrix.m20,
-                matrix.m21,
-                matrix.m22
+                array[0],
+                array[1],
+                array[2],
+                array[3],
+                array[4],
+                array[5],
+                array[6],
+                array[7],
+                array[8]
         };
     }
 
     private static float[] toArrayF(Matrix3f matrix) {
-        return new float[]{
-                matrix.m00,
-                matrix.m01,
-                matrix.m02,
-                matrix.m10,
-                matrix.m11,
-                matrix.m12,
-                matrix.m20,
-                matrix.m21,
-                matrix.m22
-        };
+        var buffer = FloatBuffer.allocate(9);
+        matrix.store(buffer);
+        return buffer.array();
     }
 
     public void onLink() {

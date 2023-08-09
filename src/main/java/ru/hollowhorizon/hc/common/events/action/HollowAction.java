@@ -1,12 +1,12 @@
 package ru.hollowhorizon.hc.common.events.action;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import ru.hollowhorizon.hc.common.handlers.DelayHandler;
 
 public interface HollowAction {
-    void process(ServerPlayerEntity player);
+    void process(ServerPlayer player);
 
-    default void run(ServerPlayerEntity player, int delay) {
+    default void run(ServerPlayer player, int delay) {
         DelayHandler.addDelayForAction(delay, this, player);
     }
 }

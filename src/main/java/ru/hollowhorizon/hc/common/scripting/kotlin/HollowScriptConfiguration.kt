@@ -27,7 +27,7 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
             ModList.get().getModFileById("hc").file.filePath.toFile().absolutePath
         )
 
-        val files = ArrayList<File>()
+        val files = HashSet<File>()
         if (FMLLoader.isProduction()) {
             fun findClasspathEntry(cls: String): String {
                 val classFilePath = "/${cls.replace('.', '/')}.class"
@@ -54,8 +54,12 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
             }
 
             files.addAll(ModList.get().modFiles.map { it.file.filePath.toFile() })
-            files.add(FMLLoader.getForgePath().toFile())
-            files.addAll(FMLLoader.getMCPaths().map { it.toFile() })
+            files.add(FMLLoader.getGamePath().toFile())
+
+            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherModPaths.flatten().map { it.toFile() })
+            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherArtifacts.map { it.toFile() })
+
+            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map { it.toFile() })
 
             var libraries =
                 FMLLoader.getGamePath().resolve("libraries").toFile().walk().filter { it.name.endsWith(".jar") }

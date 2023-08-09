@@ -1,10 +1,11 @@
 package ru.hollowhorizon.hc.client.utils
 
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.gui.widget.Widget
+import net.minecraft.client.gui.components.AbstractWidget
+import net.minecraft.client.gui.screens.Screen
 import ru.hollowhorizon.hc.client.screens.widget.HollowWidget
+import ru.hollowhorizon.hc.mixin.ScreenAccessor
 
-infix fun Widget.parent(parent: HollowWidget) {
+infix fun AbstractWidget.parent(parent: HollowWidget) {
     parent.addLayoutWidget(this)
 
 
@@ -13,7 +14,9 @@ infix fun Widget.parent(parent: HollowWidget) {
     this.y = parent.y + this.y
 }
 
-infix fun Widget.parent(parent: Screen) {
-    parent.children.add(this)
-    parent.buttons.add(this)
+infix fun AbstractWidget.parent(parent: Screen) {
+    (parent as ScreenAccessor).apply {
+        children().add(this@parent)
+        renderables().add(this@parent)
+    }
 }

@@ -1,5 +1,8 @@
 package ru.hollowhorizon.hc.client.utils.nbt
 
+import com.mojang.math.Matrix4f
+import com.mojang.math.Vector3d
+import com.mojang.math.Vector3f
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
@@ -9,15 +12,12 @@ import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
-import net.minecraft.item.ItemStack
+import net.minecraft.core.BlockPos
 import net.minecraft.nbt.*
-import net.minecraft.util.ResourceLocation
-import net.minecraft.util.SoundEvent
-import net.minecraft.util.SoundEvents
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.vector.Matrix4f
-import net.minecraft.util.math.vector.Vector3d
-import net.minecraft.util.math.vector.Vector3f
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.sounds.SoundEvent
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.item.ItemStack
 import net.minecraftforge.registries.ForgeRegistries
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.rl
@@ -55,81 +55,81 @@ object ForSoundEvent : KSerializer<SoundEvent> {
 }
 
 
-object ForByteNBT : KSerializer<ByteNBT> {
+object ForByteNBT : KSerializer<ByteTag> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ByteNBT", PrimitiveKind.BYTE)
-    override fun serialize(encoder: Encoder, value: ByteNBT) = encoder.encodeByte(value.asByte)
-    override fun deserialize(decoder: Decoder): ByteNBT = ByteNBT.valueOf(decoder.decodeByte())
+    override fun serialize(encoder: Encoder, value: ByteTag) = encoder.encodeByte(value.asByte)
+    override fun deserialize(decoder: Decoder): ByteTag = ByteTag.valueOf(decoder.decodeByte())
 }
 
 
-object ForShortNBT : KSerializer<ShortNBT> {
+object ForShortNBT : KSerializer<ShortTag> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ShortNBT", PrimitiveKind.SHORT)
-    override fun serialize(encoder: Encoder, value: ShortNBT) = encoder.encodeShort(value.asShort)
-    override fun deserialize(decoder: Decoder): ShortNBT = ShortNBT.valueOf(decoder.decodeShort())
+    override fun serialize(encoder: Encoder, value: ShortTag) = encoder.encodeShort(value.asShort)
+    override fun deserialize(decoder: Decoder): ShortTag = ShortTag.valueOf(decoder.decodeShort())
 }
 
 
-object ForIntNBT : KSerializer<IntNBT> {
+object ForIntNBT : KSerializer<IntTag> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("IntNBT", PrimitiveKind.INT)
-    override fun serialize(encoder: Encoder, value: IntNBT) = encoder.encodeInt(value.asInt)
-    override fun deserialize(decoder: Decoder): IntNBT = IntNBT.valueOf(decoder.decodeInt())
+    override fun serialize(encoder: Encoder, value: IntTag) = encoder.encodeInt(value.asInt)
+    override fun deserialize(decoder: Decoder): IntTag = IntTag.valueOf(decoder.decodeInt())
 }
 
 
-object ForLongNBT : KSerializer<LongNBT> {
+object ForLongNBT : KSerializer<LongTag> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("LongNBT", PrimitiveKind.LONG)
-    override fun serialize(encoder: Encoder, value: LongNBT) = encoder.encodeLong(value.asLong)
-    override fun deserialize(decoder: Decoder): LongNBT = LongNBT.valueOf(decoder.decodeLong())
+    override fun serialize(encoder: Encoder, value: LongTag) = encoder.encodeLong(value.asLong)
+    override fun deserialize(decoder: Decoder): LongTag = LongTag.valueOf(decoder.decodeLong())
 }
 
 
-object ForFloatNBT : KSerializer<FloatNBT> {
+object ForFloatNBT : KSerializer<FloatTag> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("FloatNBT", PrimitiveKind.FLOAT)
-    override fun serialize(encoder: Encoder, value: FloatNBT) = encoder.encodeFloat(value.asFloat)
-    override fun deserialize(decoder: Decoder): FloatNBT = FloatNBT.valueOf(decoder.decodeFloat())
+    override fun serialize(encoder: Encoder, value: FloatTag) = encoder.encodeFloat(value.asFloat)
+    override fun deserialize(decoder: Decoder): FloatTag = FloatTag.valueOf(decoder.decodeFloat())
 }
 
 
-object ForDoubleNBT : KSerializer<DoubleNBT> {
+object ForDoubleNBT : KSerializer<DoubleTag> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("DoubleNBT", PrimitiveKind.DOUBLE)
-    override fun serialize(encoder: Encoder, value: DoubleNBT) = encoder.encodeDouble(value.asDouble)
-    override fun deserialize(decoder: Decoder): DoubleNBT = DoubleNBT.valueOf(decoder.decodeDouble())
+    override fun serialize(encoder: Encoder, value: DoubleTag) = encoder.encodeDouble(value.asDouble)
+    override fun deserialize(decoder: Decoder): DoubleTag = DoubleTag.valueOf(decoder.decodeDouble())
 }
 
 
-object ForStringNBT : KSerializer<StringNBT> {
+object ForStringNBT : KSerializer<StringTag> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("StringNBT", PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: StringNBT) = encoder.encodeString(value.asString)
-    override fun deserialize(decoder: Decoder): StringNBT = StringNBT.valueOf(decoder.decodeString())
+    override fun serialize(encoder: Encoder, value: StringTag) = encoder.encodeString(value.asString)
+    override fun deserialize(decoder: Decoder): StringTag = StringTag.valueOf(decoder.decodeString())
 }
 
 
-object ForNbtNull : KSerializer<EndNBT> {
+object ForNbtNull : KSerializer<EndTag> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("EndNBT", PrimitiveKind.BYTE)
-    override fun serialize(encoder: Encoder, value: EndNBT) = encoder.encodeByte(0)
-    override fun deserialize(decoder: Decoder): EndNBT = EndNBT.INSTANCE.also { decoder.decodeByte() }
+    override fun serialize(encoder: Encoder, value: EndTag) = encoder.encodeByte(0)
+    override fun deserialize(decoder: Decoder): EndTag = EndTag.INSTANCE.also { decoder.decodeByte() }
 }
 
 
-object ForByteArrayNBT : KSerializer<ByteArrayNBT> {
+object ForByteArrayNBT : KSerializer<ByteArrayTag> {
     override val descriptor: SerialDescriptor = PublicisedListLikeDescriptorImpl(ForByteNBT.descriptor, "ByteArrayNBT")
 
-    override fun serialize(encoder: Encoder, value: ByteArrayNBT) =
+    override fun serialize(encoder: Encoder, value: ByteArrayTag) =
         ListSerializer(ForByteNBT).serialize(encoder, value)
 
-    override fun deserialize(decoder: Decoder): ByteArrayNBT =
-        ByteArrayNBT(ListSerializer(ForByteNBT).deserialize(decoder).map { it.asByte })
+    override fun deserialize(decoder: Decoder): ByteArrayTag =
+        ByteArrayTag(ListSerializer(ForByteNBT).deserialize(decoder).map { it.asByte })
 }
 
 
-object ForIntArrayNBT : KSerializer<IntArrayNBT> {
+object ForIntArrayNBT : KSerializer<IntArrayTag> {
     override val descriptor: SerialDescriptor = PublicisedListLikeDescriptorImpl(ForIntNBT.descriptor, "IntArrayNBT")
 
-    override fun serialize(encoder: Encoder, value: IntArrayNBT) =
+    override fun serialize(encoder: Encoder, value: IntArrayTag) =
         ListSerializer(ForIntNBT).serialize(encoder, value)
 
-    override fun deserialize(decoder: Decoder): IntArrayNBT =
-        IntArrayNBT(ListSerializer(ForIntNBT).deserialize(decoder).map { it.asInt })
+    override fun deserialize(decoder: Decoder): IntArrayTag =
+        IntArrayTag(ListSerializer(ForIntNBT).deserialize(decoder).map { it.asInt })
 }
 
 
@@ -142,58 +142,58 @@ object ForMatrix4f : KSerializer<Matrix4f> {
             value.m10, value.m11, value.m12, value.m13,
             value.m20, value.m21, value.m22, value.m23,
             value.m30, value.m31, value.m32, value.m33
-        ).map { FloatNBT.valueOf(it) })
+        ).map { FloatTag.valueOf(it) })
 
     override fun deserialize(decoder: Decoder): Matrix4f =
         Matrix4f(ListSerializer(ForFloatNBT).deserialize(decoder).map { it.asFloat }.toFloatArray())
 }
 
 
-object ForLongArrayNBT : KSerializer<LongArrayNBT> {
+object ForLongArrayNBT : KSerializer<LongArrayTag> {
     override val descriptor: SerialDescriptor = PublicisedListLikeDescriptorImpl(ForLongNBT.descriptor, "LongArrayNBT")
 
-    override fun serialize(encoder: Encoder, value: LongArrayNBT) =
+    override fun serialize(encoder: Encoder, value: LongArrayTag) =
         ListSerializer(ForLongNBT).serialize(encoder, value)
 
-    override fun deserialize(decoder: Decoder): LongArrayNBT =
-        LongArrayNBT(ListSerializer(ForLongNBT).deserialize(decoder).map { it.asLong })
+    override fun deserialize(decoder: Decoder): LongArrayTag =
+        LongArrayTag(ListSerializer(ForLongNBT).deserialize(decoder).map { it.asLong })
 }
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 
-object ForTag : KSerializer<INBT> {
+object ForTag : KSerializer<Tag> {
     override val descriptor: SerialDescriptor =
         buildSerialDescriptor("kotlinx.serialization.Polymorphic", PolymorphicKind.OPEN) {
             element("type", String.serializer().descriptor)
             element(
                 "value",
                 buildSerialDescriptor(
-                    "kotlinx.serialization.Polymorphic<${INBT::class.simpleName}>",
+                    "kotlinx.serialization.Polymorphic<${Tag::class.simpleName}>",
                     SerialKind.CONTEXTUAL
                 )
             )
         }
 
-    override fun serialize(encoder: Encoder, value: INBT) {
+    override fun serialize(encoder: Encoder, value: Tag) {
         if (encoder is ICanEncodeTag) encoder.encodeTag(value)
-        else PolymorphicSerializer(INBT::class).serialize(encoder, value)
+        else PolymorphicSerializer(Tag::class).serialize(encoder, value)
     }
 
-    override fun deserialize(decoder: Decoder): INBT {
+    override fun deserialize(decoder: Decoder): Tag {
         return if (decoder is ICanDecodeTag) decoder.decodeTag()
-        else PolymorphicSerializer(INBT::class).deserialize(decoder)
+        else PolymorphicSerializer(Tag::class).deserialize(decoder)
     }
 }
 
 
-object ForNbtList : KSerializer<ListNBT> {
-    override val descriptor: SerialDescriptor = PublicisedListLikeDescriptorImpl(ForTag.descriptor, "ListNBT")
+object ForNbtList : KSerializer<ListTag> {
+    override val descriptor: SerialDescriptor = PublicisedListLikeDescriptorImpl(ForTag.descriptor, "ListTag")
 
-    override fun serialize(encoder: Encoder, value: ListNBT) {
+    override fun serialize(encoder: Encoder, value: ListTag) {
         ListSerializer(ForTag).serialize(encoder, value)
     }
 
-    override fun deserialize(decoder: Decoder): ListNBT = ListNBT().apply {
+    override fun deserialize(decoder: Decoder): ListTag = ListTag().apply {
         for (tag in ListSerializer(ForTag).deserialize(decoder)) {
             add(tag)
         }
@@ -201,13 +201,13 @@ object ForNbtList : KSerializer<ListNBT> {
 }
 
 
-object ForCompoundNBT : KSerializer<CompoundNBT> {
+object ForCompoundNBT : KSerializer<CompoundTag> {
     @OptIn(ExperimentalSerializationApi::class)
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("NbtCompound") {
         mapSerialDescriptor(PrimitiveSerialDescriptor("Key", PrimitiveKind.STRING), ForTag.descriptor)
     }
 
-    override fun serialize(encoder: Encoder, value: CompoundNBT) {
+    override fun serialize(encoder: Encoder, value: CompoundTag) {
         if (encoder is ICanEncodeCompoundNBT) {
             encoder.encodeCompoundNBT(value)
         } else {
@@ -219,11 +219,11 @@ object ForCompoundNBT : KSerializer<CompoundNBT> {
 
     }
 
-    override fun deserialize(decoder: Decoder): CompoundNBT {
+    override fun deserialize(decoder: Decoder): CompoundTag {
         if (decoder is ICanDecodeCompoundNBT) {
             return decoder.decodeCompoundNBT()
         }
-        return CompoundNBT().apply {
+        return CompoundTag().apply {
             for ((key, value) in MapSerializer(String.serializer(), ForTag).deserialize(decoder)) {
                 put(key, value)
             }
@@ -240,7 +240,7 @@ object ForItemStack : KSerializer<ItemStack> {
 
     override fun serialize(encoder: Encoder, value: ItemStack) {
         encoder.encodeStructure(descriptor) {
-            encodeSerializableElement(descriptor, 0, ForCompoundNBT, CompoundNBT().apply { value.save(this) })
+            encodeSerializableElement(descriptor, 0, ForCompoundNBT, CompoundTag().apply { value.save(this) })
         }
     }
 
@@ -249,7 +249,7 @@ object ForItemStack : KSerializer<ItemStack> {
     override fun deserialize(decoder: Decoder): ItemStack {
         val dec = decoder.beginStructure(descriptor)
 
-        var tag: CompoundNBT? = null
+        var tag: CompoundTag? = null
         if (dec.decodeSequentially()) {
             tag = dec.decodeSerializableElement(descriptor, 0, ForCompoundNBT)
         } else {
