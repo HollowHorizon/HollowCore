@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistry;
+import net.minecraftforge.registries.GameData;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +43,7 @@ public abstract class ForgeRegistryMixin<V> implements IForgeRegistry<V>, IReloa
     @Unique
     private Set<Triple<V, Integer, ResourceLocation>> backups;
     @Unique
-    private Set<V> scripted;
+    private Set<V> created;
     @Unique
     private Supplier<V> dummySupplier;
 
@@ -63,12 +64,12 @@ public abstract class ForgeRegistryMixin<V> implements IForgeRegistry<V>, IReloa
     @Override
     public V registerEntry(ResourceLocation location, V registryEntry) {
         if (registryEntry != null) hollowcore$removeEntry(location);
-        V newEntry = getValue(add(-1, null, registryEntry));
+        V newEntry = getValue(add(-1, location, registryEntry));
         if (newEntry == registryEntry) {
-            if (this.scripted == null) {
-                this.scripted = new ObjectOpenHashSet<>();
+            if (this.created == null) {
+                this.created = new ObjectOpenHashSet<>();
             }
-            this.scripted.add(registryEntry);
+            this.created.add(registryEntry);
         }
         return newEntry;
     }
@@ -90,14 +91,15 @@ public abstract class ForgeRegistryMixin<V> implements IForgeRegistry<V>, IReloa
     @Override
     public void onReload() {
         unfreeze();
-        if (this.scripted != null) {
-            for (V entry : this.scripted) {
+        GameData.unfreezeData();
+        if (this.created != null) {
+            for (V entry : this.created) {
                 ResourceLocation rl = this.names.inverse().remove(entry);
                 Integer id = this.ids.inverse().remove(entry);
                 Object owner = this.owners.inverse().remove(entry);
                 hollowcore$putDummy(entry, rl, id, owner);
             }
-            this.scripted = null;
+            this.created = null;
         }
         if (this.backups != null) {
             for (Triple<V, Integer, ResourceLocation> entry : this.backups) {
