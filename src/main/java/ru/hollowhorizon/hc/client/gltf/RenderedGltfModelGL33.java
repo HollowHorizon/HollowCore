@@ -175,12 +175,24 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
         GL30.glBindVertexArray(glVertexArray);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
-        GL11.glVertexPointer(positionsAccessorModel.getElementType().getNumComponents(), positionsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaPosition,
+                positionsAccessorModel.getElementType().getNumComponents(),
+                positionsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
-        GL11.glNormalPointer(normalsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                normalsAccessorModel.getElementType().getNumComponents(),
+                normalsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, tangentBuffer);
         GL20.glVertexAttribPointer(
@@ -202,12 +214,14 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
             else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
@@ -219,12 +233,14 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
             else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
-            GL11.glTexCoordPointer(
+            GL20.glVertexAttribPointer(
+                    vaUV0,
                     texcoordsAccessorModel.getElementType().getNumComponents(),
                     texcoordsAccessorModel.getComponentType(),
+                    false,
                     texcoordsAccessorModel.getByteStride(),
                     texcoordsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            GL20.glEnableVertexAttribArray(vaUV0);
 
             AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
             if(texcoords1AccessorModel != null) {
@@ -391,12 +407,24 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
         GL30.glBindVertexArray(glVertexArray);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
-        GL11.glVertexPointer(positionsAccessorModel.getElementType().getNumComponents(), positionsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaPosition,
+                positionsAccessorModel.getElementType().getNumComponents(),
+                positionsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
-        GL11.glNormalPointer(normalsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                normalsAccessorModel.getElementType().getNumComponents(),
+                normalsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, tangentBuffer);
         GL20.glVertexAttribPointer(
@@ -418,12 +446,14 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
             else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
@@ -435,12 +465,14 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
             else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
-            GL11.glTexCoordPointer(
+            GL20.glVertexAttribPointer(
+                    vaUV0,
                     texcoordsAccessorModel.getElementType().getNumComponents(),
                     texcoordsAccessorModel.getComponentType(),
+                    false,
                     texcoordsAccessorModel.getByteStride(),
                     texcoordsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            GL20.glEnableVertexAttribArray(vaUV0);
 
             AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
             if(texcoords1AccessorModel != null) {
@@ -600,12 +632,24 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
         GL30.glBindVertexArray(glVertexArray);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
-        GL11.glVertexPointer(positionsAccessorModel.getElementType().getNumComponents(), positionsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaPosition,
+                positionsAccessorModel.getElementType().getNumComponents(),
+                positionsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
-        GL11.glNormalPointer(normalsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                normalsAccessorModel.getElementType().getNumComponents(),
+                normalsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, tangentBuffer);
         GL20.glVertexAttribPointer(
@@ -627,12 +671,14 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
             else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
@@ -642,12 +688,14 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
         else {
             bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
         }
-        GL11.glTexCoordPointer(
+        GL20.glVertexAttribPointer(
+                vaUV0,
                 texcoordsAccessorModel.getElementType().getNumComponents(),
                 texcoordsAccessorModel.getComponentType(),
+                false,
                 texcoordsAccessorModel.getByteStride(),
                 texcoordsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+        GL20.glEnableVertexAttribArray(vaUV0);
 
         AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
         if(texcoords1AccessorModel != null) {
@@ -809,12 +857,24 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
         GL30.glBindVertexArray(glVertexArray);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
-        GL11.glVertexPointer(positionsAccessorModel.getElementType().getNumComponents(), positionsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaPosition,
+                positionsAccessorModel.getElementType().getNumComponents(),
+                positionsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
-        GL11.glNormalPointer(normalsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                normalsAccessorModel.getElementType().getNumComponents(),
+                normalsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, tangentBuffer);
         GL20.glVertexAttribPointer(
@@ -836,12 +896,14 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
             else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
@@ -853,12 +915,14 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
             else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
-            GL11.glTexCoordPointer(
+            GL20.glVertexAttribPointer(
+                    vaUV0,
                     texcoordsAccessorModel.getElementType().getNumComponents(),
                     texcoordsAccessorModel.getComponentType(),
+                    false,
                     texcoordsAccessorModel.getByteStride(),
                     texcoordsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            GL20.glEnableVertexAttribArray(vaUV0);
 
             AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
             if(texcoords1AccessorModel != null) {
@@ -1017,12 +1081,24 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
         GL30.glBindVertexArray(glVertexArray);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
-        GL11.glVertexPointer(positionsAccessorModel.getElementType().getNumComponents(), positionsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaPosition,
+                positionsAccessorModel.getElementType().getNumComponents(),
+                positionsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
-        GL11.glNormalPointer(normalsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                normalsAccessorModel.getElementType().getNumComponents(),
+                normalsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, tangentBuffer);
         GL20.glVertexAttribPointer(
@@ -1044,12 +1120,14 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
             else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
@@ -1059,12 +1137,14 @@ public class RenderedGltfModelGL33 extends RenderedGltfModelGL40 {
         else {
             bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
         }
-        GL11.glTexCoordPointer(
+        GL20.glVertexAttribPointer(
+                vaUV0,
                 texcoordsAccessorModel.getElementType().getNumComponents(),
                 texcoordsAccessorModel.getComponentType(),
+                false,
                 texcoordsAccessorModel.getByteStride(),
                 texcoordsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+        GL20.glEnableVertexAttribArray(vaUV0);
 
         AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
         if(texcoords1AccessorModel != null) {

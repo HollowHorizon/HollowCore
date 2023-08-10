@@ -1,23 +1,59 @@
 package ru.hollowhorizon.hc.client.gltf;
 
-import com.google.gson.Gson;
-import com.jme3.util.mikktspace.MikkTSpaceContext;
-import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
-import de.javagl.jgltf.model.*;
-import de.javagl.jgltf.model.image.PixelData;
-import de.javagl.jgltf.model.image.PixelDatas;
-import de.javagl.jgltf.model.impl.DefaultNodeModel;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.mojang.math.Matrix3f;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.*;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL15;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL40;
+import org.lwjgl.opengl.GL43;
+
+import com.google.gson.Gson;
+import com.jme3.util.mikktspace.MikkTSpaceContext;
+import com.jme3.util.mikktspace.MikktspaceTangentGenerator;
+
+import de.javagl.jgltf.model.AccessorByteData;
+import de.javagl.jgltf.model.AccessorData;
+import de.javagl.jgltf.model.AccessorDatas;
+import de.javagl.jgltf.model.AccessorFloatData;
+import de.javagl.jgltf.model.AccessorIntData;
+import de.javagl.jgltf.model.AccessorModel;
+import de.javagl.jgltf.model.AccessorShortData;
+import de.javagl.jgltf.model.BufferViewModel;
+import de.javagl.jgltf.model.ElementType;
+import de.javagl.jgltf.model.GltfModel;
+import de.javagl.jgltf.model.MaterialModel;
+import de.javagl.jgltf.model.MathUtils;
+import de.javagl.jgltf.model.MeshModel;
+import de.javagl.jgltf.model.MeshPrimitiveModel;
+import de.javagl.jgltf.model.NodeModel;
+import de.javagl.jgltf.model.Optionals;
+import de.javagl.jgltf.model.SceneModel;
+import de.javagl.jgltf.model.SkinModel;
+import de.javagl.jgltf.model.TextureModel;
+import de.javagl.jgltf.model.image.PixelData;
+import de.javagl.jgltf.model.image.PixelDatas;
+import de.javagl.jgltf.model.impl.DefaultNodeModel;
+import de.javagl.jgltf.model.v2.MaterialModelV2;
+import net.minecraft.client.renderer.ShaderInstance;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationManager;
-
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.util.*;
-import java.util.function.Supplier;
 
 public class RenderedGltfModel {
 
@@ -43,9 +79,20 @@ public class RenderedGltfModel {
     public static final int NORMAL_MAP_INDEX = GL13.GL_TEXTURE1;
     public static final int SPECULAR_MAP_INDEX = GL13.GL_TEXTURE3;
 
+    public static int MODEL_VIEW_MATRIX;
+    public static int MODEL_VIEW_MATRIX_INVERSE;
+    public static int NORMAL_MATRIX;
+
+    public static final int vaPosition = 0;
+    public static final int vaColor = 1;
+    public static final int vaUV0 = 2;
+    public static final int vaUV1 = 3;
+    public static final int vaUV2 = 4;
+    public static final int vaNormal = 5;
+
     protected static final Runnable vanillaDefaultMaterialCommand = () -> {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, GlTFModelManager.getInstance().getDefaultColorMap());
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GL20.glVertexAttrib4f(vaColor, 1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glEnable(GL11.GL_CULL_FACE);
     };
 
@@ -56,9 +103,15 @@ public class RenderedGltfModel {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, GlTFModelManager.getInstance().getDefaultNormalMap());
         GL13.glActiveTexture(SPECULAR_MAP_INDEX);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, GlTFModelManager.getInstance().getDefaultSpecularMap());
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GL20.glVertexAttrib4f(vaColor, 1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glEnable(GL11.GL_CULL_FACE);
     };
+
+    public static ShaderInstance CURRENT_SHADER_INSTANCE;
+    protected static Matrix4f CURRENT_POSE;
+    protected static Matrix3f CURRENT_NORMAL;
+    public static Vector3f LIGHT0_DIRECTION;
+    public static Vector3f LIGHT1_DIRECTION;
 
     protected static final int skinning_joint = 0;
     protected static final int skinning_weight = 1;
@@ -72,6 +125,7 @@ public class RenderedGltfModel {
 
     protected static FloatBuffer uniformFloatBuffer = null;
 
+    protected static final FloatBuffer BUF_FLOAT_9 = BufferUtils.createFloatBuffer(9);
     protected static final FloatBuffer BUF_FLOAT_16 = BufferUtils.createFloatBuffer(16);
 
     public static final Map<NodeModel, float[]> NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE = new IdentityHashMap<NodeModel, float[]>();
@@ -87,46 +141,46 @@ public class RenderedGltfModel {
     protected final Map<MeshPrimitiveModel, AccessorModel> meshPrimitiveModelToTangentsAccessorModel = new IdentityHashMap<MeshPrimitiveModel, AccessorModel>();
     protected final Map<MeshPrimitiveModel, Pair<Map<String, AccessorModel>, List<Map<String, AccessorModel>>>> meshPrimitiveModelToUnindexed = new IdentityHashMap<MeshPrimitiveModel, Pair<Map<String, AccessorModel>, List<Map<String, AccessorModel>>>>();
     protected final Map<BufferViewModel, Integer> bufferViewModelToGlBufferView = new IdentityHashMap<BufferViewModel, Integer>();
-    public final Map<TextureModel, Integer> textureModelToGlTexture = new IdentityHashMap<TextureModel, Integer>();
-    protected final Map<Object, Material> extrasToMaterial = new IdentityHashMap<Object, Material>();
+    protected final Map<TextureModel, Integer> textureModelToGlTexture = new IdentityHashMap<TextureModel, Integer>();
+    protected final Map<MaterialModel, Material> materialModelToRenderedMaterial = new IdentityHashMap<MaterialModel, Material>();
 
     public final GltfModel gltfModel;
 
     public final List<RenderedGltfScene> renderedGltfScenes;
     public final AnimationManager manager;
 
-    protected RenderedGltfModel(GltfModel gltfModel, List<RenderedGltfScene> renderedGltfScenes) {
-        this.gltfModel = gltfModel;
-        this.renderedGltfScenes = renderedGltfScenes;
-        this.manager = new AnimationManager(this);
-    }
+//    protected RenderedGltfModel(GltfModel gltfModel, List<RenderedGltfScene> renderedGltfScenes) {
+//        this.gltfModel = gltfModel;
+//        this.renderedGltfScenes = renderedGltfScenes;
+//    }
 
     public RenderedGltfModel(GltfModel gltfModel) {
+        List<Runnable> gltfRenderData = GlTFModelManager.getInstance().gltfRenderData;
         this.gltfModel = gltfModel;
         List<SceneModel> sceneModels = gltfModel.getSceneModels();
-        renderedGltfScenes = new ArrayList<RenderedGltfScene>(sceneModels.size());
-        ArrayList<Runnable> tasks = new ArrayList<>();
-        processSceneModels(tasks, sceneModels);
+        renderedGltfScenes = new ArrayList<>(sceneModels.size());
+        processSceneModels(gltfRenderData, sceneModels);
         this.manager = new AnimationManager(this);
     }
 
     protected void processSceneModels(List<Runnable> gltfRenderData, List<SceneModel> sceneModels) {
-        for (SceneModel sceneModel : sceneModels) {
+        for(SceneModel sceneModel : sceneModels) {
             RenderedGltfScene renderedGltfScene = new RenderedGltfScene();
             renderedGltfScenes.add(renderedGltfScene);
 
-            for (NodeModel nodeModel : sceneModel.getNodeModels()) {
+            for(NodeModel nodeModel : sceneModel.getNodeModels()) {
                 Triple<List<Runnable>, List<Runnable>, List<Runnable>> commands = rootNodeModelToCommands.get(nodeModel);
                 List<Runnable> rootSkinningCommands;
                 List<Runnable> vanillaRootRenderCommands;
                 List<Runnable> shaderModRootRenderCommands;
-                if (commands == null) {
+                if(commands == null) {
                     rootSkinningCommands = new ArrayList<Runnable>();
                     vanillaRootRenderCommands = new ArrayList<Runnable>();
                     shaderModRootRenderCommands = new ArrayList<Runnable>();
                     processNodeModel(gltfRenderData, nodeModel, rootSkinningCommands, vanillaRootRenderCommands, shaderModRootRenderCommands);
                     rootNodeModelToCommands.put(nodeModel, Triple.of(rootSkinningCommands, vanillaRootRenderCommands, shaderModRootRenderCommands));
-                } else {
+                }
+                else {
                     rootSkinningCommands = commands.getLeft();
                     vanillaRootRenderCommands = commands.getMiddle();
                     shaderModRootRenderCommands = commands.getRight();
@@ -143,13 +197,12 @@ public class RenderedGltfModel {
         ArrayList<Runnable> vanillaNodeRenderCommands = new ArrayList<Runnable>();
         ArrayList<Runnable> shaderModNodeRenderCommands = new ArrayList<Runnable>();
         SkinModel skinModel = nodeModel.getSkinModel();
-        if (skinModel != null) {
+        if(skinModel != null) {
             boolean canHaveHardwareSkinning;
-            checkHardwareSkinning:
-            {
-                for (MeshModel meshModel : nodeModel.getMeshModels()) {
-                    for (MeshPrimitiveModel meshPrimitiveModel : meshModel.getMeshPrimitiveModels()) {
-                        if (!meshPrimitiveModel.getAttributes().containsKey("JOINTS_1")) {
+            checkHardwareSkinning: {
+                for(MeshModel meshModel : nodeModel.getMeshModels()) {
+                    for(MeshPrimitiveModel meshPrimitiveModel : meshModel.getMeshPrimitiveModels()) {
+                        if(!meshPrimitiveModel.getAttributes().containsKey("JOINTS_1")) {
                             canHaveHardwareSkinning = true;
                             break checkHardwareSkinning;
                         }
@@ -164,17 +217,17 @@ public class RenderedGltfModel {
             float[] invertNodeTransform = new float[16];
             float[] bindShapeMatrix = new float[16];
 
-            if (canHaveHardwareSkinning) {
+            if(canHaveHardwareSkinning) {
                 int jointMatrixSize = jointCount * 16;
                 float[] jointMatrices = new float[jointMatrixSize];
 
                 int jointMatrixBuffer = GL15.glGenBuffers();
                 gltfRenderData.add(() -> GL15.glDeleteBuffers(jointMatrixBuffer));
                 GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, jointMatrixBuffer);
-                GL15.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER, (long) jointMatrixSize * Float.BYTES, GL15.GL_STATIC_DRAW);
+                GL15.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER, jointMatrixSize * Float.BYTES, GL15.GL_STATIC_DRAW);
 
                 List<Runnable> jointMatricesTransformCommands = new ArrayList<Runnable>(jointCount);
-                for (int joint = 0; joint < jointCount; joint++) {
+                for(int joint = 0; joint < jointCount; joint++) {
                     int i = joint;
                     float[] transform = transforms[i] = new float[16];
                     float[] inverseBindMatrix = new float[16];
@@ -188,7 +241,7 @@ public class RenderedGltfModel {
                 }
 
                 nodeSkinningCommands.add(() -> {
-                    for (int i = 0; i < transforms.length; i++) {
+                    for(int i = 0; i < transforms.length; i++) {
                         System.arraycopy(findGlobalTransform(skinModel.getJoints().get(i)), 0, transforms[i], 0, 16);
                     }
                     MathUtils.invert4x4(findGlobalTransform(nodeModel), invertNodeTransform);
@@ -201,19 +254,15 @@ public class RenderedGltfModel {
                     GL30.glBindBufferBase(GL43.GL_SHADER_STORAGE_BUFFER, 0, jointMatrixBuffer);
                 });
 
-                Runnable transformCommand = createTransformCommand(nodeModel);
-                vanillaNodeRenderCommands.add(transformCommand);
-                shaderModNodeRenderCommands.add(transformCommand);
-                for (MeshModel meshModel : nodeModel.getMeshModels()) {
-                    for (MeshPrimitiveModel meshPrimitiveModel : meshModel.getMeshPrimitiveModels()) {
+                for(MeshModel meshModel : nodeModel.getMeshModels()) {
+                    for(MeshPrimitiveModel meshPrimitiveModel : meshModel.getMeshPrimitiveModels()) {
                         processMeshPrimitiveModel(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, transforms, nodeSkinningCommands, vanillaNodeRenderCommands, shaderModNodeRenderCommands);
                     }
                 }
-                vanillaNodeRenderCommands.add(GL11::glPopMatrix);
-                shaderModNodeRenderCommands.add(GL11::glPopMatrix);
-            } else {
+            }
+            else {
                 List<Runnable> jointMatricesTransformCommands = new ArrayList<Runnable>(jointCount);
-                for (int joint = 0; joint < jointCount; joint++) {
+                for(int joint = 0; joint < jointCount; joint++) {
                     int i = joint;
                     float[] transform = transforms[i] = new float[16];
                     float[] inverseBindMatrix = new float[16];
@@ -226,7 +275,7 @@ public class RenderedGltfModel {
                 }
 
                 Runnable jointMatricesTransformCommand = () -> {
-                    for (int i = 0; i < transforms.length; i++) {
+                    for(int i = 0; i < transforms.length; i++) {
                         System.arraycopy(findGlobalTransform(skinModel.getJoints().get(i)), 0, transforms[i], 0, 16);
                     }
                     MathUtils.invert4x4(findGlobalTransform(nodeModel), invertNodeTransform);
@@ -236,52 +285,47 @@ public class RenderedGltfModel {
                 vanillaNodeRenderCommands.add(jointMatricesTransformCommand);
                 shaderModNodeRenderCommands.add(jointMatricesTransformCommand);
 
-                Runnable transformCommand = createTransformCommand(nodeModel);
-                vanillaNodeRenderCommands.add(transformCommand);
-                shaderModNodeRenderCommands.add(transformCommand);
-                for (MeshModel meshModel : nodeModel.getMeshModels()) {
-                    for (MeshPrimitiveModel meshPrimitiveModel : meshModel.getMeshPrimitiveModels()) {
+                for(MeshModel meshModel : nodeModel.getMeshModels()) {
+                    for(MeshPrimitiveModel meshPrimitiveModel : meshModel.getMeshPrimitiveModels()) {
                         processMeshPrimitiveModel(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, transforms, vanillaNodeRenderCommands, shaderModNodeRenderCommands);
                     }
                 }
-                vanillaNodeRenderCommands.add(GL11::glPopMatrix);
-                shaderModNodeRenderCommands.add(GL11::glPopMatrix);
             }
-        } else {
-            if (!nodeModel.getMeshModels().isEmpty()) {
-                Runnable transformCommand = createTransformCommand(nodeModel);
-                vanillaNodeRenderCommands.add(transformCommand);
-                shaderModNodeRenderCommands.add(transformCommand);
-                for (MeshModel meshModel : nodeModel.getMeshModels()) {
-                    for (MeshPrimitiveModel meshPrimitiveModel : meshModel.getMeshPrimitiveModels()) {
+        }
+        else {
+            if(!nodeModel.getMeshModels().isEmpty()) {
+                for(MeshModel meshModel : nodeModel.getMeshModels()) {
+                    for(MeshPrimitiveModel meshPrimitiveModel : meshModel.getMeshPrimitiveModels()) {
                         processMeshPrimitiveModel(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, vanillaNodeRenderCommands, shaderModNodeRenderCommands);
                     }
                 }
-                vanillaNodeRenderCommands.add(GL11::glPopMatrix);
-                shaderModNodeRenderCommands.add(GL11::glPopMatrix);
             }
         }
         nodeModel.getChildren().forEach((childNode) -> processNodeModel(gltfRenderData, childNode, nodeSkinningCommands, vanillaNodeRenderCommands, shaderModNodeRenderCommands));
-        if (!nodeSkinningCommands.isEmpty()) {
+        if(!nodeSkinningCommands.isEmpty()) {
             // Zero-scale meshes visibility optimization
             // https://github.com/KhronosGroup/glTF/pull/2059
             skinningCommands.add(() -> {
                 float[] scale = nodeModel.getScale();
-                if (scale == null || scale[0] != 0.0F || scale[1] != 0.0F || scale[2] != 0.0F) {
+                if(scale == null || scale[0] != 0.0F || scale[1] != 0.0F || scale[2] != 0.0F) {
                     nodeSkinningCommands.forEach(Runnable::run);
                 }
             });
         }
-        if (!vanillaNodeRenderCommands.isEmpty()) {
+        if(!vanillaNodeRenderCommands.isEmpty()) {
             vanillaRenderCommands.add(() -> {
                 float[] scale = nodeModel.getScale();
-                if (scale == null || scale[0] != 0.0F || scale[1] != 0.0F || scale[2] != 0.0F) {
+                if(scale == null || scale[0] != 0.0F || scale[1] != 0.0F || scale[2] != 0.0F) {
+                    applyTransformVanilla(nodeModel);
+
                     vanillaNodeRenderCommands.forEach(Runnable::run);
                 }
             });
             shaderModRenderCommands.add(() -> {
                 float[] scale = nodeModel.getScale();
-                if (scale == null || scale[0] != 0.0F || scale[1] != 0.0F || scale[2] != 0.0F) {
+                if(scale == null || scale[0] != 0.0F || scale[1] != 0.0F || scale[2] != 0.0F) {
+                    applyTransformShaderMod(nodeModel);
+
                     shaderModNodeRenderCommands.forEach(Runnable::run);
                 }
             });
@@ -291,71 +335,58 @@ public class RenderedGltfModel {
     protected void processMeshPrimitiveModel(List<Runnable> gltfRenderData, NodeModel nodeModel, MeshModel meshModel, MeshPrimitiveModel meshPrimitiveModel, List<Runnable> vanillaRenderCommands, List<Runnable> shaderModRenderCommands) {
         Map<String, AccessorModel> attributes = meshPrimitiveModel.getAttributes();
         AccessorModel positionsAccessorModel = attributes.get("POSITION");
-        if (positionsAccessorModel != null) {
+        if(positionsAccessorModel != null) {
             List<Runnable> renderCommand = new ArrayList<Runnable>();
             AccessorModel normalsAccessorModel = attributes.get("NORMAL");
-            if (normalsAccessorModel != null) {
+            if(normalsAccessorModel != null) {
                 AccessorModel tangentsAccessorModel = attributes.get("TANGENT");
-                if (tangentsAccessorModel != null) {
+                if(tangentsAccessorModel != null) {
                     processMeshPrimitiveModelIncludedTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, attributes, positionsAccessorModel, normalsAccessorModel, tangentsAccessorModel);
                     MaterialModel materialModel = meshPrimitiveModel.getMaterialModel();
-                    if (materialModel != null) {
-                        Object extras = materialModel.getExtras();
-                        if (extras != null) {
-                            Material renderedMaterial = obtainMaterial(gltfRenderData, extras);
-                            vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
-                            shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
-                        } else {
-                            vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
-                            shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
-                        }
-                    } else {
+                    if(materialModel != null) {
+                        Material renderedMaterial = obtainMaterial(gltfRenderData, materialModel);
+                        vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
+                        shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
+                    }
+                    else {
                         vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
                         shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
                     }
-                } else {
+                }
+                else {
                     MaterialModel materialModel = meshPrimitiveModel.getMaterialModel();
-                    if (materialModel != null) {
-                        Object extras = materialModel.getExtras();
-                        if (extras != null) {
-                            Material renderedMaterial = obtainMaterial(gltfRenderData, extras);
-                            vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
-                            shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
-                            if (renderedMaterial.normalTexture != null) {
-                                processMeshPrimitiveModelMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand);
-                            } else {
-                                processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, attributes, positionsAccessorModel, normalsAccessorModel);
-                            }
-                        } else {
-                            vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
-                            shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
+                    if(materialModel != null) {
+                        Material renderedMaterial = obtainMaterial(gltfRenderData, materialModel);
+                        vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
+                        shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
+                        if(renderedMaterial.normalTexture != null) {
+                            processMeshPrimitiveModelMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand);
+                        }
+                        else {
                             processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, attributes, positionsAccessorModel, normalsAccessorModel);
                         }
-                    } else {
+                    }
+                    else {
                         vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
                         shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
                         processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, attributes, positionsAccessorModel, normalsAccessorModel);
                     }
                 }
-            } else {
+            }
+            else {
                 MaterialModel materialModel = meshPrimitiveModel.getMaterialModel();
-                if (materialModel != null) {
-                    Object extras = materialModel.getExtras();
-                    if (extras != null) {
-                        Material renderedMaterial = obtainMaterial(gltfRenderData, extras);
-                        vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
-                        shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
-                        if (renderedMaterial.normalTexture != null) {
-                            processMeshPrimitiveModelFlatNormalMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand);
-                        } else {
-                            processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand);
-                        }
-                    } else {
-                        vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
-                        shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
+                if(materialModel != null) {
+                    Material renderedMaterial = obtainMaterial(gltfRenderData, materialModel);
+                    vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
+                    shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
+                    if(renderedMaterial.normalTexture != null) {
+                        processMeshPrimitiveModelFlatNormalMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand);
+                    }
+                    else {
                         processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand);
                     }
-                } else {
+                }
+                else {
                     vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
                     shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
                     processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand);
@@ -374,34 +405,42 @@ public class RenderedGltfModel {
         List<Map<String, AccessorModel>> morphTargets = meshPrimitiveModel.getTargets();
 
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, positionsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, positionsAccessorModel.getBufferViewModel());
         }
-        GL11.glVertexPointer(
+        GL20.glVertexAttribPointer(
+                vaPosition,
                 positionsAccessorModel.getElementType().getNumComponents(),
                 positionsAccessorModel.getComponentType(),
+                false,
                 positionsAccessorModel.getByteStride(),
                 positionsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "NORMAL")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "NORMAL")) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, normalsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, normalsAccessorModel.getBufferViewModel());
         }
-        GL11.glNormalPointer(
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                normalsAccessorModel.getElementType().getNumComponents(),
                 normalsAccessorModel.getComponentType(),
+                false,
                 normalsAccessorModel.getByteStride(),
                 normalsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "TANGENT")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "TANGENT")) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, tangentsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, tangentsAccessorModel.getBufferViewModel());
         }
         GL20.glVertexAttribPointer(
@@ -414,44 +453,51 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(at_tangent);
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
-        if (texcoordsAccessorModel != null) {
+        if(texcoordsAccessorModel != null) {
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
-            GL11.glTexCoordPointer(
+            GL20.glVertexAttribPointer(
+                    vaUV0,
                     texcoordsAccessorModel.getElementType().getNumComponents(),
                     texcoordsAccessorModel.getComponentType(),
+                    false,
                     texcoordsAccessorModel.getByteStride(),
                     texcoordsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            GL20.glEnableVertexAttribArray(vaUV0);
 
             AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-            if (texcoords1AccessorModel != null) {
+            if(texcoords1AccessorModel != null) {
                 texcoordsAccessorModel = texcoords1AccessorModel;
                 targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-                if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+                if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                     texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-                } else {
+                }
+                else {
                     bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
                 }
             }
@@ -467,7 +513,7 @@ public class RenderedGltfModel {
 
         int mode = meshPrimitiveModel.getMode();
         AccessorModel indices = meshPrimitiveModel.getIndices();
-        if (indices != null) {
+        if(indices != null) {
             int glIndicesBufferView = obtainElementArrayBuffer(gltfRenderData, indices.getBufferViewModel());
             int count = indices.getCount();
             int type = indices.getComponentType();
@@ -477,7 +523,8 @@ public class RenderedGltfModel {
                 GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, glIndicesBufferView);
                 GL11.glDrawElements(mode, count, type, offset);
             });
-        } else {
+        }
+        else {
             int count = positionsAccessorModel.getCount();
             renderCommand.add(() -> {
                 GL30.glBindVertexArray(glVertexArray);
@@ -494,28 +541,34 @@ public class RenderedGltfModel {
         List<Map<String, AccessorModel>> morphTargets = meshPrimitiveModel.getTargets();
 
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, positionsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, positionsAccessorModel.getBufferViewModel());
         }
-        GL11.glVertexPointer(
+        GL20.glVertexAttribPointer(
+                vaPosition,
                 positionsAccessorModel.getElementType().getNumComponents(),
                 positionsAccessorModel.getComponentType(),
+                false,
                 positionsAccessorModel.getByteStride(),
                 positionsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         AccessorModel tangentsAccessorModel = obtainTangentsAccessorModel(normalsAccessorModel);
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
         List<AccessorFloatData> tangentTargetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createNormalTangentMorphTarget(morphTargets, normalsAccessorModel, tangentsAccessorModel, targetAccessorDatas, tangentTargetAccessorDatas)) {
+        if(createNormalTangentMorphTarget(morphTargets, normalsAccessorModel, tangentsAccessorModel, targetAccessorDatas, tangentTargetAccessorDatas)) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, normalsAccessorModel, targetAccessorDatas);
-            GL11.glNormalPointer(
+            GL20.glVertexAttribPointer(
+                    vaNormal,
+                    normalsAccessorModel.getElementType().getNumComponents(),
                     normalsAccessorModel.getComponentType(),
+                    false,
                     normalsAccessorModel.getByteStride(),
                     normalsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+            GL20.glEnableVertexAttribArray(vaNormal);
 
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, tangentsAccessorModel, tangentTargetAccessorDatas);
             GL20.glVertexAttribPointer(
@@ -526,13 +579,17 @@ public class RenderedGltfModel {
                     tangentsAccessorModel.getByteStride(),
                     tangentsAccessorModel.getByteOffset());
             GL20.glEnableVertexAttribArray(at_tangent);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, normalsAccessorModel.getBufferViewModel());
-            GL11.glNormalPointer(
+            GL20.glVertexAttribPointer(
+                    vaNormal,
+                    normalsAccessorModel.getElementType().getNumComponents(),
                     normalsAccessorModel.getComponentType(),
+                    false,
                     normalsAccessorModel.getByteStride(),
                     normalsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+            GL20.glEnableVertexAttribArray(vaNormal);
 
             bindArrayBufferViewModel(gltfRenderData, tangentsAccessorModel.getBufferViewModel());
             GL20.glVertexAttribPointer(
@@ -546,44 +603,51 @@ public class RenderedGltfModel {
         }
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
-        if (texcoordsAccessorModel != null) {
+        if(texcoordsAccessorModel != null) {
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
-            GL11.glTexCoordPointer(
+            GL20.glVertexAttribPointer(
+                    vaUV0,
                     texcoordsAccessorModel.getElementType().getNumComponents(),
                     texcoordsAccessorModel.getComponentType(),
+                    false,
                     texcoordsAccessorModel.getByteStride(),
                     texcoordsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            GL20.glEnableVertexAttribArray(vaUV0);
 
             AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-            if (texcoords1AccessorModel != null) {
+            if(texcoords1AccessorModel != null) {
                 texcoordsAccessorModel = texcoords1AccessorModel;
                 targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-                if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+                if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                     texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-                } else {
+                }
+                else {
                     bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
                 }
             }
@@ -599,7 +663,7 @@ public class RenderedGltfModel {
 
         int mode = meshPrimitiveModel.getMode();
         AccessorModel indices = meshPrimitiveModel.getIndices();
-        if (indices != null) {
+        if(indices != null) {
             int glIndicesBufferView = obtainElementArrayBuffer(gltfRenderData, indices.getBufferViewModel());
             int count = indices.getCount();
             int type = indices.getComponentType();
@@ -609,7 +673,8 @@ public class RenderedGltfModel {
                 GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, glIndicesBufferView);
                 GL11.glDrawElements(mode, count, type, offset);
             });
-        } else {
+        }
+        else {
             int count = positionsAccessorModel.getCount();
             renderCommand.add(() -> {
                 GL30.glBindVertexArray(glVertexArray);
@@ -629,37 +694,45 @@ public class RenderedGltfModel {
 
         AccessorModel positionsAccessorModel = attributes.get("POSITION");
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, positionsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, positionsAccessorModel.getBufferViewModel());
         }
-        GL11.glVertexPointer(
+        GL20.glVertexAttribPointer(
+                vaPosition,
                 positionsAccessorModel.getElementType().getNumComponents(),
                 positionsAccessorModel.getComponentType(),
+                false,
                 positionsAccessorModel.getByteStride(),
                 positionsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         AccessorModel normalsAccessorModel = attributes.get("NORMAL");
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "NORMAL")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "NORMAL")) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, normalsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, normalsAccessorModel.getBufferViewModel());
         }
-        GL11.glNormalPointer(
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                normalsAccessorModel.getElementType().getNumComponents(),
                 normalsAccessorModel.getComponentType(),
+                false,
                 normalsAccessorModel.getByteStride(),
                 normalsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
         AccessorModel tangentsAccessorModel = obtainTangentsAccessorModel(meshPrimitiveModel, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel);
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createTangentMorphTarget(morphTargets, targetAccessorDatas, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel, "TEXCOORD_0", tangentsAccessorModel)) {
+        if(createTangentMorphTarget(morphTargets, targetAccessorDatas, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel, "TEXCOORD_0", tangentsAccessorModel)) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, tangentsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, tangentsAccessorModel.getBufferViewModel());
         }
         GL20.glVertexAttribPointer(
@@ -672,42 +745,49 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(at_tangent);
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+        if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
             texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
         }
-        GL11.glTexCoordPointer(
+        GL20.glVertexAttribPointer(
+                vaUV0,
                 texcoordsAccessorModel.getElementType().getNumComponents(),
                 texcoordsAccessorModel.getComponentType(),
+                false,
                 texcoordsAccessorModel.getByteStride(),
                 texcoordsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+        GL20.glEnableVertexAttribArray(vaUV0);
 
         AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-        if (texcoords1AccessorModel != null) {
+        if(texcoords1AccessorModel != null) {
             texcoordsAccessorModel = texcoords1AccessorModel;
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
         }
@@ -743,21 +823,26 @@ public class RenderedGltfModel {
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
         List<AccessorFloatData> normalTargetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
         List<AccessorFloatData> tangentTargetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createPositionNormalTangentMorphTarget(morphTargets, positionsAccessorModel, normalsAccessorModel, tangentsAccessorModel, targetAccessorDatas, normalTargetAccessorDatas, tangentTargetAccessorDatas)) {
+        if(createPositionNormalTangentMorphTarget(morphTargets, positionsAccessorModel, normalsAccessorModel, tangentsAccessorModel, targetAccessorDatas, normalTargetAccessorDatas, tangentTargetAccessorDatas)) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, positionsAccessorModel, targetAccessorDatas);
-            GL11.glVertexPointer(
+            GL20.glVertexAttribPointer(
+                    vaPosition,
                     positionsAccessorModel.getElementType().getNumComponents(),
                     positionsAccessorModel.getComponentType(),
+                    false,
                     positionsAccessorModel.getByteStride(),
                     positionsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+            GL20.glEnableVertexAttribArray(vaPosition);
 
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, normalsAccessorModel, normalTargetAccessorDatas);
-            GL11.glNormalPointer(
+            GL20.glVertexAttribPointer(
+                    vaNormal,
+                    normalsAccessorModel.getElementType().getNumComponents(),
                     normalsAccessorModel.getComponentType(),
+                    false,
                     normalsAccessorModel.getByteStride(),
                     normalsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+            GL20.glEnableVertexAttribArray(vaNormal);
 
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, tangentsAccessorModel, tangentTargetAccessorDatas);
             GL20.glVertexAttribPointer(
@@ -768,21 +853,27 @@ public class RenderedGltfModel {
                     tangentsAccessorModel.getByteStride(),
                     tangentsAccessorModel.getByteOffset());
             GL20.glEnableVertexAttribArray(at_tangent);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, positionsAccessorModel.getBufferViewModel());
-            GL11.glVertexPointer(
+            GL20.glVertexAttribPointer(
+                    vaPosition,
                     positionsAccessorModel.getElementType().getNumComponents(),
                     positionsAccessorModel.getComponentType(),
+                    false,
                     positionsAccessorModel.getByteStride(),
                     positionsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+            GL20.glEnableVertexAttribArray(vaPosition);
 
             bindArrayBufferViewModel(gltfRenderData, normalsAccessorModel.getBufferViewModel());
-            GL11.glNormalPointer(
+            GL20.glVertexAttribPointer(
+                    vaNormal,
+                    normalsAccessorModel.getElementType().getNumComponents(),
                     normalsAccessorModel.getComponentType(),
+                    false,
                     normalsAccessorModel.getByteStride(),
                     normalsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+            GL20.glEnableVertexAttribArray(vaNormal);
 
             bindArrayBufferViewModel(gltfRenderData, tangentsAccessorModel.getBufferViewModel());
             GL20.glVertexAttribPointer(
@@ -796,44 +887,51 @@ public class RenderedGltfModel {
         }
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
-        if (texcoordsAccessorModel != null) {
+        if(texcoordsAccessorModel != null) {
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
-            GL11.glTexCoordPointer(
+            GL20.glVertexAttribPointer(
+                    vaUV0,
                     texcoordsAccessorModel.getElementType().getNumComponents(),
                     texcoordsAccessorModel.getComponentType(),
+                    false,
                     texcoordsAccessorModel.getByteStride(),
                     texcoordsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            GL20.glEnableVertexAttribArray(vaUV0);
 
             AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-            if (texcoords1AccessorModel != null) {
+            if(texcoords1AccessorModel != null) {
                 texcoordsAccessorModel = texcoords1AccessorModel;
                 targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-                if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+                if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                     texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-                } else {
+                }
+                else {
                     bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
                 }
             }
@@ -868,44 +966,56 @@ public class RenderedGltfModel {
         AccessorModel normalsAccessorModel = obtainNormalsAccessorModel(positionsAccessorModel);
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
         List<AccessorFloatData> normalTargetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createPositionNormalMorphTarget(morphTargets, positionsAccessorModel, normalsAccessorModel, targetAccessorDatas, normalTargetAccessorDatas)) {
+        if(createPositionNormalMorphTarget(morphTargets, positionsAccessorModel, normalsAccessorModel, targetAccessorDatas, normalTargetAccessorDatas)) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, positionsAccessorModel, targetAccessorDatas);
-            GL11.glVertexPointer(
+            GL20.glVertexAttribPointer(
+                    vaPosition,
                     positionsAccessorModel.getElementType().getNumComponents(),
                     positionsAccessorModel.getComponentType(),
+                    false,
                     positionsAccessorModel.getByteStride(),
                     positionsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+            GL20.glEnableVertexAttribArray(vaPosition);
 
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, normalsAccessorModel, normalTargetAccessorDatas);
-            GL11.glNormalPointer(
+            GL20.glVertexAttribPointer(
+                    vaNormal,
+                    normalsAccessorModel.getElementType().getNumComponents(),
                     normalsAccessorModel.getComponentType(),
+                    false,
                     normalsAccessorModel.getByteStride(),
                     normalsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
-        } else {
+            GL20.glEnableVertexAttribArray(vaNormal);
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, positionsAccessorModel.getBufferViewModel());
-            GL11.glVertexPointer(
+            GL20.glVertexAttribPointer(
+                    vaPosition,
                     positionsAccessorModel.getElementType().getNumComponents(),
                     positionsAccessorModel.getComponentType(),
+                    false,
                     positionsAccessorModel.getByteStride(),
                     positionsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+            GL20.glEnableVertexAttribArray(vaPosition);
 
             bindArrayBufferViewModel(gltfRenderData, normalsAccessorModel.getBufferViewModel());
-            GL11.glNormalPointer(
+            GL20.glVertexAttribPointer(
+                    vaNormal,
+                    normalsAccessorModel.getElementType().getNumComponents(),
                     normalsAccessorModel.getComponentType(),
+                    false,
                     normalsAccessorModel.getByteStride(),
                     normalsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+            GL20.glEnableVertexAttribArray(vaNormal);
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
         AccessorModel tangentsAccessorModel = obtainTangentsAccessorModel(normalsAccessorModel);
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createTangentMorphTarget(morphTargets, targetAccessorDatas, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel, "TEXCOORD_0", tangentsAccessorModel, normalTargetAccessorDatas)) {
+        if(createTangentMorphTarget(morphTargets, targetAccessorDatas, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel, "TEXCOORD_0", tangentsAccessorModel, normalTargetAccessorDatas)) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, tangentsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, tangentsAccessorModel.getBufferViewModel());
         }
         GL20.glVertexAttribPointer(
@@ -918,42 +1028,49 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(at_tangent);
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+        if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
             texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
         }
-        GL11.glTexCoordPointer(
+        GL20.glVertexAttribPointer(
+                vaUV0,
                 texcoordsAccessorModel.getElementType().getNumComponents(),
                 texcoordsAccessorModel.getComponentType(),
+                false,
                 texcoordsAccessorModel.getByteStride(),
                 texcoordsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+        GL20.glEnableVertexAttribArray(vaUV0);
 
         AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-        if (texcoords1AccessorModel != null) {
+        if(texcoords1AccessorModel != null) {
             texcoordsAccessorModel = texcoords1AccessorModel;
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
         }
@@ -977,101 +1094,68 @@ public class RenderedGltfModel {
     protected void processMeshPrimitiveModel(List<Runnable> gltfRenderData, NodeModel nodeModel, MeshModel meshModel, MeshPrimitiveModel meshPrimitiveModel, float[][] jointMatrices, List<Runnable> skinningCommand, List<Runnable> vanillaRenderCommands, List<Runnable> shaderModRenderCommands) {
         Map<String, AccessorModel> attributes = meshPrimitiveModel.getAttributes();
         AccessorModel positionsAccessorModel = attributes.get("POSITION");
-        if (positionsAccessorModel != null) {
+        if(positionsAccessorModel != null) {
             List<Runnable> renderCommand = new ArrayList<Runnable>();
             AccessorModel normalsAccessorModel = attributes.get("NORMAL");
-            if (normalsAccessorModel != null) {
+            if(normalsAccessorModel != null) {
                 AccessorModel tangentsAccessorModel = attributes.get("TANGENT");
-                if (tangentsAccessorModel != null) {
-                    if (attributes.containsKey("JOINTS_1"))
-                        processMeshPrimitiveModelIncludedTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices, attributes, positionsAccessorModel, normalsAccessorModel, tangentsAccessorModel);
-                    else
-                        processMeshPrimitiveModelIncludedTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand, attributes, positionsAccessorModel, normalsAccessorModel, tangentsAccessorModel);
+                if(tangentsAccessorModel != null) {
+                    if(attributes.containsKey("JOINTS_1")) processMeshPrimitiveModelIncludedTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices, attributes, positionsAccessorModel, normalsAccessorModel, tangentsAccessorModel);
+                    else processMeshPrimitiveModelIncludedTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand, attributes, positionsAccessorModel, normalsAccessorModel, tangentsAccessorModel);
                     MaterialModel materialModel = meshPrimitiveModel.getMaterialModel();
-                    if (materialModel != null) {
-                        Object extras = materialModel.getExtras();
-                        if (extras != null) {
-                            Material renderedMaterial = obtainMaterial(gltfRenderData, extras);
-                            vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
-                            shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
-                        } else {
-                            vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
-                            shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
-                        }
-                    } else {
-                        vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
-                        shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
-                    }
-                } else {
-                    MaterialModel materialModel = meshPrimitiveModel.getMaterialModel();
-                    if (materialModel != null) {
-                        Object extras = materialModel.getExtras();
-                        if (extras != null) {
-                            Material renderedMaterial = obtainMaterial(gltfRenderData, extras);
-                            vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
-                            shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
-                            if (renderedMaterial.normalTexture != null) {
-                                if (attributes.containsKey("JOINTS_1"))
-                                    processMeshPrimitiveModelMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
-                                else
-                                    processMeshPrimitiveModelMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand);
-                            } else {
-                                if (attributes.containsKey("JOINTS_1"))
-                                    processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices, attributes, positionsAccessorModel, normalsAccessorModel);
-                                else
-                                    processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand, attributes, positionsAccessorModel, normalsAccessorModel);
-                            }
-                        } else {
-                            vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
-                            shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
-                            if (attributes.containsKey("JOINTS_1"))
-                                processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices, attributes, positionsAccessorModel, normalsAccessorModel);
-                            else
-                                processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand, attributes, positionsAccessorModel, normalsAccessorModel);
-                        }
-                    } else {
-                        vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
-                        shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
-                        if (attributes.containsKey("JOINTS_1"))
-                            processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices, attributes, positionsAccessorModel, normalsAccessorModel);
-                        else
-                            processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand, attributes, positionsAccessorModel, normalsAccessorModel);
-                    }
-                }
-            } else {
-                MaterialModel materialModel = meshPrimitiveModel.getMaterialModel();
-                if (materialModel != null) {
-                    Object extras = materialModel.getExtras();
-                    if (extras != null) {
-                        Material renderedMaterial = obtainMaterial(gltfRenderData, extras);
+                    if(materialModel != null) {
+                        Material renderedMaterial = obtainMaterial(gltfRenderData, materialModel);
                         vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
                         shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
-                        if (renderedMaterial.normalTexture != null) {
-                            if (attributes.containsKey("JOINTS_1"))
-                                processMeshPrimitiveModelFlatNormalMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
-                            else
-                                processMeshPrimitiveModelFlatNormalMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand);
-                        } else {
-                            if (attributes.containsKey("JOINTS_1"))
-                                processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
-                            else
-                                processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand);
-                        }
-                    } else {
+                    }
+                    else {
                         vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
                         shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
-                        if (attributes.containsKey("JOINTS_1"))
-                            processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
-                        else
-                            processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand);
                     }
-                } else {
+                }
+                else {
+                    MaterialModel materialModel = meshPrimitiveModel.getMaterialModel();
+                    if(materialModel != null) {
+                        Material renderedMaterial = obtainMaterial(gltfRenderData, materialModel);
+                        vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
+                        shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
+                        if(renderedMaterial.normalTexture != null) {
+                            if(attributes.containsKey("JOINTS_1")) processMeshPrimitiveModelMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
+                            else processMeshPrimitiveModelMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand);
+                        }
+                        else {
+                            if(attributes.containsKey("JOINTS_1")) processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices, attributes, positionsAccessorModel, normalsAccessorModel);
+                            else processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand, attributes, positionsAccessorModel, normalsAccessorModel);
+                        }
+                    }
+                    else {
+                        vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
+                        shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
+                        if(attributes.containsKey("JOINTS_1")) processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices, attributes, positionsAccessorModel, normalsAccessorModel);
+                        else processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand, attributes, positionsAccessorModel, normalsAccessorModel);
+                    }
+                }
+            }
+            else {
+                MaterialModel materialModel = meshPrimitiveModel.getMaterialModel();
+                if(materialModel != null) {
+                    Material renderedMaterial = obtainMaterial(gltfRenderData, materialModel);
+                    vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
+                    shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
+                    if(renderedMaterial.normalTexture != null) {
+                        if(attributes.containsKey("JOINTS_1")) processMeshPrimitiveModelFlatNormalMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
+                        else processMeshPrimitiveModelFlatNormalMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand);
+                    }
+                    else {
+                        if(attributes.containsKey("JOINTS_1")) processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
+                        else processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand);
+                    }
+                }
+                else {
                     vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
                     shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
-                    if (attributes.containsKey("JOINTS_1"))
-                        processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
-                    else
-                        processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand);
+                    if(attributes.containsKey("JOINTS_1")) processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
+                    else processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, skinningCommand);
                 }
             }
             vanillaRenderCommands.addAll(renderCommand);
@@ -1113,9 +1197,10 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(skinning_weight);
 
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, skinningCommand, positionsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, positionsAccessorModel.getBufferViewModel());
         }
         GL20.glVertexAttribPointer(
@@ -1128,9 +1213,10 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(skinning_position);
 
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "NORMAL")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "NORMAL")) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, skinningCommand, normalsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, normalsAccessorModel.getBufferViewModel());
         }
         GL20.glVertexAttribPointer(
@@ -1143,9 +1229,10 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(skinning_normal);
 
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "TANGENT")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "TANGENT")) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, skinningCommand, tangentsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, tangentsAccessorModel.getBufferViewModel());
         }
         GL20.glVertexAttribPointer(
@@ -1190,12 +1277,24 @@ public class RenderedGltfModel {
         GL30.glBindVertexArray(glVertexArray);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
-        GL11.glVertexPointer(positionsAccessorModel.getElementType().getNumComponents(), positionsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaPosition,
+                positionsAccessorModel.getElementType().getNumComponents(),
+                positionsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
-        GL11.glNormalPointer(normalsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                normalsAccessorModel.getElementType().getNumComponents(),
+                normalsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, tangentBuffer);
         GL20.glVertexAttribPointer(
@@ -1208,44 +1307,51 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(at_tangent);
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
-        if (texcoordsAccessorModel != null) {
+        if(texcoordsAccessorModel != null) {
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
-            GL11.glTexCoordPointer(
+            GL20.glVertexAttribPointer(
+                    vaUV0,
                     texcoordsAccessorModel.getElementType().getNumComponents(),
                     texcoordsAccessorModel.getComponentType(),
+                    false,
                     texcoordsAccessorModel.getByteStride(),
                     texcoordsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            GL20.glEnableVertexAttribArray(vaUV0);
 
             AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-            if (texcoords1AccessorModel != null) {
+            if(texcoords1AccessorModel != null) {
                 texcoordsAccessorModel = texcoords1AccessorModel;
                 targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-                if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+                if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                     texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-                } else {
+                }
+                else {
                     bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
                 }
             }
@@ -1261,7 +1367,7 @@ public class RenderedGltfModel {
 
         int mode = meshPrimitiveModel.getMode();
         AccessorModel indices = meshPrimitiveModel.getIndices();
-        if (indices != null) {
+        if(indices != null) {
             int glIndicesBufferView = obtainElementArrayBuffer(gltfRenderData, indices.getBufferViewModel());
             int count = indices.getCount();
             int type = indices.getComponentType();
@@ -1271,7 +1377,8 @@ public class RenderedGltfModel {
                 GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, glIndicesBufferView);
                 GL11.glDrawElements(mode, count, type, offset);
             });
-        } else {
+        }
+        else {
             renderCommand.add(() -> {
                 GL30.glBindVertexArray(glVertexArray);
                 GL40.glDrawTransformFeedback(mode, glTransformFeedback);
@@ -1313,9 +1420,10 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(skinning_weight);
 
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, skinningCommand, positionsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, positionsAccessorModel.getBufferViewModel());
         }
         GL20.glVertexAttribPointer(
@@ -1330,7 +1438,7 @@ public class RenderedGltfModel {
         AccessorModel tangentsAccessorModel = obtainTangentsAccessorModel(normalsAccessorModel);
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
         List<AccessorFloatData> tangentTargetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createNormalTangentMorphTarget(morphTargets, normalsAccessorModel, tangentsAccessorModel, targetAccessorDatas, tangentTargetAccessorDatas)) {
+        if(createNormalTangentMorphTarget(morphTargets, normalsAccessorModel, tangentsAccessorModel, targetAccessorDatas, tangentTargetAccessorDatas)) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, skinningCommand, normalsAccessorModel, targetAccessorDatas);
             GL20.glVertexAttribPointer(
                     skinning_normal,
@@ -1350,7 +1458,8 @@ public class RenderedGltfModel {
                     tangentsAccessorModel.getByteStride(),
                     tangentsAccessorModel.getByteOffset());
             GL20.glEnableVertexAttribArray(skinning_tangent);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, normalsAccessorModel.getBufferViewModel());
             GL20.glVertexAttribPointer(
                     skinning_normal,
@@ -1405,12 +1514,24 @@ public class RenderedGltfModel {
         GL30.glBindVertexArray(glVertexArray);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
-        GL11.glVertexPointer(positionsAccessorModel.getElementType().getNumComponents(), positionsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaPosition,
+                positionsAccessorModel.getElementType().getNumComponents(),
+                positionsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
-        GL11.glNormalPointer(normalsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                normalsAccessorModel.getElementType().getNumComponents(),
+                normalsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, tangentBuffer);
         GL20.glVertexAttribPointer(
@@ -1423,44 +1544,51 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(at_tangent);
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
-        if (texcoordsAccessorModel != null) {
+        if(texcoordsAccessorModel != null) {
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
-            GL11.glTexCoordPointer(
+            GL20.glVertexAttribPointer(
+                    vaUV0,
                     texcoordsAccessorModel.getElementType().getNumComponents(),
                     texcoordsAccessorModel.getComponentType(),
+                    false,
                     texcoordsAccessorModel.getByteStride(),
                     texcoordsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            GL20.glEnableVertexAttribArray(vaUV0);
 
             AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-            if (texcoords1AccessorModel != null) {
+            if(texcoords1AccessorModel != null) {
                 texcoordsAccessorModel = texcoords1AccessorModel;
                 targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-                if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+                if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                     texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-                } else {
+                }
+                else {
                     bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
                 }
             }
@@ -1476,7 +1604,7 @@ public class RenderedGltfModel {
 
         int mode = meshPrimitiveModel.getMode();
         AccessorModel indices = meshPrimitiveModel.getIndices();
-        if (indices != null) {
+        if(indices != null) {
             int glIndicesBufferView = obtainElementArrayBuffer(gltfRenderData, indices.getBufferViewModel());
             int count = indices.getCount();
             int type = indices.getComponentType();
@@ -1486,7 +1614,8 @@ public class RenderedGltfModel {
                 GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, glIndicesBufferView);
                 GL11.glDrawElements(mode, count, type, offset);
             });
-        } else {
+        }
+        else {
             renderCommand.add(() -> {
                 GL30.glBindVertexArray(glVertexArray);
                 GL40.glDrawTransformFeedback(mode, glTransformFeedback);
@@ -1531,9 +1660,10 @@ public class RenderedGltfModel {
 
         AccessorModel positionsAccessorModel = attributes.get("POSITION");
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, skinningCommand, positionsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, positionsAccessorModel.getBufferViewModel());
         }
         GL20.glVertexAttribPointer(
@@ -1547,9 +1677,10 @@ public class RenderedGltfModel {
 
         AccessorModel normalsAccessorModel = attributes.get("NORMAL");
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "NORMAL")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "NORMAL")) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, skinningCommand, normalsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, normalsAccessorModel.getBufferViewModel());
         }
         GL20.glVertexAttribPointer(
@@ -1564,9 +1695,10 @@ public class RenderedGltfModel {
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
         AccessorModel tangentsAccessorModel = obtainTangentsAccessorModel(meshPrimitiveModel, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel);
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createTangentMorphTarget(morphTargets, targetAccessorDatas, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel, "TEXCOORD_0", tangentsAccessorModel)) {
+        if(createTangentMorphTarget(morphTargets, targetAccessorDatas, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel, "TEXCOORD_0", tangentsAccessorModel)) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, skinningCommand, tangentsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, tangentsAccessorModel.getBufferViewModel());
         }
         GL20.glVertexAttribPointer(
@@ -1611,12 +1743,24 @@ public class RenderedGltfModel {
         GL30.glBindVertexArray(glVertexArray);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
-        GL11.glVertexPointer(positionsAccessorModel.getElementType().getNumComponents(), positionsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaPosition,
+                positionsAccessorModel.getElementType().getNumComponents(),
+                positionsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
-        GL11.glNormalPointer(normalsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                normalsAccessorModel.getElementType().getNumComponents(),
+                normalsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, tangentBuffer);
         GL20.glVertexAttribPointer(
@@ -1629,42 +1773,49 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(at_tangent);
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+        if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
             texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
         }
-        GL11.glTexCoordPointer(
+        GL20.glVertexAttribPointer(
+                vaUV0,
                 texcoordsAccessorModel.getElementType().getNumComponents(),
                 texcoordsAccessorModel.getComponentType(),
+                false,
                 texcoordsAccessorModel.getByteStride(),
                 texcoordsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+        GL20.glEnableVertexAttribArray(vaUV0);
 
         AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-        if (texcoords1AccessorModel != null) {
+        if(texcoords1AccessorModel != null) {
             texcoordsAccessorModel = texcoords1AccessorModel;
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
         }
@@ -1725,7 +1876,7 @@ public class RenderedGltfModel {
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
         List<AccessorFloatData> normalTargetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
         List<AccessorFloatData> tangentTargetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createPositionNormalTangentMorphTarget(morphTargets, positionsAccessorModel, normalsAccessorModel, tangentsAccessorModel, targetAccessorDatas, normalTargetAccessorDatas, tangentTargetAccessorDatas)) {
+        if(createPositionNormalTangentMorphTarget(morphTargets, positionsAccessorModel, normalsAccessorModel, tangentsAccessorModel, targetAccessorDatas, normalTargetAccessorDatas, tangentTargetAccessorDatas)) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, skinningCommand, positionsAccessorModel, targetAccessorDatas);
             GL20.glVertexAttribPointer(
                     skinning_position,
@@ -1755,7 +1906,8 @@ public class RenderedGltfModel {
                     tangentsAccessorModel.getByteStride(),
                     tangentsAccessorModel.getByteOffset());
             GL20.glEnableVertexAttribArray(skinning_tangent);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, positionsAccessorModel.getBufferViewModel());
             GL20.glVertexAttribPointer(
                     skinning_position,
@@ -1820,12 +1972,24 @@ public class RenderedGltfModel {
         GL30.glBindVertexArray(glVertexArray);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
-        GL11.glVertexPointer(positionsAccessorModel.getElementType().getNumComponents(), positionsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaPosition,
+                positionsAccessorModel.getElementType().getNumComponents(),
+                positionsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
-        GL11.glNormalPointer(normalsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                normalsAccessorModel.getElementType().getNumComponents(),
+                normalsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, tangentBuffer);
         GL20.glVertexAttribPointer(
@@ -1838,44 +2002,51 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(at_tangent);
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
-        if (texcoordsAccessorModel != null) {
+        if(texcoordsAccessorModel != null) {
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
-            GL11.glTexCoordPointer(
+            GL20.glVertexAttribPointer(
+                    vaUV0,
                     texcoordsAccessorModel.getElementType().getNumComponents(),
                     texcoordsAccessorModel.getComponentType(),
+                    false,
                     texcoordsAccessorModel.getByteStride(),
                     texcoordsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            GL20.glEnableVertexAttribArray(vaUV0);
 
             AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-            if (texcoords1AccessorModel != null) {
+            if(texcoords1AccessorModel != null) {
                 texcoordsAccessorModel = texcoords1AccessorModel;
                 targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-                if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+                if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                     texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-                } else {
+                }
+                else {
                     bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
                 }
             }
@@ -1935,7 +2106,7 @@ public class RenderedGltfModel {
         AccessorModel normalsAccessorModel = obtainNormalsAccessorModel(positionsAccessorModel);
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
         List<AccessorFloatData> normalTargetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createPositionNormalMorphTarget(morphTargets, positionsAccessorModel, normalsAccessorModel, targetAccessorDatas, normalTargetAccessorDatas)) {
+        if(createPositionNormalMorphTarget(morphTargets, positionsAccessorModel, normalsAccessorModel, targetAccessorDatas, normalTargetAccessorDatas)) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, skinningCommand, positionsAccessorModel, targetAccessorDatas);
             GL20.glVertexAttribPointer(
                     skinning_position,
@@ -1955,7 +2126,8 @@ public class RenderedGltfModel {
                     normalsAccessorModel.getByteStride(),
                     normalsAccessorModel.getByteOffset());
             GL20.glEnableVertexAttribArray(skinning_normal);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, positionsAccessorModel.getBufferViewModel());
             GL20.glVertexAttribPointer(
                     skinning_position,
@@ -1980,9 +2152,10 @@ public class RenderedGltfModel {
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
         AccessorModel tangentsAccessorModel = obtainTangentsAccessorModel(normalsAccessorModel);
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createTangentMorphTarget(morphTargets, targetAccessorDatas, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel, "TEXCOORD_0", tangentsAccessorModel, normalTargetAccessorDatas)) {
+        if(createTangentMorphTarget(morphTargets, targetAccessorDatas, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel, "TEXCOORD_0", tangentsAccessorModel, normalTargetAccessorDatas)) {
             bindVec3FloatMorphed(gltfRenderData, nodeModel, meshModel, skinningCommand, tangentsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, tangentsAccessorModel.getBufferViewModel());
         }
         GL20.glVertexAttribPointer(
@@ -2027,12 +2200,24 @@ public class RenderedGltfModel {
         GL30.glBindVertexArray(glVertexArray);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
-        GL11.glVertexPointer(positionsAccessorModel.getElementType().getNumComponents(), positionsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaPosition,
+                positionsAccessorModel.getElementType().getNumComponents(),
+                positionsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
-        GL11.glNormalPointer(normalsAccessorModel.getComponentType(), 0, 0);
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                normalsAccessorModel.getElementType().getNumComponents(),
+                normalsAccessorModel.getComponentType(),
+                false,
+                0,
+                0);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, tangentBuffer);
         GL20.glVertexAttribPointer(
@@ -2045,42 +2230,49 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(at_tangent);
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+        if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
             texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
         }
-        GL11.glTexCoordPointer(
+        GL20.glVertexAttribPointer(
+                vaUV0,
                 texcoordsAccessorModel.getElementType().getNumComponents(),
                 texcoordsAccessorModel.getComponentType(),
+                false,
                 texcoordsAccessorModel.getByteStride(),
                 texcoordsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+        GL20.glEnableVertexAttribArray(vaUV0);
 
         AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-        if (texcoords1AccessorModel != null) {
+        if(texcoords1AccessorModel != null) {
             texcoordsAccessorModel = texcoords1AccessorModel;
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
         }
@@ -2103,71 +2295,58 @@ public class RenderedGltfModel {
     protected void processMeshPrimitiveModel(List<Runnable> gltfRenderData, NodeModel nodeModel, MeshModel meshModel, MeshPrimitiveModel meshPrimitiveModel, float[][] jointMatrices, List<Runnable> vanillaRenderCommands, List<Runnable> shaderModRenderCommands) {
         Map<String, AccessorModel> attributes = meshPrimitiveModel.getAttributes();
         AccessorModel positionsAccessorModel = attributes.get("POSITION");
-        if (positionsAccessorModel != null) {
+        if(positionsAccessorModel != null) {
             List<Runnable> renderCommand = new ArrayList<Runnable>();
             AccessorModel normalsAccessorModel = attributes.get("NORMAL");
-            if (normalsAccessorModel != null) {
+            if(normalsAccessorModel != null) {
                 AccessorModel tangentsAccessorModel = attributes.get("TANGENT");
-                if (tangentsAccessorModel != null) {
+                if(tangentsAccessorModel != null) {
                     processMeshPrimitiveModelIncludedTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices, attributes, positionsAccessorModel, normalsAccessorModel, tangentsAccessorModel);
                     MaterialModel materialModel = meshPrimitiveModel.getMaterialModel();
-                    if (materialModel != null) {
-                        Object extras = materialModel.getExtras();
-                        if (extras != null) {
-                            Material renderedMaterial = obtainMaterial(gltfRenderData, extras);
-                            vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
-                            shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
-                        } else {
-                            vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
-                            shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
-                        }
-                    } else {
+                    if(materialModel != null) {
+                        Material renderedMaterial = obtainMaterial(gltfRenderData, materialModel);
+                        vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
+                        shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
+                    }
+                    else {
                         vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
                         shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
                     }
-                } else {
+                }
+                else {
                     MaterialModel materialModel = meshPrimitiveModel.getMaterialModel();
-                    if (materialModel != null) {
-                        Object extras = materialModel.getExtras();
-                        if (extras != null) {
-                            Material renderedMaterial = obtainMaterial(gltfRenderData, extras);
-                            vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
-                            shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
-                            if (renderedMaterial.normalTexture != null) {
-                                processMeshPrimitiveModelMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
-                            } else {
-                                processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices, attributes, positionsAccessorModel, normalsAccessorModel);
-                            }
-                        } else {
-                            vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
-                            shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
+                    if(materialModel != null) {
+                        Material renderedMaterial = obtainMaterial(gltfRenderData, materialModel);
+                        vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
+                        shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
+                        if(renderedMaterial.normalTexture != null) {
+                            processMeshPrimitiveModelMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
+                        }
+                        else {
                             processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices, attributes, positionsAccessorModel, normalsAccessorModel);
                         }
-                    } else {
+                    }
+                    else {
                         vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
                         shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
                         processMeshPrimitiveModelSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices, attributes, positionsAccessorModel, normalsAccessorModel);
                     }
                 }
-            } else {
+            }
+            else {
                 MaterialModel materialModel = meshPrimitiveModel.getMaterialModel();
-                if (materialModel != null) {
-                    Object extras = materialModel.getExtras();
-                    if (extras != null) {
-                        Material renderedMaterial = obtainMaterial(gltfRenderData, extras);
-                        vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
-                        shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
-                        if (renderedMaterial.normalTexture != null) {
-                            processMeshPrimitiveModelFlatNormalMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
-                        } else {
-                            processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
-                        }
-                    } else {
-                        vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
-                        shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
+                if(materialModel != null) {
+                    Material renderedMaterial = obtainMaterial(gltfRenderData, materialModel);
+                    vanillaRenderCommands.add(renderedMaterial.vanillaMaterialCommand);
+                    shaderModRenderCommands.add(renderedMaterial.shaderModMaterialCommand);
+                    if(renderedMaterial.normalTexture != null) {
+                        processMeshPrimitiveModelFlatNormalMikkTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
+                    }
+                    else {
                         processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
                     }
-                } else {
+                }
+                else {
                     vanillaRenderCommands.add(vanillaDefaultMaterialCommand);
                     shaderModRenderCommands.add(shaderModDefaultMaterialCommand);
                     processMeshPrimitiveModelFlatNormalSimpleTangent(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, renderCommand, jointMatrices);
@@ -2183,25 +2362,28 @@ public class RenderedGltfModel {
 
         AccessorModel outputPositionsAccessorModel;
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
             outputPositionsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, positionsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             outputPositionsAccessorModel = AccessorModelCreation.instantiate(positionsAccessorModel, "");
         }
 
         AccessorModel outputNormalsAccessorModel;
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "NORMAL")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "NORMAL")) {
             outputNormalsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, normalsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             outputNormalsAccessorModel = AccessorModelCreation.instantiate(normalsAccessorModel, "");
         }
 
         AccessorModel outputTangentsAccessorModel;
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "TANGENT")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "TANGENT")) {
             outputTangentsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, tangentsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             outputTangentsAccessorModel = AccessorModelCreation.instantiate(tangentsAccessorModel, "");
         }
 
@@ -2222,22 +2404,27 @@ public class RenderedGltfModel {
         gltfRenderData.add(() -> GL15.glDeleteBuffers(positionBuffer));
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, outputPositionsAccessorModel.getBufferViewModel().getByteLength(), GL15.GL_STATIC_DRAW);
-        GL11.glVertexPointer(
+        GL20.glVertexAttribPointer(
+                vaPosition,
                 outputPositionsAccessorModel.getElementType().getNumComponents(),
                 outputPositionsAccessorModel.getComponentType(),
+                false,
                 outputPositionsAccessorModel.getByteStride(),
                 outputPositionsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         int normalBuffer = GL15.glGenBuffers();
         gltfRenderData.add(() -> GL15.glDeleteBuffers(normalBuffer));
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, outputNormalsAccessorModel.getBufferViewModel().getByteLength(), GL15.GL_STATIC_DRAW);
-        GL11.glNormalPointer(
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                outputNormalsAccessorModel.getElementType().getNumComponents(),
                 outputNormalsAccessorModel.getComponentType(),
+                false,
                 outputNormalsAccessorModel.getByteStride(),
                 outputNormalsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         int tangentBuffer = GL15.glGenBuffers();
         gltfRenderData.add(() -> GL15.glDeleteBuffers(tangentBuffer));
@@ -2253,44 +2440,51 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(at_tangent);
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
-        if (texcoordsAccessorModel != null) {
+        if(texcoordsAccessorModel != null) {
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
-            GL11.glTexCoordPointer(
+            GL20.glVertexAttribPointer(
+                    vaUV0,
                     texcoordsAccessorModel.getElementType().getNumComponents(),
                     texcoordsAccessorModel.getComponentType(),
+                    false,
                     texcoordsAccessorModel.getByteStride(),
                     texcoordsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            GL20.glEnableVertexAttribArray(vaUV0);
 
             AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-            if (texcoords1AccessorModel != null) {
+            if(texcoords1AccessorModel != null) {
                 texcoordsAccessorModel = texcoords1AccessorModel;
                 targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-                if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+                if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                     texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-                } else {
+                }
+                else {
                     bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
                 }
             }
@@ -2310,7 +2504,7 @@ public class RenderedGltfModel {
 
         int mode = meshPrimitiveModel.getMode();
         AccessorModel indices = meshPrimitiveModel.getIndices();
-        if (indices != null) {
+        if(indices != null) {
             int glIndicesBufferView = obtainElementArrayBuffer(gltfRenderData, indices.getBufferViewModel());
             int count = indices.getCount();
             int type = indices.getComponentType();
@@ -2331,7 +2525,8 @@ public class RenderedGltfModel {
                 GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, glIndicesBufferView);
                 GL11.glDrawElements(mode, count, type, offset);
             });
-        } else {
+        }
+        else {
             renderCommand.add(() -> {
                 skinningCommands.parallelStream().forEach(Runnable::run);
 
@@ -2355,9 +2550,10 @@ public class RenderedGltfModel {
 
         AccessorModel outputPositionsAccessorModel;
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
             outputPositionsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, positionsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             outputPositionsAccessorModel = AccessorModelCreation.instantiate(positionsAccessorModel, "");
         }
 
@@ -2366,10 +2562,11 @@ public class RenderedGltfModel {
         AccessorModel outputTangentsAccessorModel;
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
         List<AccessorFloatData> tangentTargetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createNormalTangentMorphTarget(morphTargets, normalsAccessorModel, tangentsAccessorModel, targetAccessorDatas, tangentTargetAccessorDatas)) {
+        if(createNormalTangentMorphTarget(morphTargets, normalsAccessorModel, tangentsAccessorModel, targetAccessorDatas, tangentTargetAccessorDatas)) {
             outputNormalsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, normalsAccessorModel, targetAccessorDatas);
             outputTangentsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, tangentsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             outputNormalsAccessorModel = AccessorModelCreation.instantiate(normalsAccessorModel, "");
             outputTangentsAccessorModel = AccessorModelCreation.instantiate(tangentsAccessorModel, "");
         }
@@ -2391,22 +2588,27 @@ public class RenderedGltfModel {
         gltfRenderData.add(() -> GL15.glDeleteBuffers(positionBuffer));
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, outputPositionsAccessorModel.getBufferViewModel().getByteLength(), GL15.GL_STATIC_DRAW);
-        GL11.glVertexPointer(
+        GL20.glVertexAttribPointer(
+                vaPosition,
                 outputPositionsAccessorModel.getElementType().getNumComponents(),
                 outputPositionsAccessorModel.getComponentType(),
+                false,
                 outputPositionsAccessorModel.getByteStride(),
                 outputPositionsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         int normalBuffer = GL15.glGenBuffers();
         gltfRenderData.add(() -> GL15.glDeleteBuffers(normalBuffer));
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, outputNormalsAccessorModel.getBufferViewModel().getByteLength(), GL15.GL_STATIC_DRAW);
-        GL11.glNormalPointer(
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                outputNormalsAccessorModel.getElementType().getNumComponents(),
                 outputNormalsAccessorModel.getComponentType(),
+                false,
                 outputNormalsAccessorModel.getByteStride(),
                 outputNormalsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         int tangentBuffer = GL15.glGenBuffers();
         gltfRenderData.add(() -> GL15.glDeleteBuffers(tangentBuffer));
@@ -2422,44 +2624,51 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(at_tangent);
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
-        if (texcoordsAccessorModel != null) {
+        if(texcoordsAccessorModel != null) {
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
-            GL11.glTexCoordPointer(
+            GL20.glVertexAttribPointer(
+                    vaUV0,
                     texcoordsAccessorModel.getElementType().getNumComponents(),
                     texcoordsAccessorModel.getComponentType(),
+                    false,
                     texcoordsAccessorModel.getByteStride(),
                     texcoordsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            GL20.glEnableVertexAttribArray(vaUV0);
 
             AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-            if (texcoords1AccessorModel != null) {
+            if(texcoords1AccessorModel != null) {
                 texcoordsAccessorModel = texcoords1AccessorModel;
                 targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-                if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+                if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                     texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-                } else {
+                }
+                else {
                     bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
                 }
             }
@@ -2479,7 +2688,7 @@ public class RenderedGltfModel {
 
         int mode = meshPrimitiveModel.getMode();
         AccessorModel indices = meshPrimitiveModel.getIndices();
-        if (indices != null) {
+        if(indices != null) {
             int glIndicesBufferView = obtainElementArrayBuffer(gltfRenderData, indices.getBufferViewModel());
             int count = indices.getCount();
             int type = indices.getComponentType();
@@ -2500,7 +2709,8 @@ public class RenderedGltfModel {
                 GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, glIndicesBufferView);
                 GL11.glDrawElements(mode, count, type, offset);
             });
-        } else {
+        }
+        else {
             renderCommand.add(() -> {
                 skinningCommands.parallelStream().forEach(Runnable::run);
 
@@ -2527,27 +2737,30 @@ public class RenderedGltfModel {
         AccessorModel positionsAccessorModel = attributes.get("POSITION");
         AccessorModel outputPositionsAccessorModel;
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "POSITION")) {
             outputPositionsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, positionsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             outputPositionsAccessorModel = AccessorModelCreation.instantiate(positionsAccessorModel, "");
         }
 
         AccessorModel normalsAccessorModel = attributes.get("NORMAL");
         AccessorModel outputNormalsAccessorModel;
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createMorphTarget(morphTargets, targetAccessorDatas, "NORMAL")) {
+        if(createMorphTarget(morphTargets, targetAccessorDatas, "NORMAL")) {
             outputNormalsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, normalsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             outputNormalsAccessorModel = AccessorModelCreation.instantiate(normalsAccessorModel, "");
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
         AccessorModel outputTangentsAccessorModel;
         AccessorModel tangentsAccessorModel = obtainTangentsAccessorModel(meshPrimitiveModel, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel);
-        if (createTangentMorphTarget(morphTargets, targetAccessorDatas, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel, "TEXCOORD_0", tangentsAccessorModel)) {
+        if(createTangentMorphTarget(morphTargets, targetAccessorDatas, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel, "TEXCOORD_0", tangentsAccessorModel)) {
             outputTangentsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, tangentsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             outputTangentsAccessorModel = AccessorModelCreation.instantiate(tangentsAccessorModel, "");
         }
 
@@ -2568,22 +2781,27 @@ public class RenderedGltfModel {
         gltfRenderData.add(() -> GL15.glDeleteBuffers(positionBuffer));
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, outputPositionsAccessorModel.getBufferViewModel().getByteLength(), GL15.GL_STATIC_DRAW);
-        GL11.glVertexPointer(
+        GL20.glVertexAttribPointer(
+                vaPosition,
                 outputPositionsAccessorModel.getElementType().getNumComponents(),
                 outputPositionsAccessorModel.getComponentType(),
+                false,
                 outputPositionsAccessorModel.getByteStride(),
                 outputPositionsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         int normalBuffer = GL15.glGenBuffers();
         gltfRenderData.add(() -> GL15.glDeleteBuffers(normalBuffer));
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, outputNormalsAccessorModel.getBufferViewModel().getByteLength(), GL15.GL_STATIC_DRAW);
-        GL11.glNormalPointer(
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                outputNormalsAccessorModel.getElementType().getNumComponents(),
                 outputNormalsAccessorModel.getComponentType(),
+                false,
                 outputNormalsAccessorModel.getByteStride(),
                 outputNormalsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         int tangentBuffer = GL15.glGenBuffers();
         gltfRenderData.add(() -> GL15.glDeleteBuffers(tangentBuffer));
@@ -2599,42 +2817,49 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(at_tangent);
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+        if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
             texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
         }
-        GL11.glTexCoordPointer(
+        GL20.glVertexAttribPointer(
+                vaUV0,
                 texcoordsAccessorModel.getElementType().getNumComponents(),
                 texcoordsAccessorModel.getComponentType(),
+                false,
                 texcoordsAccessorModel.getByteStride(),
                 texcoordsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+        GL20.glEnableVertexAttribArray(vaUV0);
 
         AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-        if (texcoords1AccessorModel != null) {
+        if(texcoords1AccessorModel != null) {
             texcoordsAccessorModel = texcoords1AccessorModel;
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
         }
@@ -2683,11 +2908,12 @@ public class RenderedGltfModel {
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
         List<AccessorFloatData> normalTargetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
         List<AccessorFloatData> tangentTargetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createPositionNormalTangentMorphTarget(morphTargets, positionsAccessorModel, normalsAccessorModel, tangentsAccessorModel, targetAccessorDatas, normalTargetAccessorDatas, tangentTargetAccessorDatas)) {
+        if(createPositionNormalTangentMorphTarget(morphTargets, positionsAccessorModel, normalsAccessorModel, tangentsAccessorModel, targetAccessorDatas, normalTargetAccessorDatas, tangentTargetAccessorDatas)) {
             outputPositionsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, positionsAccessorModel, targetAccessorDatas);
             outputNormalsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, normalsAccessorModel, targetAccessorDatas);
             outputTangentsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, tangentsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             outputPositionsAccessorModel = AccessorModelCreation.instantiate(positionsAccessorModel, "");
             outputNormalsAccessorModel = AccessorModelCreation.instantiate(normalsAccessorModel, "");
             outputTangentsAccessorModel = AccessorModelCreation.instantiate(tangentsAccessorModel, "");
@@ -2710,22 +2936,27 @@ public class RenderedGltfModel {
         gltfRenderData.add(() -> GL15.glDeleteBuffers(positionBuffer));
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, outputPositionsAccessorModel.getBufferViewModel().getByteLength(), GL15.GL_STATIC_DRAW);
-        GL11.glVertexPointer(
+        GL20.glVertexAttribPointer(
+                vaPosition,
                 outputPositionsAccessorModel.getElementType().getNumComponents(),
                 outputPositionsAccessorModel.getComponentType(),
+                false,
                 outputPositionsAccessorModel.getByteStride(),
                 outputPositionsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         int normalBuffer = GL15.glGenBuffers();
         gltfRenderData.add(() -> GL15.glDeleteBuffers(normalBuffer));
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, outputNormalsAccessorModel.getBufferViewModel().getByteLength(), GL15.GL_STATIC_DRAW);
-        GL11.glNormalPointer(
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                outputNormalsAccessorModel.getElementType().getNumComponents(),
                 outputNormalsAccessorModel.getComponentType(),
+                false,
                 outputNormalsAccessorModel.getByteStride(),
                 outputNormalsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         int tangentBuffer = GL15.glGenBuffers();
         gltfRenderData.add(() -> GL15.glDeleteBuffers(tangentBuffer));
@@ -2741,44 +2972,51 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(at_tangent);
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         AccessorModel texcoordsAccessorModel = attributes.get("TEXCOORD_0");
-        if (texcoordsAccessorModel != null) {
+        if(texcoordsAccessorModel != null) {
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
-            GL11.glTexCoordPointer(
+            GL20.glVertexAttribPointer(
+                    vaUV0,
                     texcoordsAccessorModel.getElementType().getNumComponents(),
                     texcoordsAccessorModel.getComponentType(),
+                    false,
                     texcoordsAccessorModel.getByteStride(),
                     texcoordsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+            GL20.glEnableVertexAttribArray(vaUV0);
 
             AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-            if (texcoords1AccessorModel != null) {
+            if(texcoords1AccessorModel != null) {
                 texcoordsAccessorModel = texcoords1AccessorModel;
                 targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-                if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+                if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                     texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-                } else {
+                }
+                else {
                     bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
                 }
             }
@@ -2825,10 +3063,11 @@ public class RenderedGltfModel {
         AccessorModel outputNormalsAccessorModel;
         List<AccessorFloatData> targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
         List<AccessorFloatData> normalTargetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createPositionNormalMorphTarget(morphTargets, positionsAccessorModel, normalsAccessorModel, targetAccessorDatas, normalTargetAccessorDatas)) {
+        if(createPositionNormalMorphTarget(morphTargets, positionsAccessorModel, normalsAccessorModel, targetAccessorDatas, normalTargetAccessorDatas)) {
             outputPositionsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, positionsAccessorModel, targetAccessorDatas);
             outputNormalsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, normalsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             outputPositionsAccessorModel = AccessorModelCreation.instantiate(positionsAccessorModel, "");
             outputNormalsAccessorModel = AccessorModelCreation.instantiate(normalsAccessorModel, "");
         }
@@ -2837,9 +3076,10 @@ public class RenderedGltfModel {
         AccessorModel tangentsAccessorModel = obtainTangentsAccessorModel(normalsAccessorModel);
         AccessorModel outputTangentsAccessorModel;
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createTangentMorphTarget(morphTargets, targetAccessorDatas, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel, "TEXCOORD_0", tangentsAccessorModel, normalTargetAccessorDatas)) {
+        if(createTangentMorphTarget(morphTargets, targetAccessorDatas, positionsAccessorModel, normalsAccessorModel, texcoordsAccessorModel, "TEXCOORD_0", tangentsAccessorModel, normalTargetAccessorDatas)) {
             outputTangentsAccessorModel = obtainVec3FloatMorphedModel(nodeModel, meshModel, renderCommand, tangentsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             outputTangentsAccessorModel = AccessorModelCreation.instantiate(tangentsAccessorModel, "");
         }
 
@@ -2860,22 +3100,27 @@ public class RenderedGltfModel {
         gltfRenderData.add(() -> GL15.glDeleteBuffers(positionBuffer));
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, positionBuffer);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, outputPositionsAccessorModel.getBufferViewModel().getByteLength(), GL15.GL_STATIC_DRAW);
-        GL11.glVertexPointer(
+        GL20.glVertexAttribPointer(
+                vaPosition,
                 outputPositionsAccessorModel.getElementType().getNumComponents(),
                 outputPositionsAccessorModel.getComponentType(),
+                false,
                 outputPositionsAccessorModel.getByteStride(),
                 outputPositionsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL20.glEnableVertexAttribArray(vaPosition);
 
         int normalBuffer = GL15.glGenBuffers();
         gltfRenderData.add(() -> GL15.glDeleteBuffers(normalBuffer));
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, outputNormalsAccessorModel.getBufferViewModel().getByteLength(), GL15.GL_STATIC_DRAW);
-        GL11.glNormalPointer(
+        GL20.glVertexAttribPointer(
+                vaNormal,
+                outputNormalsAccessorModel.getElementType().getNumComponents(),
                 outputNormalsAccessorModel.getComponentType(),
+                false,
                 outputNormalsAccessorModel.getByteStride(),
                 outputNormalsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY);
+        GL20.glEnableVertexAttribArray(vaNormal);
 
         int tangentBuffer = GL15.glGenBuffers();
         gltfRenderData.add(() -> GL15.glDeleteBuffers(tangentBuffer));
@@ -2891,42 +3136,49 @@ public class RenderedGltfModel {
         GL20.glEnableVertexAttribArray(at_tangent);
 
         AccessorModel colorsAccessorModel = attributes.get("COLOR_0");
-        if (colorsAccessorModel != null) {
+        if(colorsAccessorModel != null) {
             colorsAccessorModel = obtainVec4ColorsAccessorModel(colorsAccessorModel);
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
+            if(createColorMorphTarget(morphTargets, targetAccessorDatas, "COLOR_0")) {
                 colorsAccessorModel = bindColorMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, colorsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, colorsAccessorModel.getBufferViewModel());
             }
-            GL11.glColorPointer(
+            GL20.glVertexAttribPointer(
+                    vaColor,
                     colorsAccessorModel.getElementType().getNumComponents(),
                     colorsAccessorModel.getComponentType(),
+                    false,
                     colorsAccessorModel.getByteStride(),
                     colorsAccessorModel.getByteOffset());
-            GL11.glEnableClientState(GL11.GL_COLOR_ARRAY);
+            GL20.glEnableVertexAttribArray(vaColor);
         }
 
         targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-        if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
+        if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_0")) {
             texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-        } else {
+        }
+        else {
             bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
         }
-        GL11.glTexCoordPointer(
+        GL20.glVertexAttribPointer(
+                vaUV0,
                 texcoordsAccessorModel.getElementType().getNumComponents(),
                 texcoordsAccessorModel.getComponentType(),
+                false,
                 texcoordsAccessorModel.getByteStride(),
                 texcoordsAccessorModel.getByteOffset());
-        GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+        GL20.glEnableVertexAttribArray(vaUV0);
 
         AccessorModel texcoords1AccessorModel = attributes.get("TEXCOORD_1");
-        if (texcoords1AccessorModel != null) {
+        if(texcoords1AccessorModel != null) {
             texcoordsAccessorModel = texcoords1AccessorModel;
             targetAccessorDatas = new ArrayList<AccessorFloatData>(morphTargets.size());
-            if (createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
+            if(createTexcoordMorphTarget(morphTargets, targetAccessorDatas, "TEXCOORD_1")) {
                 texcoordsAccessorModel = bindTexcoordMorphed(gltfRenderData, nodeModel, meshModel, renderCommand, texcoordsAccessorModel, targetAccessorDatas);
-            } else {
+            }
+            else {
                 bindArrayBufferViewModel(gltfRenderData, texcoordsAccessorModel.getBufferViewModel());
             }
         }
@@ -2961,6 +3213,55 @@ public class RenderedGltfModel {
         });
     }
 
+    protected void applyTransformVanilla(NodeModel nodeModel) {
+        float[] transform = findGlobalTransform(nodeModel);
+        Matrix4f pose = new Matrix4f();
+        pose.loadTransposed(FloatBuffer.wrap(transform));
+        Matrix3f normal = new Matrix3f(pose);
+
+        pose.transpose();
+        pose.multiply(CURRENT_POSE);
+
+        normal.transpose();
+        normal.mul(CURRENT_NORMAL);
+
+        CURRENT_SHADER_INSTANCE.MODEL_VIEW_MATRIX.set(pose);
+        CURRENT_SHADER_INSTANCE.MODEL_VIEW_MATRIX.upload();
+
+        Vector3f light0 = LIGHT1_DIRECTION.copy();
+        light0.transform(normal);
+        CURRENT_SHADER_INSTANCE.LIGHT0_DIRECTION.set(light0);
+
+        Vector3f light1 = LIGHT1_DIRECTION.copy();
+        light1.transform(normal);
+        CURRENT_SHADER_INSTANCE.LIGHT1_DIRECTION.set(light1);
+        CURRENT_SHADER_INSTANCE.LIGHT0_DIRECTION.upload();
+        CURRENT_SHADER_INSTANCE.LIGHT1_DIRECTION.upload();
+    }
+
+    protected void applyTransformShaderMod(NodeModel nodeModel) {
+        float[] transform = findGlobalTransform(nodeModel);
+        Matrix4f pose = new Matrix4f();
+        pose.loadTransposed(FloatBuffer.wrap(transform));
+        Matrix3f normal = new Matrix3f(pose);
+
+        pose.transpose();
+        pose.multiply(CURRENT_POSE);
+
+        normal.transpose();
+        normal.mul(CURRENT_NORMAL);
+
+        pose.store(BUF_FLOAT_16);
+        GL20.glUniformMatrix4fv(MODEL_VIEW_MATRIX, false, BUF_FLOAT_16);
+
+        pose.invert();
+        pose.store(BUF_FLOAT_16);
+        GL20.glUniformMatrix4fv(MODEL_VIEW_MATRIX_INVERSE, false, BUF_FLOAT_16);
+
+        normal.store(BUF_FLOAT_9);
+        GL20.glUniformMatrix3fv(NORMAL_MATRIX, false, BUF_FLOAT_9);
+    }
+
     public static class Material {
 
         public class TextureInfo {
@@ -2970,109 +3271,155 @@ public class RenderedGltfModel {
         public TextureInfo baseColorTexture;
         public TextureInfo normalTexture;
         public TextureInfo specularTexture;
-        public float[] baseColorFactor = {1.0F, 1.0F, 1.0F, 1.0F};
-        public boolean doubleSided;
+        public float[] baseColorFactor;
+        public Boolean doubleSided;
 
         public Runnable vanillaMaterialCommand;
         public Runnable shaderModMaterialCommand;
 
-        public void initMaterialCommand(List<Runnable> gltfRenderData, RenderedGltfModel renderedModel) {
+        public void initMaterialCommand(List<Runnable> gltfRenderData, RenderedGltfModel renderedModel, MaterialModel materialModel) {
+            int colorMap;
+            int normalMap;
+            int specularMap;
             List<TextureModel> textureModels = renderedModel.gltfModel.getTextureModels();
-            Supplier<Integer> colorMap = () -> baseColorTexture == null ? GlTFModelManager.getInstance().getDefaultColorMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(baseColorTexture.index));
-            Supplier<Integer> normalMap = () -> normalTexture == null ? GlTFModelManager.getInstance().getDefaultNormalMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(normalTexture.index));
-            Supplier<Integer> specularMap = () -> specularTexture == null ? GlTFModelManager.getInstance().getDefaultSpecularMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(specularTexture.index));
-            if (doubleSided) {
+            if(materialModel instanceof MaterialModelV2) {
+                MaterialModelV2 materialModelV2 = (MaterialModelV2) materialModel;
+
+                if(baseColorTexture == null) {
+                    TextureModel textureModel = materialModelV2.getBaseColorTexture();
+                    if(textureModel != null) {
+                        colorMap = renderedModel.obtainGlTexture(gltfRenderData, textureModel);
+                        baseColorTexture = new TextureInfo();
+                        baseColorTexture.index = textureModels.indexOf(textureModel);
+                    }
+                    else colorMap = GlTFModelManager.getInstance().getDefaultColorMap();
+                }
+                else colorMap = renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(baseColorTexture.index));
+
+                if(normalTexture == null) {
+                    TextureModel textureModel = materialModelV2.getNormalTexture();
+                    if(textureModel != null) {
+                        normalMap = renderedModel.obtainGlTexture(gltfRenderData, textureModel);
+                        normalTexture = new TextureInfo();
+                        normalTexture.index = textureModels.indexOf(textureModel);
+                    }
+                    else normalMap = GlTFModelManager.getInstance().getDefaultNormalMap();
+                }
+                else normalMap = renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(normalTexture.index));
+
+                if(specularTexture == null) {
+                    TextureModel textureModel = materialModelV2.getMetallicRoughnessTexture();
+                    if(textureModel != null) {
+                        specularMap = renderedModel.obtainGlTexture(gltfRenderData, textureModel);
+                        specularTexture = new TextureInfo();
+                        specularTexture.index = textureModels.indexOf(textureModel);
+                    }
+                    else specularMap = GlTFModelManager.getInstance().getDefaultSpecularMap();
+                }
+                else specularMap = renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(specularTexture.index));
+
+                if(baseColorFactor == null) baseColorFactor = materialModelV2.getBaseColorFactor();
+
+                if(doubleSided == null) doubleSided = materialModelV2.isDoubleSided();
+            }
+            else {
+                colorMap = baseColorTexture == null ? GlTFModelManager.getInstance().getDefaultColorMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(baseColorTexture.index));
+                normalMap = normalTexture == null ? GlTFModelManager.getInstance().getDefaultNormalMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(normalTexture.index));
+                specularMap = specularTexture == null ? GlTFModelManager.getInstance().getDefaultSpecularMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(specularTexture.index));
+                if(baseColorFactor == null) baseColorFactor = new float[]{1.0F, 1.0F, 1.0F, 1.0F};
+                if(doubleSided == null) doubleSided = false;
+            }
+
+            if(doubleSided) {
                 vanillaMaterialCommand = () -> {
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap.get());
-                    GL11.glColor4f(baseColorFactor[0], baseColorFactor[1], baseColorFactor[2], baseColorFactor[3]);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap);
+                    GL20.glVertexAttrib4f(vaColor, baseColorFactor[0], baseColorFactor[1], baseColorFactor[2], baseColorFactor[3]);
                     GL11.glDisable(GL11.GL_CULL_FACE);
                 };
                 shaderModMaterialCommand = () -> {
                     GL13.glActiveTexture(COLOR_MAP_INDEX);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap.get());
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap);
                     GL13.glActiveTexture(NORMAL_MAP_INDEX);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, normalMap.get());
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, normalMap);
                     GL13.glActiveTexture(SPECULAR_MAP_INDEX);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, specularMap.get());
-                    GL11.glColor4f(baseColorFactor[0], baseColorFactor[1], baseColorFactor[2], baseColorFactor[3]);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, specularMap);
+                    GL20.glVertexAttrib4f(vaColor, baseColorFactor[0], baseColorFactor[1], baseColorFactor[2], baseColorFactor[3]);
                     GL11.glDisable(GL11.GL_CULL_FACE);
                 };
-            } else {
+            }
+            else {
                 vanillaMaterialCommand = () -> {
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap.get());
-                    GL11.glColor4f(baseColorFactor[0], baseColorFactor[1], baseColorFactor[2], baseColorFactor[3]);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap);
+                    GL20.glVertexAttrib4f(vaColor, baseColorFactor[0], baseColorFactor[1], baseColorFactor[2], baseColorFactor[3]);
                     GL11.glEnable(GL11.GL_CULL_FACE);
                 };
                 shaderModMaterialCommand = () -> {
                     GL13.glActiveTexture(COLOR_MAP_INDEX);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap.get());
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, colorMap);
                     GL13.glActiveTexture(NORMAL_MAP_INDEX);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, normalMap.get());
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, normalMap);
                     GL13.glActiveTexture(SPECULAR_MAP_INDEX);
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, specularMap.get());
-                    GL11.glColor4f(baseColorFactor[0], baseColorFactor[1], baseColorFactor[2], baseColorFactor[3]);
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, specularMap);
+                    GL20.glVertexAttrib4f(vaColor, baseColorFactor[0], baseColorFactor[1], baseColorFactor[2], baseColorFactor[3]);
                     GL11.glEnable(GL11.GL_CULL_FACE);
                 };
             }
         }
     }
 
-    public Runnable createTransformCommand(NodeModel nodeModel) {
-        return () -> {
-            GL11.glPushMatrix();
-            BUF_FLOAT_16.clear();
-            BUF_FLOAT_16.put(findGlobalTransform(nodeModel));
-            BUF_FLOAT_16.rewind();
-            GL11.glMultMatrixf(BUF_FLOAT_16);
-        };
-    }
-
     public void bindArrayBufferViewModel(List<Runnable> gltfRenderData, BufferViewModel bufferViewModel) {
         Integer glBufferView = bufferViewModelToGlBufferView.get(bufferViewModel);
-        if (glBufferView == null) {
+        if(glBufferView == null) {
             Integer glBufferViewNew = GL15.glGenBuffers();
             gltfRenderData.add(() -> GL15.glDeleteBuffers(glBufferViewNew));
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBufferViewNew);
             GL15.glBufferData(GL15.GL_ARRAY_BUFFER, bufferViewModel.getBufferViewData(), GL15.GL_STATIC_DRAW);
             bufferViewModelToGlBufferView.put(bufferViewModel, glBufferViewNew);
-        } else GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBufferView);
+        }
+        else GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBufferView);
     }
 
     public int obtainElementArrayBuffer(List<Runnable> gltfRenderData, BufferViewModel bufferViewModel) {
         Integer glBufferView = bufferViewModelToGlBufferView.get(bufferViewModel);
-        if (glBufferView == null) {
+        if(glBufferView == null) {
             Integer glBufferViewNew = GL15.glGenBuffers();
             gltfRenderData.add(() -> GL15.glDeleteBuffers(glBufferViewNew));
             GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, glBufferViewNew);
             GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, bufferViewModel.getBufferViewData(), GL15.GL_STATIC_DRAW);
             bufferViewModelToGlBufferView.put(bufferViewModel, glBufferViewNew);
             return glBufferViewNew;
-        } else {
+        }
+        else {
             return glBufferView;
         }
     }
 
-    public Material obtainMaterial(List<Runnable> gltfRenderData, Object extras) {
-        Material material = extrasToMaterial.get(extras);
-        if (material == null) {
-            Gson gson = new Gson();
-            material = gson.fromJson(gson.toJsonTree(extras), Material.class);
-            material.initMaterialCommand(gltfRenderData, this);
-            extrasToMaterial.put(extras, material);
+    public Material obtainMaterial(List<Runnable> gltfRenderData, MaterialModel materialModel) {
+        Material material = materialModelToRenderedMaterial.get(materialModel);
+        if(material == null) {
+            Object extras = materialModel.getExtras();
+            if(extras != null) {
+                Gson gson = new Gson();
+                material = gson.fromJson(gson.toJsonTree(extras), Material.class);
+            }
+            else material = new Material();
+            material.initMaterialCommand(gltfRenderData, this, materialModel);
+            materialModelToRenderedMaterial.put(materialModel, material);
         }
         return material;
     }
 
     public int obtainGlTexture(List<Runnable> gltfRenderData, TextureModel textureModel) {
         Integer glTexture = textureModelToGlTexture.get(textureModel);
-        if (glTexture == null) {
+        if(glTexture == null) {
             PixelData pixelData = PixelDatas.create(textureModel.getImageModel().getImageData());
-            if (pixelData == null) {
+            if (pixelData == null)
+            {
                 HollowCore.LOGGER.warn("Could not extract pixel data from image");
                 pixelData = PixelDatas.createErrorPixelData();
             }
 
-            int glTextureNew = GL11.glGenTextures();
+            Integer glTextureNew = GL11.glGenTextures();
             gltfRenderData.add(() -> GL11.glDeleteTextures(glTextureNew));
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, glTextureNew);
             GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, pixelData.getWidth(), pixelData.getHeight(), 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixelData.getPixelsRGBA());
@@ -3100,28 +3447,29 @@ public class RenderedGltfModel {
             textureModelToGlTexture.put(textureModel, glTextureNew);
 
             return glTextureNew;
-        } else {
+        }
+        else {
             return glTexture;
         }
     }
 
     public AccessorModel obtainNormalsAccessorModel(AccessorModel positionsAccessorModel) {
         AccessorModel normalsAccessorModel = positionsAccessorModelToNormalsAccessorModel.get(positionsAccessorModel);
-        if (normalsAccessorModel == null) {
+        if(normalsAccessorModel == null) {
             int count = positionsAccessorModel.getCount();
             int numTriangles = count / 3;
             normalsAccessorModel = AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC3, "");
             positionsAccessorModelToNormalsAccessorModel.put(positionsAccessorModel, normalsAccessorModel);
             AccessorFloatData positionsAccessorData = AccessorDatas.createFloat(positionsAccessorModel);
             AccessorFloatData normalsAccessorData = AccessorDatas.createFloat(normalsAccessorModel);
-            float[] vertex0 = new float[3];
-            float[] vertex1 = new float[3];
-            float[] vertex2 = new float[3];
-            float[] edge01 = new float[3];
-            float[] edge02 = new float[3];
-            float[] cross = new float[3];
-            float[] normal = new float[3];
-            for (int i = 0; i < numTriangles; i++) {
+            float vertex0[] = new float[3];
+            float vertex1[] = new float[3];
+            float vertex2[] = new float[3];
+            float edge01[] = new float[3];
+            float edge02[] = new float[3];
+            float cross[] = new float[3];
+            float normal[] = new float[3];
+            for(int i = 0; i < numTriangles; i++) {
                 int index0 = i * 3;
                 int index1 = index0 + 1;
                 int index2 = index0 + 2;
@@ -3165,7 +3513,7 @@ public class RenderedGltfModel {
      */
     public AccessorModel obtainTangentsAccessorModel(AccessorModel normalsAccessorModel) {
         AccessorModel tangentsAccessorModel = normalsAccessorModelToTangentsAccessorModel.get(normalsAccessorModel);
-        if (tangentsAccessorModel == null) {
+        if(tangentsAccessorModel == null) {
             int count = normalsAccessorModel.getCount();
             tangentsAccessorModel = AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC4, "");
             normalsAccessorModelToTangentsAccessorModel.put(normalsAccessorModel, tangentsAccessorModel);
@@ -3176,7 +3524,7 @@ public class RenderedGltfModel {
             float[] cross = new float[3];
             float[] tangent = new float[3];
 
-            for (int i = 0; i < count; i++) {
+            for(int i = 0; i < count; i++) {
                 normal0[0] = normalsAccessorData.get(i, 0);
                 normal0[1] = normalsAccessorData.get(i, 1);
                 normal0[2] = normalsAccessorData.get(i, 2);
@@ -3199,7 +3547,7 @@ public class RenderedGltfModel {
 
     public AccessorModel obtainTangentsAccessorModel(MeshPrimitiveModel meshPrimitiveModel, AccessorModel positionsAccessorModel, AccessorModel normalsAccessorModel, AccessorModel texcoordsAccessorModel) {
         AccessorModel tangentsAccessorModel = meshPrimitiveModelToTangentsAccessorModel.get(meshPrimitiveModel);
-        if (tangentsAccessorModel == null) {
+        if(tangentsAccessorModel == null) {
             int count = positionsAccessorModel.getCount();
             int numFaces = count / 3;
             tangentsAccessorModel = AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC4, "");
@@ -3264,53 +3612,57 @@ public class RenderedGltfModel {
     }
 
     public AccessorModel obtainVec4ColorsAccessorModel(AccessorModel colorsAccessorModel) {
-        if (colorsAccessorModel.getElementType() == ElementType.VEC3) {
+        if(colorsAccessorModel.getElementType() == ElementType.VEC3) {
             AccessorModel colorsVec4AccessorModel = colorsAccessorModelVec3ToVec4.get(colorsAccessorModel);
-            if (colorsVec4AccessorModel == null) {
+            if(colorsVec4AccessorModel == null) {
                 int count = colorsAccessorModel.getCount();
                 colorsVec4AccessorModel = AccessorModelCreation.createAccessorModel(colorsAccessorModel.getComponentType(), count, ElementType.VEC4, "");
                 colorsAccessorModelVec3ToVec4.put(colorsAccessorModel, colorsVec4AccessorModel);
                 AccessorData accessorData = AccessorDatas.create(colorsVec4AccessorModel);
-                if (accessorData instanceof AccessorByteData) {
+                if(accessorData instanceof AccessorByteData) {
                     AccessorByteData colorsVec4AccessorData = (AccessorByteData) accessorData;
                     AccessorByteData colorsAccessorData = AccessorDatas.createByte(colorsAccessorModel);
-                    if (colorsAccessorData.isUnsigned()) {
-                        for (int i = 0; i < count; i++) {
+                    if(colorsAccessorData.isUnsigned()) {
+                        for(int i = 0; i < count; i++) {
                             colorsVec4AccessorData.set(i, 0, colorsAccessorData.get(i, 0));
                             colorsVec4AccessorData.set(i, 1, colorsAccessorData.get(i, 1));
                             colorsVec4AccessorData.set(i, 2, colorsAccessorData.get(i, 2));
                             colorsVec4AccessorData.set(i, 3, (byte) -1);
                         }
-                    } else {
-                        for (int i = 0; i < count; i++) {
+                    }
+                    else {
+                        for(int i = 0; i < count; i++) {
                             colorsVec4AccessorData.set(i, 0, colorsAccessorData.get(i, 0));
                             colorsVec4AccessorData.set(i, 1, colorsAccessorData.get(i, 1));
                             colorsVec4AccessorData.set(i, 2, colorsAccessorData.get(i, 2));
                             colorsVec4AccessorData.set(i, 3, Byte.MAX_VALUE);
                         }
                     }
-                } else if (accessorData instanceof AccessorShortData) {
+                }
+                else if(accessorData instanceof AccessorShortData) {
                     AccessorShortData colorsVec4AccessorData = (AccessorShortData) accessorData;
                     AccessorShortData colorsAccessorData = AccessorDatas.createShort(colorsAccessorModel);
-                    if (colorsAccessorData.isUnsigned()) {
-                        for (int i = 0; i < count; i++) {
+                    if(colorsAccessorData.isUnsigned()) {
+                        for(int i = 0; i < count; i++) {
                             colorsVec4AccessorData.set(i, 0, colorsAccessorData.get(i, 0));
                             colorsVec4AccessorData.set(i, 1, colorsAccessorData.get(i, 1));
                             colorsVec4AccessorData.set(i, 2, colorsAccessorData.get(i, 2));
                             colorsVec4AccessorData.set(i, 3, (short) -1);
                         }
-                    } else {
-                        for (int i = 0; i < count; i++) {
+                    }
+                    else {
+                        for(int i = 0; i < count; i++) {
                             colorsVec4AccessorData.set(i, 0, colorsAccessorData.get(i, 0));
                             colorsVec4AccessorData.set(i, 1, colorsAccessorData.get(i, 1));
                             colorsVec4AccessorData.set(i, 2, colorsAccessorData.get(i, 2));
                             colorsVec4AccessorData.set(i, 3, Short.MAX_VALUE);
                         }
                     }
-                } else if (accessorData instanceof AccessorFloatData) {
+                }
+                else if(accessorData instanceof AccessorFloatData) {
                     AccessorFloatData colorsVec4AccessorData = (AccessorFloatData) accessorData;
                     AccessorFloatData colorsAccessorData = AccessorDatas.createFloat(colorsAccessorModel);
-                    for (int i = 0; i < count; i++) {
+                    for(int i = 0; i < count; i++) {
                         colorsVec4AccessorData.set(i, 0, colorsAccessorData.get(i, 0));
                         colorsVec4AccessorData.set(i, 1, colorsAccessorData.get(i, 1));
                         colorsVec4AccessorData.set(i, 2, colorsAccessorData.get(i, 2));
@@ -3325,21 +3677,22 @@ public class RenderedGltfModel {
 
     public AccessorModel obtainUnsignedJointsModel(AccessorModel accessorModel) {
         AccessorModel unsignedAccessorModel = jointsAccessorModelUnsignedLookup.get(accessorModel);
-        if (unsignedAccessorModel == null) {
+        if(unsignedAccessorModel == null) {
             int count = accessorModel.getCount();
             unsignedAccessorModel = AccessorModelCreation.createAccessorModel(GL11.GL_INT, count, ElementType.VEC4, "");
             AccessorIntData unsignedAccessorData = AccessorDatas.createInt(unsignedAccessorModel);
-            if (accessorModel.getComponentDataType() == short.class) {
+            if(accessorModel.getComponentDataType() == short.class) {
                 AccessorShortData accessorData = AccessorDatas.createShort(accessorModel);
-                for (int i = 0; i < count; i++) {
+                for(int i = 0; i < count; i++) {
                     unsignedAccessorData.set(i, 0, Short.toUnsignedInt(accessorData.get(i, 0)));
                     unsignedAccessorData.set(i, 1, Short.toUnsignedInt(accessorData.get(i, 1)));
                     unsignedAccessorData.set(i, 2, Short.toUnsignedInt(accessorData.get(i, 2)));
                     unsignedAccessorData.set(i, 3, Short.toUnsignedInt(accessorData.get(i, 3)));
                 }
-            } else {
+            }
+            else {
                 AccessorByteData accessorData = AccessorDatas.createByte(accessorModel);
-                for (int i = 0; i < count; i++) {
+                for(int i = 0; i < count; i++) {
                     unsignedAccessorData.set(i, 0, Byte.toUnsignedInt(accessorData.get(i, 0)));
                     unsignedAccessorData.set(i, 1, Byte.toUnsignedInt(accessorData.get(i, 1)));
                     unsignedAccessorData.set(i, 2, Byte.toUnsignedInt(accessorData.get(i, 2)));
@@ -3353,20 +3706,21 @@ public class RenderedGltfModel {
 
     public AccessorModel obtainDequantizedWeightsModel(AccessorModel accessorModel) {
         AccessorModel dequantizedAccessorModel = weightsAccessorModelDequantizedLookup.get(accessorModel);
-        if (dequantizedAccessorModel == null) {
-            if (accessorModel.getComponentDataType() != float.class) {
+        if(dequantizedAccessorModel == null) {
+            if(accessorModel.getComponentDataType() != float.class) {
                 AccessorData accessorData = AccessorDatas.create(accessorModel);
                 int count = accessorModel.getCount();
                 dequantizedAccessorModel = AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC4, "");
                 AccessorFloatData dequantizedAccessorData = AccessorDatas.createFloat(dequantizedAccessorModel);
-                for (int i = 0; i < count; i++) {
+                for(int i = 0; i < count; i++) {
                     dequantizedAccessorData.set(i, 0, accessorData.getFloat(i, 0));
                     dequantizedAccessorData.set(i, 1, accessorData.getFloat(i, 1));
                     dequantizedAccessorData.set(i, 2, accessorData.getFloat(i, 2));
                     dequantizedAccessorData.set(i, 3, accessorData.getFloat(i, 3));
                 }
                 weightsAccessorModelDequantizedLookup.put(accessorModel, dequantizedAccessorModel);
-            } else {
+            }
+            else {
                 return accessorModel;
             }
         }
@@ -3378,20 +3732,20 @@ public class RenderedGltfModel {
         AccessorFloatData baseAccessorData = AccessorDatas.createFloat(baseAccessorModel);
         AccessorFloatData morphedAccessorData = AccessorDatas.createFloat(morphedAccessorModel);
 
-        float[] weights = new float[targetAccessorDatas.size()];
+        float weights[] = new float[targetAccessorDatas.size()];
         int numComponents = 3;
         int numElements = morphedAccessorData.getNumElements();
 
         List<Runnable> morphingCommands = new ArrayList<Runnable>(numElements * numComponents);
-        for (int element = 0; element < numElements; element++) {
-            for (int component = 0; component < numComponents; component++) {
+        for(int element = 0; element < numElements; element++) {
+            for(int component = 0; component < numComponents; component++) {
                 int e = element;
                 int c = component;
                 morphingCommands.add(() -> {
                     float r = baseAccessorData.get(e, c);
-                    for (int i = 0; i < weights.length; i++) {
+                    for(int i = 0; i < weights.length; i++) {
                         AccessorFloatData target = targetAccessorDatas.get(i);
-                        if (target != null) {
+                        if(target != null) {
                             r += weights[i] * target.get(e, c);
                         }
                     }
@@ -3401,9 +3755,8 @@ public class RenderedGltfModel {
         }
 
         command.add(() -> {
-            if (nodeModel.getWeights() != null) System.arraycopy(nodeModel.getWeights(), 0, weights, 0, weights.length);
-            else if (meshModel.getWeights() != null)
-                System.arraycopy(meshModel.getWeights(), 0, weights, 0, weights.length);
+            if(nodeModel.getWeights() != null) System.arraycopy(nodeModel.getWeights(), 0, weights, 0, weights.length);
+            else if(meshModel.getWeights() != null) System.arraycopy(meshModel.getWeights(), 0, weights, 0, weights.length);
 
             morphingCommands.parallelStream().forEach(Runnable::run);
         });
@@ -3413,10 +3766,10 @@ public class RenderedGltfModel {
     public Pair<Map<String, AccessorModel>, List<Map<String, AccessorModel>>> obtainUnindexed(MeshPrimitiveModel meshPrimitiveModel) {
         Pair<Map<String, AccessorModel>, List<Map<String, AccessorModel>>> unindexed;
         AccessorModel indicesAccessorModel = meshPrimitiveModel.getIndices();
-        if (indicesAccessorModel != null) {
+        if(indicesAccessorModel != null) {
             unindexed = meshPrimitiveModelToUnindexed.get(meshPrimitiveModel);
-            if (unindexed == null) {
-                int[] indices = AccessorDataUtils.readInts(AccessorDatas.create(indicesAccessorModel));
+            if(unindexed == null) {
+                int indices[] = AccessorDataUtils.readInts(AccessorDatas.create(indicesAccessorModel));
                 Map<String, AccessorModel> attributes = meshPrimitiveModel.getAttributes();
                 Map<String, AccessorModel> attributesUnindexed = new LinkedHashMap<String, AccessorModel>(attributes.size());
                 attributes.forEach((name, attribute) -> {
@@ -3425,39 +3778,42 @@ public class RenderedGltfModel {
                     AccessorModel accessorModel = AccessorModelCreation.createAccessorModel(attribute.getComponentType(), indices.length, elementType, "");
                     attributesUnindexed.put(name, accessorModel);
                     AccessorData accessorData = AccessorDatas.create(accessorModel);
-                    if (accessorData instanceof AccessorByteData) {
+                    if(accessorData instanceof AccessorByteData) {
                         AccessorByteData accessorDataUnindexed = (AccessorByteData) accessorData;
                         AccessorByteData accessorDataIndexed = AccessorDatas.createByte(attribute);
-                        for (int i = 0; i < indices.length; i++) {
+                        for(int i = 0; i < indices.length; i++) {
                             int index = indices[i];
-                            for (int j = 0; j < size; j++) {
+                            for(int j = 0; j < size; j++) {
                                 accessorDataUnindexed.set(i, j, accessorDataIndexed.get(index, j));
                             }
                         }
-                    } else if (accessorData instanceof AccessorShortData) {
+                    }
+                    else if(accessorData instanceof AccessorShortData) {
                         AccessorShortData accessorDataUnindexed = (AccessorShortData) accessorData;
                         AccessorShortData accessorDataIndexed = AccessorDatas.createShort(attribute);
-                        for (int i = 0; i < indices.length; i++) {
+                        for(int i = 0; i < indices.length; i++) {
                             int index = indices[i];
-                            for (int j = 0; j < size; j++) {
+                            for(int j = 0; j < size; j++) {
                                 accessorDataUnindexed.set(i, j, accessorDataIndexed.get(index, j));
                             }
                         }
-                    } else if (accessorData instanceof AccessorIntData) {
+                    }
+                    else if(accessorData instanceof AccessorIntData) {
                         AccessorIntData accessorDataUnindexed = (AccessorIntData) accessorData;
                         AccessorIntData accessorDataIndexed = AccessorDatas.createInt(attribute);
-                        for (int i = 0; i < indices.length; i++) {
+                        for(int i = 0; i < indices.length; i++) {
                             int index = indices[i];
-                            for (int j = 0; j < size; j++) {
+                            for(int j = 0; j < size; j++) {
                                 accessorDataUnindexed.set(i, j, accessorDataIndexed.get(index, j));
                             }
                         }
-                    } else if (accessorData instanceof AccessorFloatData) {
+                    }
+                    else if(accessorData instanceof AccessorFloatData) {
                         AccessorFloatData accessorDataUnindexed = (AccessorFloatData) accessorData;
                         AccessorFloatData accessorDataIndexed = AccessorDatas.createFloat(attribute);
-                        for (int i = 0; i < indices.length; i++) {
+                        for(int i = 0; i < indices.length; i++) {
                             int index = indices[i];
-                            for (int j = 0; j < size; j++) {
+                            for(int j = 0; j < size; j++) {
                                 accessorDataUnindexed.set(i, j, accessorDataIndexed.get(index, j));
                             }
                         }
@@ -3475,39 +3831,42 @@ public class RenderedGltfModel {
                         AccessorModel accessorModel = AccessorModelCreation.createAccessorModel(attribute.getComponentType(), indices.length, elementType, "");
                         targetUnindexed.put(name, accessorModel);
                         AccessorData accessorData = AccessorDatas.create(accessorModel);
-                        if (accessorData instanceof AccessorByteData) {
+                        if(accessorData instanceof AccessorByteData) {
                             AccessorByteData accessorDataUnindexed = (AccessorByteData) accessorData;
                             AccessorByteData accessorDataIndexed = AccessorDatas.createByte(attribute);
-                            for (int i = 0; i < indices.length; i++) {
+                            for(int i = 0; i < indices.length; i++) {
                                 int index = indices[i];
-                                for (int j = 0; j < size; j++) {
+                                for(int j = 0; j < size; j++) {
                                     accessorDataUnindexed.set(i, j, accessorDataIndexed.get(index, j));
                                 }
                             }
-                        } else if (accessorData instanceof AccessorShortData) {
+                        }
+                        else if(accessorData instanceof AccessorShortData) {
                             AccessorShortData accessorDataUnindexed = (AccessorShortData) accessorData;
                             AccessorShortData accessorDataIndexed = AccessorDatas.createShort(attribute);
-                            for (int i = 0; i < indices.length; i++) {
+                            for(int i = 0; i < indices.length; i++) {
                                 int index = indices[i];
-                                for (int j = 0; j < size; j++) {
+                                for(int j = 0; j < size; j++) {
                                     accessorDataUnindexed.set(i, j, accessorDataIndexed.get(index, j));
                                 }
                             }
-                        } else if (accessorData instanceof AccessorIntData) {
+                        }
+                        else if(accessorData instanceof AccessorIntData) {
                             AccessorIntData accessorDataUnindexed = (AccessorIntData) accessorData;
                             AccessorIntData accessorDataIndexed = AccessorDatas.createInt(attribute);
-                            for (int i = 0; i < indices.length; i++) {
+                            for(int i = 0; i < indices.length; i++) {
                                 int index = indices[i];
-                                for (int j = 0; j < size; j++) {
+                                for(int j = 0; j < size; j++) {
                                     accessorDataUnindexed.set(i, j, accessorDataIndexed.get(index, j));
                                 }
                             }
-                        } else if (accessorData instanceof AccessorFloatData) {
+                        }
+                        else if(accessorData instanceof AccessorFloatData) {
                             AccessorFloatData accessorDataUnindexed = (AccessorFloatData) accessorData;
                             AccessorFloatData accessorDataIndexed = AccessorDatas.createFloat(attribute);
-                            for (int i = 0; i < indices.length; i++) {
+                            for(int i = 0; i < indices.length; i++) {
                                 int index = indices[i];
-                                for (int j = 0; j < size; j++) {
+                                for(int j = 0; j < size; j++) {
                                     accessorDataUnindexed.set(i, j, accessorDataIndexed.get(index, j));
                                 }
                             }
@@ -3517,28 +3876,27 @@ public class RenderedGltfModel {
                 unindexed = Pair.of(attributesUnindexed, targetsUnindexed);
                 meshPrimitiveModelToUnindexed.put(meshPrimitiveModel, unindexed);
             }
-        } else unindexed = Pair.of(meshPrimitiveModel.getAttributes(), meshPrimitiveModel.getTargets());
+        }
+        else unindexed = Pair.of(meshPrimitiveModel.getAttributes(), meshPrimitiveModel.getTargets());
         return unindexed;
     }
 
     public List<Runnable> createSoftwareSkinningCommands(int pointCount, float[][] jointMatrices, Map<String, AccessorModel> attributes, AccessorFloatData inputPositionsAccessorData, AccessorFloatData inputNormalsAccessorData, AccessorFloatData inputTangentsAccessorData, AccessorFloatData outputPositionsAccessorData, AccessorFloatData outputNormalsAccessorData, AccessorFloatData outputTangentsAccessorData) {
         int skinningAttributeCount = 0;
-        for (String name : attributes.keySet()) {
-            if (name.startsWith("JOINTS_")) {
+        for(String name : attributes.keySet()) {
+            if(name.startsWith("JOINTS_")) {
                 skinningAttributeCount += 1;
             }
         }
         AccessorIntData[] jointsAccessorDatas = new AccessorIntData[skinningAttributeCount];
         AccessorFloatData[] weightsAccessorDatas = new AccessorFloatData[skinningAttributeCount];
         attributes.forEach((name, attribute) -> {
-            if (name.startsWith("JOINTS_"))
-                jointsAccessorDatas[Integer.parseInt(name.substring("JOINTS_".length()))] = AccessorDatas.createInt(obtainUnsignedJointsModel(attribute));
-            else if (name.startsWith("WEIGHTS_"))
-                weightsAccessorDatas[Integer.parseInt(name.substring("WEIGHTS_".length()))] = AccessorDatas.createFloat(obtainDequantizedWeightsModel(attribute));
+            if(name.startsWith("JOINTS_")) jointsAccessorDatas[Integer.parseInt(name.substring("JOINTS_".length()))] = AccessorDatas.createInt(obtainUnsignedJointsModel(attribute));
+            else if(name.startsWith("WEIGHTS_")) weightsAccessorDatas[Integer.parseInt(name.substring("WEIGHTS_".length()))] = AccessorDatas.createFloat(obtainDequantizedWeightsModel(attribute));
         });
 
         List<Runnable> commands = new ArrayList<Runnable>(pointCount);
-        for (int point = 0; point < pointCount; point++) {
+        for(int point = 0; point < pointCount; point++) {
             int p = point;
             commands.add(() -> {
                 float sm00 = 0;
@@ -3554,7 +3912,7 @@ public class RenderedGltfModel {
                 float sm22 = 0;
                 float sm23 = 0;
 
-                for (int i = 0; i < jointsAccessorDatas.length; i++) {
+                for(int i = 0; i < jointsAccessorDatas.length; i++) {
                     AccessorIntData jointsAccessorData = jointsAccessorDatas[i];
                     float[] jmx = jointMatrices[jointsAccessorData.get(p, 0)];
                     float[] jmy = jointMatrices[jointsAccessorData.get(p, 1)];
@@ -3567,16 +3925,16 @@ public class RenderedGltfModel {
                     float wz = weightsAccessorData.get(p, 2);
                     float ww = weightsAccessorData.get(p, 3);
 
-                    sm00 += wx * jmx[0] + wy * jmy[0] + wz * jmz[0] + ww * jmw[0];
-                    sm01 += wx * jmx[4] + wy * jmy[4] + wz * jmz[4] + ww * jmw[4];
-                    sm02 += wx * jmx[8] + wy * jmy[8] + wz * jmz[8] + ww * jmw[8];
+                    sm00 += wx * jmx[ 0] + wy * jmy[ 0] + wz * jmz[ 0] + ww * jmw[ 0];
+                    sm01 += wx * jmx[ 4] + wy * jmy[ 4] + wz * jmz[ 4] + ww * jmw[ 4];
+                    sm02 += wx * jmx[ 8] + wy * jmy[ 8] + wz * jmz[ 8] + ww * jmw[ 8];
                     sm03 += wx * jmx[12] + wy * jmy[12] + wz * jmz[12] + ww * jmw[12];
-                    sm10 += wx * jmx[1] + wy * jmy[1] + wz * jmz[1] + ww * jmw[1];
-                    sm11 += wx * jmx[5] + wy * jmy[5] + wz * jmz[5] + ww * jmw[5];
-                    sm12 += wx * jmx[9] + wy * jmy[9] + wz * jmz[9] + ww * jmw[9];
+                    sm10 += wx * jmx[ 1] + wy * jmy[ 1] + wz * jmz[ 1] + ww * jmw[ 1];
+                    sm11 += wx * jmx[ 5] + wy * jmy[ 5] + wz * jmz[ 5] + ww * jmw[ 5];
+                    sm12 += wx * jmx[ 9] + wy * jmy[ 9] + wz * jmz[ 9] + ww * jmw[ 9];
                     sm13 += wx * jmx[13] + wy * jmy[13] + wz * jmz[13] + ww * jmw[13];
-                    sm20 += wx * jmx[2] + wy * jmy[2] + wz * jmz[2] + ww * jmw[2];
-                    sm21 += wx * jmx[6] + wy * jmy[6] + wz * jmz[6] + ww * jmw[6];
+                    sm20 += wx * jmx[ 2] + wy * jmy[ 2] + wz * jmz[ 2] + ww * jmw[ 2];
+                    sm21 += wx * jmx[ 6] + wy * jmy[ 6] + wz * jmz[ 6] + ww * jmw[ 6];
                     sm22 += wx * jmx[10] + wy * jmy[10] + wz * jmz[10] + ww * jmw[10];
                     sm23 += wx * jmx[14] + wy * jmy[14] + wz * jmz[14] + ww * jmw[14];
                 }
@@ -3611,12 +3969,13 @@ public class RenderedGltfModel {
 
     public boolean createMorphTarget(List<Map<String, AccessorModel>> morphTargets, List<AccessorFloatData> targetAccessorDatas, String attributeName) {
         boolean isMorphableAttribute = false;
-        for (Map<String, AccessorModel> morphTarget : morphTargets) {
+        for(Map<String, AccessorModel> morphTarget : morphTargets) {
             AccessorModel accessorModel = morphTarget.get(attributeName);
-            if (accessorModel != null) {
+            if(accessorModel != null) {
                 isMorphableAttribute = true;
                 targetAccessorDatas.add(AccessorDatas.createFloat(accessorModel));
-            } else targetAccessorDatas.add(null);
+            }
+            else targetAccessorDatas.add(null);
         }
         return isMorphableAttribute;
     }
@@ -3627,9 +3986,9 @@ public class RenderedGltfModel {
         int numTriangles = count / 3;
         AccessorFloatData positionsAccessorData = AccessorDatas.createFloat(positionsAccessorModel);
         AccessorFloatData normalsAccessorData = AccessorDatas.createFloat(normalsAccessorModel);
-        for (Map<String, AccessorModel> morphTarget : morphTargets) {
+        for(Map<String, AccessorModel> morphTarget : morphTargets) {
             AccessorModel accessorModel = morphTarget.get("POSITION");
-            if (accessorModel != null) {
+            if(accessorModel != null) {
                 isMorphableAttribute = true;
                 AccessorFloatData deltaPositionsAccessorData = AccessorDatas.createFloat(accessorModel);
                 positionTargetAccessorDatas.add(deltaPositionsAccessorData);
@@ -3643,7 +4002,7 @@ public class RenderedGltfModel {
                 float[] cross = new float[3];
                 float[] normal0 = new float[3];
                 float[] normal1 = new float[3];
-                for (int i = 0; i < numTriangles; i++) {
+                for(int i = 0; i < numTriangles; i++) {
                     int index0 = i * 3;
                     int index1 = index0 + 1;
                     int index2 = index0 + 2;
@@ -3683,7 +4042,8 @@ public class RenderedGltfModel {
                     normalTargetAccessorData.set(index2, 1, normal1[1]);
                     normalTargetAccessorData.set(index2, 2, normal1[2]);
                 }
-            } else {
+            }
+            else {
                 positionTargetAccessorDatas.add(null);
                 normalTargetAccessorDatas.add(null);
             }
@@ -3698,9 +4058,9 @@ public class RenderedGltfModel {
         AccessorFloatData positionsAccessorData = AccessorDatas.createFloat(positionsAccessorModel);
         AccessorFloatData normalsAccessorData = AccessorDatas.createFloat(normalsAccessorModel);
         AccessorFloatData tangentsAccessorData = AccessorDatas.createFloat(tangentsAccessorModel);
-        for (Map<String, AccessorModel> morphTarget : morphTargets) {
+        for(Map<String, AccessorModel> morphTarget : morphTargets) {
             AccessorModel accessorModel = morphTarget.get("POSITION");
-            if (accessorModel != null) {
+            if(accessorModel != null) {
                 isMorphableAttribute = true;
                 AccessorFloatData deltaPositionsAccessorData = AccessorDatas.createFloat(accessorModel);
                 positionTargetAccessorDatas.add(deltaPositionsAccessorData);
@@ -3719,7 +4079,7 @@ public class RenderedGltfModel {
                 float[] normal2 = new float[3];
                 float[] tangent0 = new float[3];
                 float[] tangent1 = new float[3];
-                for (int i = 0; i < numTriangles; i++) {
+                for(int i = 0; i < numTriangles; i++) {
                     int index0 = i * 3;
                     int index1 = index0 + 1;
                     int index2 = index0 + 2;
@@ -3783,7 +4143,8 @@ public class RenderedGltfModel {
                     tangentTargetAccessorData.set(index2, 1, tangent1[1]);
                     tangentTargetAccessorData.set(index2, 2, tangent1[2]);
                 }
-            } else {
+            }
+            else {
                 positionTargetAccessorDatas.add(null);
                 normalTargetAccessorDatas.add(null);
                 tangentTargetAccessorDatas.add(null);
@@ -3797,9 +4158,9 @@ public class RenderedGltfModel {
         int count = normalsAccessorModel.getCount();
         AccessorFloatData normalsAccessorData = AccessorDatas.createFloat(normalsAccessorModel);
         AccessorFloatData tangentsAccessorData = AccessorDatas.createFloat(tangentsAccessorModel);
-        for (Map<String, AccessorModel> morphTarget : morphTargets) {
+        for(Map<String, AccessorModel> morphTarget : morphTargets) {
             AccessorModel accessorModel = morphTarget.get("NORMAL");
-            if (accessorModel != null) {
+            if(accessorModel != null) {
                 isMorphableAttribute = true;
                 AccessorFloatData deltaNormalsAccessorData = AccessorDatas.createFloat(accessorModel);
                 normalTargetAccessorDatas.add(deltaNormalsAccessorData);
@@ -3810,7 +4171,7 @@ public class RenderedGltfModel {
                 float[] cross = new float[3];
                 float[] tangent = new float[3];
 
-                for (int i = 0; i < count; i++) {
+                for(int i = 0; i < count; i++) {
                     normal0[0] = normalsAccessorData.get(i, 0) + deltaNormalsAccessorData.get(i, 0);
                     normal0[1] = normalsAccessorData.get(i, 1) + deltaNormalsAccessorData.get(i, 1);
                     normal0[2] = normalsAccessorData.get(i, 2) + deltaNormalsAccessorData.get(i, 2);
@@ -3826,7 +4187,8 @@ public class RenderedGltfModel {
                     tangentTargetAccessorData.set(i, 1, tangent[1] - tangentsAccessorData.get(i, 1));
                     tangentTargetAccessorData.set(i, 2, tangent[2] - tangentsAccessorData.get(i, 2));
                 }
-            } else {
+            }
+            else {
                 normalTargetAccessorDatas.add(null);
                 tangentTargetAccessorDatas.add(null);
             }
@@ -3842,18 +4204,18 @@ public class RenderedGltfModel {
         AccessorFloatData normalsAccessorData = AccessorDatas.createFloat(normalsAccessorModel);
         AccessorFloatData tangentsAccessorData = AccessorDatas.createFloat(tangentsAccessorModel);
         AccessorData texcoordsAccessorData = AccessorDatas.create(texcoordsAccessorModel);
-        for (Map<String, AccessorModel> morphTarget : morphTargets) {
+        for(Map<String, AccessorModel> morphTarget : morphTargets) {
             AccessorModel accessorModel = morphTarget.get("POSITION");
-            if (accessorModel != null) {
+            if(accessorModel != null) {
                 isMorphableAttribute = true;
                 AccessorFloatData targetAccessorData = AccessorDatas.createFloat(AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC3, ""));
                 targetAccessorDatas.add(targetAccessorData);
                 AccessorFloatData deltaPositionsAccessorData = AccessorDatas.createFloat(accessorModel);
                 accessorModel = morphTarget.get("NORMAL");
-                if (accessorModel != null) {
+                if(accessorModel != null) {
                     AccessorFloatData deltaNormalsAccessorData = AccessorDatas.createFloat(accessorModel);
                     accessorModel = morphTarget.get(texcoordsAccessorName);
-                    if (accessorModel != null) {
+                    if(accessorModel != null) {
                         AccessorData deltaTexcoordsAccessorData = AccessorDatas.create(accessorModel);
                         MikktspaceTangentGenerator.genTangSpaceDefault(new MikkTSpaceContext() {
 
@@ -3904,7 +4266,8 @@ public class RenderedGltfModel {
                             }
 
                         });
-                    } else {
+                    }
+                    else {
                         MikktspaceTangentGenerator.genTangSpaceDefault(new MikkTSpaceContext() {
 
                             @Override
@@ -3955,9 +4318,10 @@ public class RenderedGltfModel {
 
                         });
                     }
-                } else {
+                }
+                else {
                     accessorModel = morphTarget.get(texcoordsAccessorName);
-                    if (accessorModel != null) {
+                    if(accessorModel != null) {
                         AccessorData deltaTexcoordsAccessorData = AccessorDatas.create(accessorModel);
                         MikktspaceTangentGenerator.genTangSpaceDefault(new MikkTSpaceContext() {
 
@@ -4008,7 +4372,8 @@ public class RenderedGltfModel {
                             }
 
                         });
-                    } else {
+                    }
+                    else {
                         MikktspaceTangentGenerator.genTangSpaceDefault(new MikkTSpaceContext() {
 
                             @Override
@@ -4063,13 +4428,13 @@ public class RenderedGltfModel {
                 continue;
             }
             accessorModel = morphTarget.get("NORMAL");
-            if (accessorModel != null) {
+            if(accessorModel != null) {
                 isMorphableAttribute = true;
                 AccessorFloatData targetAccessorData = AccessorDatas.createFloat(AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC3, ""));
                 targetAccessorDatas.add(targetAccessorData);
                 AccessorFloatData deltaNormalsAccessorData = AccessorDatas.createFloat(accessorModel);
                 accessorModel = morphTarget.get(texcoordsAccessorName);
-                if (accessorModel != null) {
+                if(accessorModel != null) {
                     AccessorData deltaTexcoordsAccessorData = AccessorDatas.create(accessorModel);
                     MikktspaceTangentGenerator.genTangSpaceDefault(new MikkTSpaceContext() {
 
@@ -4120,7 +4485,8 @@ public class RenderedGltfModel {
                         }
 
                     });
-                } else {
+                }
+                else {
                     MikktspaceTangentGenerator.genTangSpaceDefault(new MikkTSpaceContext() {
 
                         @Override
@@ -4174,7 +4540,7 @@ public class RenderedGltfModel {
                 continue;
             }
             accessorModel = morphTarget.get(texcoordsAccessorName);
-            if (accessorModel != null) {
+            if(accessorModel != null) {
                 isMorphableAttribute = true;
                 AccessorFloatData targetAccessorData = AccessorDatas.createFloat(AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC3, ""));
                 targetAccessorDatas.add(targetAccessorData);
@@ -4244,16 +4610,16 @@ public class RenderedGltfModel {
         AccessorFloatData tangentsAccessorData = AccessorDatas.createFloat(tangentsAccessorModel);
         AccessorData texcoordsAccessorData = AccessorDatas.create(texcoordsAccessorModel);
         Iterator<AccessorFloatData> iterator = normalTargetAccessorDatas.iterator();
-        for (Map<String, AccessorModel> morphTarget : morphTargets) {
+        for(Map<String, AccessorModel> morphTarget : morphTargets) {
             AccessorFloatData deltaNormalsAccessorData = iterator.next();
             AccessorModel accessorModel = morphTarget.get("POSITION");
-            if (accessorModel != null) {
+            if(accessorModel != null) {
                 isMorphableAttribute = true;
                 AccessorFloatData targetAccessorData = AccessorDatas.createFloat(AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC3, ""));
                 targetAccessorDatas.add(targetAccessorData);
                 AccessorFloatData deltaPositionsAccessorData = AccessorDatas.createFloat(accessorModel);
                 accessorModel = morphTarget.get(texcoordsAccessorName);
-                if (accessorModel != null) {
+                if(accessorModel != null) {
                     AccessorData deltaTexcoordsAccessorData = AccessorDatas.create(accessorModel);
                     MikktspaceTangentGenerator.genTangSpaceDefault(new MikkTSpaceContext() {
 
@@ -4304,7 +4670,8 @@ public class RenderedGltfModel {
                         }
 
                     });
-                } else {
+                }
+                else {
                     MikktspaceTangentGenerator.genTangSpaceDefault(new MikkTSpaceContext() {
 
                         @Override
@@ -4358,7 +4725,7 @@ public class RenderedGltfModel {
                 continue;
             }
             accessorModel = morphTarget.get(texcoordsAccessorName);
-            if (accessorModel != null) {
+            if(accessorModel != null) {
                 isMorphableAttribute = true;
                 AccessorFloatData targetAccessorData = AccessorDatas.createFloat(AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC3, ""));
                 targetAccessorDatas.add(targetAccessorData);
@@ -4421,66 +4788,71 @@ public class RenderedGltfModel {
 
     public boolean createColorMorphTarget(List<Map<String, AccessorModel>> morphTargets, List<AccessorFloatData> targetAccessorDatas, String attributeName) {
         boolean isMorphableAttribute = false;
-        for (Map<String, AccessorModel> morphTarget : morphTargets) {
+        for(Map<String, AccessorModel> morphTarget : morphTargets) {
             AccessorModel accessorModel = morphTarget.get(attributeName);
-            if (accessorModel != null) {
+            if(accessorModel != null) {
                 isMorphableAttribute = true;
                 AccessorFloatData morphAccessorData = colorsMorphTargetAccessorModelToAccessorData.get(accessorModel);
-                if (morphAccessorData == null) {
-                    if (accessorModel.getElementType() == ElementType.VEC3) {
+                if(morphAccessorData == null) {
+                    if(accessorModel.getElementType() == ElementType.VEC3) {
                         int count = accessorModel.getCount();
                         morphAccessorData = AccessorDatas.createFloat(AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC4, ""));
                         AccessorData accessorData = AccessorDatas.create(accessorModel);
-                        for (int i = 0; i < count; i++) {
+                        for(int i = 0; i < count; i++) {
                             morphAccessorData.set(i, 0, accessorData.getFloat(i, 0));
                             morphAccessorData.set(i, 1, accessorData.getFloat(i, 1));
                             morphAccessorData.set(i, 2, accessorData.getFloat(i, 2));
                             morphAccessorData.set(i, 3, 0.0F);
                         }
-                    } else if (accessorModel.getComponentDataType() != float.class) {
+                    }
+                    else if(accessorModel.getComponentDataType() != float.class) {
                         int count = accessorModel.getCount();
                         morphAccessorData = AccessorDatas.createFloat(AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC4, ""));
                         AccessorData accessorData = AccessorDatas.create(accessorModel);
-                        for (int i = 0; i < count; i++) {
+                        for(int i = 0; i < count; i++) {
                             morphAccessorData.set(i, 0, accessorData.getFloat(i, 0));
                             morphAccessorData.set(i, 1, accessorData.getFloat(i, 1));
                             morphAccessorData.set(i, 2, accessorData.getFloat(i, 2));
                             morphAccessorData.set(i, 3, accessorData.getFloat(i, 3));
                         }
-                    } else {
+                    }
+                    else {
                         morphAccessorData = AccessorDatas.createFloat(accessorModel);
                     }
                     colorsMorphTargetAccessorModelToAccessorData.put(accessorModel, morphAccessorData);
                 }
                 targetAccessorDatas.add(morphAccessorData);
-            } else targetAccessorDatas.add(null);
+            }
+            else targetAccessorDatas.add(null);
         }
         return isMorphableAttribute;
     }
 
     public boolean createTexcoordMorphTarget(List<Map<String, AccessorModel>> morphTargets, List<AccessorFloatData> targetAccessorDatas, String attributeName) {
         boolean isMorphableAttribute = false;
-        for (Map<String, AccessorModel> morphTarget : morphTargets) {
+        for(Map<String, AccessorModel> morphTarget : morphTargets) {
             AccessorModel accessorModel = morphTarget.get(attributeName);
-            if (accessorModel != null) {
+            if(accessorModel != null) {
                 isMorphableAttribute = true;
                 AccessorFloatData morphAccessorData = texcoordsMorphTargetAccessorModelToAccessorData.get(accessorModel);
-                if (morphAccessorData == null) {
-                    if (accessorModel.getComponentDataType() != float.class) {
+                if(morphAccessorData == null) {
+                    if(accessorModel.getComponentDataType() != float.class) {
                         int count = accessorModel.getCount();
                         morphAccessorData = AccessorDatas.createFloat(AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC2, ""));
                         AccessorData accessorData = AccessorDatas.create(accessorModel);
-                        for (int i = 0; i < count; i++) {
+                        for(int i = 0; i < count; i++) {
                             morphAccessorData.set(i, 0, accessorData.getFloat(i, 0));
                             morphAccessorData.set(i, 1, accessorData.getFloat(i, 1));
                         }
-                    } else {
+                    }
+                    else {
                         morphAccessorData = AccessorDatas.createFloat(accessorModel);
                     }
                     texcoordsMorphTargetAccessorModelToAccessorData.put(accessorModel, morphAccessorData);
                 }
                 targetAccessorDatas.add(morphAccessorData);
-            } else targetAccessorDatas.add(null);
+            }
+            else targetAccessorDatas.add(null);
         }
         return isMorphableAttribute;
     }
@@ -4496,20 +4868,20 @@ public class RenderedGltfModel {
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBufferView);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, morphedBufferViewData, GL15.GL_STATIC_DRAW);
 
-        float[] weights = new float[targetAccessorDatas.size()];
+        float weights[] = new float[targetAccessorDatas.size()];
         int numComponents = 3;
         int numElements = morphedAccessorData.getNumElements();
 
         List<Runnable> morphingCommands = new ArrayList<Runnable>(numElements * numComponents);
-        for (int element = 0; element < numElements; element++) {
-            for (int component = 0; component < numComponents; component++) {
+        for(int element = 0; element < numElements; element++) {
+            for(int component = 0; component < numComponents; component++) {
                 int e = element;
                 int c = component;
                 morphingCommands.add(() -> {
                     float r = baseAccessorData.get(e, c);
-                    for (int i = 0; i < weights.length; i++) {
+                    for(int i = 0; i < weights.length; i++) {
                         AccessorFloatData target = targetAccessorDatas.get(i);
-                        if (target != null) {
+                        if(target != null) {
                             r += weights[i] * target.get(e, c);
                         }
                     }
@@ -4519,9 +4891,8 @@ public class RenderedGltfModel {
         }
 
         command.add(() -> {
-            if (nodeModel.getWeights() != null) System.arraycopy(nodeModel.getWeights(), 0, weights, 0, weights.length);
-            else if (meshModel.getWeights() != null)
-                System.arraycopy(meshModel.getWeights(), 0, weights, 0, weights.length);
+            if(nodeModel.getWeights() != null) System.arraycopy(nodeModel.getWeights(), 0, weights, 0, weights.length);
+            else if(meshModel.getWeights() != null) System.arraycopy(meshModel.getWeights(), 0, weights, 0, weights.length);
 
             morphingCommands.parallelStream().forEach(Runnable::run);
 
@@ -4535,12 +4906,12 @@ public class RenderedGltfModel {
         AccessorFloatData morphedAccessorData;
         ByteBuffer morphedBufferViewData;
 
-        if (baseAccessorModel.getComponentDataType() != float.class) {
+        if(baseAccessorModel.getComponentDataType() != float.class) {
             int count = baseAccessorModel.getCount();
             AccessorData accessorData = AccessorDatas.create(baseAccessorModel);
             baseAccessorModel = AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC4, "");
             baseAccessorData = AccessorDatas.createFloat(baseAccessorModel);
-            for (int i = 0; i < count; i++) {
+            for(int i = 0; i < count; i++) {
                 baseAccessorData.set(i, 0, accessorData.getFloat(i, 0));
                 baseAccessorData.set(i, 1, accessorData.getFloat(i, 1));
                 baseAccessorData.set(i, 2, accessorData.getFloat(i, 2));
@@ -4549,7 +4920,8 @@ public class RenderedGltfModel {
             AccessorModel morphedAccessorModel = AccessorModelCreation.instantiate(baseAccessorModel, "");
             morphedAccessorData = AccessorDatas.createFloat(morphedAccessorModel);
             morphedBufferViewData = morphedAccessorModel.getBufferViewModel().getBufferViewData();
-        } else {
+        }
+        else {
             baseAccessorData = AccessorDatas.createFloat(baseAccessorModel);
             AccessorModel morphedAccessorModel = AccessorModelCreation.instantiate(baseAccessorModel, "");
             morphedAccessorData = AccessorDatas.createFloat(morphedAccessorModel);
@@ -4561,20 +4933,20 @@ public class RenderedGltfModel {
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBufferView);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, morphedBufferViewData, GL15.GL_STATIC_DRAW);
 
-        float[] weights = new float[targetAccessorDatas.size()];
+        float weights[] = new float[targetAccessorDatas.size()];
         int numComponents = 4;
         int numElements = morphedAccessorData.getNumElements();
 
         List<Runnable> morphingCommands = new ArrayList<Runnable>(numElements * numComponents);
-        for (int element = 0; element < numElements; element++) {
-            for (int component = 0; component < numComponents; component++) {
+        for(int element = 0; element < numElements; element++) {
+            for(int component = 0; component < numComponents; component++) {
                 int e = element;
                 int c = component;
                 morphingCommands.add(() -> {
                     float r = baseAccessorData.get(e, c);
-                    for (int i = 0; i < weights.length; i++) {
+                    for(int i = 0; i < weights.length; i++) {
                         AccessorFloatData target = targetAccessorDatas.get(i);
-                        if (target != null) {
+                        if(target != null) {
                             r += weights[i] * target.get(e, c);
                         }
                     }
@@ -4584,9 +4956,8 @@ public class RenderedGltfModel {
         }
 
         command.add(() -> {
-            if (nodeModel.getWeights() != null) System.arraycopy(nodeModel.getWeights(), 0, weights, 0, weights.length);
-            else if (meshModel.getWeights() != null)
-                System.arraycopy(meshModel.getWeights(), 0, weights, 0, weights.length);
+            if(nodeModel.getWeights() != null) System.arraycopy(nodeModel.getWeights(), 0, weights, 0, weights.length);
+            else if(meshModel.getWeights() != null) System.arraycopy(meshModel.getWeights(), 0, weights, 0, weights.length);
 
             morphingCommands.parallelStream().forEach(Runnable::run);
 
@@ -4601,19 +4972,20 @@ public class RenderedGltfModel {
         AccessorFloatData morphedAccessorData;
         ByteBuffer morphedBufferViewData;
 
-        if (baseAccessorModel.getComponentDataType() != float.class) {
+        if(baseAccessorModel.getComponentDataType() != float.class) {
             int count = baseAccessorModel.getCount();
             AccessorData accessorData = AccessorDatas.create(baseAccessorModel);
             baseAccessorModel = AccessorModelCreation.createAccessorModel(GL11.GL_FLOAT, count, ElementType.VEC2, "");
             baseAccessorData = AccessorDatas.createFloat(baseAccessorModel);
-            for (int i = 0; i < count; i++) {
+            for(int i = 0; i < count; i++) {
                 baseAccessorData.set(i, 0, accessorData.getFloat(i, 0));
                 baseAccessorData.set(i, 1, accessorData.getFloat(i, 1));
             }
             AccessorModel morphedAccessorModel = AccessorModelCreation.instantiate(baseAccessorModel, "");
             morphedAccessorData = AccessorDatas.createFloat(morphedAccessorModel);
             morphedBufferViewData = morphedAccessorModel.getBufferViewModel().getBufferViewData();
-        } else {
+        }
+        else {
             baseAccessorData = AccessorDatas.createFloat(baseAccessorModel);
             AccessorModel morphedAccessorModel = AccessorModelCreation.instantiate(baseAccessorModel, "");
             morphedAccessorData = AccessorDatas.createFloat(morphedAccessorModel);
@@ -4625,20 +4997,20 @@ public class RenderedGltfModel {
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, glBufferView);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, morphedBufferViewData, GL15.GL_STATIC_DRAW);
 
-        float[] weights = new float[targetAccessorDatas.size()];
+        float weights[] = new float[targetAccessorDatas.size()];
         int numComponents = 2;
         int numElements = morphedAccessorData.getNumElements();
 
         List<Runnable> morphingCommands = new ArrayList<Runnable>(numElements * numComponents);
-        for (int element = 0; element < numElements; element++) {
-            for (int component = 0; component < numComponents; component++) {
+        for(int element = 0; element < numElements; element++) {
+            for(int component = 0; component < numComponents; component++) {
                 int e = element;
                 int c = component;
                 morphingCommands.add(() -> {
                     float r = baseAccessorData.get(e, c);
-                    for (int i = 0; i < weights.length; i++) {
+                    for(int i = 0; i < weights.length; i++) {
                         AccessorFloatData target = targetAccessorDatas.get(i);
-                        if (target != null) {
+                        if(target != null) {
                             r += weights[i] * target.get(e, c);
                         }
                     }
@@ -4648,9 +5020,8 @@ public class RenderedGltfModel {
         }
 
         command.add(() -> {
-            if (nodeModel.getWeights() != null) System.arraycopy(nodeModel.getWeights(), 0, weights, 0, weights.length);
-            else if (meshModel.getWeights() != null)
-                System.arraycopy(meshModel.getWeights(), 0, weights, 0, weights.length);
+            if(nodeModel.getWeights() != null) System.arraycopy(nodeModel.getWeights(), 0, weights, 0, weights.length);
+            else if(meshModel.getWeights() != null) System.arraycopy(meshModel.getWeights(), 0, weights, 0, weights.length);
 
             morphingCommands.parallelStream().forEach(Runnable::run);
 
@@ -4660,17 +5031,18 @@ public class RenderedGltfModel {
         return baseAccessorModel;
     }
 
-    public static float[] findGlobalTransform(NodeModel nodeModel) {
+    protected static float[] findGlobalTransform(NodeModel nodeModel) {
         float[] found = NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.get(nodeModel);
-        if (found != null) {
+        if(found != null) {
             return found;
-        } else {
+        }
+        else {
             List<NodeModel> pathToNode = new ArrayList<NodeModel>();
             pathToNode.add(nodeModel);
             nodeModel = nodeModel.getParent();
-            while (nodeModel != null) {
+            while(nodeModel != null) {
                 found = NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.get(nodeModel);
-                if (found != null) {
+                if(found != null) {
                     int i = pathToNode.size() - 1;
                     do {
                         nodeModel = pathToNode.get(i);
@@ -4679,9 +5051,10 @@ public class RenderedGltfModel {
                         NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.put(nodeModel, transform);
                         found = transform;
                     }
-                    while (--i >= 0);
+                    while(--i >= 0);
                     return found;
-                } else {
+                }
+                else {
                     pathToNode.add(nodeModel);
                     nodeModel = nodeModel.getParent();
                 }
@@ -4689,7 +5062,7 @@ public class RenderedGltfModel {
             int i = pathToNode.size() - 1;
             nodeModel = pathToNode.get(i);
             found = DefaultNodeModel.computeLocalTransform(nodeModel, null);
-            while (--i >= 0) {
+            while(--i >= 0) {
                 nodeModel = pathToNode.get(i);
                 float[] transform = DefaultNodeModel.computeLocalTransform(nodeModel, null);
                 MathUtils.mul4x4(found, transform, transform);
@@ -4708,9 +5081,11 @@ public class RenderedGltfModel {
      * @param value The value
      * @return The FloatBuffer
      */
-    public static FloatBuffer putFloatBuffer(float[] value) {
+    protected static FloatBuffer putFloatBuffer(float value[])
+    {
         int total = value.length;
-        if (uniformFloatBuffer == null || uniformFloatBuffer.capacity() < total) {
+        if (uniformFloatBuffer == null || uniformFloatBuffer.capacity() < total)
+        {
             uniformFloatBuffer = BufferUtils.createFloatBuffer(total);
         }
         uniformFloatBuffer.position(0);
@@ -4718,6 +5093,14 @@ public class RenderedGltfModel {
         uniformFloatBuffer.put(value);
         uniformFloatBuffer.flip();
         return uniformFloatBuffer;
+    }
+
+    public static void setCurrentPose(Matrix4f currentPose) {
+        CURRENT_POSE = currentPose;
+    }
+
+    public static void setCurrentNormal(Matrix3f currentNormal) {
+        CURRENT_NORMAL = currentNormal;
     }
 
 }

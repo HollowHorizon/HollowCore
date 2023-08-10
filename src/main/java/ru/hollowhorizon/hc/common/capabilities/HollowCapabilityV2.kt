@@ -1,6 +1,6 @@
 package ru.hollowhorizon.hc.common.capabilities
 
-import com.google.common.reflect.TypeToken
+import com.ibm.icu.lang.UCharacter.GraphemeClusterBreak.T
 import kotlinx.serialization.Serializable
 import net.minecraft.core.Direction
 import net.minecraft.nbt.Tag
@@ -8,16 +8,17 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
-import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.common.capabilities.Capability
-import net.minecraftforge.common.capabilities.CapabilityManager
 import net.minecraftforge.common.capabilities.CapabilityProvider
 import net.minecraftforge.common.capabilities.ICapabilitySerializable
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent
 import net.minecraftforge.common.util.LazyOptional
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
+import net.minecraftforge.fml.Logging
+import net.minecraftforge.fml.ModLoader
+import net.minecraftforge.forgespi.language.ModFileScanData
 import net.minecraftforge.network.PacketDistributor
 import org.objectweb.asm.Type
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.JavaHacks.forceCast
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.deserialize
@@ -30,46 +31,53 @@ import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityPlayer
 import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityWorld
 import kotlin.reflect.KClass
 
+
 @Target(AnnotationTarget.CLASS)
 annotation class HollowCapabilityV2(vararg val value: KClass<*>) {
     @Suppress("UNCHECKED_CAST")
     companion object {
-        inline fun <reified T> get(): Capability<T> {
-            return HollowCapabilityStorageV2.storages[T::class.java.name] as Capability<T>
-        }
 
         fun <T> get(clazz: Class<T>): Capability<T> {
             return HollowCapabilityStorageV2.storages[clazz.name] as Capability<T>
         }
+
+        @JvmField
+        val TYPE = Type.getType(HollowCapabilityV2::class.java)
+
     }
 }
 
-inline fun <reified T> CapabilityProvider<*>.getCapability(): T {
-    return this.getCapability(HollowCapabilityV2.get<T>())
+@Suppress("UNCHECKED_CAST")
+fun <T> callHook(list: MutableList<ModFileScanData>, method: (String, Boolean) -> Capability<T>) {
+    val data = list.flatMap { it.annotations }
+    val annotations = data
+        .filter { HollowCapabilityV2.TYPE.equals(it.annotationType) }
+        .distinct()
+        .sortedBy { it.clazz.toString() }
+
+    for (annotation in annotations) {
+
+        HollowCore.LOGGER.debug(Logging.CAPABILITIES, "Attempting to automatically register: {}", annotation)
+        val result = method(annotation.clazz.internalName, true)
+
+        val targets: List<Type> =
+            (annotation.annotationData["value"] as ArrayList<Type>)
+        initCapability(result, targets)
+    }
+
+    ModLoader.get().postEvent(RegisterCapabilitiesEvent())
+}
+
+fun <T: Any> CapabilityProvider<*>.getCapability(c: KClass<T>): T {
+    return this.getCapability(HollowCapabilityV2.get(c.java))
         .orElseThrow { IllegalStateException("Capability ${T::class.java.simpleName} not found!") }
 }
 
-inline fun <reified T : HollowCapability> CapabilityProvider<*>.useCapability(
-    update: Boolean = true,
-    crossinline task: T.() -> Unit
-) {
-    this.getCapability(HollowCapabilityV2.get<T>()).ifPresent {
-        task(it)
-        if (update) {
-            when (this) {
-                is Player -> it.syncClient(this)
-                is Entity -> it.syncEntity(this)
-                is Level -> it.syncWorld(*this.players().toTypedArray())
-            }
-        }
-    }
-}
-
-@Suppress("UnstableApiUsage")
+@Suppress("unchecked_cast")
 class HollowCapabilitySerializer<T : Any>(val cap: Capability<T>) : ICapabilitySerializable<Tag> {
-    lateinit var instance: T
+    val type: Class<T> = Class.forName(cap.name.replace("/", ".").replace("$", ".")) as Class<T>
+    var instance: T = type.getDeclaredConstructor().newInstance() as T
 
-    @Suppress("unchecked_cast")
     override fun <T : Any> getCapability(cap: Capability<T>, side: Direction?): LazyOptional<T> {
         if (cap == this.cap) {
             return LazyOptional.of { instance as T }
@@ -78,18 +86,11 @@ class HollowCapabilitySerializer<T : Any>(val cap: Capability<T>) : ICapabilityS
     }
 
     override fun serializeNBT(): Tag {
-        return NBTFormat.serializeNoInline(instance, TypeToken.of(instance.javaClass).rawType)
+        return NBTFormat.serializeNoInline(instance, type)
     }
 
-    @Suppress("UNCHECKED_CAST")
     override fun deserializeNBT(nbt: Tag) {
-        instance = NBTFormat.deserializeNoInline(nbt, TypeToken.of(instance.javaClass).rawType) as T
-    }
-}
-
-fun <T : HollowCapability> register(clazz: Class<T>) {
-    FMLJavaModLoadingContext.get().modEventBus.addListener<RegisterCapabilitiesEvent> {
-        it.register(clazz)
+        instance = NBTFormat.deserializeNoInline(nbt, type)
     }
 }
 
@@ -142,8 +143,9 @@ fun Class<HollowCapability>.createSyncPacketPlayer(): Packet<HollowCapability> =
 fun Class<HollowCapability>.createSyncPacketEntity(): Packet<CapabilityForEntity> = SyncCapabilityEntity()
 fun Class<HollowCapability>.createSyncPacketClientLevel(): Packet<HollowCapability> = SyncCapabilityWorld()
 
-fun initCapability(cap: Capability<*>, targets: ArrayList<Type>) {
-    HollowCapabilityStorageV2.storages[cap.name] = cap
+fun initCapability(cap: Capability<*>, targets: List<Type>) {
+    HollowCore.LOGGER.info("{} for [{}]", cap.name, targets.joinToString { it.internalName })
+    HollowCapabilityStorageV2.storages[cap.name.replace("/", ".").replace("$", ".")] = cap
 
     targets.forEach {
         val clazz = Class.forName(it.className)

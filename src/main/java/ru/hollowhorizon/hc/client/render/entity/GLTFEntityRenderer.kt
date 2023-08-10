@@ -10,19 +10,21 @@ import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.client.renderer.entity.EntityRendererProvider
 import net.minecraft.client.renderer.entity.LivingEntityRenderer
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.FlyingAnimal
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL12
 import org.lwjgl.opengl.GL13
+import org.lwjgl.opengl.GL15
+import org.lwjgl.opengl.GL30
 import ru.hollowhorizon.hc.client.gltf.GlTFModelManager
 import ru.hollowhorizon.hc.client.gltf.IAnimatedEntity
+import ru.hollowhorizon.hc.client.gltf.RenderedGltfModel
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationLoader
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationManager
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability
-import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
-import java.nio.FloatBuffer
+import ru.hollowhorizon.hc.common.capabilities.getCapability
 
 
 class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
@@ -51,69 +53,64 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
         val packedOverlay: Int = LivingEntityRenderer.getOverlayCoords(entity, particalTick)
 
-        GL11.glPushMatrix()
-        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS)
+        val currentVAO = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING)
+        val currentArrayBuffer = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING)
+        val currentElementArrayBuffer = GL11.glGetInteger(GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING)
 
-        GL11.glEnable(GL11.GL_LIGHTING)
-        GL11.glShadeModel(GL11.GL_SMOOTH)
-        GL11.glEnable(GL12.GL_RESCALE_NORMAL)
+        val currentCullFace = GL11.glGetBoolean(GL11.GL_CULL_FACE)
+
+        val currentDepthTest = GL11.glGetBoolean(GL11.GL_DEPTH_TEST)
+        val currentBlend = GL11.glGetBoolean(GL11.GL_BLEND)
         GL11.glEnable(GL11.GL_DEPTH_TEST)
-        GL11.glEnable(GL11.GL_COLOR_MATERIAL)
         GL11.glEnable(GL11.GL_BLEND)
-        GL11.glEnable(GL11.GL_ALPHA_TEST)
         RenderSystem.enableBlend()
-        RenderSystem.blendFuncSeparate(
-            GlStateManager.SourceFactor.SRC_ALPHA,
-            GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
-            GlStateManager.SourceFactor.ONE,
-            GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA
-        )
+        RenderSystem.enableDepthTest()
+        GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
 
-        GL11.glAlphaFunc(516, 0.1f)
+        stack.pushPose()
+        stack.mulPose(Vector3f.YP.rotationDegrees(Mth.rotLerp(particalTick, entity.yBodyRotO, entity.yBodyRot)))
+        RenderedGltfModel.setCurrentPose(stack.last().pose())
+        RenderedGltfModel.setCurrentNormal(stack.last().normal())
+        stack.popPose()
 
-        GL11.glMultMatrixf(FloatBuffer.allocate(16).apply { stack.last().pose().store(this) })
+        GL30.glVertexAttribI2i(RenderedGltfModel.vaUV2, packedLight and '\uffff'.code, packedLight shr 16 and '\uffff'.code)
 
-        GL11.glRotatef(-yaw, 0.0f, 1.0f, 0.0f)
-
-        GL13.glMultiTexCoord2s(
-            GL13.GL_TEXTURE2,
-            (packedLight and '\uffff'.code).toShort(),
-            (packedLight shr 16 and '\uffff'.code).toShort()
-        )
-        GL13.glMultiTexCoord2s(
-            GL13.GL_TEXTURE3,
-            (packedOverlay and '\uffff'.code).toShort(),
-            (packedOverlay shr 16 and '\uffff'.code).toShort()
-        )
-
-        if (GlTFModelManager.getInstance().isShaderModActive) {
+        if (GlTFModelManager.getInstance().isShaderModActive()) {
             entity.model?.renderedGltfScenes?.forEach { it.renderForShaderMod() }
         } else {
             GL13.glActiveTexture(GL13.GL_TEXTURE2)
-            GL11.glEnable(GL11.GL_TEXTURE_2D)
+            val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, GlTFModelManager.getInstance().lightTexture.id)
+            GL13.glActiveTexture(GL13.GL_TEXTURE1)
+            val currentTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0)
             GL13.glActiveTexture(GL13.GL_TEXTURE0)
+            val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
             entity.model?.renderedGltfScenes?.forEach { it.renderForVanilla() }
+            GL13.glActiveTexture(GL13.GL_TEXTURE2)
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture2)
+            GL13.glActiveTexture(GL13.GL_TEXTURE1)
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture1)
+            GL13.glActiveTexture(GL13.GL_TEXTURE0)
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture0)
         }
 
-        GL11.glDisable(GL11.GL_LIGHTING)
-        GL11.glDisable(GL12.GL_RESCALE_NORMAL)
-        GL11.glDisable(GL11.GL_DEPTH_TEST)
-        GL11.glDisable(GL11.GL_COLOR_MATERIAL)
-        GL11.glDisable(GL11.GL_BLEND)
-        GL11.glDisable(GL11.GL_ALPHA_TEST)
-        RenderSystem.disableBlend()
+        GL30.glVertexAttribI2i(RenderedGltfModel.vaUV2, 0, 0)
 
-        GL11.glPopAttrib()
-        GL11.glPopMatrix()
+        if (!currentDepthTest) GL11.glDisable(GL11.GL_DEPTH_TEST)
+        if (!currentBlend) GL11.glDisable(GL11.GL_BLEND)
+
+        if (currentCullFace) GL11.glEnable(GL11.GL_CULL_FACE) else GL11.glDisable(GL11.GL_CULL_FACE)
+
+        GL30.glBindVertexArray(currentVAO)
+        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, currentArrayBuffer)
+        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
 
         stack.popPose()
     }
 
     private fun preRender(entity: T, stack: PoseStack, partialTick: Float) {
-        val capability = entity.getCapability(HollowCapabilityV2.get<AnimatedEntityCapability>())
-            .orElseThrow { IllegalStateException("Animated Entity Capability Not Found!") }
-
-
+        val capability = entity.getCapability(AnimatedEntityCapability::class)
 
         //Изменение начального положения модели
         stack.last().pose().multiply(Matrix4f().apply {
@@ -136,11 +133,11 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
         updateAnimations(entity, manager, templates)
 
-        if(capability.animationsToStart.isNotEmpty()) {
+        if (capability.animationsToStart.isNotEmpty()) {
             capability.animationsToStart.forEach(manager::addAnimation)
             capability.animationsToStart.clear()
         }
-        if(capability.animationsToStop.isNotEmpty()) {
+        if (capability.animationsToStop.isNotEmpty()) {
             capability.animationsToStop.forEach(manager::removeAnimation)
             capability.animationsToStart.clear()
         }

@@ -4,7 +4,6 @@ import com.google.common.reflect.TypeToken
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.entity.player.Player
-import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.network.NetworkDirection
 import net.minecraftforge.network.NetworkEvent
@@ -17,16 +16,22 @@ import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 import java.util.*
 import java.util.function.Supplier
+import kotlin.reflect.KProperty
 
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class HollowPacketV2(val toTarget: Dist = Dist.DEDICATED_SERVER)
+annotation class HollowPacketV2(val toTarget: NetworkDirection = NetworkDirection.PLAY_TO_CLIENT)
 
 @Suppress("UnstableApiUsage")
 open class Packet<T>(val function: Packet<T>.(Player, T) -> Unit) {
     var direction: Optional<NetworkDirection> = Optional.empty()
     var value: T? = null
     var typeToken: TypeToken<T> = object : TypeToken<T>(javaClass) {}
+    companion object {
+        operator fun <T> Packet<T>.invoke(data: T, vararg players: Player) {
+            this.send(data, *players)
+        }
+    }
 
     constructor(function: Packet<T>.(Player, T) -> Unit, token: Class<T>) : this(function) {
         typeToken = TypeToken.of(token)

@@ -42,12 +42,12 @@ class SyncCapabilityEntity : Packet<CapabilityForEntity>({ player, data ->
         //Данная проверка нужна, чтобы Capability нельзя было изменить на клиенте и отправить на сервер
         //Зачастую это стало бы уязвимостью, а так со стороны сервера такие изменения будут отбрасываться
         //В качестве исключения можно указать consumeDataFromClient на true
-        if(capability.consumeDataFromClient || player.level.isClientSide) {
+        if (capability.consumeDataFromClient || player.level.isClientSide) {
             val cap = HollowCapabilityV2.get(capability.javaClass)
 
             val entityId = data.entityId
 
-            val mob = player.level.getEntity(entityId)!!
+            val mob = player.level.getEntity(entityId) ?: return@apply
             val uploader = mob as ICapabilityUpdater
 
             HollowCore.LOGGER.info("Updating EntityCapability: {}, {}", uploader, capability.serialize().asString)

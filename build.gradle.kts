@@ -3,7 +3,7 @@ import net.minecraftforge.gradle.userdev.UserDevExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-
+//^(.+)$(?=[\s\S]*^(\1)$[\s\S]*)
 buildscript {
     repositories {
         maven { url = uri("https://maven.minecraftforge.net") }
@@ -58,6 +58,7 @@ configure<UserDevExtension> {
         workingDirectory(project.file("run"))
         property("forge.logging.markers", "REGISTRIES") // eg: SCAN,REGISTRIES,REGISTRYDUMP
         property("forge.logging.console.level", "debug")
+        jvmArg("-XX:+AllowEnhancedClassRedefinition")
         arg("-mixin.config=hc.mixins.json")
         mods.create("hc") {
             source(the<JavaPluginExtension>().sourceSets.getByName("main"))
@@ -69,6 +70,7 @@ configure<UserDevExtension> {
         property("forge.logging.markers", "REGISTRIES") // eg: SCAN,REGISTRIES,REGISTRYDUMP
         property("forge.logging.console.level", "debug")
         arg("-mixin.config=hc.mixins.json")
+        jvmArg("-XX:+AllowEnhancedClassRedefinition")
         mods.create("hc") {
             source(the<JavaPluginExtension>().sourceSets.getByName("main"))
         }
@@ -116,8 +118,7 @@ dependencies {
     shadow("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4")
     shadow("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
     shadow("org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.0")
-    shadow("com.google.code.gson:gson:2.10.1")
-    shadow("com.google.guava:guava:32.1.2-jre")
+    shadow("com.esotericsoftware:kryo:5.4.0")
 
     shadow("gnu.trove:trove:1.0.2")
 }

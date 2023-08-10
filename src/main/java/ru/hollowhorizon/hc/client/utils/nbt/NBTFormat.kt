@@ -86,6 +86,32 @@ open class NBTFormat(context: SerializersModule = EmptySerializersModule()) : Se
     }
 }
 
+@Serializable
+class Test(val data: SerializableRunnable)
+
+@Serializable
+class SerializableRunnable(private val inner: java.io.Serializable) : Runnable, java.io.Serializable {
+
+    override fun run() {
+        (inner as? Runnable)?.run()
+    }
+}
+
+fun main() {
+
+    val test = Test(SerializableRunnable( {
+        println("1")
+        println("2")
+        println("3")
+    } as java.io.Serializable))
+
+    test.data.run()
+    val nbt = NBTFormat.serialize(test)
+    println(nbt)
+    val other: Test = NBTFormat.deserialize(nbt)
+    other.data.run()
+}
+
 internal const val NbtFormatNull = 1.toByte()
 
 @OptIn(ExperimentalSerializationApi::class)

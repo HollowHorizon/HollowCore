@@ -14,14 +14,14 @@ import ru.hollowhorizon.hc.HollowCore
 
 object RenderFactoryBuilder {
     @JvmStatic
-    fun <T : Entity> buildEntity(entityType: EntityType<T>, rendererClass: Class<EntityRenderer<T>>) {
+    fun <T : Entity> buildEntity(entityType: () -> EntityType<T>, rendererClass: Class<EntityRenderer<T>>) {
         MinecraftForge.EVENT_BUS.addListener<EntityRenderersEvent.RegisterRenderers> { event ->
-            event.registerEntityRenderer(entityType) { manager ->
+            event.registerEntityRenderer(entityType()) { manager ->
                 try {
                     rendererClass.getConstructor(EntityRendererProvider.Context::class.java).newInstance(manager)
                 } catch (e: Exception) {
                     HollowCore.LOGGER.error(
-                        "Error, when creating renderer ${rendererClass.name} for entity ${entityType.descriptionId}: ",
+                        "Error, when creating renderer ${rendererClass.name} for entity ${entityType().descriptionId}: ",
                         e
                     )
                     throw e
@@ -31,11 +31,11 @@ object RenderFactoryBuilder {
     }
 
     fun <T : BlockEntity> buildTileEntity(
-        tileEntityType: BlockEntityType<T>,
+        tileEntityType: () -> BlockEntityType<T>,
         rendererClass: Class<BlockEntityRenderer<T>>,
     ) {
         MinecraftForge.EVENT_BUS.addListener<EntityRenderersEvent.RegisterRenderers> { event ->
-            event.registerBlockEntityRenderer(tileEntityType) { manager ->
+            event.registerBlockEntityRenderer(tileEntityType()) { manager ->
                 try {
                     rendererClass.getConstructor(BlockEntityRendererProvider.Context::class.java).newInstance(manager)
                 } catch (e: Exception) {

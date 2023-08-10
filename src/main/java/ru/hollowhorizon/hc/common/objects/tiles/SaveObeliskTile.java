@@ -16,7 +16,7 @@ public class SaveObeliskTile extends HollowTileEntity {
     private boolean isActivated = false;
 
     public SaveObeliskTile(BlockPos pos, BlockState state) {
-        super(ModTileEntities.SAVE_OBELISK_TILE, pos, state);
+        super(ModTileEntities.INSTANCE.getSAVE_OBELISK_TILE().get(), pos, state);
     }
 
 

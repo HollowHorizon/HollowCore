@@ -1,20 +1,5 @@
 package ru.hollowhorizon.hc.common.registry
 
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
-import net.minecraft.client.renderer.entity.EntityRenderer
-import net.minecraft.core.particles.ParticleType
-import net.minecraft.resources.ResourceLocation
-import net.minecraft.sounds.SoundEvent
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityType
-import net.minecraft.world.inventory.MenuType
-import net.minecraft.world.item.BlockItem
-import net.minecraft.world.item.Item
-import net.minecraft.world.item.crafting.RecipeSerializer
-import net.minecraft.world.level.block.Block
-import net.minecraft.world.level.block.entity.BlockEntity
-import net.minecraft.world.level.block.entity.BlockEntityType
-import net.minecraft.world.level.levelgen.feature.Feature
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.fml.ModLoadingContext
@@ -22,26 +7,17 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.forgespi.language.ModFileScanData
 import net.minecraftforge.registries.DeferredRegister
-import net.minecraftforge.registries.ForgeRegistries
 import net.minecraftforge.registries.IForgeRegistry
-import net.minecraftforge.registries.NewRegistryEvent
-import net.minecraftforge.registries.RegisterEvent
-import net.minecraftforge.registries.RegistryObject
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.api.registy.HollowRegister
 import ru.hollowhorizon.hc.api.utils.HollowCommand
-import ru.hollowhorizon.hc.client.render.entity.RenderFactoryBuilder
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
-import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
 import ru.hollowhorizon.hc.common.commands.HollowCommands
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV2Loader
 import ru.hollowhorizon.hc.common.network.Packet
-import ru.hollowhorizon.hc.common.objects.blocks.IBlockProperties
-import ru.hollowhorizon.hc.common.objects.items.HollowArmor
 import ru.hollowhorizon.hc.core.AsmReflectionMethodGenerator
 import ru.hollowhorizon.hc.core.ReflectionMethod
 import java.lang.annotation.ElementType
@@ -56,9 +32,9 @@ object HollowModProcessor {
 
     @Suppress("UNCHECKED_CAST")
     private fun init() {
-        if(isInitialized) return
+        if (isInitialized) return
         isInitialized = true
-        registerHandler<HollowRegister> { cont ->
+        /*registerHandler<HollowRegister> { cont ->
             cont.whenObjectTask = whenObjectTask@{ field ->
                 val name =
                     if (cont.annotation.value == "") cont.targetName.lowercase() else cont.annotation.value.lowercase()
@@ -142,14 +118,14 @@ object HollowModProcessor {
 
                 }
             }
-        }
+        }*/
         registerHandler<HollowPacketV2> { cont ->
             cont.whenClassTask = { clazz ->
                 HollowCore.LOGGER.info("Loading packet: ${clazz.simpleName}")
 
                 val packet = clazz.getConstructor().newInstance() as Packet<*>
 
-                HollowPacketV2Loader.register(packet)
+                HollowPacketV2Loader.register(packet, cont.annotation.toTarget)
             }
         }
         registerHandler<HollowCapabilityV2> { cont ->
@@ -182,30 +158,35 @@ object HollowModProcessor {
     private fun run(modId: String, scanResults: ModFileScanData) {
         HollowCore.LOGGER.info("Pre-loading: {}", modId)
 
+        scanResults.classes.stream().filter { it.parent == Type.getType(HollowRegistry::class.java) }.forEach {
+            HollowCore.LOGGER.info("Trying to load registerer class: {}", it.clazz)
+            //Load kotlin class
+            Class.forName(it.clazz.className).getDeclaredField("INSTANCE").get(null)
+        }
         scanResults.annotations.stream().filter { it.annotationType in ANNOTATIONS.keys }.forEach { data ->
             val type = data.annotationType
 
-            FMLJavaModLoadingContext.get().modEventBus.addListener<RegisterEvent> {
-                val containerClass = Class.forName(data.clazz.className)
 
-                when (data.targetType) {
-                    ElementType.FIELD -> {
-                        processField(containerClass, data.memberName, type, modId)
-                    }
+            val containerClass = Class.forName(data.clazz.className)
 
-                    ElementType.METHOD -> {
-                        processMethod(containerClass, data.memberName, type, modId)
-                    }
+            when (data.targetType) {
+                ElementType.FIELD -> {
+                    processField(containerClass, data.memberName, type, modId)
+                }
 
-                    ElementType.TYPE -> {
-                        processClass(containerClass, type, modId)
-                    }
+                ElementType.METHOD -> {
+                    processMethod(containerClass, data.memberName, type, modId)
+                }
 
-                    else -> {
-                        HollowCore.LOGGER.error("Annotation target type ${data.targetType} not supported! Only FIELD, METHOD and TYPE are supported!")
-                    }
+                ElementType.TYPE -> {
+                    processClass(containerClass, type, modId)
+                }
+
+                else -> {
+                    HollowCore.LOGGER.error("Annotation target type ${data.targetType} not supported! Only FIELD, METHOD and TYPE are supported!")
                 }
             }
+
         }
 
         if (FMLEnvironment.dist.isClient) processSounds(modId)

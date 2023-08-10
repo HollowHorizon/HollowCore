@@ -1,20 +1,20 @@
 package ru.hollowhorizon.hc.common.registry
 
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.MobCategory
-import net.minecraftforge.registries.DeferredRegister
-import net.minecraftforge.registries.ForgeRegistries
-import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity
-import ru.hollowhorizon.hc.common.objects.entities.TestEntityV2
 
-object ModEntities {
-    @JvmField
-    val ENTITIES: DeferredRegister<EntityType<*>> =
-        DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, HollowCore.MODID)
+object ModEntities : HollowRegistry() {
 
-    @JvmField
-    val TEST_ENTITY = ENTITIES.register("test_entity") {
+    val TEST_ENTITY by register(
+        ObjectConfig(
+            name = "test_entity",
+            entityRenderer = GLTFEntityRenderer::class,
+            attributeSupplier = { Mob.createMobAttributes().build() }
+        )
+    ) {
         EntityType.Builder.of(::TestEntity, MobCategory.CREATURE).sized(1f, 2f).build("test_entity")
     }
 }

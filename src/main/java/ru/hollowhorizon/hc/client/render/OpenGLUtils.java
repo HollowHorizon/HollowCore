@@ -1,11 +1,22 @@
 package ru.hollowhorizon.hc.client.render;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3d;
+import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GLCapabilities;
 
 public class OpenGLUtils {
+    public static boolean isSupportedGL43;
+
+    public static void init() {
+        RenderSystem.recordRenderCall(() -> {
+            GLCapabilities caps = GL.getCapabilities();
+            isSupportedGL43 = caps.OpenGL43;
+        });
+    }
     public static void drawLine(BufferBuilder bufferbuilder, Matrix4f matrix, Vector3d from, Vector3d to, float r, float g, float b, float a) {
         bufferbuilder
                 .vertex(matrix, (float) from.x, (float) from.y - 0.1F, (float) from.z)

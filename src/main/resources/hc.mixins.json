@@ -10,6 +10,7 @@
     "CapabilityProviderMixin",
     "EventBusMixin",
     "FMLModContainerMixin",
+    "ForgeRegistryMixin",
     "ListTagAccessor",
     "PrimaryLevelDataMixin",
     "StructureBlockMixin",

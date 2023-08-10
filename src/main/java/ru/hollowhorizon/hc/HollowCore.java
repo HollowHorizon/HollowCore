@@ -34,6 +34,7 @@ import ru.hollowhorizon.hc.client.gltf.GltfModelSources;
 import ru.hollowhorizon.hc.client.gltf.PathSource;
 import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
+import ru.hollowhorizon.hc.client.render.OpenGLUtils;
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
@@ -43,9 +44,10 @@ import ru.hollowhorizon.hc.common.handlers.DelayHandler;
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
-import ru.hollowhorizon.hc.common.registry.ModCapabilities;
+import ru.hollowhorizon.hc.common.registry.HollowModProcessor;
 import ru.hollowhorizon.hc.common.registry.ModEntities;
 import ru.hollowhorizon.hc.common.registry.ModShaders;
+import ru.hollowhorizon.hc.common.registry.RegistryLoader;
 
 
 @HollowMod(HollowCore.MODID)
@@ -57,7 +59,7 @@ public class HollowCore {
     public static final boolean DEBUG_MODE = true;
 
     public HollowCore() {
-        //HollowModProcessor.initMod();
+        HollowModProcessor.initMod();
         LOGGER.info("Starting HollowCore...");
 
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -70,6 +72,7 @@ public class HollowCore {
         GltfModelSources.INSTANCE.addSource(new PathSource(FMLPaths.GAMEDIR.get().resolve("hollowengine")));
 
         if (FMLEnvironment.dist.isClient()) {
+            OpenGLUtils.init();
             //клавиши
             forgeBus.register(new HollowKeyHandler());
             forgeBus.addListener(HollowKeyHandler::onKeyInput);
@@ -101,7 +104,7 @@ public class HollowCore {
 
         forgeBus.addListener(this::configSave);
 
-        ModEntities.ENTITIES.register(modBus);
+        RegistryLoader.registerAll();
     }
 
     public void onResourcePackAdd(AddPackFindersEvent event) {
@@ -128,19 +131,18 @@ public class HollowCore {
 
     //『Pre-Init』
     private void setup(final FMLCommonSetupEvent event) {
-        ModCapabilities.init();
         NetworkHandler.register();
 
     }
 
     private void onAttribute(EntityAttributeCreationEvent event) {
-        event.put(ModEntities.TEST_ENTITY.get(), TestEntity.createMobAttributes().build());
+        event.put(ModEntities.INSTANCE.getTEST_ENTITY().get(), TestEntity.createMobAttributes().build());
         //event.put(ModEntities.TEST_ENTITY_V2, TestEntity.createMobAttributes().build());
     }
 
     @OnlyIn(Dist.CLIENT)
     private void onRendererCreating(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(ModEntities.TEST_ENTITY.get(), GLTFEntityRenderer::new);
+        event.registerEntityRenderer(ModEntities.INSTANCE.getTEST_ENTITY().get(), GLTFEntityRenderer::new);
     }
 
     private void configSave(ServerStoppedEvent event) {

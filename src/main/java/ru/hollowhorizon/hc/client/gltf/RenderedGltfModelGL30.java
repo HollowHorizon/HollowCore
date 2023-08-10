@@ -81,29 +81,19 @@ public class RenderedGltfModelGL30 extends RenderedGltfModel {
             vanillaNodeRenderCommands.add(jointMatricesTransformCommand);
             shaderModNodeRenderCommands.add(jointMatricesTransformCommand);
 
-            Runnable transformCommand = createTransformCommand(nodeModel);
-            vanillaNodeRenderCommands.add(transformCommand);
-            shaderModNodeRenderCommands.add(transformCommand);
             for(MeshModel meshModel : nodeModel.getMeshModels()) {
                 for(MeshPrimitiveModel meshPrimitiveModel : meshModel.getMeshPrimitiveModels()) {
                     processMeshPrimitiveModel(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, transforms, vanillaNodeRenderCommands, shaderModNodeRenderCommands);
                 }
             }
-            vanillaNodeRenderCommands.add(GL11::glPopMatrix);
-            shaderModNodeRenderCommands.add(GL11::glPopMatrix);
         }
         else {
             if(!nodeModel.getMeshModels().isEmpty()) {
-                Runnable transformCommand = createTransformCommand(nodeModel);
-                vanillaNodeRenderCommands.add(transformCommand);
-                shaderModNodeRenderCommands.add(transformCommand);
                 for(MeshModel meshModel : nodeModel.getMeshModels()) {
                     for(MeshPrimitiveModel meshPrimitiveModel : meshModel.getMeshPrimitiveModels()) {
                         processMeshPrimitiveModel(gltfRenderData, nodeModel, meshModel, meshPrimitiveModel, vanillaNodeRenderCommands, shaderModNodeRenderCommands);
                     }
                 }
-                vanillaNodeRenderCommands.add(GL11::glPopMatrix);
-                shaderModNodeRenderCommands.add(GL11::glPopMatrix);
             }
         }
         nodeModel.getChildren().forEach((childNode) -> processNodeModel(gltfRenderData, childNode, vanillaNodeRenderCommands, shaderModNodeRenderCommands));
@@ -111,12 +101,16 @@ public class RenderedGltfModelGL30 extends RenderedGltfModel {
             vanillaRenderCommands.add(() -> {
                 float[] scale = nodeModel.getScale();
                 if(scale == null || scale[0] != 0.0F || scale[1] != 0.0F || scale[2] != 0.0F) {
+                    applyTransformVanilla(nodeModel);
+
                     vanillaNodeRenderCommands.forEach(Runnable::run);
                 }
             });
             shaderModRenderCommands.add(() -> {
                 float[] scale = nodeModel.getScale();
                 if(scale == null || scale[0] != 0.0F || scale[1] != 0.0F || scale[2] != 0.0F) {
+                    applyTransformShaderMod(nodeModel);
+
                     shaderModNodeRenderCommands.forEach(Runnable::run);
                 }
             });

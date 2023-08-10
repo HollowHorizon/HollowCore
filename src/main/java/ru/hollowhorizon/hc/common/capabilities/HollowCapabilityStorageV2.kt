@@ -11,9 +11,9 @@ import net.minecraftforge.event.AttachCapabilitiesEvent
 import ru.hollowhorizon.hc.client.utils.toRL
 
 object HollowCapabilityStorageV2 {
-    val capabilities = arrayListOf<Class<*>>()
+    val capabilities = hashSetOf<Class<*>>()
     val storages = hashMapOf<String, Capability<*>>()
-    val providers = arrayListOf<Pair<Class<*>, () -> HollowCapabilitySerializer<*>>>()
+    val providers = hashSetOf<Pair<Class<*>, () -> HollowCapabilitySerializer<*>>>()
 
     fun getCapabilitiesForClass(clazz: Class<*>): List<Capability<*>> {
         return providers.filter { it.first == clazz }.map { it.second.invoke().cap }
@@ -21,13 +21,6 @@ object HollowCapabilityStorageV2 {
 
     fun getCapabilityTargets(cap: Capability<*>): List<Class<*>> {
         return providers.filter { it.second.invoke().cap == cap }.map { it.first }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun registerAll() {
-        capabilities.forEach {
-            register(it as Class<HollowCapability>)
-        }
     }
 
     @JvmStatic

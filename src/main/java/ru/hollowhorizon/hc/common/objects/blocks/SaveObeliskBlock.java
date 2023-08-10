@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.common.objects.blocks;
 
-import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -15,17 +14,15 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import ru.hollowhorizon.hc.common.objects.tiles.SaveObeliskTile;
 import ru.hollowhorizon.hc.common.registry.ModTileEntities;
 
 import javax.annotation.Nonnull;
-import java.util.function.Function;
 
-public class SaveObelisk extends HollowBlock {
+public class SaveObeliskBlock extends HollowBlock {
 
-    public SaveObelisk() {
+    public SaveObeliskBlock() {
         super(BlockBehaviour.Properties.of(Material.METAL).noOcclusion());
 
     }
@@ -45,7 +42,7 @@ public class SaveObelisk extends HollowBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> type) {
-        return type == ModTileEntities.SAVE_OBELISK_TILE ? SaveObeliskTile::tick : null;
+        return type == ModTileEntities.INSTANCE.getSAVE_OBELISK_TILE().get() ? SaveObeliskTile::tick : null;
     }
 
     @Override
