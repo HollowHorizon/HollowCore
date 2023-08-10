@@ -34,12 +34,31 @@ jobs:
         with:
           name: Artifacts
           path: build/libs/
-      - name: authomatic upload
-        uses: marvinpinto/action-automatic-releases@latest
-        with: 
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "lasted"
-          prerelease: false
-          title: "[AUTHOMATIC BUILD 1.19.2]"
-          files: |
-            build/libs/*.jar
+      - name: Get main mc version from tag
+        id: get_mc_version
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.RELEASE_NOTES_TOKEN }}
+          result-encoding: string
+          script: |
+            return '${{ github.ref }}'.match(/refs\/tags\/(.*)\/v((.*)-(.*))/)[3];
+      - name: Get file version from tag
+        id: get_version
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.RELEASE_NOTES_TOKEN }}
+          result-encoding: string
+          script: |
+            return '${{ github.ref }}'.match(/refs\/tags\/(.*)\/v((.*)-(.*))/)[4];
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          draft: false
+          name: hc-${{ steps.get_mc_version.outputs.result }}-${{ steps.get_version.outputs.result }}-${{ steps.get_release_type.outputs.result }}
+          body: ${{ steps.changelog.outputs.changes }}
+          token: ${{ github.token }}
+          tag: ${{ github.ref }}
+          artifacts: ./build/libs/hc-${{ steps.get_mc_version.outputs.result }}-${{ steps.get_version.outputs.result }}.jar
+          artifactContentType: application/java-archive
