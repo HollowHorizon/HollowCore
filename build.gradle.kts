@@ -142,7 +142,10 @@ configurations {
 }
 
 tasks.getByName("build").dependsOn("shadowJar")
-tasks.getByName("shadowJar").finalizedBy("copyJar")
+
+if (System.getProperty("user.name").equals("user")) {
+    tasks.getByName("shadowJar").finalizedBy("copyJar")
+}
 
 tasks.getByName<ShadowJar>("shadowJar") {
     //minimize()
