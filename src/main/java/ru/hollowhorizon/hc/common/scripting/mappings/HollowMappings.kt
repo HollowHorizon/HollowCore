@@ -3,10 +3,9 @@ package ru.hollowhorizon.hc.common.scripting.mappings
 
 import kotlinx.serialization.Serializable
 import org.objectweb.asm.tree.ClassNode
-import ru.hollowhorizon.hc.client.utils.nbt.MAPPINGS_SERIALIZER
-import ru.hollowhorizon.hc.client.utils.nbt.deserialize
-import ru.hollowhorizon.hc.client.utils.nbt.loadAsNBT
+import ru.hollowhorizon.hc.client.utils.nbt.*
 import java.io.DataInputStream
+import java.io.File
 import java.io.InputStream
 
 object HollowMappings {
@@ -23,6 +22,8 @@ object HollowMappings {
 fun main() {
     val mapping = Mappings.loadFromTSRG(Mappings.Companion::class.java.getResourceAsStream("/output.tsrg")!!)
 
+    NBTFormat.serialize(mapping).save(File("mappings.nbt").outputStream())
+
     println(mapping)
 }
 
@@ -38,7 +39,7 @@ data class Mappings(val mappings: HashSet<ClassMapping>) {
                     mappings.add(ClassMapping(data[0], data[1]).apply { lastClass = this })
                 } else if (!line.startsWith("\t\t")) { //Если идёт метод или параметр
                     val data = line.substringAfter("\t").replace("/", ".").replace("$", ".").split(" ")
-                    if(data.size == 3) lastClass?.methods?.add(MethodMapping(data[0], data[2], data[1]))
+                    if (data.size == 3) lastClass?.methods?.add(MethodMapping(data[0], data[2], data[1]))
                     else lastClass?.fields?.add(FieldMapping(data[0], data[1]))
                 }
             }
@@ -47,7 +48,10 @@ data class Mappings(val mappings: HashSet<ClassMapping>) {
         }
     }
 
+    @kotlinx.serialization.Transient
     val fields = mappings.flatMap { it.fields.map { f -> f.srgName to f.mcpName } }.toMap()
+
+    @kotlinx.serialization.Transient
     val methods = mappings.flatMap { it.methods.map { m -> m.srgName to m.mcpName } }.toMap()
 
     operator fun get(node: ClassNode) = mappings.find { it.mcpName == node.name.replace("/", ".").replace("$", ".") }
@@ -83,7 +87,7 @@ data class Mappings(val mappings: HashSet<ClassMapping>) {
 @Serializable
 data class ClassMapping(
     val mcpName: String,
-    val srgName: String
+    val srgName: String,
 ) {
     val fields = HashSet<FieldMapping>()
     val methods = HashSet<MethodMapping>()
@@ -102,12 +106,12 @@ data class ClassMapping(
 @Serializable
 data class FieldMapping(
     val mcpName: String,
-    val srgName: String
+    val srgName: String,
 )
 
 @Serializable
 data class MethodMapping(
     val mcpName: String,
     val srgName: String,
-    val params: String
+    val params: String,
 )

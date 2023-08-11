@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.common.scripting.kotlin
 
-import cpw.mods.modlauncher.TransformingClassLoader
 import net.minecraftforge.fml.ModList
 import net.minecraftforge.fml.loading.FMLLoader
 import ru.hollowhorizon.hc.HollowCore
@@ -22,9 +21,12 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
     body()
 
     jvm {
-        if (FMLLoader.isProduction()) System.setProperty(
+        val stdLib =
+            if (FMLLoader.isProduction()) ModList.get().getModFileById("hc").file.filePath.toFile().absolutePath
+            else File("C:\\Users\\user\\Desktop\\papka_with_papkami\\MyJavaProjects\\HollowCore\\build\\libs\\hc-1.1.0.jar").absolutePath
+        System.setProperty(
             "kotlin.java.stdlib.jar",
-            ModList.get().getModFileById("hc").file.filePath.toFile().absolutePath
+            stdLib
         )
 
         val files = HashSet<File>()
@@ -54,47 +56,47 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
             }
 
             files.addAll(ModList.get().modFiles.map { it.file.filePath.toFile() })
-            files.add(FMLLoader.getGamePath().toFile())
 
             files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherModPaths.flatten().map { it.toFile() })
             files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherArtifacts.map { it.toFile() })
 
             files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map { it.toFile() })
 
-            var libraries =
-                FMLLoader.getGamePath().resolve("libraries").toFile().walk().filter { it.name.endsWith(".jar") }
-                    .toList()
+//            var libraries =
+//                FMLLoader.getGamePath().resolve("libraries").toFile().walk().filter { it.name.endsWith(".jar") }
+//                    .toList()
+//
+//            if (libraries.isEmpty()) {
+//                //Такое может произойти, если какой-то умник засунул папку с библиотеками не пойми куда, например как это сделали TLauncher и CurseForge App
+//
+//                var exampleLibrary =
+//                    File(findClasspathEntry("org.apache.logging.log4j.Logger")) //Попробуем найти библиотеку, которая точно существует
+//                while (exampleLibrary.name != "libraries") {
+//                    if (exampleLibrary.parentFile == null) break
+//                    exampleLibrary = exampleLibrary.parentFile
+//                }
+//
+//                if (exampleLibrary.name == "libraries") {
+//                    libraries = exampleLibrary.walk().filter { it.name.endsWith(".jar") }.toList()
+//                } else {
+//                    HollowCore.LOGGER.error("Failed to find libraries folder!")
+//                }
+//            }
+//
+//            files.addAll(libraries)
 
-            if (libraries.isEmpty()) {
-                //Такое может произойти, если какой-то умник засунул папку с библиотеками не пойми куда, например как это сделали TLauncher и CurseForge App
-
-                var exampleLibrary =
-                    File(findClasspathEntry("org.apache.logging.log4j.Logger")) //Попробуем найти библиотеку, которая точно существует
-                while (exampleLibrary.name != "libraries") {
-                    if (exampleLibrary.parentFile == null) break
-                    exampleLibrary = exampleLibrary.parentFile
-                }
-
-                if (exampleLibrary.name == "libraries") {
-                    libraries = exampleLibrary.walk().filter { it.name.endsWith(".jar") }.toList()
-                } else {
-                    HollowCore.LOGGER.error("Failed to find libraries folder!")
-                }
-            }
-            files.addAll(libraries)
-
-            dependenciesFromClassloader(
-                classLoader = TransformingClassLoader.getSystemClassLoader(),
-                unpackJarCollections = true
+            dependenciesFromClassContext(
+                HollowScriptConfiguration::class,
+                wholeClasspath = true
             )
         } else dependenciesFromClassContext(HollowScriptConfiguration::class, wholeClasspath = true)
 
-        updateClasspath(files)
-
+        updateClasspath(files.sortedBy { it.absolutePath }.apply { HollowCore.LOGGER.info("Updating classpath: {}", this) })
 
         compilerOptions(
             "-opt-in=kotlin.time.ExperimentalTime,kotlin.ExperimentalStdlibApi",
-            "-jvm-target", "1.8",
+            "-jvm-target=1.8",
+            "-Xadd-modules=ALL-MODULE-PATH" //Loading kotlin from shadowed jar
         )
 
     }

@@ -166,7 +166,7 @@ private class NullableListEncoder(format: NBTFormat, nodeConsumer: (Tag) -> Unit
 }
 
 private fun ListTag.addAnyTag(index: Int, tag: Tag) {
-    (this as ListTagAccessor).list().add(index, tag)
+    (this as? ListTagAccessor)?.list()?.add(index, tag) ?: this.addTag(index, tag)
 }
 
 private class NbtListEncoder(json: NBTFormat, nodeConsumer: (Tag) -> Unit) :

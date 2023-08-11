@@ -15,14 +15,14 @@ buildscript {
         classpath("net.minecraftforge.gradle:ForgeGradle:5+") { isChanging = true }
         classpath("org.parchmentmc:librarian:1.+")
         classpath("org.spongepowered:mixingradle:0.7.32")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0-RC")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
         classpath("gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7+")
     }
 }
 
 plugins {
-    id("org.jetbrains.kotlin.jvm").version("1.9.0-RC")
-    id("org.jetbrains.kotlin.plugin.serialization").version("1.9.0-RC")
+    id("org.jetbrains.kotlin.jvm").version("1.9.0")
+    id("org.jetbrains.kotlin.plugin.serialization").version("1.9.0")
 }
 
 apply {
@@ -103,16 +103,16 @@ dependencies {
 
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
 
-    shadow("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0-RC")
-    shadow("org.jetbrains.kotlin:kotlin-stdlib-common:1.9.0-RC")
+    shadow("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0")
+    shadow("org.jetbrains.kotlin:kotlin-stdlib-common:1.9.0")
 
-    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.9.0-RC")
-    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm:1.9.0-RC")
+    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.9.0")
+    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm:1.9.0")
 
-    shadow("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.9.0-RC")
-    shadowCompileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.0-RC")
+    shadow("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.9.0")
+    shadowCompileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.0")
 
-    shadow("org.jetbrains.kotlin:kotlin-script-runtime:1.9.0-RC")
+    shadow("org.jetbrains.kotlin:kotlin-script-runtime:1.9.0")
 
     shadow("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     shadow("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4")
