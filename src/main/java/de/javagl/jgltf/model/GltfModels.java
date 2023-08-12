@@ -31,7 +31,6 @@ import de.javagl.jgltf.model.io.v1.GltfAssetV1;
 import de.javagl.jgltf.model.io.v2.GltfAssetV2;
 import de.javagl.jgltf.model.v1.GltfModelV1;
 import de.javagl.jgltf.model.v2.GltfModelCreatorV2;
-import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability;
 
 /**
  * Methods to create {@link GltfModel} instances from a {@link GltfAsset}

@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc;
 
+import com.modularmods.mcgltf.MCglTF;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
@@ -29,9 +30,6 @@ import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
-import ru.hollowhorizon.hc.client.gltf.GlTFModelManager;
-import ru.hollowhorizon.hc.client.gltf.GltfModelSources;
-import ru.hollowhorizon.hc.client.gltf.PathSource;
 import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
 import ru.hollowhorizon.hc.client.render.OpenGLUtils;
@@ -59,6 +57,7 @@ public class HollowCore {
     public static final boolean DEBUG_MODE = true;
 
     public HollowCore() {
+        new MCglTF();
         HollowModProcessor.initMod();
         LOGGER.info("Starting HollowCore...");
 
@@ -69,7 +68,7 @@ public class HollowCore {
         modBus.addListener(this::onResourcePackAdd);
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
-        GltfModelSources.INSTANCE.addSource(new PathSource(FMLPaths.GAMEDIR.get().resolve("hollowengine")));
+        //GltfModelSources.INSTANCE.addSource(new PathSource(FMLPaths.GAMEDIR.get().resolve("hollowengine")));
 
         if (FMLEnvironment.dist.isClient()) {
             OpenGLUtils.init();
@@ -81,8 +80,8 @@ public class HollowCore {
             forgeBus.addListener(ClientTickHandler::clientTickEnd);
 
             //модели
-            new GlTFModelManager();
-            modBus.addListener(GlTFModelManager::clientSetup);
+            //new GlTFModelManager();
+            //modBus.addListener(GlTFModelManager::clientSetup);
             modBus.addListener(this::onRendererCreating);
 
             GPUMemoryManager.Companion.getInstance().initialize();

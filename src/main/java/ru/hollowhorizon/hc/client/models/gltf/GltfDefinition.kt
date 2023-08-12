@@ -4,7 +4,11 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
-import com.mojang.math.*
+import com.google.gson.annotations.SerializedName
+import com.mojang.math.Matrix4f
+import com.mojang.math.Quaternion
+import com.mojang.math.Vector3f
+import com.mojang.math.Vector4f
 import kotlinx.serialization.Serializable
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
@@ -64,7 +68,7 @@ object GltfDefinition {
             if (path.startsWith("data:application/octet-stream;base64,")) {
                 return java.util.Base64.getDecoder().wrap(path.substring(37).byteInputStream())
             }
-            if(path.startsWith("data:image/png;base64,")) {
+            if (path.startsWith("data:image/png;base64,")) {
                 return java.util.Base64.getDecoder().wrap(path.substring(22).byteInputStream())
             }
 
@@ -105,7 +109,7 @@ data class GltfFile(
     val skins: List<GltfSkin> = emptyList(),
     val textures: List<GltfTexture> = emptyList(),
     val extensions: JsObject? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 ) {
     override fun toString(): String {
         return "glTF(\n" +
@@ -136,7 +140,7 @@ data class GltfScene(
     val nodes: List<Int>? = null,
     val name: String? = null,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfNode(
@@ -151,7 +155,7 @@ data class GltfNode(
     val weights: List<Float> = emptyList(),
     val name: String? = null,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfBuffer(
@@ -159,7 +163,7 @@ data class GltfBuffer(
     val byteLength: Int = 0,
     val name: String? = null,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfBufferView(
@@ -170,7 +174,7 @@ data class GltfBufferView(
     val target: Int? = 0,
     val name: String? = null,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfCamera(
@@ -179,7 +183,7 @@ data class GltfCamera(
     val type: GltfCameraType = GltfCameraType.orthographic,
     val name: String? = null,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfAccessor(
@@ -194,7 +198,7 @@ data class GltfAccessor(
     val sparse: GltfSparse? = null,
     val name: String? = null,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfSparse(
@@ -202,7 +206,7 @@ data class GltfSparse(
     val indices: List<GltfAccessor> = emptyList(),
     val values: List<GltfAccessor> = emptyList(),
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfMesh(
@@ -210,7 +214,7 @@ data class GltfMesh(
     val weights: List<Double> = emptyList(),
     val name: String? = null,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfPrimitive(
@@ -220,7 +224,7 @@ data class GltfPrimitive(
     val mode: Int = 4,
     val targets: Map<String, Int> = emptyMap(),
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfSkin(
@@ -229,7 +233,7 @@ data class GltfSkin(
     val skeleton: Int? = 0,
     val name: String? = null,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfTexture(
@@ -237,7 +241,7 @@ data class GltfTexture(
     val source: Int? = 0,
     val name: String? = null,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfImage(
@@ -246,7 +250,7 @@ data class GltfImage(
     val bufferView: Int? = null,
     val name: String? = null,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfSampler(
@@ -256,13 +260,14 @@ data class GltfSampler(
     val wrapT: Int? = null,
     val name: String? = null,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfMaterial(
     val name: String? = null,
     val extensions: String? = null,
     val extras: Any? = null,
+    @SerializedName(value = "pbrMetallicRoughness", alternate = ["extras"])
     val pbrMetallicRoughness: GltfPbrMetallicRoughness? = null,
     val normalTexture: GltfNormalTextureInfo? = null,
     val occlusionTexture: GltfOcclusionTextureInfo? = null,
@@ -270,7 +275,7 @@ data class GltfMaterial(
     val emissiveFactor: Vector3f? = Vector3f(0.0f, 0.0f, 0.0f),
     val alphaMode: GltfAlphaMode? = GltfAlphaMode.OPAQUE,
     val alphaCutoff: Double? = 0.5,
-    val doubleSided: Boolean = false
+    val doubleSided: Boolean = false,
 )
 
 data class GltfPbrMetallicRoughness(
@@ -280,14 +285,14 @@ data class GltfPbrMetallicRoughness(
     val roughnessFactor: Double = 1.0,
     val metallicRoughnessTexture: GltfTextureInfo? = null,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfTextureInfo(
     val index: Int = 0,
     val texCoord: Int = 0,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfNormalTextureInfo(
@@ -295,7 +300,7 @@ data class GltfNormalTextureInfo(
     val texCoord: Int = 0,
     val scale: Double = 1.0,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfOcclusionTextureInfo(
@@ -303,44 +308,44 @@ data class GltfOcclusionTextureInfo(
     val texCoord: Int = 0,
     val strength: Double = 1.0,
     val extensions: String? = null,
-    val extras: Any? = null
+    val extras: Any? = null,
 )
 
 data class GltfPerspectiveCamera(
     val aspectRatio: Double,
     val yfov: Double,
     val znear: Double,
-    val zfar: Double = Double.POSITIVE_INFINITY
+    val zfar: Double = Double.POSITIVE_INFINITY,
 )
 
 data class GltfOrthographicCamera(
     val xmag: Double,
     val ymag: Double,
     val zfar: Double,
-    val znear: Double
+    val znear: Double,
 )
 
 
 data class GltfAnimation(
     val name: String?,
     val channels: List<GltfAnimationChannel>,
-    val samplers: List<GltfAnimationSampler>
+    val samplers: List<GltfAnimationSampler>,
 )
 
 data class GltfAnimationChannel(
     val sampler: Int,
-    val target: GltfChannelTarget
+    val target: GltfChannelTarget,
 )
 
 data class GltfChannelTarget(
     val node: Int,
-    val path: String
+    val path: String,
 )
 
 data class GltfAnimationSampler(
     val input: Int,
     val interpolation: GltfInterpolation,
-    val output: Int
+    val output: Int,
 )
 
 enum class GltfChannelPath {

@@ -5,14 +5,18 @@ import de.javagl.jgltf.model.NodeModel
 import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability
 
 class Animation(val name: String, val animationData: Map<NodeModel, AnimationData>) {
+    private var currentTime = 0f
+    var speed = 1.0f
+    var playType = PlayType.LOOPED
+    var markToRemove = false
     val maxTime = animationData.maxOf { it.value.maxTime }.let {
-        if(it == 0f) 0.0001f else it
+        if (it == 0f) 0.0001f else it
     }
 
     fun hasNode(node: NodeModel, target: AnimationTarget): Boolean {
         val data = animationData[node] ?: return false
 
-        return when(target) {
+        return when (target) {
             AnimationTarget.TRANSLATION -> data.translation != null
             AnimationTarget.ROTATION -> data.rotation != null
             AnimationTarget.SCALE -> data.scale != null
@@ -20,13 +24,36 @@ class Animation(val name: String, val animationData: Map<NodeModel, AnimationDat
         }
     }
 
-    fun compute(node: NodeModel, target: AnimationTarget, time: Float): FloatArray? {
+    fun update(partialTick: Float) {
+        when (this.playType) {
+            PlayType.ONCE -> {
+                if (currentTime < maxTime) currentTime += partialTick / 30 * speed
+                else markToRemove = true
+            }
+
+            PlayType.LOOPED -> {
+                currentTime += partialTick / 30 * speed
+                currentTime %= maxTime
+            }
+
+            PlayType.LAST_FRAME -> {
+                if (currentTime < maxTime) currentTime += partialTick / 30 * speed
+            }
+
+            PlayType.REVERSED -> {
+                currentTime += partialTick / 30 * speed
+                if (currentTime > maxTime || currentTime < 0f) speed *= -1
+            }
+        }
+    }
+
+    fun compute(node: NodeModel, target: AnimationTarget): FloatArray? {
         return animationData[node]?.let {
             when (target) {
-                AnimationTarget.TRANSLATION -> it.translation?.compute(time)
-                AnimationTarget.ROTATION -> it.rotation?.compute(time)
-                AnimationTarget.SCALE -> it.scale?.compute(time)
-                AnimationTarget.WEIGHTS -> it.weights?.compute(time)
+                AnimationTarget.TRANSLATION -> it.translation?.compute(currentTime)
+                AnimationTarget.ROTATION -> it.rotation?.compute(currentTime)
+                AnimationTarget.SCALE -> it.scale?.compute(currentTime)
+                AnimationTarget.WEIGHTS -> it.weights?.compute(currentTime)
             }
         }
     }
@@ -113,7 +140,7 @@ enum class PlayType {
     ONCE, //Одиночный запуск анимации
     LOOPED, //После завершения анимация начнётся с начала
     LAST_FRAME, //После завершения анимация застынет на последнем кадре
-    PING_PONG; //После завершения анимация начнёт проигрываться в обратном порядке
+    REVERSED; //После завершения анимация начнёт проигрываться в обратном порядке
 
 
     fun stopOnEnd(): Boolean = this == ONCE
@@ -124,7 +151,7 @@ class AnimationData(
     val translation: Interpolator<*>?,
     val rotation: Interpolator<*>?,
     val scale: Interpolator<*>?,
-    val weights: Interpolator<*>?
+    val weights: Interpolator<*>?,
 ) {
     val maxTime = maxOf(
         translation?.maxTime ?: 0f,
@@ -133,12 +160,5 @@ class AnimationData(
         weights?.maxTime ?: 0f,
     )
 }
-
-class ComputeResult(
-    val translation: FloatArray?,
-    val rotation: FloatArray?,
-    val scale: FloatArray?,
-    val weights: FloatArray?,
-)
 
 enum class AnimationTarget { TRANSLATION, ROTATION, SCALE, WEIGHTS }

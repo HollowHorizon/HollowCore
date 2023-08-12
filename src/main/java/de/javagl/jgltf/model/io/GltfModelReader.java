@@ -36,7 +36,6 @@ import de.javagl.jgltf.model.io.v1.GltfAssetV1;
 import de.javagl.jgltf.model.io.v2.GltfAssetV2;
 import de.javagl.jgltf.model.v1.GltfModelV1;
 import de.javagl.jgltf.model.v2.GltfModelCreatorV2;
-import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability;
 
 /**
  * A class for reading a {@link GltfModel} from a URI.
@@ -58,7 +57,7 @@ public final class GltfModelReader
      * @return The {@link GltfModel}
      * @throws IOException If an IO error occurs
      */
-    public GltfModel read(AnimatedEntityCapability capability, URI uri) throws IOException
+    public GltfModel read(URI uri) throws IOException
     {
         GltfAssetReader gltfAssetReader = new GltfAssetReader();
         GltfAsset gltfAsset = gltfAssetReader.read(uri);
@@ -72,7 +71,7 @@ public final class GltfModelReader
      * @return The {@link GltfModel}
      * @throws IOException If an IO error occurs
      */
-    public GltfModel read(AnimatedEntityCapability capability, Path path) throws IOException
+    public GltfModel read(Path path) throws IOException
     {
         GltfAssetReader gltfAssetReader = new GltfAssetReader();
         GltfAsset gltfAsset = gltfAssetReader.read(path);
@@ -91,7 +90,7 @@ public final class GltfModelReader
      * @return The {@link GltfModel}
      * @throws IOException If an IO error occurs
      */
-    public GltfModel readWithoutReferences(AnimatedEntityCapability capability, URI uri) throws IOException
+    public GltfModel readWithoutReferences(URI uri) throws IOException
     {
         try (InputStream inputStream = uri.toURL().openStream())
         {
@@ -102,17 +101,17 @@ public final class GltfModelReader
     
     /**
      * Read the {@link GltfModel} from the given input stream. In contrast
-     * to the {@link #read(URI)} method, this method will not resolve any
+     * to the {@link #read(URI)} method, this method will not resolve any 
      * references that are contained in the {@link GltfAsset}. <br>
      * <br>
      * This is mainly intended for binary- or embedded glTF assets that do not
      * have external references.
-     *
+     * 
      * @param inputStream The input stream to read from
      * @return The {@link GltfModel}
      * @throws IOException If an IO error occurs
      */
-    public GltfModel readWithoutReferences(InputStream inputStream)
+    public GltfModel readWithoutReferences(InputStream inputStream) 
         throws IOException
     {
         GltfAssetReader gltfAssetReader = new GltfAssetReader();
@@ -123,7 +122,7 @@ public final class GltfModelReader
     
     /**
      * Creates a {@link GltfModel} instance from the given {@link GltfAsset}
-     *
+     * 
      * @param gltfAsset The {@link GltfAsset}
      * @return The {@link GltfModel}
      * @throws IOException If the given asset has an unknown version

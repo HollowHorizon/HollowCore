@@ -3,6 +3,7 @@ import net.minecraftforge.gradle.userdev.UserDevExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import net.minecraftforge.gradle.userdev.DependencyManagementExtension
 //^(.+)$(?=[\s\S]*^(\1)$[\s\S]*)
 buildscript {
     repositories {
@@ -98,6 +99,7 @@ val shadowCompileOnly by configurations.creating
 dependencies {
     val minecraft = configurations["minecraft"]
     val shadow = configurations["shadow"]
+    val fg = project.extensions.findByType(DependencyManagementExtension::class.java)!!
 
     minecraft("net.minecraftforge:forge:1.19.2-43.2.21")
 

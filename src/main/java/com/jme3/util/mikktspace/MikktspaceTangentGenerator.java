@@ -31,12 +31,11 @@
  */
 package com.jme3.util.mikktspace;
 
-import net.minecraft.util.Mth;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import net.minecraft.util.Mth;
 
 /**
  * This tangent generator is highly experimental.

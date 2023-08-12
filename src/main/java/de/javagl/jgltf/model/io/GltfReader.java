@@ -67,8 +67,7 @@ final class GltfReader
     void read(InputStream inputStream) throws IOException
     {
     	InputStreamReader reader = new InputStreamReader(inputStream);
-
-    	rootNode = new JsonParser().parse(reader);
+    	rootNode = JsonParser.parseReader(reader);
     	reader.close();
     }
     

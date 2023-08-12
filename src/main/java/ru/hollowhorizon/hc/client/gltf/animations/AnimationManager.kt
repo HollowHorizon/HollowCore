@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.client.gltf.animations
 
+import com.modularmods.mcgltf.RenderedGltfModel
 import de.javagl.jgltf.model.NodeModel
-import ru.hollowhorizon.hc.client.gltf.RenderedGltfModel
 import kotlin.properties.Delegates
 
 
@@ -29,7 +29,7 @@ class AnimationManager(val model: RenderedGltfModel) {
     /**
      * Метод, обновляющий все анимации с учётом приоритетов
      */
-    fun update(time: Int, partialTick: Float) {
+    fun update(partialTick: Float) {
         layers.forEach { it.update(partialTick) }
 
         nodeModels.forEach { node ->
@@ -37,7 +37,7 @@ class AnimationManager(val model: RenderedGltfModel) {
 
             //для каждого канала в анимации (перемещение, поворот, размер, веса)
             AnimationTarget.entries.forEach {
-                applyTarget(node, it, time + partialTick) //рассчитываем все анимации и применяем
+                applyTarget(node, it, partialTick) //рассчитываем все анимации и применяем
             }
 
         }

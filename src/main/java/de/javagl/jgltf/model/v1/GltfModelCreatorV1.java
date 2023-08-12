@@ -39,6 +39,7 @@ import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.modularmods.mcgltf.MCglTF;
 
 import de.javagl.jgltf.impl.v1.Accessor;
 import de.javagl.jgltf.impl.v1.Animation;
@@ -133,11 +134,6 @@ import de.javagl.jgltf.model.v1.gl.DefaultModels;
 import de.javagl.jgltf.model.v1.gl.GltfDefaults;
 import de.javagl.jgltf.model.v1.gl.TechniqueStatesFunctionsModels;
 import net.minecraft.resources.ResourceLocation;
-import org.apache.commons.io.IOUtils;
-import org.codehaus.plexus.util.IOUtil;
-import org.lwjgl.BufferUtils;
-import ru.hollowhorizon.hc.client.gltf.GlTFModelManager;
-import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
 
 /**
  * A class that is responsible for filling a {@link DefaultGltfModel} with
@@ -634,9 +630,9 @@ public class GltfModelCreatorV1
             
             Object extras = image.getExtras();
         	if(extras != null) {
-        		JsonElement extra = new Gson().toJsonTree(extras).getAsJsonObject().get("resourceLocation");
+        		JsonElement extra = new Gson().toJsonTree(extras).getAsJsonObject().get(MCglTF.RESOURCE_LOCATION);
         		if(extra != null) {
-                    imageModel.setImageData(GlTFModelManager.getInstance().getImageResource(extra.getAsString()));
+        			imageModel.setImageData(MCglTF.getInstance().getImageResource(new ResourceLocation(extra.getAsString())));
         			continue;
         		}
         	}
@@ -761,9 +757,9 @@ public class GltfModelCreatorV1
             
             Object extras = buffer.getExtras();
         	if(extras != null) {
-        		JsonElement extra = new Gson().toJsonTree(extras).getAsJsonObject().get("resourceLocation");
+        		JsonElement extra = new Gson().toJsonTree(extras).getAsJsonObject().get(MCglTF.RESOURCE_LOCATION);
         		if(extra != null) {
-                    bufferModel.setBufferData(GlTFModelManager.getInstance().getBufferResource(new ResourceLocation(extra.getAsString())));
+        			bufferModel.setBufferData(MCglTF.getInstance().getBufferResource(new ResourceLocation(extra.getAsString())));
         			continue;
         		}
         	}

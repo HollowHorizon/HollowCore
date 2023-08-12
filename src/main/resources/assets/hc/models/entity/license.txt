@@ -1,0 +1,11 @@
+Model Information:
+* title:	Hilda_Regular_00
+* source:	https://sketchfab.com/3d-models/hilda-regular-00-2ddcfe9520574fe9a130eda2bb8a20a5
+* author:	PixartistLilack (https://sketchfab.com/PixartistLilack)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Hilda_Regular_00" (https://sketchfab.com/3d-models/hilda-regular-00-2ddcfe9520574fe9a130eda2bb8a20a5) by PixartistLilack (https://sketchfab.com/PixartistLilack) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
