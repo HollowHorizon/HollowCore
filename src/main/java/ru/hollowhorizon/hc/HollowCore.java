@@ -64,6 +64,8 @@ public class HollowCore {
 
         GltfModelSources.INSTANCE.addSource(new PathSource(FMLPaths.GAMEDIR.get().resolve("hollowengine")));
 
+        HollowCapabilityStorageV2.INSTANCE.registerAll();
+
         if (FMLEnvironment.dist.isClient()) {
             //клавиши
             forgeBus.register(new HollowKeyHandler());
