@@ -109,7 +109,7 @@ public class HollowCore {
 
     //『Pre-Init』
     private void setup(final FMLCommonSetupEvent event) {
-        ModCapabilities.init();
+//        ModCapabilities.init();
         NetworkHandler.register();
 
         event.enqueueWork(ModStructures::postInit);
