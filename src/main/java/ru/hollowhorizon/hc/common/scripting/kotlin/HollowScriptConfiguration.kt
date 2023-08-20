@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.common.scripting.kotlin
 
 import net.minecraftforge.fml.ModList
+import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.fml.loading.FMLLoader
 import ru.hollowhorizon.hc.HollowCore
 import java.io.File

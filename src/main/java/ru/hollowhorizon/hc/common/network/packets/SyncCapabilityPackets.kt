@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.common.network.messages
+package ru.hollowhorizon.hc.common.network.packets
 
 import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft

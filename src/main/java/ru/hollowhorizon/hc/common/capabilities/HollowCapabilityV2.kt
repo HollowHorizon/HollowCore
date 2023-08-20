@@ -7,11 +7,7 @@ import net.minecraft.nbt.Tag
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.Level
-import net.minecraftforge.common.capabilities.Capability
-import net.minecraftforge.common.capabilities.CapabilityProvider
-import net.minecraftforge.common.capabilities.ICapabilitySerializable
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent
+import net.minecraftforge.common.capabilities.*
 import net.minecraftforge.common.util.LazyOptional
 import net.minecraftforge.fml.Logging
 import net.minecraftforge.fml.ModLoader
@@ -25,10 +21,11 @@ import ru.hollowhorizon.hc.client.utils.nbt.deserialize
 import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 import ru.hollowhorizon.hc.common.network.Packet
-import ru.hollowhorizon.hc.common.network.messages.CapabilityForEntity
-import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityEntity
-import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityPlayer
-import ru.hollowhorizon.hc.common.network.messages.SyncCapabilityWorld
+import ru.hollowhorizon.hc.common.network.packets.CapabilityForEntity
+import ru.hollowhorizon.hc.common.network.packets.SyncCapabilityEntity
+import ru.hollowhorizon.hc.common.network.packets.SyncCapabilityPlayer
+import ru.hollowhorizon.hc.common.network.packets.SyncCapabilityWorld
+import ru.hollowhorizon.hc.common.network.send
 import kotlin.reflect.KClass
 
 
@@ -62,36 +59,34 @@ fun <T> callHook(list: MutableList<ModFileScanData>, method: (String, Boolean) -
 
         val targets: List<Type> =
             (annotation.annotationData["value"] as ArrayList<Type>)
-        initCapability(result, targets)
+        initCapabilities(result, targets)
     }
 
     ModLoader.get().postEvent(RegisterCapabilitiesEvent())
 }
 
-fun <T: Any> CapabilityProvider<*>.getCapability(c: KClass<T>): T {
+fun <T : Any> CapabilityProvider<*>.getCapability(c: KClass<T>): T {
     return this.getCapability(HollowCapabilityV2.get(c.java))
         .orElseThrow { IllegalStateException("Capability ${T::class.java.simpleName} not found!") }
 }
 
 @Suppress("unchecked_cast")
-class HollowCapabilitySerializer<T : Any>(val cap: Capability<T>) : ICapabilitySerializable<Tag> {
-    val type: Class<T> = Class.forName(cap.name.replace("/", ".").replace("$", ".")) as Class<T>
-    var instance: T = type.getDeclaredConstructor().newInstance() as T
+class HollowCapabilitySerializer<T : Any>(val capability: Capability<T>) : ICapabilitySerializable<Tag> {
+    private val type: Class<T> = Class.forName(capability.name.replace("/", ".").replace("$", ".")) as Class<T>
+    private var backend: T = type.getDeclaredConstructor().newInstance() as T
+    private val optionalData: LazyOptional<T> = LazyOptional.of { backend }
 
     override fun <T : Any> getCapability(cap: Capability<T>, side: Direction?): LazyOptional<T> {
-        if (cap == this.cap) {
-            return LazyOptional.of { instance as T }
-        }
-        return LazyOptional.empty()
+        return capability.orEmpty(cap, optionalData)
     }
 
-    override fun serializeNBT(): Tag {
-        return NBTFormat.serializeNoInline(instance, type)
-    }
+    override fun serializeNBT() = NBTFormat.serializeNoInline(backend, type)
 
     override fun deserializeNBT(nbt: Tag) {
-        instance = NBTFormat.deserializeNoInline(nbt, type)
+        backend = NBTFormat.deserializeNoInline(nbt, type)
     }
+
+    fun invalidate() = optionalData.invalidate()
 }
 
 @Serializable
@@ -143,7 +138,7 @@ fun Class<HollowCapability>.createSyncPacketPlayer(): Packet<HollowCapability> =
 fun Class<HollowCapability>.createSyncPacketEntity(): Packet<CapabilityForEntity> = SyncCapabilityEntity()
 fun Class<HollowCapability>.createSyncPacketClientLevel(): Packet<HollowCapability> = SyncCapabilityWorld()
 
-fun initCapability(cap: Capability<*>, targets: List<Type>) {
+fun initCapabilities(cap: Capability<*>, targets: List<Type>) {
     HollowCore.LOGGER.info("{} for [{}]", cap.name, targets.joinToString { it.internalName })
     HollowCapabilityStorageV2.storages[cap.name.replace("/", ".").replace("$", ".")] = cap
 

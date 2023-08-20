@@ -9,18 +9,27 @@ import ru.hollowhorizon.hc.HollowCore
 
 interface ILayer {
     var priority: Float
+    val playType: PlayType
+    var speed: Float
+    var shouldRemove: Boolean
 
     fun compute(node: NodeModel, target: AnimationTarget, partialTick: Float): FloatArray?
 
     fun update(partialTick: Float) {}
 }
 
-class AnimationLayer(val animation: Animation, override var priority: Float) : ILayer {
+class AnimationLayer(
+    val animation: Animation, override var priority: Float,
+    override val playType: PlayType = PlayType.ONCE,
+    override var speed: Float = 1.0f,
+) : ILayer {
+    override var shouldRemove = false
+
     override fun compute(node: NodeModel, target: AnimationTarget, partialTick: Float) =
         animation.compute(node, target)
 
     override fun update(partialTick: Float) {
-        animation.update(partialTick)
+        animation.update(this, partialTick)
     }
 
 }
@@ -31,14 +40,18 @@ class SmoothLayer(
     private var second: Animation?,
     override var priority: Float,
     private val switchSpeed: Float = 2.5f,
+    override val playType: PlayType = PlayType.LOOPED,
+    override var speed: Float = 1.0f,
 ) : ILayer {
     private var switchPriority = 1.0f
+    override var shouldRemove = false
+
     val current: Animation?
         get() = second
 
     override fun update(partialTick: Float) {
-        first?.update(partialTick)
-        second?.update(partialTick)
+        first?.update(this, partialTick)
+        second?.update(this, partialTick)
         if (switchPriority > 0f) {
             switchPriority -= (switchSpeed * partialTick) / 20f
             if (switchPriority < 0f) {
@@ -79,6 +92,9 @@ class SmoothLayer(
 }
 
 class HeadLayer(var animatable: LivingEntity, override var priority: Float) : ILayer {
+    override val playType = PlayType.LOOPED
+    override var speed = 1.0f
+    override var shouldRemove = false
 
     fun isValidNode(node: NodeModel?): Boolean {
         //если название кости head и её родители не имеют такого же название

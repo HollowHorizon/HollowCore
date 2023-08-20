@@ -1,11 +1,9 @@
 package ru.hollowhorizon.hc.common.capabilities
 
-import net.minecraft.client.Minecraft
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntity
-import net.minecraft.world.level.chunk.ChunkAccess
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.event.AttachCapabilitiesEvent
 import ru.hollowhorizon.hc.client.utils.toRL
@@ -16,42 +14,27 @@ object HollowCapabilityStorageV2 {
     val providers = hashSetOf<Pair<Class<*>, () -> HollowCapabilitySerializer<*>>>()
 
     fun getCapabilitiesForClass(clazz: Class<*>): List<Capability<*>> {
-        return providers.filter { it.first == clazz }.map { it.second.invoke().cap }
+        return providers.filter { it.first == clazz }.map { it.second.invoke().capability }
     }
 
     fun getCapabilityTargets(cap: Capability<*>): List<Class<*>> {
-        return providers.filter { it.second.invoke().cap == cap }.map { it.first }
+        return providers.filter { it.second.invoke().capability == cap }.map { it.first }
     }
 
     @JvmStatic
-    fun registerProvidersEntity(event: AttachCapabilitiesEvent<Entity>) {
-        providers.filter { it.first.isInstance(event.`object`) }.forEach {
-            val inst = it.second()
-            event.addCapability(inst.cap.createName(), inst)
-        }
-    }
+    fun registerProvidersEntity(event: AttachCapabilitiesEvent<Entity>) = event.initCapabilities()
 
     @JvmStatic
-    fun registerProvidersWorld(event: AttachCapabilitiesEvent<Level>) {
-        providers.filter { it.first.isInstance(event.`object`) }.forEach {
-            val inst = it.second()
-            event.addCapability(inst.cap.createName(), inst)
-        }
-    }
+    fun registerProvidersBlockEntity(event: AttachCapabilitiesEvent<BlockEntity>) = event.initCapabilities()
 
     @JvmStatic
-    fun registerProvidersTile(event: AttachCapabilitiesEvent<BlockEntity>) {
-        providers.filter { it.first.isInstance(event.`object`) }.forEach {
-            val inst = it.second()
-            event.addCapability(inst.cap.createName(), inst)
-        }
-    }
+    fun registerProvidersWorld(event: AttachCapabilitiesEvent<Level>) = event.initCapabilities()
 
-    @JvmStatic
-    fun registerProvidersChunk(event: AttachCapabilitiesEvent<ChunkAccess>) {
-        providers.filter { it.first.isInstance(event.`object`) }.forEach {
+    private fun <T> AttachCapabilitiesEvent<T>.initCapabilities() {
+        providers.filter { it.first.isInstance(this.`object`) }.forEach {
             val inst = it.second()
-            event.addCapability(inst.cap.createName(), inst)
+            this.addCapability(inst.capability.createName(), inst)
+            this.addListener(inst::invalidate)
         }
     }
 

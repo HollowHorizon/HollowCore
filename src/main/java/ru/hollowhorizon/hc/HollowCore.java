@@ -10,7 +10,6 @@ import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -25,7 +24,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.fml.loading.FMLPaths;
 import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
@@ -97,8 +95,7 @@ public class HollowCore {
         forgeBus.register(this);
 
         forgeBus.addGenericListener(Entity.class, HollowCapabilityStorageV2::registerProvidersEntity);
-        forgeBus.addGenericListener(BlockEntity.class, HollowCapabilityStorageV2::registerProvidersTile);
-        forgeBus.addGenericListener(ChunkAccess.class, HollowCapabilityStorageV2::registerProvidersChunk);
+        forgeBus.addGenericListener(BlockEntity.class, HollowCapabilityStorageV2::registerProvidersBlockEntity);
         forgeBus.addGenericListener(Level.class, HollowCapabilityStorageV2::registerProvidersWorld);
 
         forgeBus.addListener(this::configSave);

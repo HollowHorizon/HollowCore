@@ -1,40 +1,46 @@
-#version 420
+#version 150
 
-const int MAX_JOINTS = 50;//max joints allowed in a skeleton
-const int MAX_WEIGHTS = 3;//max number of joints that can affect a vertex
+//in - то что поступает через Tesselator или же из VBO
+in vec3 Position; //координаты текущей вершины
+in vec4 Color; //цвет
 
-layout (location=0) in vec3 in_position;
-layout (location=1) in vec2 in_textureCoords;
-layout (location=2) in vec3 in_normal;
-layout (location=3) in ivec3 in_jointIndices;
-layout (location=4) in vec3 in_weights;
+//координаты точки на текстуре
+in vec2 UV0;//(условно есть модель лица игрока и для каждой точки в пространстве берётся точка на текстуре, а потом opengl уже сам натягивает текстуру)
+in ivec2 UV1; //координаты света (на световой текстуре) - подробнее ниже
+in ivec2 UV2; //координаты оверлея (на текстуре оверлея) - подробнее ниже
 
-out vec2 pass_textureCoords;
-out vec3 pass_vertex;
-flat out vec3 pass_normal;
+in vec3 Normal; //нормаль, какая-то хрень, которая вычисляется в PoseStack и отвечает за правильное освещение граней
 
-uniform mat4 modelViewMatrix;
-uniform mat4 projectionMatrix;
-uniform mat4 jointTransforms[MAX_JOINTS];
+uniform sampler2D Sampler1; //текстура света (просто градиент 16x16, где слева вверху чёрный, а справа внизу - белый)
+uniform sampler2D Sampler2; //текстура оверлея, как я понял - красный оверлей при ударе моба, вероятно тоже что и текстура света, но вместо белого - красный
 
-void main(void){
+//Вот с этими двумя могу ошибаться, т.к. сам не до конца уверен
+//т.к. ты вероятно не знаешь как работают матрицы (первый курс, хуле), считай что матрица - это функция: `Vec3 transform(Vec3, Mat4)`, хоть это и не верное определение
+uniform mat4 ModelViewMat; //Матрица экранного пространства - функция, которая перемещает каждую точку так, как было в PoseStack
+uniform mat4 ProjMat; //Матрица проекции - функция, которая переводит точку из 3D мира в 2D картинку, которую выведет на экран
 
-	vec4 totalLocalPos = vec4(in_position, 1);
-	vec4 totalNormal = vec4(in_normal, 1);
+uniform mat3 IViewRotMat; //Поворот камеры по 3 осям
+uniform int FogShape; //не уверен, но вроде расстояние до тумана, хотя хрен знает нахуя он для энтити... Может моджанги туда всякой хуйни тернарными операторами захуярили
 
-	for(int i=0;i<MAX_WEIGHTS;i++){
-		mat4 jointTransform = jointTransforms[in_jointIndices[i]];
+//По сути тот самый packedLight потом разбивается на 2 переменные (да-да, тернарные операторы)
+uniform vec3 Light0_Direction; //свет 1
+uniform vec3 Light1_Direction; //свет 2
 
-		vec4 posePosition = jointTransform * vec4(in_position, 1.0);
-		vec4 poseNormal = jointTransform * vec4(in_normal, 1.0);
+//out - значит перейдёт в fragment шейдер (пиксельный)
+out float vertexDistance; //какая-то хрень... может нужна чтобы потом понимать, нужно ли рисовать пиксель, вдруг он за туманом
+out vec4 vertexColor; //цвет вершины
+out vec4 lightMapColor; //свет
+out vec4 overlayColor; //оверлей или же красная хрень, когда моба ждёшь
+out vec2 texCoord0; //координаты текстуры которая будет перекрашиваться
+out vec4 normal; //нормаль, крч вектор противоположенный грани
 
-		totalLocalPos += posePosition * in_weights[i];
-		totalNormal += poseNormal * in_weights[i];
-	}
+void main() {
+	gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0); //находим положение вершины моба моба уже на экране вроде как
 
-	gl_Position = projectionMatrix * modelViewMatrix * totalLocalPos;
-
-	pass_vertex = vec3(modelViewMatrix * totalLocalPos);
-	pass_normal = vec3(modelViewMatrix * totalNormal);
-	pass_textureCoords = in_textureCoords;
+	vertexDistance = fog_distance(ModelViewMat, IViewRotMat * Position, FogShape); //функция моджангов, поэтому подсказать не могу, среде она тоже не нравится
+	vertexColor = minecraft_mix_light(Light0_Direction, Light1_Direction, Normal, Color); //функция моджангов, поэтому подсказать не могу, среде она тоже не нравится
+	lightMapColor = texelFetch(Sampler2, UV2 / 16, 0); //освещение в текущей точке, как и писал, там текстура - 16 пикселей, а в opengl указывать надо в процентах
+	overlayColor = texelFetch(Sampler1, UV1, 0); //красный оверлей
+	texCoord0 = UV0; //координаты текстуры передаём в шейдер
+	normal = ProjMat * ModelViewMat * vec4(Normal, 0.0); //перерасчитываем нормаль относительно экрана
 }

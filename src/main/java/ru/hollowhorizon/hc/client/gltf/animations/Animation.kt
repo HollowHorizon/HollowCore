@@ -2,13 +2,9 @@ package ru.hollowhorizon.hc.client.gltf.animations
 
 import de.javagl.jgltf.model.GltfModel
 import de.javagl.jgltf.model.NodeModel
-import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability
 
 class Animation(val name: String, val animationData: Map<NodeModel, AnimationData>) {
     private var currentTime = 0f
-    var speed = 1.0f
-    var playType = PlayType.LOOPED
-    var markToRemove = false
     val maxTime = animationData.maxOf { it.value.maxTime }.let {
         if (it == 0f) 0.0001f else it
     }
@@ -24,25 +20,25 @@ class Animation(val name: String, val animationData: Map<NodeModel, AnimationDat
         }
     }
 
-    fun update(partialTick: Float) {
-        when (this.playType) {
+    fun update(layer: ILayer, partialTick: Float) {
+        when (layer.playType) {
             PlayType.ONCE -> {
-                if (currentTime < maxTime) currentTime += partialTick / 30 * speed
-                else markToRemove = true
+                if (currentTime < maxTime) currentTime += partialTick / 30 * layer.speed
+                else layer.shouldRemove = true
             }
 
             PlayType.LOOPED -> {
-                currentTime += partialTick / 30 * speed
+                currentTime += partialTick / 30 * layer.speed
                 currentTime %= maxTime
             }
 
             PlayType.LAST_FRAME -> {
-                if (currentTime < maxTime) currentTime += partialTick / 30 * speed
+                if (currentTime < maxTime) currentTime += partialTick / 30 * layer.speed
             }
 
             PlayType.REVERSED -> {
-                currentTime += partialTick / 30 * speed
-                if (currentTime > maxTime || currentTime < 0f) speed *= -1
+                currentTime += partialTick / 30 * layer.speed
+                if (currentTime > maxTime || currentTime < 0f) layer.speed *= -1
             }
         }
     }
@@ -103,35 +99,35 @@ enum class AnimationType {
 
     companion object {
         @JvmStatic
-        fun load(model: GltfModel, capability: AnimatedEntityCapability) {
+        fun load(model: GltfModel): Map<AnimationType, String> {
             val names = model.animationModels.map { it.name }
 
             fun List<String>.findOr(vararg names: String) = this.find { anim -> names.any { anim.contains(it) } }
             fun List<String>.findAnd(vararg names: String) = this.find { anim -> names.all { anim.contains(it) } }
+            val animations = hashMapOf<AnimationType, String>()
 
-            with(capability) {
-                animations[IDLE] = names.findOr("idle") ?: ""
-                animations[IDLE_SNEAKED] = names.findAnd("idle", "sneak") ?: capability.animations[IDLE] ?: ""
-                animations[WALK] = names.minByOrNull {
-                    when {
-                        it.contains("walk") -> 0
-                        it.contains("go") -> 1
-                        it.contains("run") -> 2
-                        it.contains("move") -> 3
-                        else -> 4
-                    }
-                } ?: ""
-                animations[WALK_SNEAKED] = names.findAnd("walk", "sneak") ?: capability.animations[WALK] ?: ""
-                animations[RUN] = names.findOr("run", "flee", "dash") ?: capability.animations[WALK] ?: ""
-                animations[SWIM] = names.findOr("swim") ?: capability.animations[WALK] ?: ""
-                animations[FALL] = names.findOr("fall") ?: capability.animations[IDLE] ?: ""
-                animations[FLY] = names.findOr("fly") ?: capability.animations[IDLE] ?: ""
-                animations[SIT] = names.findOr("sit") ?: capability.animations[IDLE] ?: ""
-                animations[SLEEP] = names.findOr("sleep") ?: capability.animations[SLEEP] ?: ""
-                animations[SWING] = names.findOr("attack", "swing") ?: ""
-                animations[DEATH] = names.findOr("death") ?: ""
+            animations[IDLE] = names.findOr("idle") ?: ""
+            animations[IDLE_SNEAKED] = names.findAnd("idle", "sneak") ?: animations[IDLE] ?: ""
+            animations[WALK] = names.minByOrNull {
+                when {
+                    it.contains("walk") -> 0
+                    it.contains("go") -> 1
+                    it.contains("run") -> 2
+                    it.contains("move") -> 3
+                    else -> 4
+                }
+            } ?: ""
+            animations[WALK_SNEAKED] = names.findAnd("walk", "sneak") ?: animations[WALK] ?: ""
+            animations[RUN] = names.findOr("run", "flee", "dash") ?: animations[WALK] ?: ""
+            animations[SWIM] = names.findOr("swim") ?: animations[WALK] ?: ""
+            animations[FALL] = names.findOr("fall") ?: animations[IDLE] ?: ""
+            animations[FLY] = names.findOr("fly") ?: animations[IDLE] ?: ""
+            animations[SIT] = names.findOr("sit") ?: animations[IDLE] ?: ""
+            animations[SLEEP] = names.findOr("sleep") ?: animations[SLEEP] ?: ""
+            animations[SWING] = names.findOr("attack", "swing") ?: ""
+            animations[DEATH] = names.findOr("death") ?: ""
 
-            }
+            return animations
         }
     }
 }

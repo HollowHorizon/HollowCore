@@ -2,10 +2,9 @@ package ru.hollowhorizon.hc.common.capabilities
 
 import com.mojang.math.Vector3f
 import kotlinx.serialization.Serializable
-import ru.hollowhorizon.hc.client.gltf.IAnimatedEntity
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationType
 
-@HollowCapabilityV2(IAnimatedEntity::class)
+//@HollowCapabilityV2(IAnimatedEntity::class)
 @Serializable
 class AnimatedEntityCapability : HollowCapability() {
     val animationsToStart = HashSet<String>()
@@ -24,3 +23,4 @@ data class Transform(
 ) {
     fun vecTransform() = Vector3f(tX, tY, tZ)
 }
+

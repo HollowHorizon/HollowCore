@@ -1,9 +1,7 @@
 package ru.hollowhorizon.hc.client.render.entity
 
-import com.modularmods.mcgltf.IGltfModelReceiver
 import com.modularmods.mcgltf.MCglTF
 import com.modularmods.mcgltf.RenderedGltfModel
-import com.modularmods.mcgltf.RenderedGltfScene
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Vector3f
@@ -17,32 +15,22 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.FlyingAnimal
-import net.minecraftforge.fml.ModLoader
-import org.lwjgl.opengl.*
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL13
+import org.lwjgl.opengl.GL15
+import org.lwjgl.opengl.GL30
+import ru.hollowhorizon.hc.client.gltf.IAnimated
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationManager
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationType
-import ru.hollowhorizon.hc.client.utils.rl
-import ru.hollowhorizon.hc.common.capabilities.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.gltf.animations.HeadLayer
+import ru.hollowhorizon.hc.client.gltf.animations.manager.ClientAnimationManager
 import kotlin.jvm.optionals.getOrNull
 
 
 class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
-    EntityRenderer<T>(manager), IGltfModelReceiver where T : LivingEntity/*, T : IAnimatedEntity*/ {
+    EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimated {
 
-    init {
-        MCglTF.getInstance().addGltfModelReceiver(this)
-    }
-
-    private lateinit var templates: HashMap<AnimationType, String>
-    private var manager: AnimationManager? = null
-    private var renderedScene: RenderedGltfScene? = null
-
-    override fun onReceiveSharedModel(renderedModel: RenderedGltfModel) {
-        renderedScene = renderedModel.renderedGltfScenes[0]
-        this.manager = AnimationManager(renderedModel)
-        this.templates =
-            AnimatedEntityCapability().apply { AnimationType.load(renderedModel.gltfModel, this) }.animations
-    }
+    private var hasHeadLayer = false
 
     override fun getTextureLocation(entity: T): ResourceLocation {
         return TextureManager.INTENTIONAL_MISSING_TEXTURE
@@ -57,14 +45,15 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         p_225623_5_: MultiBufferSource,
         packedLight: Int,
     ) {
-        if (renderedScene == null || manager == null) return
+        val model = MCglTF.getOrCreate(entity.model)
+        val manager = entity.manager as ClientAnimationManager
 
         val type = getRenderType(entity)
 
         stack.pushPose()
 
 
-        preRender(entity, stack, partialTick)
+        preRender(entity, manager, stack, partialTick)
 
         val currentVAO = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING)
         val currentArrayBuffer = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING)
@@ -94,7 +83,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
         if (MCglTF.getInstance().isShaderModActive) {
             type.setupRenderState()
-            renderedScene?.renderForShaderMod()
+            model.renderedGltfScenes.forEach { it.renderOptiOculus() }
             type.clearRenderState()
         } else {
             type.setupRenderState()
@@ -109,7 +98,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             GL13.glActiveTexture(GL13.GL_TEXTURE0) //Текстуры модели
             val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
 
-            renderedScene?.renderForVanilla()
+            model.renderedGltfScenes.forEach { it.renderVanilla() }
 
             GL13.glActiveTexture(GL13.GL_TEXTURE2) //Возврат Лайтмапа
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture2)
@@ -119,7 +108,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture0)
             type.clearRenderState()
 
-            if(Minecraft.getInstance().shouldEntityAppearGlowing(entity)) {
+            if (Minecraft.getInstance().shouldEntityAppearGlowing(entity)) {
                 val outline = type.outline().getOrNull() ?: return
                 outline.setupRenderState()
 
@@ -139,7 +128,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                 GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().defaultColorMap)
                 GL13.glActiveTexture(GL13.GL_TEXTURE10) //Текстуры модели
 
-                renderedScene?.renderForVanilla()
+                model.renderedGltfScenes.forEach { it.renderVanilla() }
 
                 GL13.glActiveTexture(GL13.GL_TEXTURE2)
                 GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture2)
@@ -173,13 +162,19 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     }
 
 
-    private fun preRender(entity: T, stack: PoseStack, partialTick: Float) {
-        if (manager == null) return
-        updateAnimations(entity, manager!!)
-        manager!!.update(partialTick)
+    private fun preRender(entity: T, manager: AnimationManager, stack: PoseStack, partialTick: Float) {
+        if (!hasHeadLayer) {
+            hasHeadLayer = true
+            manager.addLayer(HeadLayer(entity, 1.0f))
+        }
+
+        updateAnimations(entity, manager)
+        manager.update(partialTick)
     }
 
     private fun updateAnimations(entity: T, manager: AnimationManager) {
+        val templates = manager.templates
+
         if (!entity.isAlive) {
             manager.currentAnimation = templates.getOrDefault(AnimationType.DEATH, "")
             return
@@ -227,9 +222,5 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                 ""
             )
         }
-    }
-
-    override fun getModelLocation(): ResourceLocation {
-        return "hc:models/entity/scene.gltf".rl
     }
 }

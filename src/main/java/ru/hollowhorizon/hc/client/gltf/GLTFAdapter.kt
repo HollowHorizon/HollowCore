@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.client.gltf
 
-import com.google.gson.JsonParser
 import java.io.InputStream
 
 object GLTFAdapter {

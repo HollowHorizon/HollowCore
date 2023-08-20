@@ -6,10 +6,10 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.world.level.block.entity.BlockEntity
-import ru.hollowhorizon.hc.client.gltf.IAnimatedEntity
+import ru.hollowhorizon.hc.client.gltf.IAnimated
 
 class GLTFTileRenderer<T>(val dispatcher: BlockEntityRendererProvider.Context) :
-    BlockEntityRenderer<T> where T : BlockEntity, T : IAnimatedEntity {
+    BlockEntityRenderer<T> where T : BlockEntity, T : IAnimated {
 
 
     fun preRender(tile: T) {

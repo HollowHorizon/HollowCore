@@ -6,11 +6,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
-import ru.hollowhorizon.hc.common.network.messages.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class NetworkHandler {
     public static final String MESSAGE_PROTOCOL_VERSION = "1.0";

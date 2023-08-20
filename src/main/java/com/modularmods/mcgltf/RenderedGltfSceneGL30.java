@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.GameRenderer;
 public class RenderedGltfSceneGL30 extends RenderedGltfScene {
 
 	@Override
-	public void renderForVanilla() {
+	public void renderVanilla() {
 		int currentProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		
 		RenderedGltfModel.CURRENT_SHADER_INSTANCE = GameRenderer.getRendertypeEntityTranslucentShader();
@@ -57,7 +57,7 @@ public class RenderedGltfSceneGL30 extends RenderedGltfScene {
 	}
 
 	@Override
-	public void renderForShaderMod() {
+	public void renderOptiOculus() {
 		int currentProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		
 		RenderedGltfModel.MODEL_VIEW_MATRIX = GL20.glGetUniformLocation(currentProgram, "modelViewMatrix");

@@ -16,7 +16,7 @@ import net.minecraft.client.renderer.GameRenderer;
 public class RenderedGltfSceneGL33 extends RenderedGltfScene {
 
 	@Override
-	public void renderForVanilla() {
+	public void renderVanilla() {
 		int currentProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		
 		if(!skinningCommands.isEmpty()) {
@@ -68,7 +68,7 @@ public class RenderedGltfSceneGL33 extends RenderedGltfScene {
 	}
 
 	@Override
-	public void renderForShaderMod() {
+	public void renderOptiOculus() {
 		int currentProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		
 		if(!skinningCommands.isEmpty()) {

@@ -3,7 +3,6 @@ package com.modularmods.mcgltf;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import org.lwjgl.opengl.*;
 
@@ -18,7 +17,7 @@ public class RenderedGltfScene {
 
     public final List<Runnable> shaderModRenderCommands = new ArrayList<Runnable>();
 
-    public void renderForVanilla() {
+    public void renderVanilla() {
         int currentProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 
         if (!skinningCommands.isEmpty()) {
@@ -70,7 +69,7 @@ public class RenderedGltfScene {
         RenderedGltfModel.NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.clear();
     }
 
-    public void renderForShaderMod() {
+    public void renderOptiOculus() {
         int currentProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 
         if (!skinningCommands.isEmpty()) {
