@@ -13,6 +13,9 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraftforge.fml.loading.FMLEnvironment
+import net.minecraftforge.fml.loading.FMLLoader
+import net.minecraftforge.fml.util.thread.SidedThreadGroups
 import net.minecraftforge.registries.IForgeRegistry
 import ru.hollowhorizon.hc.HollowCore
 import java.io.InputStream
@@ -22,6 +25,17 @@ val mc: Minecraft
     @OnlyIn(Dist.CLIENT)
     get() = Minecraft.getInstance()
 
+
+val isLogicalClient: Boolean
+    get() = Thread.currentThread().threadGroup != SidedThreadGroups.SERVER
+val isLogicalServer: Boolean
+    get() = !isLogicalClient
+val isPhysicalClient: Boolean
+    get() = FMLEnvironment.dist.isClient
+val isPhysicalServer: Boolean
+    get() = !isPhysicalClient
+val isIdeMode: Boolean
+    get() = false
 
 fun String.toRL(): ResourceLocation {
     return ResourceLocation(this)

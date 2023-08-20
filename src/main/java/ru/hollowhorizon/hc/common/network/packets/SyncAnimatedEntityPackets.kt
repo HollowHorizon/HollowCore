@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.common.network.packets
 import kotlinx.serialization.Serializable
 import net.minecraftforge.network.NetworkDirection
 import ru.hollowhorizon.hc.client.gltf.IAnimated
+import ru.hollowhorizon.hc.client.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.gltf.animations.PlayType
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.Packet
@@ -25,6 +26,9 @@ data class StopAnimationContainer(
     val speed: Float = 1.0f,
 )
 
+@Serializable
+data class DefaultAnimationsContainer(val entity: Int, val animations: Map<AnimationType, String>)
+
 @HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_CLIENT)
 class StartAnimationPacket : Packet<StartAnimationContainer>({ player, container ->
     player.level.getEntity(container.entityId)?.let { entity ->
@@ -39,6 +43,15 @@ class StopAnimationPacket : Packet<StopAnimationContainer>({ player, container -
     player.level.getEntity(container.entity)?.let { entity ->
         if (entity is IAnimated) {
             entity.manager.stopAnimation(container.name)
+        }
+    }
+})
+
+@HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_CLIENT)
+class SetDefaultAnimationsPacket : Packet<DefaultAnimationsContainer>({ player, container ->
+    player.level.getEntity(container.entity)?.let { entity ->
+        if (entity is IAnimated) {
+            entity.manager.setDefaultAnimations(container.animations)
         }
     }
 })

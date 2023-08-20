@@ -18,11 +18,9 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.*;
 import ru.hollowhorizon.hc.client.gltf.GLTFAdapter;
-import ru.hollowhorizon.hc.client.gltf.animations.AnimationManager;
 import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
 
 import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.*;

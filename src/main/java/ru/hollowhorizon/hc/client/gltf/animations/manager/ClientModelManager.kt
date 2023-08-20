@@ -1,12 +1,9 @@
 package ru.hollowhorizon.hc.client.gltf.animations.manager
 
 import com.modularmods.mcgltf.RenderedGltfModel
-import ru.hollowhorizon.hc.client.gltf.animations.AnimationException
-import ru.hollowhorizon.hc.client.gltf.animations.AnimationLayer
-import ru.hollowhorizon.hc.client.gltf.animations.AnimationManager
-import ru.hollowhorizon.hc.client.gltf.animations.PlayType
+import ru.hollowhorizon.hc.client.gltf.animations.*
 
-class ClientAnimationManager(model: RenderedGltfModel) : AnimationManager(model), IAnimationManager {
+class ClientModelManager(model: RenderedGltfModel) : GLTFAnimationManager(model), IModelManager {
     override fun startAnimation(name: String, priority: Float, playType: PlayType, speed: Float) {
         this.addLayer(
             AnimationLayer(
@@ -19,5 +16,10 @@ class ClientAnimationManager(model: RenderedGltfModel) : AnimationManager(model)
 
     override fun stopAnimation(name: String) {
         this.removeAnimation(name)
+    }
+
+    override fun setDefaultAnimations(animations: Map<AnimationType, String>) {
+        this.templates.clear()
+        this.templates.putAll(animations)
     }
 }

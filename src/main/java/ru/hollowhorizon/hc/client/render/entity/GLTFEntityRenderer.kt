@@ -20,10 +20,10 @@ import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30
 import ru.hollowhorizon.hc.client.gltf.IAnimated
-import ru.hollowhorizon.hc.client.gltf.animations.AnimationManager
+import ru.hollowhorizon.hc.client.gltf.animations.GLTFAnimationManager
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.gltf.animations.HeadLayer
-import ru.hollowhorizon.hc.client.gltf.animations.manager.ClientAnimationManager
+import ru.hollowhorizon.hc.client.gltf.animations.manager.ClientModelManager
 import kotlin.jvm.optionals.getOrNull
 
 
@@ -46,7 +46,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         packedLight: Int,
     ) {
         val model = MCglTF.getOrCreate(entity.model)
-        val manager = entity.manager as ClientAnimationManager
+        val manager = entity.manager as ClientModelManager
 
         val type = getRenderType(entity)
 
@@ -162,7 +162,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     }
 
 
-    private fun preRender(entity: T, manager: AnimationManager, stack: PoseStack, partialTick: Float) {
+    private fun preRender(entity: T, manager: GLTFAnimationManager, stack: PoseStack, partialTick: Float) {
         if (!hasHeadLayer) {
             hasHeadLayer = true
             manager.addLayer(HeadLayer(entity, 1.0f))
@@ -172,7 +172,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         manager.update(partialTick)
     }
 
-    private fun updateAnimations(entity: T, manager: AnimationManager) {
+    private fun updateAnimations(entity: T, manager: GLTFAnimationManager) {
         val templates = manager.templates
 
         if (!entity.isAlive) {

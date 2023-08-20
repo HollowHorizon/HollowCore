@@ -5,7 +5,7 @@ import de.javagl.jgltf.model.NodeModel
 import kotlin.properties.Delegates
 
 
-open class AnimationManager(val model: RenderedGltfModel) {
+open class GLTFAnimationManager(val model: RenderedGltfModel) {
     //Слой, который добавляет плавные переходы между 2 анимациями
     protected val animationCache = model.gltfModel.animationModels.associate {
         it.name to AnimationLoader.createAnimation(

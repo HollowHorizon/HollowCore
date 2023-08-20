@@ -55,7 +55,7 @@ public class HollowEventHandler {
         if (!text.getString().equals(rawPath)) event.getToolTip().add(text);
     }
 
-    @SubscribeEvent
+    //@SubscribeEvent
     @OnlyIn(Dist.CLIENT)
     public void onOverlay(RenderGuiOverlayEvent.Post event) {
         if(event.getOverlay() == VanillaGuiOverlay.CROSSHAIR.type()) {

@@ -4,6 +4,7 @@ import net.minecraftforge.fml.ModList
 import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.fml.loading.FMLLoader
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.utils.isIdeMode
 import java.io.File
 import java.net.URL
 import java.nio.file.Paths
@@ -23,7 +24,7 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
 
     jvm {
         val stdLib =
-            if (FMLLoader.isProduction()) ModList.get().getModFileById("hc").file.filePath.toFile().absolutePath
+            if (!isIdeMode && FMLLoader.isProduction()) ModList.get().getModFileById("hc").file.filePath.toFile().absolutePath
             else File("C:\\Users\\user\\Desktop\\papka_with_papkami\\MyJavaProjects\\HollowCore\\build\\libs\\hc-1.1.0.jar").absolutePath
         System.setProperty(
             "kotlin.java.stdlib.jar",
@@ -31,7 +32,7 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
         )
 
         val files = HashSet<File>()
-        if (FMLLoader.isProduction()) {
+        if (!isIdeMode && FMLLoader.isProduction()) {
             fun findClasspathEntry(cls: String): String {
                 val classFilePath = "/${cls.replace('.', '/')}.class"
                 val url = javaClass.getResource(classFilePath)
@@ -62,29 +63,6 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
             files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherArtifacts.map { it.toFile() })
 
             files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map { it.toFile() })
-
-//            var libraries =
-//                FMLLoader.getGamePath().resolve("libraries").toFile().walk().filter { it.name.endsWith(".jar") }
-//                    .toList()
-//
-//            if (libraries.isEmpty()) {
-//                //Такое может произойти, если какой-то умник засунул папку с библиотеками не пойми куда, например как это сделали TLauncher и CurseForge App
-//
-//                var exampleLibrary =
-//                    File(findClasspathEntry("org.apache.logging.log4j.Logger")) //Попробуем найти библиотеку, которая точно существует
-//                while (exampleLibrary.name != "libraries") {
-//                    if (exampleLibrary.parentFile == null) break
-//                    exampleLibrary = exampleLibrary.parentFile
-//                }
-//
-//                if (exampleLibrary.name == "libraries") {
-//                    libraries = exampleLibrary.walk().filter { it.name.endsWith(".jar") }.toList()
-//                } else {
-//                    HollowCore.LOGGER.error("Failed to find libraries folder!")
-//                }
-//            }
-//
-//            files.addAll(libraries)
 
             dependenciesFromClassContext(
                 HollowScriptConfiguration::class,

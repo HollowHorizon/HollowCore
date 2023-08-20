@@ -99,7 +99,7 @@ enum class AnimationType {
 
     companion object {
         @JvmStatic
-        fun load(model: GltfModel): Map<AnimationType, String> {
+        fun load(model: GltfModel): HashMap<AnimationType, String> {
             val names = model.animationModels.map { it.name }
 
             fun List<String>.findOr(vararg names: String) = this.find { anim -> names.any { anim.contains(it) } }
