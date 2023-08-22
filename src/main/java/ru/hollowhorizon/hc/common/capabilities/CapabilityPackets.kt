@@ -6,6 +6,7 @@ import net.minecraft.nbt.Tag
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.network.NetworkDirection
 import net.minecraftforge.network.PacketDistributor
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.nbt.ForTag
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
@@ -51,11 +52,12 @@ class SSyncEntityCapabilityPacket : Packet<EntityCapabilityContainer>({ player, 
 
 @HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_CLIENT)
 class CSyncLevelCapabilityPacket : Packet<LevelCapabilityContainer>({ player, container ->
-    val level = Minecraft.getInstance().level ?: throw IllegalStateException("Level not found: $container")
-
+    HollowCore.LOGGER.info("Processing CSyncLevelCapabilityPacket")
+    val level = player.level
+    HollowCore.LOGGER.info("Processing 1")
     val cap = level.getCapability(CapabilityStorage.storages[container.capability] as Capability<CapabilityInstance>)
             .orElseThrow { IllegalStateException("Unknown capability: $container") }
-
+    HollowCore.LOGGER.info("Processing 2")
     cap.deserializeNBT(container.value)
 })
 

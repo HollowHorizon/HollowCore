@@ -48,11 +48,13 @@ open class Packet<T>(val function: Packet<T>.(Player, T) -> Unit) {
     fun <E> onReceive(data: Packet<E>, ctx: Supplier<NetworkEvent.Context>) {
         ctx.get().packetHandled = true
 
-        HollowCore.LOGGER.info("Packet <${data.javaClass.simpleName}> received (${ctx.get().direction}) (${FMLEnvironment.dist})")
+        ctx.get().enqueueWork {
+            HollowCore.LOGGER.debug("Packet <${data.javaClass.simpleName}> received (${ctx.get().direction}) (${FMLEnvironment.dist})")
 
-        if (ctx.get().direction == NetworkDirection.PLAY_TO_CLIENT) function(mc.player!!, data.value.safeCast()!!)
-        else function(ctx.get().sender!!, data.value.safeCast()!!)
-
+            if (ctx.get().direction == NetworkDirection.PLAY_TO_CLIENT) function(mc.player!!, data.value.safeCast()!!)
+            else function(ctx.get().sender!!, data.value.safeCast()!!)
+            HollowCore.LOGGER.debug("Packet <${data.javaClass.simpleName}> processed")
+        }
     }
 }
 
