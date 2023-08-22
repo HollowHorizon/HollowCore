@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.common.objects.entities
 
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.PathfinderMob
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal

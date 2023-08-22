@@ -2,12 +2,22 @@ package ru.hollowhorizon.hc.client.gltf.animations.manager
 
 import net.minecraft.world.entity.Entity
 import net.minecraftforge.network.PacketDistributor
+import ru.hollowhorizon.hc.client.gltf.Transform
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.gltf.animations.PlayType
 import ru.hollowhorizon.hc.common.network.packets.*
 import ru.hollowhorizon.hc.common.network.send
 
 class ServerModelManager(val entity: Entity) : IModelManager {
+    override var transform: Transform = Transform()
+        set(value) {
+            field = value
+            SetTransformPacket().send(
+                SetTransformContainer(entity.id, value),
+                PacketDistributor.TRACKING_ENTITY.with { entity }
+            )
+        }
+
     override fun startAnimation(name: String, priority: Float, playType: PlayType, speed: Float) {
         StartAnimationPacket().send(
             StartAnimationContainer(entity.id, name, priority, playType, speed),

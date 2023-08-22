@@ -1,0 +1,46 @@
+{
+  list: [
+    {
+      class: "java.lang.Integer",
+      nbt: 1
+    },
+    {
+      class: "java.lang.Float",
+      nbt: 2.0f
+    },
+    {
+      class: "java.lang.Double",
+      nbt: 3.0d
+    },
+    {
+      class: "java.lang.Integer",
+      nbt: 2
+    },
+    {
+      class: "java.lang.Float",
+      nbt: 2.0f
+    }
+  ],
+  "list%%class": "ru.hollowhorizon.hc.common.capabilities.SyncableListImpl",
+  map: {
+    keys: [
+      {
+        class: "java.lang.String",
+        nbt: "aa"
+      }
+    ],
+    values: [
+      {
+        class: "ru.hollowhorizon.hc.common.capabilities.Test2",
+        nbt: {
+          data: [
+            "a",
+            "b",
+            "c"
+          ]
+        }
+      }
+    ]
+  },
+  "map%%class": "ru.hollowhorizon.hc.common.capabilities.SyncableMapImpl"
+}

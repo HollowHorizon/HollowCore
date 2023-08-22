@@ -162,7 +162,9 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     }
 
 
-    private fun preRender(entity: T, manager: GLTFAnimationManager, stack: PoseStack, partialTick: Float) {
+    private fun preRender(entity: T, manager: ClientModelManager, stack: PoseStack, partialTick: Float) {
+        stack.mulPoseMatrix(manager.transform.matrix)
+
         if (!hasHeadLayer) {
             hasHeadLayer = true
             manager.addLayer(HeadLayer(entity, 1.0f))

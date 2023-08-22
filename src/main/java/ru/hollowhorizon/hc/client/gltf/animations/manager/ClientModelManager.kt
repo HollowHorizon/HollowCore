@@ -1,9 +1,13 @@
 package ru.hollowhorizon.hc.client.gltf.animations.manager
 
 import com.modularmods.mcgltf.RenderedGltfModel
+import ru.hollowhorizon.hc.client.gltf.Transform
 import ru.hollowhorizon.hc.client.gltf.animations.*
+import ru.hollowhorizon.hc.client.utils.rl
 
 class ClientModelManager(model: RenderedGltfModel) : GLTFAnimationManager(model), IModelManager {
+    override var transform = Transform()
+
     override fun startAnimation(name: String, priority: Float, playType: PlayType, speed: Float) {
         this.addLayer(
             AnimationLayer(

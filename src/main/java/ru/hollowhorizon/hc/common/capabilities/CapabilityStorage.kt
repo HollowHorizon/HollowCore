@@ -5,20 +5,29 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraftforge.common.capabilities.Capability
+import net.minecraftforge.common.capabilities.CapabilityProvider
 import net.minecraftforge.event.AttachCapabilitiesEvent
+import org.jetbrains.kotlin.utils.addToStdlib.UnsafeCastFunction
+import org.jetbrains.kotlin.utils.addToStdlib.cast
 import ru.hollowhorizon.hc.client.utils.toRL
 
-object HollowCapabilityStorageV2 {
-    val capabilities = hashSetOf<Class<*>>()
+object CapabilityStorage {
     val storages = hashMapOf<String, Capability<*>>()
-    val providers = hashSetOf<Pair<Class<*>, () -> HollowCapabilitySerializer<*>>>()
+    val playerCapabilities = arrayListOf<Capability<*>>()
+    val providers = hashSetOf<Pair<Class<*>, (CapabilityProvider<*>) -> CapabilityInstance>>()
 
-    fun getCapabilitiesForClass(clazz: Class<*>): List<Capability<*>> {
-        return providers.filter { it.first == clazz }.map { it.second.invoke().capability }
+    @OptIn(UnsafeCastFunction::class)
+    fun getCapabilitiesForPlayer(): List<Capability<CapabilityInstance>> {
+        return playerCapabilities.cast()
     }
 
-    fun getCapabilityTargets(cap: Capability<*>): List<Class<*>> {
-        return providers.filter { it.second.invoke().capability == cap }.map { it.first }
+    @JvmStatic
+    fun <T: CapabilityInstance> getCapability(cap: Class<T>): Capability<T> {
+        return storages[cap.name.replace(".", "/")] as Capability<T>
+    }
+
+    inline fun <reified T: CapabilityInstance> getCapability(): Capability<T> {
+        return storages[T::class.java.name] as Capability<T>
     }
 
     @JvmStatic
@@ -32,9 +41,8 @@ object HollowCapabilityStorageV2 {
 
     private fun <T> AttachCapabilitiesEvent<T>.initCapabilities() {
         providers.filter { it.first.isInstance(this.`object`) }.forEach {
-            val inst = it.second()
+            val inst = it.second(this.`object` as CapabilityProvider<*>)
             this.addCapability(inst.capability.createName(), inst)
-            this.addListener(inst::invalidate)
         }
     }
 

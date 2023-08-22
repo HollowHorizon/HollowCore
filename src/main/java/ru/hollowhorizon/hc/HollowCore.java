@@ -34,7 +34,7 @@ import ru.hollowhorizon.hc.client.render.OpenGLUtils;
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
-import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2;
+import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
 import ru.hollowhorizon.hc.common.commands.HollowCommands;
 import ru.hollowhorizon.hc.common.handlers.DelayHandler;
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
@@ -94,9 +94,9 @@ public class HollowCore {
         //мод
         forgeBus.register(this);
 
-        forgeBus.addGenericListener(Entity.class, HollowCapabilityStorageV2::registerProvidersEntity);
-        forgeBus.addGenericListener(BlockEntity.class, HollowCapabilityStorageV2::registerProvidersBlockEntity);
-        forgeBus.addGenericListener(Level.class, HollowCapabilityStorageV2::registerProvidersWorld);
+        forgeBus.addGenericListener(Entity.class, CapabilityStorage::registerProvidersEntity);
+        forgeBus.addGenericListener(BlockEntity.class, CapabilityStorage::registerProvidersBlockEntity);
+        forgeBus.addGenericListener(Level.class, CapabilityStorage::registerProvidersWorld);
 
         forgeBus.addListener(this::configSave);
 

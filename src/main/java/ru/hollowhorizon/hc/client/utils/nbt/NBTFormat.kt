@@ -9,8 +9,7 @@ import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.modules.*
 import net.minecraft.nbt.*
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.common.capabilities.HollowCapability
-import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityStorageV2
+import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.InputStream
@@ -37,31 +36,13 @@ internal val TagModule = SerializersModule {
     contextual(ForSoundEvent)
 }
 
-object CapabilityModule {
-
-    @OptIn(InternalSerializationApi::class)
-    @Suppress("unchecked_cast")
-    fun build() = SerializersModule {
-        polymorphic(HollowCapability::class) {
-            fun <B : HollowCapability> subclass(c: Class<B>) {
-                val klass = c.kotlin
-                subclass(klass, klass.serializer())
-            }
-
-            HollowCapabilityStorageV2.capabilities.forEach {
-                HollowCore.LOGGER.info("Registering capability serializer: {}", it.name)
-                subclass(it as Class<HollowCapability>)
-            }
-        }
-    }
-}
 
 val MAPPINGS_SERIALIZER by lazy { NBTFormat() }
 
 open class NBTFormat(context: SerializersModule = EmptySerializersModule()) : SerialFormat {
     override val serializersModule = context + TagModule
 
-    companion object Default : NBTFormat(CapabilityModule.build()) {
+    companion object Default : NBTFormat() {
         init {
             HollowCore.LOGGER.info("Default Serializer loaded!")
         }
