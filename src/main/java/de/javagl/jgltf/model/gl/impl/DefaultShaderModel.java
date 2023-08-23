@@ -49,7 +49,7 @@ public class DefaultShaderModel extends AbstractNamedModelElement
     private ByteBuffer shaderData;
 
     /**
-     * The {@link ShaderType}
+     * The {@link de.javagl.jgltf.model.gl.ShaderModel.ShaderType}
      */
     private final ShaderType shaderType;
     
@@ -58,7 +58,7 @@ public class DefaultShaderModel extends AbstractNamedModelElement
      * 
      * @param uri The URI
      * @param shaderType The 
-     * {@link ShaderType}
+     * {@link de.javagl.jgltf.model.gl.ShaderModel.ShaderType}
      */
     public DefaultShaderModel(String uri, ShaderType shaderType)
     {

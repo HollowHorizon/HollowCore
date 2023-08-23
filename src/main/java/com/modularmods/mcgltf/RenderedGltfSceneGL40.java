@@ -1,5 +1,7 @@
 package com.modularmods.mcgltf;
 
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL15;
@@ -9,15 +11,13 @@ import org.lwjgl.opengl.GL31;
 import org.lwjgl.opengl.GL40;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
 
 import net.minecraft.client.renderer.GameRenderer;
 
 public class RenderedGltfSceneGL40 extends RenderedGltfScene {
 
 	@Override
-	public void renderVanilla() {
+	public void renderForVanilla() {
 		int currentProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		
 		if(!skinningCommands.isEmpty()) {
@@ -29,7 +29,7 @@ public class RenderedGltfSceneGL40 extends RenderedGltfScene {
 			GL11.glDisable(GL30.GL_RASTERIZER_DISCARD);
 		}
 		
-		RenderedGltfModel.CURRENT_SHADER_INSTANCE = GameRenderer.getRendertypeEntityTranslucentShader();
+		RenderedGltfModel.CURRENT_SHADER_INSTANCE = GameRenderer.getRendertypeEntitySolidShader();
 		int entitySolidProgram = RenderedGltfModel.CURRENT_SHADER_INSTANCE.getId();
 		GL20.glUseProgram(entitySolidProgram);
 		
@@ -59,8 +59,10 @@ public class RenderedGltfSceneGL40 extends RenderedGltfScene {
 		GL20.glUniform1i(GL20.glGetUniformLocation(entitySolidProgram, "Sampler2"), 2);
 		
 		RenderSystem.setupShaderLights(RenderedGltfModel.CURRENT_SHADER_INSTANCE);
-		RenderedGltfModel.LIGHT0_DIRECTION = new Vector3f(RenderedGltfModel.CURRENT_SHADER_INSTANCE.LIGHT0_DIRECTION.getFloatBuffer().get(0), RenderedGltfModel.CURRENT_SHADER_INSTANCE.LIGHT0_DIRECTION.getFloatBuffer().get(1), RenderedGltfModel.CURRENT_SHADER_INSTANCE.LIGHT0_DIRECTION.getFloatBuffer().get(2));
-		RenderedGltfModel.LIGHT1_DIRECTION = new Vector3f(RenderedGltfModel.CURRENT_SHADER_INSTANCE.LIGHT1_DIRECTION.getFloatBuffer().get(0), RenderedGltfModel.CURRENT_SHADER_INSTANCE.LIGHT1_DIRECTION.getFloatBuffer().get(1), RenderedGltfModel.CURRENT_SHADER_INSTANCE.LIGHT1_DIRECTION.getFloatBuffer().get(2));
+		var light = RenderedGltfModel.CURRENT_SHADER_INSTANCE.LIGHT0_DIRECTION.getFloatBuffer();
+		RenderedGltfModel.LIGHT0_DIRECTION = new Vector3f(light.get(0), light.get(1), light.get(2));
+		light = RenderedGltfModel.CURRENT_SHADER_INSTANCE.LIGHT1_DIRECTION.getFloatBuffer();
+		RenderedGltfModel.LIGHT1_DIRECTION = new Vector3f(light.get(0), light.get(1), light.get(2));
 		
 		vanillaRenderCommands.forEach(Runnable::run);
 		
@@ -70,7 +72,7 @@ public class RenderedGltfSceneGL40 extends RenderedGltfScene {
 	}
 
 	@Override
-	public void renderOptiOculus() {
+	public void renderForShaderMod() {
 		int currentProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		
 		if(!skinningCommands.isEmpty()) {
@@ -86,12 +88,13 @@ public class RenderedGltfSceneGL40 extends RenderedGltfScene {
 		RenderedGltfModel.MODEL_VIEW_MATRIX = GL20.glGetUniformLocation(currentProgram, "modelViewMatrix");
 		RenderedGltfModel.MODEL_VIEW_MATRIX_INVERSE = GL20.glGetUniformLocation(currentProgram, "modelViewMatrixInverse");
 		RenderedGltfModel.NORMAL_MATRIX = GL20.glGetUniformLocation(currentProgram, "normalMatrix");
-		
-		RenderSystem.getProjectionMatrix().store(RenderedGltfModel.BUF_FLOAT_16);
+
+		Matrix4f projectionMatrix = RenderSystem.getProjectionMatrix();
+		projectionMatrix.store(RenderedGltfModel.BUF_FLOAT_16);
 		GL20.glUniformMatrix4fv(GL20.glGetUniformLocation(currentProgram, "projectionMatrix"), false, RenderedGltfModel.BUF_FLOAT_16);
-		Matrix4f projectionMatrixInverse = RenderSystem.getProjectionMatrix().copy();
-		projectionMatrixInverse.invert();
-		projectionMatrixInverse.store(RenderedGltfModel.BUF_FLOAT_16);
+		var inversed = new Matrix4f(projectionMatrix);
+		inversed.invert();
+		inversed.store(RenderedGltfModel.BUF_FLOAT_16);
 		GL20.glUniformMatrix4fv(GL20.glGetUniformLocation(currentProgram, "projectionMatrixInverse"), false, RenderedGltfModel.BUF_FLOAT_16);
 		
 		GL13.glActiveTexture(GL13.GL_TEXTURE3);

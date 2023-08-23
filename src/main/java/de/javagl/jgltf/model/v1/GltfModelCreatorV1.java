@@ -729,7 +729,7 @@ public class GltfModelCreatorV1
         
         NodeModel nodeModel = get("nodes", nodeId, gltfModel::getNodeModel);
         
-        Channel channel =
+        AnimationModel.Channel channel = 
             new DefaultChannel(sampler, nodeModel, path);
         return channel;
     }

@@ -1,16 +1,16 @@
 package com.modularmods.mcgltf;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import de.javagl.jgltf.model.io.Buffers;
+import de.javagl.jgltf.model.io.GltfModelReader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.EnumValue;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -18,7 +18,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.*;
+import ru.hollowhorizon.hc.HollowCore;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -29,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 public class MCglTF {
 
     public static final String MODID = "mcgltf";
@@ -42,9 +44,9 @@ public class MCglTF {
     private final Pair<CompatibilityConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(CompatibilityConfig::new);
     private final Map<ResourceLocation, Supplier<ByteBuffer>> loadedBufferResources = new HashMap<ResourceLocation, Supplier<ByteBuffer>>();
     private final Map<ResourceLocation, Supplier<ByteBuffer>> loadedImageResources = new HashMap<ResourceLocation, Supplier<ByteBuffer>>();
+    private final List<Runnable> gltfRenderData = new ArrayList<Runnable>();
     private final Map<ResourceLocation, RenderedGltfModel> gltfModels = new HashMap<>();
-    public final List<Runnable> gltfRenderData = new ArrayList<Runnable>();
-    private final boolean isOptiFineExist;
+    private final boolean isShadersExist;
     private int glProgramSkinnig = -1;
     private int defaultColorMap;
     private int defaultNormalMap;
@@ -53,41 +55,37 @@ public class MCglTF {
     public MCglTF() {
         INSTANCE = this;
 
-        Class<?> clazz = null;
-        try {
-            clazz = Class.forName("net.optifine.shaders.Shaders");
-        } catch (ClassNotFoundException ignored) {
-        }
-        isOptiFineExist = clazz != null;
+        isShadersExist = ModList.get().isLoaded("oculus") || ModList.get().isLoaded("optifine");
 
-        RenderSystem.recordRenderCall(() -> INSTANCE.createSkinningProgramGL43());
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, specPair.getRight());
+
+        Minecraft.getInstance().execute(() -> {
+            switch (INSTANCE.specPair.getLeft().renderedModelGLProfile.get()) {
+                case GL43:
+                    INSTANCE.createSkinningProgramGL43();
+                    break;
+                case GL40:
+                case GL33:
+                    INSTANCE.createSkinningProgramGL33();
+                    break;
+                case GL30:
+                    break;
+                default:
+                    //Since max OpenGL version on Windows from GLCapabilities will always return 3.2 as of Minecraft 1.17, this is a workaround to check if OpenGL 4.3 is available.
+                    if (GL.getCapabilities().glTexBufferRange != 0) INSTANCE.createSkinningProgramGL43();
+                    else INSTANCE.createSkinningProgramGL33();
+                    break;
+            }
+        });
     }
 
-    public static RenderedGltfModel getOrCreate(ResourceLocation location) {
-        GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, 0);
-        GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, 0);
-        GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, 0);
-        GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 4);
-
-        int currentTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-        var model = INSTANCE.gltfModels.computeIfAbsent(location, RenderedGltfModel::new);
-
-        GL15.glBindBuffer(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 0);
-        GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, 0);
-        GL40.glBindTransformFeedback(GL40.GL_TRANSFORM_FEEDBACK, 0);
-
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
-        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
-        GL30.glBindVertexArray(0);
-
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture1);
-
-        return model;
+    public static MCglTF getInstance() {
+        return INSTANCE;
     }
 
-    //Configs from ForgeConfigSpec is not yet loaded at this event.
     @SubscribeEvent
     public static void onEvent(RegisterClientReloadListenersEvent event) {
+        HollowCore.LOGGER.info("Registering Gltf Loader");
         INSTANCE.lightTexture = Minecraft.getInstance().getTextureManager().getTexture(new ResourceLocation("dynamic/light_map_1"));
 
         GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, 0);
@@ -111,17 +109,70 @@ public class MCglTF {
 
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture);
 
-        event.registerReloadListener((ResourceManagerReloadListener) p_10758_ -> {
+        HollowCore.LOGGER.info("Registering Gltf Renderer: Complete");
+
+        event.registerReloadListener((ResourceManagerReloadListener) manager -> {
+            HollowCore.LOGGER.info("Reloading Gltf Renderer: Starting");
             INSTANCE.gltfRenderData.forEach(Runnable::run);
             INSTANCE.gltfRenderData.clear();
             INSTANCE.gltfModels.clear();
             INSTANCE.loadedBufferResources.clear();
             INSTANCE.loadedImageResources.clear();
+            HollowCore.LOGGER.info("Reloading Gltf Renderer: Complete");
         });
     }
 
-    public static MCglTF getInstance() {
-        return INSTANCE;
+    public static RenderedGltfModel getOrCreate(@NotNull ResourceLocation model) {
+        return INSTANCE.gltfModels.computeIfAbsent(model, key -> {
+            GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, 0);
+            GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, 0);
+            GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, 0);
+            GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 4);
+
+            int currentTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+
+            RenderedGltfModel renderedModel = null;
+            try {
+                var gltfModel = new GltfModelReader().readWithoutReferences(new BufferedInputStream(Minecraft.getInstance().getResourceManager().getResource(model).orElseThrow().open()));
+                switch (INSTANCE.specPair.getLeft().renderedModelGLProfile.get()) {
+                    case GL43 -> renderedModel = new RenderedGltfModel(INSTANCE.gltfRenderData, gltfModel);
+                    case GL40 -> renderedModel = new RenderedGltfModelGL40(INSTANCE.gltfRenderData, gltfModel);
+                    case GL33 -> renderedModel = new RenderedGltfModelGL33(INSTANCE.gltfRenderData, gltfModel);
+                    case GL30 -> renderedModel = new RenderedGltfModelGL30(INSTANCE.gltfRenderData, gltfModel);
+                    default -> {
+                        GLCapabilities glCapabilities = GL.getCapabilities();
+                        if (glCapabilities.glTexBufferRange != 0)
+                            renderedModel = new RenderedGltfModel(INSTANCE.gltfRenderData, gltfModel);
+                        else if (glCapabilities.glGenTransformFeedbacks != 0)
+                            renderedModel = new RenderedGltfModelGL40(INSTANCE.gltfRenderData, gltfModel);
+                        else renderedModel = new RenderedGltfModelGL33(INSTANCE.gltfRenderData, gltfModel);
+                    }
+                }
+            } catch (IOException e) {
+                HollowCore.LOGGER.error("Model {} could not be loaded!", model, e);
+            }
+
+            switch (INSTANCE.specPair.getLeft().renderedModelGLProfile.get()) {
+                case GL43 -> INSTANCE.processRenderedGltfModelsGL43();
+                case GL40 -> INSTANCE.processRenderedGltfModelsGL40();
+                case GL33 -> INSTANCE.processRenderedGltfModelsGL33();
+                case GL30 -> INSTANCE.processRenderedGltfModelsGL30();
+                default -> {
+                    GLCapabilities glCapabilities = GL.getCapabilities();
+                    if (glCapabilities.glTexBufferRange != 0) INSTANCE.processRenderedGltfModelsGL43();
+                    else if (glCapabilities.glGenTransformFeedbacks != 0)
+                        INSTANCE.processRenderedGltfModelsGL40();
+                    else INSTANCE.processRenderedGltfModelsGL33();
+                }
+            }
+            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
+            GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
+            GL30.glBindVertexArray(0);
+
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture1);
+
+            return renderedModel;
+        });
     }
 
     public int getGlProgramSkinnig() {
@@ -199,7 +250,7 @@ public class MCglTF {
     }
 
     public boolean isShaderModActive() {
-        return isOptiFineExist;
+        return isShadersExist;
     }
 
     private void createSkinningProgramGL43() {
@@ -272,6 +323,27 @@ public class MCglTF {
         GL20.glDeleteShader(glShader);
         GL30.glTransformFeedbackVaryings(glProgramSkinnig, new CharSequence[]{"outPosition", "outNormal", "outTangent"}, GL30.GL_SEPARATE_ATTRIBS);
         GL20.glLinkProgram(glProgramSkinnig);
+    }
+
+    private void processRenderedGltfModelsGL43() {
+        GL15.glBindBuffer(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 0);
+        GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, 0);
+        GL40.glBindTransformFeedback(GL40.GL_TRANSFORM_FEEDBACK, 0);
+    }
+
+    private void processRenderedGltfModelsGL40() {
+        GL15.glBindBuffer(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 0);
+        GL15.glBindBuffer(GL31.GL_TEXTURE_BUFFER, 0);
+        GL40.glBindTransformFeedback(GL40.GL_TRANSFORM_FEEDBACK, 0);
+    }
+
+    private void processRenderedGltfModelsGL33() {
+        GL15.glBindBuffer(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 0);
+        GL15.glBindBuffer(GL31.GL_TEXTURE_BUFFER, 0);
+    }
+
+    private void processRenderedGltfModelsGL30() {
+
     }
 
     public EnumRenderedModelGLProfile getRenderedModelGLProfile() {

@@ -111,16 +111,13 @@ public final class GltfModelReader
      * @return The {@link GltfModel}
      * @throws IOException If an IO error occurs
      */
-    public GltfModel readWithoutReferences(InputStream inputStream) {
-        try {
+    public GltfModel readWithoutReferences(InputStream inputStream) 
+        throws IOException
+    {
         GltfAssetReader gltfAssetReader = new GltfAssetReader();
         GltfAsset gltfAsset = 
             gltfAssetReader.readWithoutReferences(inputStream);
         return createModel(gltfAsset);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
     
     /**

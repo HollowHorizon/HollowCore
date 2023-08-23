@@ -67,8 +67,8 @@ class ExampleItemRenderer {
                 val currentBlend = GL11.glGetBoolean(GL11.GL_BLEND)
                 GL11.glEnable(GL11.GL_BLEND)
                 GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-                RenderedGltfModel.CURRENT_POSE = stack.last().pose()
-                RenderedGltfModel.CURRENT_NORMAL = stack.last().normal()
+                //RenderedGltfModel.CURRENT_POSE = stack.last().pose()
+                //RenderedGltfModel.CURRENT_NORMAL = stack.last().normal()
                 GL30.glVertexAttribI2i(
                     RenderedGltfModel.vaUV1,
                     packedLight and '\uffff'.code,
@@ -80,7 +80,7 @@ class ExampleItemRenderer {
                     p_108834_ shr 16 and '\uffff'.code
                 )
                 if (MCglTF.getInstance().isShaderModActive) {
-                    renderedScene!!.renderOptiOculus()
+                    //renderedScene!!.renderOptiOculus()
                 } else {
                     GL13.glActiveTexture(GL13.GL_TEXTURE2)
                     val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
@@ -92,7 +92,7 @@ class ExampleItemRenderer {
                     mc.gameRenderer.overlayTexture().teardownOverlayColor()
                     GL13.glActiveTexture(GL13.GL_TEXTURE0)
                     val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-                    renderedScene!!.renderVanilla()
+                    //renderedScene!!.renderVanilla()
                     GL13.glActiveTexture(GL13.GL_TEXTURE2)
                     GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture2)
                     GL13.glActiveTexture(GL13.GL_TEXTURE1)
@@ -109,15 +109,15 @@ class ExampleItemRenderer {
                 val currentBlend = GL11.glGetBoolean(GL11.GL_BLEND)
                 GL11.glEnable(GL11.GL_BLEND)
                 GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-                RenderedGltfModel.CURRENT_POSE = stack.last().pose()
-                RenderedGltfModel.CURRENT_NORMAL = stack.last().normal()
+                //RenderedGltfModel.CURRENT_POSE = stack.last().pose()
+                //RenderedGltfModel.CURRENT_NORMAL = stack.last().normal()
                 GL30.glVertexAttribI2i(
                     RenderedGltfModel.vaUV2,
                     p_108834_ and '\uffff'.code,
                     p_108834_ shr 16 and '\uffff'.code
                 )
                 if (MCglTF.getInstance().isShaderModActive) {
-                    renderedScene!!.renderOptiOculus()
+                    //renderedScene!!.renderOptiOculus()
                 } else {
                     GL13.glActiveTexture(GL13.GL_TEXTURE2)
                     val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
@@ -127,7 +127,7 @@ class ExampleItemRenderer {
                     GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0)
                     GL13.glActiveTexture(GL13.GL_TEXTURE0)
                     val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-                    renderedScene!!.renderVanilla()
+                    //renderedScene!!.renderVanilla()
                     GL13.glActiveTexture(GL13.GL_TEXTURE2)
                     GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture2)
                     GL13.glActiveTexture(GL13.GL_TEXTURE1)
@@ -141,8 +141,8 @@ class ExampleItemRenderer {
 
             TransformType.GUI -> {
                 val rotateAround = Quaternion(0.0f, 1.0f, 0.0f, 0.0f)
-                RenderedGltfModel.CURRENT_POSE = Matrix4f(RenderSystem.getModelViewMatrix()).apply { this.multiply(rotateAround) }
-                RenderedGltfModel.CURRENT_NORMAL = Matrix3f().apply {this.mul(rotateAround)}
+                //RenderedGltfModel.CURRENT_POSE = Matrix4f(RenderSystem.getModelViewMatrix()).apply { this.multiply(rotateAround) }
+                //RenderedGltfModel.CURRENT_NORMAL = Matrix3f().apply {this.mul(rotateAround)}
                 GL13.glActiveTexture(GL13.GL_TEXTURE2)
                 val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
                 GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().defaultColorMap)
@@ -151,7 +151,7 @@ class ExampleItemRenderer {
                 GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0)
                 GL13.glActiveTexture(GL13.GL_TEXTURE0)
                 val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-                renderedScene!!.renderVanilla()
+                //renderedScene!!.renderVanilla()
                 GL13.glActiveTexture(GL13.GL_TEXTURE2)
                 GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture2)
                 GL13.glActiveTexture(GL13.GL_TEXTURE1)

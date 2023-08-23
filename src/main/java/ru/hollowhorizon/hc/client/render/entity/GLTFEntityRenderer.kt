@@ -20,8 +20,8 @@ import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30
 import ru.hollowhorizon.hc.client.gltf.IAnimated
-import ru.hollowhorizon.hc.client.gltf.animations.GLTFAnimationManager
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationType
+import ru.hollowhorizon.hc.client.gltf.animations.GLTFAnimationManager
 import ru.hollowhorizon.hc.client.gltf.animations.HeadLayer
 import ru.hollowhorizon.hc.client.gltf.animations.manager.ClientModelManager
 import kotlin.jvm.optionals.getOrNull
@@ -50,9 +50,6 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
         val type = getRenderType(entity)
 
-        stack.pushPose()
-
-
         preRender(entity, manager, stack, partialTick)
 
         val currentVAO = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING)
@@ -63,10 +60,9 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
         val lerpBodyRot = Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot)
         stack.mulPose(Vector3f.YP.rotationDegrees(-lerpBodyRot))
-        stack.scale(1.5f, 1.5f, 1.5f)
 
-        RenderedGltfModel.CURRENT_POSE = stack.last().pose()
-        RenderedGltfModel.CURRENT_NORMAL = stack.last().normal()
+        RenderedGltfModel.setCurrentPose(stack.last().pose())
+        RenderedGltfModel.setCurrentNormal(stack.last().normal())
         stack.popPose()
 
         GL30.glVertexAttribI2i(
@@ -81,12 +77,10 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10
         )
 
+        type.setupRenderState()
         if (MCglTF.getInstance().isShaderModActive) {
-            type.setupRenderState()
-            model.renderedGltfScenes.forEach { it.renderOptiOculus() }
-            type.clearRenderState()
+            model.renderedGltfScenes.forEach { it.renderForShaderMod() }
         } else {
-            type.setupRenderState()
 
             GL13.glActiveTexture(GL13.GL_TEXTURE2) //Лайтмап
             val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
@@ -98,7 +92,29 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             GL13.glActiveTexture(GL13.GL_TEXTURE0) //Текстуры модели
             val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
 
-            model.renderedGltfScenes.forEach { it.renderVanilla() }
+            model.renderedGltfScenes.forEach { it.renderForVanilla() }
+
+            if (Minecraft.getInstance().shouldEntityAppearGlowing(entity)) {
+                val outline = type.outline().getOrNull() ?: return
+                outline.setupRenderState()
+
+                GL13.glActiveTexture(GL13.GL_TEXTURE2) //Лайтмап
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().lightTexture.id)
+
+                GL30.glVertexAttribI2i(RenderedGltfModel.vaUV2, 255, 255) //нужно для чистого белого цвета
+
+                GL13.glActiveTexture(GL13.GL_TEXTURE1) //Оверлей
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(1))
+
+                GL13.glActiveTexture(GL13.GL_TEXTURE0) //Текстуры модели
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().defaultColorMap)
+
+                GL13.glActiveTexture(GL13.GL_TEXTURE10) //Текстуры модели
+
+                model.renderedGltfScenes.forEach { it.renderForVanilla() }
+
+                outline.clearRenderState()
+            }
 
             GL13.glActiveTexture(GL13.GL_TEXTURE2) //Возврат Лайтмапа
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture2)
@@ -106,48 +122,15 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture1)
             GL13.glActiveTexture(GL13.GL_TEXTURE0) //Возврат Исходных текстур
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture0)
-            type.clearRenderState()
-
-            if (Minecraft.getInstance().shouldEntityAppearGlowing(entity)) {
-                val outline = type.outline().getOrNull() ?: return
-                outline.setupRenderState()
-
-                GL13.glActiveTexture(GL13.GL_TEXTURE2) //Лайтмап
-                val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().lightTexture.id)
-                GL30.glVertexAttribI2i(
-                    RenderedGltfModel.vaUV2,
-                    255,
-                    255
-                )
-                GL13.glActiveTexture(GL13.GL_TEXTURE1) //Оверлей
-                val currentTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(1))
-                GL13.glActiveTexture(GL13.GL_TEXTURE0) //Текстуры модели
-                val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().defaultColorMap)
-                GL13.glActiveTexture(GL13.GL_TEXTURE10) //Текстуры модели
-
-                model.renderedGltfScenes.forEach { it.renderVanilla() }
-
-                GL13.glActiveTexture(GL13.GL_TEXTURE2)
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture2)
-                GL13.glActiveTexture(GL13.GL_TEXTURE1)
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture1)
-                GL13.glActiveTexture(GL13.GL_TEXTURE0)
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture0)
-
-                outline.clearRenderState()
-            }
         }
+        type.clearRenderState()
 
         GL30.glVertexAttribI2i(RenderedGltfModel.vaUV2, 0, 0)
+        GL30.glVertexAttribI2i(RenderedGltfModel.vaUV1, 0, 0)
 
         GL30.glBindVertexArray(currentVAO)
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, currentArrayBuffer)
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
-
-        stack.popPose()
 
         super.render(entity, yaw, partialTick, stack, p_225623_5_, packedLight)
     }
