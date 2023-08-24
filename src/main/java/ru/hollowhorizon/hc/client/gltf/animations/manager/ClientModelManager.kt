@@ -9,17 +9,13 @@ import ru.hollowhorizon.hc.client.gltf.animations.PlayType
 class ClientModelManager(model: RenderedGltfModel) : GLTFAnimationManager(model), IModelManager {
 
     override fun startAnimation(name: String, priority: Float, playType: PlayType, speed: Float) {
-        if (playType == PlayType.ONCE) {
-            this.playAnimation(name, priority)
-        } else {
-            this.addLayer(
-                AnimationLayer(
-                    animationCache[name] ?: throw AnimationException("Animation \"$name\" not found!"),
-                    priority,
-                    playType
-                )
+        this.addLayer(
+            AnimationLayer(
+                animationCache[name] ?: throw AnimationException("Animation \"$name\" not found!"),
+                priority,
+                playType
             )
-        }
+        )
     }
 
     override fun stopAnimation(name: String) {

@@ -19,9 +19,6 @@ open class GLTFAnimationManager(val model: RenderedGltfModel) {
     private var smoothLayer = SmoothLayer(bindPose, null, null, 1.0f).apply {
         layers.add(this)
     }
-    private var animationLayer = SmoothLayer(bindPose, null, null, 1.0f).apply {
-        layers.add(this)
-    }
     var currentAnimation: String by Delegates.observable("") { _, oldValue, newValue ->
         if (oldValue != newValue && newValue != "") setLivingAnimation(newValue)
     }
@@ -72,12 +69,6 @@ open class GLTFAnimationManager(val model: RenderedGltfModel) {
 
     fun setLivingAnimation(animation: String) {
         setLivingAnimation(animationCache[animation] ?: throw AnimationException("Animation \"$animation\" not found!"))
-    }
-
-    fun playAnimation(animation: String, priority: Float) {
-        animationLayer.priority = priority
-        animationLayer.push(animationCache[animation] ?: throw AnimationException("Animation \"$animation\" not found!"))
-        if(animationLayer !in this.layers) layers.add(animationLayer)
     }
 
     //Добавляет новую анимацию, одновременно с остальными
