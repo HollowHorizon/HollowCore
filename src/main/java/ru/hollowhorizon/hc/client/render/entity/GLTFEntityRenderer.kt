@@ -48,7 +48,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         packedLight: Int,
     ) {
         super.render(entity, yaw, partialTick, stack, p_225623_5_, packedLight)
-        
+
         val model = MCglTF.getOrCreate(entity.model)
         val manager = entity.manager as ClientModelManager
 
