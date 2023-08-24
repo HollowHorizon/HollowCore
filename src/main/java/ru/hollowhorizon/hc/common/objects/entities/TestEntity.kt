@@ -22,8 +22,6 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
         super.customServerAiStep()
     }
 
-    override val model = "hc:models/entity/player_model.gltf".rl
-
     //если сделать напрямую тут инициализацию, то Kotlin каждый раз будет новый менеджер анимаций создавать, что нам не нужно
     override val manager by lazy { IModelManager.create(this) }
 

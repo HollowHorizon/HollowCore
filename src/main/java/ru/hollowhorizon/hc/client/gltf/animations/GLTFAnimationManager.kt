@@ -6,22 +6,24 @@ import kotlin.properties.Delegates
 
 
 open class GLTFAnimationManager(val model: RenderedGltfModel) {
-    //Слой, который добавляет плавные переходы между 2 анимациями
+    val templates = AnimationType.load(model.gltfModel)
+    private val nodeModels = model.gltfModel.nodeModels
+    private val bindPose = model.gltfModel.bindPose
+    val layers = ArrayList<ILayer>()
     protected val animationCache = model.gltfModel.animationModels.associate {
         it.name to AnimationLoader.createAnimation(
             model.gltfModel,
             it.name
         )!!
     }
-    val templates = AnimationType.load(model.gltfModel)
-    private val nodeModels = model.gltfModel.nodeModels
-    private val bindPose = Animation.createFromPose(nodeModels)
-    val layers = ArrayList<ILayer>()
     private var smoothLayer = SmoothLayer(bindPose, null, null, 1.0f).apply {
         layers.add(this)
     }
+    private var animationLayer = SmoothLayer(bindPose, null, null, 1.0f).apply {
+        layers.add(this)
+    }
     var currentAnimation: String by Delegates.observable("") { _, oldValue, newValue ->
-        if (oldValue != newValue && newValue != "") setAnimation(newValue)
+        if (oldValue != newValue && newValue != "") setLivingAnimation(newValue)
     }
 
     val current: Animation?
@@ -31,7 +33,10 @@ open class GLTFAnimationManager(val model: RenderedGltfModel) {
      * Метод, обновляющий все анимации с учётом приоритетов
      */
     fun update(partialTick: Float) {
-        layers.forEach { it.update(partialTick) }
+        layers.removeIf {
+            it.update(partialTick)
+            it.shouldRemove
+        }
 
         nodeModels.forEach { node ->
             bindPose.apply(node, 0.0f) //Попробуем сбросить положение модели перед анимацией
@@ -61,12 +66,18 @@ open class GLTFAnimationManager(val model: RenderedGltfModel) {
     }
 
     //Добавляет новую анимацию, плавно переходя от прошлой к этой
-    fun setAnimation(animation: Animation) {
+    fun setLivingAnimation(animation: Animation) {
         this.smoothLayer.push(animation)
     }
 
-    fun setAnimation(animation: String) {
-        setAnimation(animationCache[animation] ?: throw AnimationException("Animation \"$animation\" not found!"))
+    fun setLivingAnimation(animation: String) {
+        setLivingAnimation(animationCache[animation] ?: throw AnimationException("Animation \"$animation\" not found!"))
+    }
+
+    fun playAnimation(animation: String, priority: Float) {
+        animationLayer.priority = priority
+        animationLayer.push(animationCache[animation] ?: throw AnimationException("Animation \"$animation\" not found!"))
+        if(animationLayer !in this.layers) layers.add(animationLayer)
     }
 
     //Добавляет новую анимацию, одновременно с остальными

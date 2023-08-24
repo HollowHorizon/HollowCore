@@ -46,6 +46,7 @@ import de.javagl.jgltf.model.NodeModel;
 import de.javagl.jgltf.model.SceneModel;
 import de.javagl.jgltf.model.SkinModel;
 import de.javagl.jgltf.model.TextureModel;
+import ru.hollowhorizon.hc.client.gltf.animations.Animation;
 
 /**
  * Default implementation of a {@link GltfModel}.<br>
@@ -121,6 +122,11 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * The {@link AssetModel}
      */
     private final DefaultAssetModel assetModel;
+    private Animation bindPose;
+
+    public void setBindPose(Animation bindPose) {
+        this.bindPose = bindPose;
+    }
 
     /**
      * Creates a new model 
@@ -861,5 +867,10 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
     public DefaultAssetModel getAssetModel()
     {
         return assetModel;
+    }
+
+    @Override
+    public Animation getBindPose() {
+        return bindPose;
     }
 }

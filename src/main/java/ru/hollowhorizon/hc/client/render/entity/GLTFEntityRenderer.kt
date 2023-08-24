@@ -23,7 +23,9 @@ import ru.hollowhorizon.hc.client.gltf.IAnimated
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.gltf.animations.GLTFAnimationManager
 import ru.hollowhorizon.hc.client.gltf.animations.HeadLayer
+import ru.hollowhorizon.hc.client.gltf.animations.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.gltf.animations.manager.ClientModelManager
+import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage
 import kotlin.jvm.optionals.getOrNull
 
 
@@ -146,19 +148,22 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
 
     private fun preRender(entity: T, manager: ClientModelManager, stack: PoseStack, partialTick: Float) {
-        stack.mulPoseMatrix(manager.transform.matrix)
+        val capability = entity.getCapability(CapabilityStorage.getCapability(AnimatedEntityCapability::class.java))
+            .orElseThrow { IllegalStateException("AnimatedEntityCapability is missing") }
+        stack.mulPoseMatrix(capability.transform.matrix)
+        stack.mulPose(Vector3f.YP.rotationDegrees(180f))
 
         if (!hasHeadLayer) {
             hasHeadLayer = true
             manager.addLayer(HeadLayer(entity, 1.0f))
         }
 
-        updateAnimations(entity, manager)
+        updateAnimations(entity, manager, capability.customAnimations)
         manager.update(partialTick)
     }
 
-    private fun updateAnimations(entity: T, manager: GLTFAnimationManager) {
-        val templates = manager.templates
+    private fun updateAnimations(entity: T, manager: GLTFAnimationManager, overrides: Map<AnimationType, String>) {
+        val templates = manager.templates + overrides
 
         if (!entity.isAlive) {
             manager.currentAnimation = templates.getOrDefault(AnimationType.DEATH, "")

@@ -9,8 +9,6 @@ import ru.hollowhorizon.hc.client.gltf.animations.PlayType
 import ru.hollowhorizon.hc.client.utils.isLogicalClient
 
 interface IModelManager {
-    var transform: Transform
-
     companion object {
         fun <T> create(entity: T): IModelManager where T : IAnimated, T : Entity {
             return if (isLogicalClient) ClientModelManager(
@@ -24,5 +22,4 @@ interface IModelManager {
 
     fun stopAnimation(name: String)
 
-    fun setDefaultAnimations(animations: Map<AnimationType, String>)
 }

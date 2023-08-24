@@ -9,14 +9,6 @@ import ru.hollowhorizon.hc.common.network.packets.*
 import ru.hollowhorizon.hc.common.network.send
 
 class ServerModelManager(val entity: Entity) : IModelManager {
-    override var transform: Transform = Transform()
-        set(value) {
-            field = value
-            SetTransformPacket().send(
-                SetTransformContainer(entity.id, value),
-                PacketDistributor.TRACKING_ENTITY.with { entity }
-            )
-        }
 
     override fun startAnimation(name: String, priority: Float, playType: PlayType, speed: Float) {
         StartAnimationPacket().send(
@@ -30,10 +22,4 @@ class ServerModelManager(val entity: Entity) : IModelManager {
             PacketDistributor.TRACKING_ENTITY.with { entity })
     }
 
-    override fun setDefaultAnimations(animations: Map<AnimationType, String>) {
-        SetDefaultAnimationsPacket().send(
-            DefaultAnimationsContainer(entity.id, animations),
-            PacketDistributor.TRACKING_ENTITY.with { entity }
-        )
-    }
 }

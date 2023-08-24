@@ -45,6 +45,7 @@ import de.javagl.jgltf.model.gl.impl.DefaultShaderModel;
 import de.javagl.jgltf.model.gl.impl.DefaultTechniqueModel;
 import de.javagl.jgltf.model.impl.DefaultGltfModel;
 import de.javagl.jgltf.model.io.v1.GltfAssetV1;
+import ru.hollowhorizon.hc.client.gltf.animations.Animation;
 
 /**
  * Implementation of a {@link GltfModel}, based on a {@link GlTF glTF 1.0}.<br>
@@ -290,5 +291,9 @@ public final class GltfModelV1 extends DefaultGltfModel implements GltfModel
     {
         return Collections.unmodifiableList(techniqueModels);
     }
-    
+
+    @Override
+    public Animation getBindPose() {
+        return null;
+    }
 }

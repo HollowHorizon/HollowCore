@@ -4,7 +4,6 @@ import com.mojang.math.Quaternion
 import de.javagl.jgltf.model.NodeModel
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
-import ru.hollowhorizon.hc.HollowCore
 
 
 interface ILayer {
@@ -54,10 +53,7 @@ class SmoothLayer(
         second?.update(this, partialTick)
         if (switchPriority > 0f) {
             switchPriority -= (switchSpeed * partialTick) / 20f
-            if (switchPriority < 0f) {
-                HollowCore.LOGGER.info("COMPLETE!")
-                switchPriority = 0f
-            }
+            if (switchPriority < 0f) switchPriority = 0f
         }
     }
 
@@ -65,9 +61,9 @@ class SmoothLayer(
         val f = first?.hasNode(node, target) ?: false
         val s = second?.hasNode(node, target) ?: false
 
-        return if (f && s) blend(node, target, first!!, second!!, partialTick)
-        else if (s && switchPriority < 1f) second!!.compute(node, target)
-        else if (f && switchPriority > 0f) blend(node, target, first!!, bindPose, partialTick)
+        return if (f && s) blend(node, target, first!!, second!!)
+        else if (s) blend(node, target, bindPose, second!!)
+        else if (f) blend(node, target, first!!, bindPose)
         else null
     }
 
@@ -76,7 +72,6 @@ class SmoothLayer(
         target: AnimationTarget,
         first: Animation,
         second: Animation,
-        time: Float,
     ): FloatArray? {
         val c1 = first.compute(node, target)
         val c2 = second.compute(node, target)
@@ -103,10 +98,10 @@ class HeadLayer(var animatable: LivingEntity, override var priority: Float) : IL
 
     override fun compute(node: NodeModel, target: AnimationTarget, partialTick: Float): FloatArray? {
         if (target == AnimationTarget.ROTATION && isValidNode(node)) {
-            val bodyYaw = -Mth.rotLerp(partialTick, animatable.yBodyRotO, animatable.yBodyRot)
-            val headYaw = -Mth.rotLerp(partialTick, animatable.yHeadRotO, animatable.yHeadRot)
+            val bodyYaw = -Mth.rotLerp(partialTick * 20f, animatable.yBodyRotO, animatable.yBodyRot)
+            val headYaw = -Mth.rotLerp(partialTick * 20f, animatable.yHeadRotO, animatable.yHeadRot)
             val netHeadYaw = headYaw - bodyYaw
-            val headPitch = -Mth.rotLerp(partialTick, animatable.xRotO, animatable.xRot)
+            val headPitch = -Mth.rotLerp(partialTick * 20f, animatable.xRotO, animatable.xRot)
             val rot = Quaternion(headPitch, netHeadYaw, 0f, true)
 
             return floatArrayOf(rot.i(), rot.j(), rot.k(), rot.r())
@@ -117,10 +112,12 @@ class HeadLayer(var animatable: LivingEntity, override var priority: Float) : IL
 }
 
 private fun blend(first: FloatArray?, second: FloatArray?, factor: Float): FloatArray? {
-    return if (first == null && second == null) null
-    else if (first != null && second == null || factor == 1f) first
-    else if (first == null || factor == 0f) second
-    else first.apply {
-        for (i in this.indices) this[i] = this[i] * factor + second!![i] * (1.0f - factor)
+    return when {
+        first == null && second == null -> null
+        first != null && second == null || factor == 1f -> first
+        first == null || factor == 0f -> second
+        else -> first.copyOf().apply {
+            for (i in this.indices) this[i] = this[i] * factor + second!![i] * (1.0f - factor)
+        }
     }
 }

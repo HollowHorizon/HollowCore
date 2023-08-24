@@ -26,6 +26,8 @@
  */
 package de.javagl.jgltf.model;
 
+import ru.hollowhorizon.hc.client.gltf.animations.Animation;
+
 import java.util.List;
 
 /**
@@ -144,6 +146,8 @@ public interface GltfModel extends ModelElement
      * @return The {@link AssetModel}
      */
     AssetModel getAssetModel();
+
+    Animation getBindPose();
     
 }
 

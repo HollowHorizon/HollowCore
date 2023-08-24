@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Transform(
-    var tX: Float = 0f, var tY: Float = 0f, var tZ: Float = 0f,
-    var rX: Float = 0f, var rY: Float = 0f, var rZ: Float = 0f,
-    var sX: Float = 1.0f, var sY: Float = 1.0f, var sZ: Float = 1.0f,
+    val tX: Float = 0f, val tY: Float = 0f, val tZ: Float = 0f,
+    val rX: Float = 0f, val rY: Float = 0f, val rZ: Float = 0f,
+    val sX: Float = 1.0f, val sY: Float = 1.0f, val sZ: Float = 1.0f,
 ) {
     val matrix: Matrix4f
         get() {

@@ -50,19 +50,3 @@ class StopAnimationPacket : Packet<StopAnimationContainer>({ player, container -
         }
     }
 })
-
-@HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_CLIENT)
-class SetDefaultAnimationsPacket : Packet<DefaultAnimationsContainer>({ player, container ->
-    player.level.getEntity(container.entity)?.let { entity ->
-        if (entity is IAnimated) {
-            entity.manager.setDefaultAnimations(container.animations)
-        }
-    }
-})
-
-@HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_CLIENT)
-class SetTransformPacket : Packet<SetTransformContainer>({ player, container ->
-    player.level.getEntity(container.entityId)?.let { entity ->
-        if (entity is IAnimated) entity.manager.transform = container.transform
-    }
-})
