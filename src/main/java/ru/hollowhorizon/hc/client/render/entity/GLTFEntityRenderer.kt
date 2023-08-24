@@ -47,6 +47,8 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         p_225623_5_: MultiBufferSource,
         packedLight: Int,
     ) {
+        super.render(entity, yaw, partialTick, stack, p_225623_5_, packedLight)
+        
         val model = MCglTF.getOrCreate(entity.model)
         val manager = entity.manager as ClientModelManager
 
@@ -133,8 +135,6 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         GL30.glBindVertexArray(currentVAO)
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, currentArrayBuffer)
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
-
-        super.render(entity, yaw, partialTick, stack, p_225623_5_, packedLight)
     }
 
     protected fun getRenderType(
