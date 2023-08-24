@@ -11,7 +11,7 @@ object ModEntities : HollowRegistry() {
     val TEST_ENTITY by register(
         ObjectConfig(
             name = "test_entity",
-            entityRenderer = GLTFEntityRenderer::class,
+            entityRenderer = "ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer",
             attributeSupplier = { Mob.createMobAttributes().build() }
         )
     ) {

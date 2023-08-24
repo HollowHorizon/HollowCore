@@ -44,6 +44,7 @@ import ru.hollowhorizon.hc.common.registry.HollowModProcessor;
 import ru.hollowhorizon.hc.common.registry.ModEntities;
 import ru.hollowhorizon.hc.common.registry.ModShaders;
 import ru.hollowhorizon.hc.common.registry.RegistryLoader;
+import ru.hollowhorizon.hc.common.scripting.kotlin.TestKt;
 
 
 @HollowMod(HollowCore.MODID)
@@ -55,7 +56,6 @@ public class HollowCore {
     public static final boolean DEBUG_MODE = true;
 
     public HollowCore() {
-        new MCglTF();
         HollowModProcessor.initMod();
         LOGGER.info("Starting HollowCore...");
 
@@ -69,6 +69,7 @@ public class HollowCore {
         //GltfModelSources.INSTANCE.addSource(new PathSource(FMLPaths.GAMEDIR.get().resolve("hollowengine")));
 
         if (FMLEnvironment.dist.isClient()) {
+            new MCglTF();
             OpenGLUtils.init();
             //клавиши
             forgeBus.register(new HollowKeyHandler());

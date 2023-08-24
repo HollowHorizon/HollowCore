@@ -28,6 +28,7 @@ import net.minecraftforge.registries.RegistryObject
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.render.entity.RenderFactoryBuilder
 import ru.hollowhorizon.hc.client.utils.HollowPack
+import ru.hollowhorizon.hc.client.utils.isPhysicalClient
 import ru.hollowhorizon.hc.common.objects.blocks.IBlockProperties
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -52,7 +53,7 @@ open class HollowRegistry {
 data class ObjectConfig(
     var name: String = "",
     val autoModel: Boolean = true,
-    val entityRenderer: KClass<*>? = null,
+    val entityRenderer: String? = null,
     val blockEntityRenderer: KClass<*>? = null,
     val attributeSupplier: (() -> AttributeSupplier)? = null,
 )
@@ -105,10 +106,10 @@ class RegistryHolder<T>(private val config: ObjectConfig, val supplier: () -> T,
             }
 
             target.isAssignableFrom(EntityType::class.java) -> {
-                if (config.entityRenderer != null) {
+                if (config.entityRenderer != null && isPhysicalClient) {
                     RenderFactoryBuilder.buildEntity(
                         { this.get() as EntityType<Entity> },
-                        config.entityRenderer.java as Class<EntityRenderer<Entity>>
+                        Class.forName(config.entityRenderer) as Class<EntityRenderer<Entity>>
                     )
                 }
                 if (config.attributeSupplier != null) {

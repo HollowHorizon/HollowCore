@@ -12,8 +12,6 @@ import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.utils.HollowCommand
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
-import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage
-import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
 import ru.hollowhorizon.hc.common.commands.HollowCommands
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV2Loader
