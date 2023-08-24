@@ -35,7 +35,7 @@ val isPhysicalClient: Boolean
 val isPhysicalServer: Boolean
     get() = !isPhysicalClient
 val isIdeMode: Boolean
-    get() = true
+    get() = false
 
 fun String.toRL(): ResourceLocation {
     return ResourceLocation(this)
