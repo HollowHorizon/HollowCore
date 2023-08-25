@@ -21,7 +21,7 @@ public abstract class CapabilityManagerMixin {
     @Shadow
     abstract <T> Capability<T> get(String realName, boolean registering);
 
-    @Inject(method = "injectCapabilities", at = @At("TAIL"), remap = false)
+    @Inject(method = "injectCapabilities", at = @At("HEAD"), remap = false)
     private void injectCapabilities(List<ModFileScanData> data, CallbackInfo ci) {
         CapabilityLoaderKt.callHook(data, this::get);
     }

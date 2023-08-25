@@ -42,8 +42,6 @@ fun <T> callHook(list: MutableList<ModFileScanData>, getMethod: (String, Boolean
             (annotation.annotationData["value"] as ArrayList<Type>)
         initCapabilities(Class.forName(annotation.clazz.className), result, targets)
     }
-
-    ModLoader.get().postEvent(RegisterCapabilitiesEvent())
 }
 
 fun initCapabilities(capabilityClass: Class<*>, cap: Capability<*>, targets: List<Type>) {
