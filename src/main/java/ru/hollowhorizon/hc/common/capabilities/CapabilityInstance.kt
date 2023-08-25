@@ -40,14 +40,14 @@ open class CapabilityInstance :
                 val isPlayer = entity is Player
                 if (entity.level.isClientSide) SSyncEntityCapabilityPacket().send(
                     EntityCapabilityContainer(
-                        (provider as Entity).id,
+                        entity.id,
                         capability.name,
                         serializeNBT()
                     )
                 )
                 else CSyncEntityCapabilityPacket().send(
                     EntityCapabilityContainer(
-                        (provider as Entity).id,
+                        entity.id,
                         capability.name,
                         serializeNBT()
                     ),
