@@ -31,14 +31,14 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
 
         val files = HashSet<File>()
         if (!isIdeMode && FMLLoader.isProduction()) {
-            files.addAll(ModList.get().modFiles.map { it.file.filePath.toRealPath().toFile() })
+            files.addAll(ModList.get().modFiles.map { it.file.filePath.toFile() })
 
-            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherModPaths.flatten().map { it.toRealPath().toFile() })
-            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherArtifacts.map { it.toRealPath().toFile() })
+            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherModPaths.flatten().map { it.toFile() })
+            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherArtifacts.map { it.toFile() })
 
             files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map {
                 HollowCore.LOGGER.info("Trying to add dependency from ${it.absolutePathString()}, will success: ${it.fileSystem === FileSystems.getDefault()}")
-                it.toRealPath().toFile()
+                File(it.absolutePathString())
             })
 
             dependenciesFromClassContext(
