@@ -2,18 +2,14 @@ package ru.hollowhorizon.hc.common.scripting.kotlin
 
 import net.minecraftforge.fml.ModList
 import net.minecraftforge.fml.loading.FMLLoader
-import net.minecraftforge.fml.loading.FMLPaths
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.isIdeMode
 import java.io.File
-import java.net.URL
-import java.nio.file.Paths
+import java.nio.file.FileSystems
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.writeText
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.FileBasedScriptSource
 import kotlin.script.experimental.host.FileScriptSource
-import kotlin.script.experimental.jvm.JvmDependency
 import kotlin.script.experimental.jvm.dependenciesFromClassContext
 import kotlin.script.experimental.jvm.jvm
 import kotlin.script.experimental.jvm.updateClasspath
@@ -35,12 +31,15 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
 
         val files = HashSet<File>()
         if (!isIdeMode && FMLLoader.isProduction()) {
-            files.addAll(ModList.get().modFiles.map { it.file.filePath.toAbsolutePath().toFile() })
+            files.addAll(ModList.get().modFiles.map { it.file.filePath.toRealPath().toFile() })
 
-            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherModPaths.flatten().map { it.toAbsolutePath().toFile() })
-            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherArtifacts.map { it.toAbsolutePath().toFile() })
+            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherModPaths.flatten().map { it.toRealPath().toFile() })
+            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherArtifacts.map { it.toRealPath().toFile() })
 
-            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map { it.toAbsolutePath().toFile() })
+            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map {
+                HollowCore.LOGGER.info("Trying to add dependency from ${it.absolutePathString()}, will success: ${it.fileSystem === FileSystems.getDefault()}")
+                it.toRealPath().toFile()
+            })
 
             dependenciesFromClassContext(
                 HollowScriptConfiguration::class,
