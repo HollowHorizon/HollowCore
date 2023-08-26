@@ -38,7 +38,7 @@ open class BaseButton @JvmOverloads constructor(
         stack.pushPose()
         stack.translate(0.0, 0.0, 700.0)
 
-        minecraft.getTextureManager().bindForSetup(texLocation)
+        RenderSystem.setShaderTexture(0, texLocation)
         blit(
             stack, this.x, this.y, 0f, (if (isHovered) height else 0).toFloat(), width, height, width, height * 2
         )

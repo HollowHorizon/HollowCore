@@ -10,11 +10,11 @@ import kotlin.math.acos
 object AnimationLoader {
 
     fun createAnimation(model: GltfModel, name: String): Animation? {
-        return createAnimation(model.nodeModels, model.animationModels.find { it.name == name } ?: return null)
+        return createAnimation(model.animationModels.find { it.name == name } ?: return null)
     }
 
     @JvmStatic
-    fun createAnimation(nodes: List<NodeModel>, animationModel: AnimationModel): Animation {
+    fun createAnimation(animationModel: AnimationModel): Animation {
         val animData = animationModel.channels.mapNotNull { channel ->
             val sampler = channel.sampler
             val timeKeys = sampler.input.accessorData.values

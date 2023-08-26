@@ -20,6 +20,13 @@ interface Wrapper {
     suspend operator fun <T> invoke(block: suspend () -> T): T
 }
 
+var resumed = true
+
 suspend fun persist() {
+    resumed = false
     coroutineContext[Persistor.Key]!!.persist()
+    if (!resumed) {
+        throw RuntimeException("persisted")
+    }
+    resumed = true
 }

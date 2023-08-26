@@ -1,3 +1,4 @@
+import com.github.jengelman.gradle.plugins.shadow.relocation.SimpleRelocator
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import net.minecraftforge.gradle.userdev.UserDevExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -7,21 +8,21 @@ import net.minecraftforge.gradle.userdev.DependencyManagementExtension
 //^(.+)$(?=[\s\S]*^(\1)$[\s\S]*)
 buildscript {
     repositories {
-        maven { url = uri("https://maven.minecraftforge.net") }
         maven { url = uri("https://repo.spongepowered.org/repository/maven-public/") }
         maven { url = uri("https://maven.parchmentmc.org") }
         mavenCentral()
     }
     dependencies {
-        classpath("net.minecraftforge.gradle:ForgeGradle:5+") { isChanging = true }
+        //classpath("net.minecraftforge.gradle:ForgeGradle:5+") { isChanging = true }
         classpath("org.parchmentmc:librarian:1.+")
-        classpath("org.spongepowered:mixingradle:0.7.32")
+        classpath("org.spongepowered:mixingradle:0.7.38")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
-        classpath("gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7+")
+        classpath("com.github.johnrengelman:shadow:8+")
     }
 }
 
 plugins {
+    id("net.minecraftforge.gradle") version "[6.0,6.2)"
     id("org.jetbrains.kotlin.jvm").version("1.9.0")
     id("org.jetbrains.kotlin.plugin.serialization").version("1.9.0")
 }
@@ -29,10 +30,10 @@ plugins {
 apply {
     plugin("kotlin")
     plugin("maven-publish")
-    plugin("com.github.johnrengelman.shadow")
     plugin("net.minecraftforge.gradle")
     plugin("org.spongepowered.mixin")
     plugin("org.parchmentmc.librarian.forgegradle")
+    plugin("com.github.johnrengelman.shadow")
 }
 
 group = "ru.hollowhorizon"
@@ -88,10 +89,6 @@ configure<UserDevExtension> {
 repositories {
     mavenCentral()
     maven { url = uri("https://jitpack.io") }
-    flatDir {
-        dirs("libs")
-        dirs("build/libs")
-    }
 }
 
 val shadowCompileOnly by configurations.creating
@@ -122,7 +119,7 @@ dependencies {
     shadow("org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.0")
     shadow("com.esotericsoftware:kryo:5.4.0")
 
-    shadow("gnu.trove:trove:1.0.2")
+    shadow("trove:trove:1.0.2")
 }
 
 val copyJar by tasks.registering(Copy::class) {
@@ -150,7 +147,7 @@ if (System.getProperty("user.name").equals("user")) {
 }
 
 tasks.getByName<ShadowJar>("shadowJar") {
-    //minimize()
+    //archiveFileName.set("hollowcore")
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
@@ -166,11 +163,6 @@ tasks.getByName<ShadowJar>("shadowJar") {
 
     //Нужно переименовать все пакеты с названием "native" в "notnative" потому что JDK отказывается загружать пакеты с такими именами
     relocate(HollowRelocator("native", "notnative", ArrayList<String>(), ArrayList<String>(), true))
-//    exclude {
-//        val res = it.relativePath.contains("native") && it.relativePath.contains("org.jetbrains")
-//        project.logger.info("Testing: $it")
-//        res
-//    }
 
     archiveClassifier.set("")
 
@@ -184,6 +176,7 @@ tasks.getByName<ShadowJar>("shadowJar") {
 
 tasks.getByName<Jar>("jar") {
     archiveClassifier.set("original")
+    //archiveFileName.set("hollowcore")
 
     manifest {
         attributes(
