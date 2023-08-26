@@ -1,6 +1,6 @@
 modLoader = "javafml"
 loaderVersion = "[43,)"
-license = "All rights reserved"
+license = "MIT License"
 [[mods]]
 modId = "hc"
 version = "${file.jarVersion}"
