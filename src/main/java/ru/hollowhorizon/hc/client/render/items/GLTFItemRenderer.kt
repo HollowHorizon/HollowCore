@@ -1,26 +1,22 @@
 package ru.hollowhorizon.hc.client.render.items
 
-import com.modularmods.mcgltf.MCglTF
-import com.modularmods.mcgltf.RenderedGltfModel
-import com.modularmods.mcgltf.RenderedGltfScene
+import ru.hollowhorizon.hc.client.gltf.model.GltfManager
+import ru.hollowhorizon.hc.client.gltf.model.RenderedGltfModel
+import ru.hollowhorizon.hc.client.gltf.model.RenderedGltfScene
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.math.Matrix3f
-import com.mojang.math.Matrix4f
 import com.mojang.math.Quaternion
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
 import net.minecraftforge.client.extensions.common.IClientItemExtensions
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30
-import ru.hollowhorizon.hc.client.utils.rl
 
 
 class GLTFItemRenderer: IClientItemExtensions {
@@ -79,12 +75,12 @@ class ExampleItemRenderer {
                     p_108834_ and '\uffff'.code,
                     p_108834_ shr 16 and '\uffff'.code
                 )
-                if (MCglTF.getInstance().isShaderModActive) {
+                if (GltfManager.getInstance().isShaderModActive) {
                     //renderedScene!!.renderOptiOculus()
                 } else {
                     GL13.glActiveTexture(GL13.GL_TEXTURE2)
                     val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().lightTexture.id)
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().lightTexture.id)
                     GL13.glActiveTexture(GL13.GL_TEXTURE1)
                     val currentTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
                     mc.gameRenderer.overlayTexture().setupOverlayColor()
@@ -116,12 +112,12 @@ class ExampleItemRenderer {
                     p_108834_ and '\uffff'.code,
                     p_108834_ shr 16 and '\uffff'.code
                 )
-                if (MCglTF.getInstance().isShaderModActive) {
+                if (GltfManager.getInstance().isShaderModActive) {
                     //renderedScene!!.renderOptiOculus()
                 } else {
                     GL13.glActiveTexture(GL13.GL_TEXTURE2)
                     val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().lightTexture.id)
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().lightTexture.id)
                     GL13.glActiveTexture(GL13.GL_TEXTURE1)
                     val currentTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
                     GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0)
@@ -145,7 +141,7 @@ class ExampleItemRenderer {
                 //RenderedGltfModel.CURRENT_NORMAL = Matrix3f().apply {this.mul(rotateAround)}
                 GL13.glActiveTexture(GL13.GL_TEXTURE2)
                 val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().defaultColorMap)
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().defaultColorMap)
                 GL13.glActiveTexture(GL13.GL_TEXTURE1)
                 val currentTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
                 GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0)

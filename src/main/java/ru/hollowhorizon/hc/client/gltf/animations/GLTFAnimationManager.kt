@@ -1,6 +1,6 @@
 package ru.hollowhorizon.hc.client.gltf.animations
 
-import com.modularmods.mcgltf.RenderedGltfModel
+import ru.hollowhorizon.hc.client.gltf.model.RenderedGltfModel
 import de.javagl.jgltf.model.NodeModel
 import kotlin.properties.Delegates
 

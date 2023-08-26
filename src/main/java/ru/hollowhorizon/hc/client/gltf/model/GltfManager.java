@@ -1,4 +1,4 @@
-package com.modularmods.mcgltf;
+package ru.hollowhorizon.hc.client.gltf.model;
 
 import de.javagl.jgltf.model.io.Buffers;
 import de.javagl.jgltf.model.io.GltfModelReader;
@@ -32,15 +32,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
+//TODO: Migrate from MCglTF model loader to own model loader, see GltfTree class.
 @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class MCglTF {
+public class GltfManager {
 
     public static final String MODID = "mcgltf";
     public static final String RESOURCE_LOCATION = "resourceLocation";
 
     public static final Logger logger = LogManager.getLogger(MODID);
 
-    private static MCglTF INSTANCE;
+    private static GltfManager INSTANCE;
 
     private final Pair<CompatibilityConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(CompatibilityConfig::new);
     private final Map<ResourceLocation, Supplier<ByteBuffer>> loadedBufferResources = new HashMap<ResourceLocation, Supplier<ByteBuffer>>();
@@ -53,7 +54,7 @@ public class MCglTF {
     private int defaultNormalMap;
     private AbstractTexture lightTexture;
 
-    public MCglTF() {
+    public GltfManager() {
         INSTANCE = this;
 
         isShadersExist = ModList.get().isLoaded("oculus") || ModList.get().isLoaded("optifine");
@@ -80,7 +81,7 @@ public class MCglTF {
         });
     }
 
-    public static MCglTF getInstance() {
+    public static GltfManager getInstance() {
         return INSTANCE;
     }
 

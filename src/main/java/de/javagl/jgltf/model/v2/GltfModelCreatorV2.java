@@ -28,7 +28,7 @@ package de.javagl.jgltf.model.v2;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.modularmods.mcgltf.MCglTF;
+import ru.hollowhorizon.hc.client.gltf.model.GltfManager;
 import de.javagl.jgltf.impl.v2.*;
 import de.javagl.jgltf.model.*;
 import de.javagl.jgltf.model.AnimationModel.Channel;
@@ -721,9 +721,9 @@ public class GltfModelCreatorV2 {
 
             Object extras = buffer.getExtras();
             if (extras != null) {
-                JsonElement extra = new Gson().toJsonTree(extras).getAsJsonObject().get(MCglTF.RESOURCE_LOCATION);
+                JsonElement extra = new Gson().toJsonTree(extras).getAsJsonObject().get(GltfManager.RESOURCE_LOCATION);
                 if (extra != null) {
-                    bufferModel.setBufferData(MCglTF.getInstance().getBufferResource(new ResourceLocation(extra.getAsString())));
+                    bufferModel.setBufferData(GltfManager.getInstance().getBufferResource(new ResourceLocation(extra.getAsString())));
                     continue;
                 }
             }
@@ -977,9 +977,9 @@ public class GltfModelCreatorV2 {
 
             Object extras = image.getExtras();
             if (extras != null) {
-                JsonElement extra = new Gson().toJsonTree(extras).getAsJsonObject().get(MCglTF.RESOURCE_LOCATION);
+                JsonElement extra = new Gson().toJsonTree(extras).getAsJsonObject().get(GltfManager.RESOURCE_LOCATION);
                 if (extra != null) {
-                    imageModel.setImageData(MCglTF.getInstance().getImageResource(new ResourceLocation(extra.getAsString())));
+                    imageModel.setImageData(GltfManager.getInstance().getImageResource(new ResourceLocation(extra.getAsString())));
                     continue;
                 }
             }

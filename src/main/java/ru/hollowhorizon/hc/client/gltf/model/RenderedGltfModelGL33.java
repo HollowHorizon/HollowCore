@@ -1,4 +1,4 @@
-package com.modularmods.mcgltf;
+package ru.hollowhorizon.hc.client.gltf.model;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.modularmods.mcgltf;
+package ru.hollowhorizon.hc.client.gltf.model;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Matrix4f;

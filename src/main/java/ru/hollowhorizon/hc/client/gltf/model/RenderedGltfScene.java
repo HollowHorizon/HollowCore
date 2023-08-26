@@ -1,4 +1,7 @@
-package com.modularmods.mcgltf;
+package ru.hollowhorizon.hc.client.gltf.model;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
@@ -7,29 +10,34 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GL31;
 import org.lwjgl.opengl.GL40;
+import org.lwjgl.opengl.GL43;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.client.renderer.GameRenderer;
 
-public class RenderedGltfSceneGL40 extends RenderedGltfScene {
+public class RenderedGltfScene {
 
-	@Override
+	public final List<Runnable> skinningCommands = new ArrayList<Runnable>();
+	
+	public final List<Runnable> vanillaRenderCommands = new ArrayList<Runnable>();
+	
+	public final List<Runnable> shaderModRenderCommands = new ArrayList<Runnable>();
+	
 	public void renderForVanilla() {
 		int currentProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		
 		if(!skinningCommands.isEmpty()) {
-			GL20.glUseProgram(MCglTF.getInstance().getGlProgramSkinnig());
+			GL20.glUseProgram(GltfManager.getInstance().getGlProgramSkinnig());
 			GL11.glEnable(GL30.GL_RASTERIZER_DISCARD);
 			skinningCommands.forEach(Runnable::run);
-			GL15.glBindBuffer(GL31.GL_TEXTURE_BUFFER, 0);
+			GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, 0);
 			GL40.glBindTransformFeedback(GL40.GL_TRANSFORM_FEEDBACK, 0);
 			GL11.glDisable(GL30.GL_RASTERIZER_DISCARD);
 		}
 		
-		RenderedGltfModel.CURRENT_SHADER_INSTANCE = GameRenderer.getRendertypeEntitySolidShader();
+		RenderedGltfModel.CURRENT_SHADER_INSTANCE = GameRenderer.getRendertypeEntityTranslucentShader();
 		int entitySolidProgram = RenderedGltfModel.CURRENT_SHADER_INSTANCE.getId();
 		GL20.glUseProgram(entitySolidProgram);
 		
@@ -70,16 +78,15 @@ public class RenderedGltfSceneGL40 extends RenderedGltfScene {
 		
 		RenderedGltfModel.NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.clear();
 	}
-
-	@Override
+	
 	public void renderForShaderMod() {
 		int currentProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		
 		if(!skinningCommands.isEmpty()) {
-			GL20.glUseProgram(MCglTF.getInstance().getGlProgramSkinnig());
+			GL20.glUseProgram(GltfManager.getInstance().getGlProgramSkinnig());
 			GL11.glEnable(GL30.GL_RASTERIZER_DISCARD);
 			skinningCommands.forEach(Runnable::run);
-			GL15.glBindBuffer(GL31.GL_TEXTURE_BUFFER, 0);
+			GL15.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, 0);
 			GL40.glBindTransformFeedback(GL40.GL_TRANSFORM_FEEDBACK, 0);
 			GL11.glDisable(GL30.GL_RASTERIZER_DISCARD);
 			GL20.glUseProgram(currentProgram);
@@ -88,7 +95,7 @@ public class RenderedGltfSceneGL40 extends RenderedGltfScene {
 		RenderedGltfModel.MODEL_VIEW_MATRIX = GL20.glGetUniformLocation(currentProgram, "modelViewMatrix");
 		RenderedGltfModel.MODEL_VIEW_MATRIX_INVERSE = GL20.glGetUniformLocation(currentProgram, "modelViewMatrixInverse");
 		RenderedGltfModel.NORMAL_MATRIX = GL20.glGetUniformLocation(currentProgram, "normalMatrix");
-
+		
 		Matrix4f projectionMatrix = RenderSystem.getProjectionMatrix();
 		projectionMatrix.store(RenderedGltfModel.BUF_FLOAT_16);
 		GL20.glUniformMatrix4fv(GL20.glGetUniformLocation(currentProgram, "projectionMatrix"), false, RenderedGltfModel.BUF_FLOAT_16);

@@ -1,4 +1,4 @@
-package com.modularmods.mcgltf;
+package ru.hollowhorizon.hc.client.gltf.model;
 
 import com.google.gson.Gson;
 import com.jme3.util.mikktspace.MikkTSpaceContext;
@@ -52,17 +52,17 @@ public class RenderedGltfModel {
     public static final int vaNormal = 5;
     public static final Map<NodeModel, float[]> NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE = new IdentityHashMap<NodeModel, float[]>();
     protected static final Runnable vanillaDefaultMaterialCommand = () -> {
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().getDefaultColorMap());
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().getDefaultColorMap());
         GL20.glVertexAttrib4f(vaColor, 1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glEnable(GL11.GL_CULL_FACE);
     };
     protected static final Runnable shaderModDefaultMaterialCommand = () -> {
         GL13.glActiveTexture(COLOR_MAP_INDEX);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().getDefaultColorMap());
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().getDefaultColorMap());
         GL13.glActiveTexture(NORMAL_MAP_INDEX);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().getDefaultNormalMap());
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().getDefaultNormalMap());
         GL13.glActiveTexture(SPECULAR_MAP_INDEX);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().getDefaultSpecularMap());
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().getDefaultSpecularMap());
         GL20.glVertexAttrib4f(vaColor, 1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glEnable(GL11.GL_CULL_FACE);
     };
@@ -3231,7 +3231,7 @@ public class RenderedGltfModel {
         if (glTexture == null) {
             PixelData pixelData = PixelDatas.create(textureModel.getImageModel().getImageData());
             if (pixelData == null) {
-                MCglTF.logger.warn("Could not extract pixel data from image");
+                GltfManager.logger.warn("Could not extract pixel data from image");
                 pixelData = PixelDatas.createErrorPixelData();
             }
 
@@ -4846,7 +4846,7 @@ public class RenderedGltfModel {
                         colorMap = renderedModel.obtainGlTexture(gltfRenderData, textureModel);
                         baseColorTexture = new TextureInfo();
                         baseColorTexture.index = textureModels.indexOf(textureModel);
-                    } else colorMap = MCglTF.getInstance().getDefaultColorMap();
+                    } else colorMap = GltfManager.getInstance().getDefaultColorMap();
                 } else
                     colorMap = renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(baseColorTexture.index));
 
@@ -4856,7 +4856,7 @@ public class RenderedGltfModel {
                         normalMap = renderedModel.obtainGlTexture(gltfRenderData, textureModel);
                         normalTexture = new TextureInfo();
                         normalTexture.index = textureModels.indexOf(textureModel);
-                    } else normalMap = MCglTF.getInstance().getDefaultNormalMap();
+                    } else normalMap = GltfManager.getInstance().getDefaultNormalMap();
                 } else
                     normalMap = renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(normalTexture.index));
 
@@ -4866,7 +4866,7 @@ public class RenderedGltfModel {
                         specularMap = renderedModel.obtainGlTexture(gltfRenderData, textureModel);
                         specularTexture = new TextureInfo();
                         specularTexture.index = textureModels.indexOf(textureModel);
-                    } else specularMap = MCglTF.getInstance().getDefaultSpecularMap();
+                    } else specularMap = GltfManager.getInstance().getDefaultSpecularMap();
                 } else
                     specularMap = renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(specularTexture.index));
 
@@ -4874,9 +4874,9 @@ public class RenderedGltfModel {
 
                 if (doubleSided == null) doubleSided = materialModelV2.isDoubleSided();
             } else {
-                colorMap = baseColorTexture == null ? MCglTF.getInstance().getDefaultColorMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(baseColorTexture.index));
-                normalMap = normalTexture == null ? MCglTF.getInstance().getDefaultNormalMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(normalTexture.index));
-                specularMap = specularTexture == null ? MCglTF.getInstance().getDefaultSpecularMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(specularTexture.index));
+                colorMap = baseColorTexture == null ? GltfManager.getInstance().getDefaultColorMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(baseColorTexture.index));
+                normalMap = normalTexture == null ? GltfManager.getInstance().getDefaultNormalMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(normalTexture.index));
+                specularMap = specularTexture == null ? GltfManager.getInstance().getDefaultSpecularMap() : renderedModel.obtainGlTexture(gltfRenderData, textureModels.get(specularTexture.index));
                 if (baseColorFactor == null) baseColorFactor = new float[]{1.0F, 1.0F, 1.0F, 1.0F};
                 if (doubleSided == null) doubleSided = false;
             }

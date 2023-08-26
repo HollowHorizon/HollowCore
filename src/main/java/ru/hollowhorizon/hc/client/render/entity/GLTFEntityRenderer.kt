@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.client.render.entity
 
-import com.modularmods.mcgltf.MCglTF
-import com.modularmods.mcgltf.RenderedGltfModel
+import ru.hollowhorizon.hc.client.gltf.model.GltfManager
+import ru.hollowhorizon.hc.client.gltf.model.RenderedGltfModel
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Vector3f
@@ -49,7 +49,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     ) {
         super.render(entity, yaw, partialTick, stack, p_225623_5_, packedLight)
 
-        val model = MCglTF.getOrCreate(entity.model)
+        val model = GltfManager.getOrCreate(entity.model)
         val manager = entity.manager as ClientModelManager
 
         val type = getRenderType(entity)
@@ -82,13 +82,13 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         )
 
         type.setupRenderState()
-        if (MCglTF.getInstance().isShaderModActive) {
+        if (GltfManager.getInstance().isShaderModActive) {
             model.renderedGltfScenes.forEach { it.renderForShaderMod() }
         } else {
 
             GL13.glActiveTexture(GL13.GL_TEXTURE2) //Лайтмап
             val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().lightTexture.id)
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().lightTexture.id)
             GL13.glActiveTexture(GL13.GL_TEXTURE1) //Оверлей
             val currentTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
             val overlay = if (entity.hurtTime > 0 || !entity.isAlive) RenderSystem.getShaderTexture(1) else 0
@@ -103,7 +103,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                 outline.setupRenderState()
 
                 GL13.glActiveTexture(GL13.GL_TEXTURE2) //Лайтмап
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().lightTexture.id)
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().lightTexture.id)
 
                 GL30.glVertexAttribI2i(RenderedGltfModel.vaUV2, 255, 255) //нужно для чистого белого цвета
 
@@ -111,7 +111,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                 GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(1))
 
                 GL13.glActiveTexture(GL13.GL_TEXTURE0) //Текстуры модели
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().defaultColorMap)
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().defaultColorMap)
 
                 GL13.glActiveTexture(GL13.GL_TEXTURE10) //Текстуры модели
 

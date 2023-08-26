@@ -20,6 +20,7 @@
   ],
   "client": [
     "ScreenAccessor",
+    "SoundManagerMixin",
     "WorldListEntryMixin"
   ],
   "injectors": {

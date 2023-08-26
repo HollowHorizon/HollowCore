@@ -1,18 +1,20 @@
 package ru.hollowhorizon.hc;
 
-import com.modularmods.mcgltf.MCglTF;
 import net.minecraft.SharedConstants;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
+import net.minecraft.server.packs.resources.ReloadableResourceManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -20,6 +22,7 @@ import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -28,10 +31,12 @@ import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
+import ru.hollowhorizon.hc.client.gltf.model.GltfManager;
 import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
 import ru.hollowhorizon.hc.client.render.OpenGLUtils;
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer;
+import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
@@ -44,7 +49,6 @@ import ru.hollowhorizon.hc.common.registry.HollowModProcessor;
 import ru.hollowhorizon.hc.common.registry.ModEntities;
 import ru.hollowhorizon.hc.common.registry.ModShaders;
 import ru.hollowhorizon.hc.common.registry.RegistryLoader;
-import ru.hollowhorizon.hc.common.scripting.kotlin.TestKt;
 
 
 @HollowMod(HollowCore.MODID)
@@ -69,7 +73,7 @@ public class HollowCore {
         //GltfModelSources.INSTANCE.addSource(new PathSource(FMLPaths.GAMEDIR.get().resolve("hollowengine")));
 
         if (FMLEnvironment.dist.isClient()) {
-            new MCglTF();
+            new GltfManager();
             OpenGLUtils.init();
             //клавиши
             forgeBus.register(new HollowKeyHandler());
@@ -98,10 +102,14 @@ public class HollowCore {
         forgeBus.addGenericListener(Entity.class, CapabilityStorage::registerProvidersEntity);
         forgeBus.addGenericListener(BlockEntity.class, CapabilityStorage::registerProvidersBlockEntity);
         forgeBus.addGenericListener(Level.class, CapabilityStorage::registerProvidersWorld);
-
+        modBus.addListener(this::registerReloadListeners);
         forgeBus.addListener(this::configSave);
 
         RegistryLoader.registerAll();
+    }
+
+    public void registerReloadListeners(RegisterClientReloadListenersEvent event) {
+
     }
 
     public void onResourcePackAdd(AddPackFindersEvent event) {

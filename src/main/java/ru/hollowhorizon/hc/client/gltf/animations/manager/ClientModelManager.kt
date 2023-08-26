@@ -1,6 +1,6 @@
 package ru.hollowhorizon.hc.client.gltf.animations.manager
 
-import com.modularmods.mcgltf.RenderedGltfModel
+import ru.hollowhorizon.hc.client.gltf.model.RenderedGltfModel
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationException
 import ru.hollowhorizon.hc.client.gltf.animations.AnimationLayer
 import ru.hollowhorizon.hc.client.gltf.animations.GLTFAnimationManager

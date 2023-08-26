@@ -1,4 +1,4 @@
-package com.modularmods.mcgltf;
+package ru.hollowhorizon.hc.client.gltf.model;
 
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
@@ -20,7 +20,7 @@ public class RenderedGltfSceneGL33 extends RenderedGltfScene {
 		int currentProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		
 		if(!skinningCommands.isEmpty()) {
-			GL20.glUseProgram(MCglTF.getInstance().getGlProgramSkinnig());
+			GL20.glUseProgram(GltfManager.getInstance().getGlProgramSkinnig());
 			GL11.glEnable(GL30.GL_RASTERIZER_DISCARD);
 			skinningCommands.forEach(Runnable::run);
 			GL15.glBindBuffer(GL31.GL_TEXTURE_BUFFER, 0);
@@ -74,7 +74,7 @@ public class RenderedGltfSceneGL33 extends RenderedGltfScene {
 		int currentProgram = GL11.glGetInteger(GL20.GL_CURRENT_PROGRAM);
 		
 		if(!skinningCommands.isEmpty()) {
-			GL20.glUseProgram(MCglTF.getInstance().getGlProgramSkinnig());
+			GL20.glUseProgram(GltfManager.getInstance().getGlProgramSkinnig());
 			GL11.glEnable(GL30.GL_RASTERIZER_DISCARD);
 			skinningCommands.forEach(Runnable::run);
 			GL15.glBindBuffer(GL31.GL_TEXTURE_BUFFER, 0);
