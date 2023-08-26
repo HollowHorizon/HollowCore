@@ -20,7 +20,7 @@ public abstract class NamedShaderObject implements ShaderObject {
 
     @Nonnull
     @Override
-    public String getName() {
+    public String getShaderName() {
         return name;
     }
 

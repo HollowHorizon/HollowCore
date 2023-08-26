@@ -37,10 +37,10 @@ public class ShaderProgramBuilder {
     }
 
     public ShaderProgramBuilder addShader(ShaderObject shader) {
-        if (shaders.containsKey(shader.getName())) {
-            throw new IllegalArgumentException("Duplicate shader with name: " + shader.getName());
+        if (shaders.containsKey(shader.getShaderName())) {
+            throw new IllegalArgumentException("Duplicate shader with name: " + shader.getShaderName());
         }
-        shaders.put(shader.getName(), shader);
+        shaders.put(shader.getShaderName(), shader);
         return this;
     }
 

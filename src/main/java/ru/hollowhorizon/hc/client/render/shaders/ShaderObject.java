@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
 public interface ShaderObject {
-    String getName();
+    String getShaderName();
 
     ShaderType getShaderType();
 
