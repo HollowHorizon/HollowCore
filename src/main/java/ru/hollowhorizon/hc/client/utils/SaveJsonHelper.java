@@ -10,7 +10,8 @@ public class SaveJsonHelper {
     public static void save(File file, JsonObject obj) {
         try {
             if (!file.exists()) {
-                if(!file.getParentFile().mkdirs() && !file.createNewFile()) HollowCore.LOGGER.info("Can't Create new file...");
+                if (!file.getParentFile().mkdirs() && !file.createNewFile())
+                    HollowCore.LOGGER.info("Can't Create new file...");
             }
 
             Gson gson = (new GsonBuilder()).setPrettyPrinting().create();
@@ -26,7 +27,8 @@ public class SaveJsonHelper {
     public static void save(File file, JsonArray obj) {
         try {
             if (!file.exists()) {
-                if(!file.getParentFile().mkdirs() && !file.createNewFile()) HollowCore.LOGGER.info("Can't Create new file...");
+                if (!file.getParentFile().mkdirs() && !file.createNewFile())
+                    HollowCore.LOGGER.info("Can't Create new file...");
             }
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
 

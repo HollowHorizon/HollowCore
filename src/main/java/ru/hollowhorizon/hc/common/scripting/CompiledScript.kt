@@ -14,11 +14,11 @@ data class CompiledScript(
     val scriptName: String,
     val hash: String,
     val script: CompiledScript,
-    val saveFile: File?
+    val saveFile: File?,
 ) {
 
     init {
-        if(saveFile != null) (script as KJvmCompiledScript).saveScriptToJar(saveFile, hash)
+        if (saveFile != null) (script as KJvmCompiledScript).saveScriptToJar(saveFile, hash)
     }
 
     fun execute(body: ScriptEvaluationConfiguration.Builder.() -> Unit = {}): ResultWithDiagnostics<EvaluationResult> {

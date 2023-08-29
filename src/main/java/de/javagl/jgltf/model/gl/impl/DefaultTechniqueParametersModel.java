@@ -33,46 +33,44 @@ import de.javagl.jgltf.model.gl.TechniqueParametersModel;
 /**
  * Implementation of a {@link TechniqueParametersModel}
  */
-public class DefaultTechniqueParametersModel implements TechniqueParametersModel
-{
+public class DefaultTechniqueParametersModel implements TechniqueParametersModel {
     /**
      * The type
      */
     private final int type;
-    
+
     /**
      * The count
      */
     private final int count;
-    
+
     /**
      * The {@link Semantic} semantic
      */
     private final String semantic;
-    
+
     /**
      * The value
      */
     private final Object value;
-    
+
     /**
      * The {@link NodeModel}
      */
     private final NodeModel nodeModel;
-    
+
     /**
      * Default constructor
-     * 
-     * @param type The type
-     * @param count The count
-     * @param semantic The {@link Semantic}
-     * @param value The value
+     *
+     * @param type      The type
+     * @param count     The count
+     * @param semantic  The {@link Semantic}
+     * @param value     The value
      * @param nodeModel The {@link NodeModel}
      */
     public DefaultTechniqueParametersModel(
-        int type, int count, String semantic, 
-        Object value, NodeModel nodeModel)
-    {
+            int type, int count, String semantic,
+            Object value, NodeModel nodeModel) {
         this.type = type;
         this.count = count;
         this.semantic = semantic;
@@ -81,32 +79,27 @@ public class DefaultTechniqueParametersModel implements TechniqueParametersModel
     }
 
     @Override
-    public int getType()
-    {
+    public int getType() {
         return type;
     }
-    
+
     @Override
-    public int getCount()
-    {
+    public int getCount() {
         return count;
     }
 
     @Override
-    public String getSemantic()
-    {
+    public String getSemantic() {
         return semantic;
     }
 
     @Override
-    public Object getValue()
-    {
+    public Object getValue() {
         return value;
     }
-    
+
     @Override
-    public NodeModel getNodeModel()
-    {
+    public NodeModel getNodeModel() {
         return nodeModel;
     }
 

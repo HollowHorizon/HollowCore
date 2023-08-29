@@ -33,121 +33,120 @@ import java.util.List;
 /**
  * Interface for a model that was created from a glTF asset
  */
-public interface GltfModel extends ModelElement
-{
+public interface GltfModel extends ModelElement {
     /**
-     * Returns an unmodifiable view on the list of {@link AccessorModel} 
+     * Returns an unmodifiable view on the list of {@link AccessorModel}
      * instances that have been created for the glTF.
-     * 
+     *
      * @return The {@link AccessorModel} instances
      */
     List<AccessorModel> getAccessorModels();
-    
+
     /**
-     * Returns an unmodifiable view on the list of {@link AnimationModel} 
+     * Returns an unmodifiable view on the list of {@link AnimationModel}
      * instances that have been created for the glTF.
-     * 
+     *
      * @return The {@link AnimationModel} instances
      */
     List<AnimationModel> getAnimationModels();
 
     /**
-     * Returns an unmodifiable view on the list of {@link BufferModel} 
+     * Returns an unmodifiable view on the list of {@link BufferModel}
      * instances that have been created for the glTF.
-     * 
+     *
      * @return The {@link BufferModel} instances
      */
     List<BufferModel> getBufferModels();
 
     /**
-     * Returns an unmodifiable view on the list of {@link BufferViewModel} 
+     * Returns an unmodifiable view on the list of {@link BufferViewModel}
      * instances that have been created for the glTF.
-     * 
+     *
      * @return The {@link BufferViewModel} instances
      */
     List<BufferViewModel> getBufferViewModels();
-    
+
     /**
-     * Returns an unmodifiable view on the list of {@link CameraModel} 
+     * Returns an unmodifiable view on the list of {@link CameraModel}
      * instances that have been created for the glTF.
-     * 
+     *
      * @return The {@link CameraModel} instances
      */
     List<CameraModel> getCameraModels();
 
     /**
-     * Returns an unmodifiable view on the list of {@link ImageModel} 
+     * Returns an unmodifiable view on the list of {@link ImageModel}
      * instances that have been created for the glTF.
-     * 
+     *
      * @return The {@link ImageModel} instances
      */
     List<ImageModel> getImageModels();
-    
+
     /**
-     * Returns an unmodifiable view on the list of {@link MaterialModel} 
+     * Returns an unmodifiable view on the list of {@link MaterialModel}
      * instances that have been created for the glTF.
-     * 
+     *
      * @return The {@link MaterialModel} instances
      */
     List<MaterialModel> getMaterialModels();
 
     /**
-     * Returns an unmodifiable view on the list of {@link MeshModel} 
+     * Returns an unmodifiable view on the list of {@link MeshModel}
      * instances that have been created for the glTF.
-     * 
+     *
      * @return The {@link MeshModel} instances
      */
     List<MeshModel> getMeshModels();
-    
+
     /**
-     * Returns an unmodifiable view on the list of {@link NodeModel} 
+     * Returns an unmodifiable view on the list of {@link NodeModel}
      * instances that have been created for the glTF.
-     * 
+     *
      * @return The {@link NodeModel} instances
      */
     List<NodeModel> getNodeModels();
 
     /**
-     * Returns an unmodifiable view on the list of {@link SceneModel} 
+     * Returns an unmodifiable view on the list of {@link SceneModel}
      * instances that have been created for the glTF.
-     * 
+     *
      * @return The {@link SceneModel} instances
      */
     List<SceneModel> getSceneModels();
 
     /**
-     * Returns an unmodifiable view on the list of {@link SkinModel} 
+     * Returns an unmodifiable view on the list of {@link SkinModel}
      * instances that have been created for the glTF.
-     * 
+     *
      * @return The {@link SkinModel} instances
      */
     List<SkinModel> getSkinModels();
 
     /**
-     * Returns an unmodifiable view on the list of {@link TextureModel} 
+     * Returns an unmodifiable view on the list of {@link TextureModel}
      * instances that have been created for the glTF.
-     * 
+     *
      * @return The {@link TextureModel} instances
      */
     List<TextureModel> getTextureModels();
-    
+
     /**
      * Returns the {@link ExtensionsModel} that summarizes information
      * about the extensions that are used in the glTF.
-     * 
+     *
      * @return The {@link ExtensionsModel}
      */
     ExtensionsModel getExtensionsModel();
-    
+
     /**
      * Returns the {@link AssetModel} that contains information
      * about the asset that is represented with this model.
-     * 
+     *
      * @return The {@link AssetModel}
      */
     AssetModel getAssetModel();
 
     Animation getBindPose();
-    
+
 }
 

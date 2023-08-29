@@ -26,92 +26,83 @@
  */
 package de.javagl.jgltf.model.impl;
 
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
-
 import de.javagl.jgltf.model.CameraModel;
 import de.javagl.jgltf.model.CameraOrthographicModel;
 import de.javagl.jgltf.model.CameraPerspectiveModel;
 import de.javagl.jgltf.model.Suppliers;
 
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+
 /**
- * Implementation of a {@link CameraModel}  
+ * Implementation of a {@link CameraModel}
  */
 public final class DefaultCameraModel extends AbstractNamedModelElement
-    implements CameraModel
-{
+        implements CameraModel {
     /**
      * The {@link CameraOrthographicModel}
      */
     private CameraOrthographicModel cameraOrthographicModel;
-    
+
     /**
      * The {@link CameraPerspectiveModel}
      */
     private CameraPerspectiveModel cameraPerspectiveModel;
-    
+
     /**
      * Creates a new instance
      */
-    public DefaultCameraModel()
-    {
+    public DefaultCameraModel() {
         // Default constructor
     }
-    
+
     /**
      * Set the {@link CameraOrthographicModel}
-     * 
+     *
      * @param cameraOrthographicModel The {@link CameraOrthographicModel}
      */
     public void setCameraOrthographicModel(
-        CameraOrthographicModel cameraOrthographicModel)
-    {
+            CameraOrthographicModel cameraOrthographicModel) {
         this.cameraOrthographicModel = cameraOrthographicModel;
     }
-    
+
     @Override
-    public CameraOrthographicModel getCameraOrthographicModel()
-    {
+    public CameraOrthographicModel getCameraOrthographicModel() {
         return cameraOrthographicModel;
     }
-    
+
     /**
      * Set the {@link CameraPerspectiveModel}
-     * 
+     *
      * @param cameraPerspectiveModel The {@link CameraPerspectiveModel}
      */
     public void setCameraPerspectiveModel(
-        CameraPerspectiveModel cameraPerspectiveModel)
-    {
+            CameraPerspectiveModel cameraPerspectiveModel) {
         this.cameraPerspectiveModel = cameraPerspectiveModel;
     }
-    
+
     @Override
-    public CameraPerspectiveModel getCameraPerspectiveModel()
-    {
+    public CameraPerspectiveModel getCameraPerspectiveModel() {
         return cameraPerspectiveModel;
     }
 
     @Override
-    public float[] computeProjectionMatrix(float result[], Float aspectRatio)
-    {
+    public float[] computeProjectionMatrix(float[] result, Float aspectRatio) {
         return Cameras.computeProjectionMatrix(this, aspectRatio, result);
     }
-    
+
     @Override
     public Supplier<float[]> createProjectionMatrixSupplier(
-        DoubleSupplier aspectRatioSupplier)
-    {
-        return Suppliers.createTransformSupplier(this, (c, t) -> 
+            DoubleSupplier aspectRatioSupplier) {
+        return Suppliers.createTransformSupplier(this, (c, t) ->
         {
             Float aspectRatio = null;
-            if (aspectRatioSupplier != null)
-            {
-                aspectRatio = (float)aspectRatioSupplier.getAsDouble();
+            if (aspectRatioSupplier != null) {
+                aspectRatio = (float) aspectRatioSupplier.getAsDouble();
             }
             computeProjectionMatrix(t, aspectRatio);
         });
     }
-    
-    
+
+
 }

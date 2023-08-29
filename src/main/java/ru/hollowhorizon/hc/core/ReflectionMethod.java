@@ -7,11 +7,11 @@ import java.lang.reflect.Type;
 
 public interface ReflectionMethod {
 
-    public Class<?> getDeclaringClass();
+    Class<?> getDeclaringClass();
 
-    public String getName();
+    String getName();
 
-    public int getModifiers();
+    int getModifiers();
 
     Class<?> getReturnType();
 

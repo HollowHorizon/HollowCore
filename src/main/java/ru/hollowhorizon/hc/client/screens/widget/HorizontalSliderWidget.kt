@@ -35,8 +35,7 @@ class HorizontalSliderWidget(x: Int, y: Int, width: Int, height: Int, private va
         w,
         h,
         ResourceLocation("hc", "textures/gui/buttons/scrollbar_horizontal.png")
-    ) {
-    }
+    )
 
     fun clamp(value: Int): Int {
         return Mth.clamp(value, x + 10, x + width - 10)

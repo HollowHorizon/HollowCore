@@ -26,57 +26,49 @@
  */
 package ru.hollowhorizon.hc.client.gltf.model;
 
-import java.nio.ByteBuffer;
-
 import de.javagl.jgltf.impl.v2.BufferView;
-import de.javagl.jgltf.model.AccessorData;
-import de.javagl.jgltf.model.AccessorDatas;
-import de.javagl.jgltf.model.AccessorFloatData;
-import de.javagl.jgltf.model.AccessorModel;
-import de.javagl.jgltf.model.BufferModel;
-import de.javagl.jgltf.model.BufferViewModel;
-import de.javagl.jgltf.model.ElementType;
+import de.javagl.jgltf.model.*;
 import de.javagl.jgltf.model.impl.DefaultAccessorModel;
 import de.javagl.jgltf.model.impl.DefaultBufferModel;
 import de.javagl.jgltf.model.impl.DefaultBufferViewModel;
 import de.javagl.jgltf.model.io.Buffers;
 
+import java.nio.ByteBuffer;
+
 /**
  * Methods to create {@link AccessorModel} instances programmatically
  */
-public class AccessorModelCreation
-{
+public class AccessorModelCreation {
     /**
      * Create a new {@link AccessorModel} that describes the same data as
      * the given {@link AccessorModel}, but in a compact form. The returned
-     * {@link AccessorModel} will refer to a newly created 
+     * {@link AccessorModel} will refer to a newly created
      * {@link BufferViewModel} and a newly created {@link BufferModel} that
      * contain exactly the data for the accessor.<br>
      * <br>
      * The given {@link AccessorModel} is assumed to have a <code>float</code>
      * component type.
-     * 
-     * @param accessorModel The {@link AccessorModel}
+     *
+     * @param accessorModel   The {@link AccessorModel}
      * @param bufferUriString The URI string for the {@link BufferModel}
      * @return The new {@link AccessorModel} instance.
      */
-	public static AccessorModel instantiate(
-        AccessorModel accessorModel, String bufferUriString)
-    {
+    public static AccessorModel instantiate(
+            AccessorModel accessorModel, String bufferUriString) {
         AccessorModel instantiatedAccessorModel = createAccessorModel(
-            accessorModel.getComponentType(), accessorModel.getCount(),
-            accessorModel.getElementType(), bufferUriString);
+                accessorModel.getComponentType(), accessorModel.getCount(),
+                accessorModel.getElementType(), bufferUriString);
 
         AccessorData accessorData = accessorModel.getAccessorData();
-        AccessorFloatData accessorFloatData = (AccessorFloatData)accessorData;
-        
+        AccessorFloatData accessorFloatData = (AccessorFloatData) accessorData;
+
         AccessorData instantiatedAccessorData =
-            instantiatedAccessorModel.getAccessorData();
+                instantiatedAccessorModel.getAccessorData();
         AccessorFloatData instantiatedAccessorFloatData =
-            (AccessorFloatData)instantiatedAccessorData;
+                (AccessorFloatData) instantiatedAccessorData;
 
         AccessorDataUtils.copyFloats(
-            instantiatedAccessorFloatData, accessorFloatData);
+                instantiatedAccessorFloatData, accessorFloatData);
 
         return instantiatedAccessorModel;
     }
@@ -86,62 +78,59 @@ public class AccessorModelCreation
      * refer to a newly created {@link BufferViewModel}, which in turn refers to
      * a newly created {@link BufferModel}, each containing exactly the data
      * required for the accessor.
-     * 
-     * @param componentType The component type
-     * @param count The count
-     * @param elementType The element type
+     *
+     * @param componentType   The component type
+     * @param count           The count
+     * @param elementType     The element type
      * @param bufferUriString The URI string for the {@link BufferModel}
      * @return The {@link AccessorModel}
      */
-	public static AccessorModel createAccessorModel(int componentType,
-        int count, ElementType elementType, String bufferUriString)
-    {
+    public static AccessorModel createAccessorModel(int componentType,
+                                                    int count, ElementType elementType, String bufferUriString) {
         DefaultAccessorModel accessorModel =
-            new DefaultAccessorModel(componentType, count, elementType);
+                new DefaultAccessorModel(componentType, count, elementType);
         int elementSize = accessorModel.getElementSizeInBytes();
         accessorModel.setByteOffset(0);
-        
+
         ByteBuffer bufferData = Buffers.create(count * elementSize);
         accessorModel.setBufferViewModel(
-            createBufferViewModel(bufferUriString, bufferData));
+                createBufferViewModel(bufferUriString, bufferData));
         accessorModel.setAccessorData(AccessorDatas.create(accessorModel));
         return accessorModel;
     }
 
     /**
      * Create a new {@link BufferViewModel} with an associated
-     * {@link BufferModel} that serves as the basis for a sparse accessor, or 
+     * {@link BufferModel} that serves as the basis for a sparse accessor, or
      * an accessor that does not refer to a {@link BufferView})
-     * 
-     * @param uriString The URI string that will be assigned to the
-     * {@link BufferModel} that is created internally. This string is not
-     * strictly required, but helpful for debugging, at least
+     *
+     * @param uriString  The URI string that will be assigned to the
+     *                   {@link BufferModel} that is created internally. This string is not
+     *                   strictly required, but helpful for debugging, at least
      * @param bufferData The buffer data
      * @return The new {@link BufferViewModel}
      */
     private static DefaultBufferViewModel createBufferViewModel(
-        String uriString, ByteBuffer bufferData)
-    {
+            String uriString, ByteBuffer bufferData) {
         DefaultBufferModel bufferModel = new DefaultBufferModel();
         bufferModel.setUri(uriString);
         bufferModel.setBufferData(bufferData);
 
         DefaultBufferViewModel bufferViewModel =
-            new DefaultBufferViewModel(null);
+                new DefaultBufferViewModel(null);
         bufferViewModel.setByteOffset(0);
         bufferViewModel.setByteLength(bufferData.capacity());
         bufferViewModel.setBufferModel(bufferModel);
 
         return bufferViewModel;
     }
-    
+
     /**
      * Private constructor to prevent instantiation
      */
-    private AccessorModelCreation()
-    {
+    private AccessorModelCreation() {
         // Private constructor to prevent instantiation
     }
-    
-    
+
+
 }

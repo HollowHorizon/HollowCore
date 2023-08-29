@@ -30,12 +30,10 @@ package de.javagl.jgltf.model.animation;
  * An {@link Interpolator} that performs a spherical linear interpolation
  * (SLERP) between quaternions, given as arrays of length 4
  */
-class SlerpQuaternionInterpolator implements Interpolator
-{
+class SlerpQuaternionInterpolator implements Interpolator {
 
     @Override
-    public void interpolate(float[] a, float[] b, float alpha, float[] result)
-    {
+    public void interpolate(float[] a, float[] b, float alpha, float[] result) {
         // Adapted from javax.vecmath.Quat4f
         float ax = a[0];
         float ay = a[1];
@@ -47,8 +45,7 @@ class SlerpQuaternionInterpolator implements Interpolator
         float bw = b[3];
 
         float dot = ax * bx + ay * by + az * bz + aw * bw;
-        if (dot < 0)
-        {
+        if (dot < 0) {
             bx = -bx;
             by = -by;
             bz = -bz;
@@ -57,15 +54,12 @@ class SlerpQuaternionInterpolator implements Interpolator
         }
         float epsilon = 1e-6f;
         float s0, s1;
-        if ((1.0 - dot) > epsilon)
-        {
-            float omega = (float)Math.acos(dot);
-            float invSinOmega = 1.0f / (float)Math.sin(omega);
-            s0 = (float)Math.sin((1.0 - alpha) * omega) * invSinOmega;
-            s1 = (float)Math.sin(alpha * omega) * invSinOmega;
-        } 
-        else
-        {
+        if ((1.0 - dot) > epsilon) {
+            float omega = (float) Math.acos(dot);
+            float invSinOmega = 1.0f / (float) Math.sin(omega);
+            s0 = (float) Math.sin((1.0 - alpha) * omega) * invSinOmega;
+            s1 = (float) Math.sin(alpha * omega) * invSinOmega;
+        } else {
             s0 = 1.0f - alpha;
             s1 = alpha;
         }

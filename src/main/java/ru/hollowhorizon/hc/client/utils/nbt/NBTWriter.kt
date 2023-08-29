@@ -45,7 +45,7 @@ fun <T> isPrimitiveType(value: T): Boolean {
 @OptIn(ExperimentalSerializationApi::class)
 private sealed class AbstractNBTWriter(
     val format: NBTFormat,
-    val nodeConsumer: (Tag) -> Unit
+    val nodeConsumer: (Tag) -> Unit,
 ) : NamedValueTagEncoder() {
 
     final override val serializersModule: SerializersModule

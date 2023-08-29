@@ -31,8 +31,7 @@ import de.javagl.jgltf.model.CameraOrthographicModel;
 /**
  * Default implementation of a {@link CameraOrthographicModel}
  */
-public class DefaultCameraOrthographicModel implements CameraOrthographicModel
-{
+public class DefaultCameraOrthographicModel implements CameraOrthographicModel {
     /**
      * The magnification in x-direction
      */
@@ -55,65 +54,57 @@ public class DefaultCameraOrthographicModel implements CameraOrthographicModel
 
     /**
      * Set the magnification in x-direction
-     * 
+     *
      * @param xmag The magnification
      */
-    public void setXmag(Float xmag)
-    {
+    public void setXmag(Float xmag) {
         this.xmag = xmag;
     }
 
     /**
      * Set the magnification in y-direction
-     * 
+     *
      * @param ymag The magnification
      */
-    public void setYmag(Float ymag)
-    {
+    public void setYmag(Float ymag) {
         this.ymag = ymag;
     }
 
     /**
      * Set the far clipping plane distance
-     * 
+     *
      * @param zfar The distance
      */
-    public void setZfar(Float zfar)
-    {
+    public void setZfar(Float zfar) {
         this.zfar = zfar;
     }
 
     /**
      * Set the near clipping plane distance
-     * 
+     *
      * @param znear The distance
      */
-    public void setZnear(Float znear)
-    {
+    public void setZnear(Float znear) {
         this.znear = znear;
     }
-    
+
     @Override
-    public Float getXmag()
-    {
+    public Float getXmag() {
         return xmag;
     }
 
     @Override
-    public Float getYmag()
-    {
+    public Float getYmag() {
         return ymag;
     }
 
     @Override
-    public Float getZfar()
-    {
+    public Float getZfar() {
         return zfar;
     }
 
     @Override
-    public Float getZnear()
-    {
+    public Float getZnear() {
         return znear;
     }
 

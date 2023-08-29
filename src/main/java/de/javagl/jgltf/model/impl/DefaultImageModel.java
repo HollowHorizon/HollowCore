@@ -26,113 +26,102 @@
  */
 package de.javagl.jgltf.model.impl;
 
-import java.nio.ByteBuffer;
-
 import de.javagl.jgltf.model.BufferViewModel;
 import de.javagl.jgltf.model.ImageModel;
 import de.javagl.jgltf.model.io.Buffers;
+
+import java.nio.ByteBuffer;
 
 /**
  * Implementation of a {@link ImageModel}
  */
 public class DefaultImageModel extends AbstractNamedModelElement
-    implements ImageModel
-{
+        implements ImageModel {
     /**
      * The URI of the image
      */
     private String uri;
-    
+
     /**
      * The MIME type of the image data in the buffer view model
      */
     private String mimeType;
-    
+
     /**
      * The {@link BufferViewModel}
      */
     private BufferViewModel bufferViewModel;
-    
+
     /**
      * The image data
      */
     private ByteBuffer imageData;
-    
+
     /**
      * Creates a new instance
      */
-    public DefaultImageModel()
-    {
+    public DefaultImageModel() {
         // Default constructor
     }
-    
+
     /**
      * Set the URI
-     * 
+     *
      * @param uri The URI
      */
-    public void setUri(String uri)
-    {
+    public void setUri(String uri) {
         this.uri = uri;
     }
-    
+
     /**
      * Set the MIME type
-     * 
+     *
      * @param mimeType The MIME type
      */
-    public void setMimeType(String mimeType)
-    {
+    public void setMimeType(String mimeType) {
         this.mimeType = mimeType;
     }
 
     /**
-     * Set the {@link BufferViewModel} 
-     * 
+     * Set the {@link BufferViewModel}
+     *
      * @param bufferViewModel The {@link BufferViewModel}
      */
-    public void setBufferViewModel(BufferViewModel bufferViewModel)
-    {
+    public void setBufferViewModel(BufferViewModel bufferViewModel) {
         this.bufferViewModel = bufferViewModel;
     }
-    
+
     /**
      * Set the image data
-     * 
+     *
      * @param imageData The image data
      */
-    public void setImageData(ByteBuffer imageData)
-    {
+    public void setImageData(ByteBuffer imageData) {
         this.imageData = imageData;
     }
-    
+
     @Override
-    public String getUri()
-    {
+    public String getUri() {
         return uri;
     }
-    
+
     @Override
-    public String getMimeType()
-    {
+    public String getMimeType() {
         return mimeType;
     }
-    
+
     @Override
-    public BufferViewModel getBufferViewModel()
-    {
+    public BufferViewModel getBufferViewModel() {
         return bufferViewModel;
     }
-    
+
     @Override
-    public ByteBuffer getImageData()
-    {
-        if (imageData == null)
-        {
+    public ByteBuffer getImageData() {
+        if (imageData == null) {
             return bufferViewModel.getBufferViewData();
         }
         return Buffers.createSlice(imageData);
     }
 
-    
+
 }

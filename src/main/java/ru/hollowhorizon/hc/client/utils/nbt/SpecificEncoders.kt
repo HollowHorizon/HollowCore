@@ -36,10 +36,10 @@ internal interface ICanDecodeCompoundNBT {
     fun decodeCompoundNBT(): CompoundTag
 }
 
-internal interface ICanEncodeIngredient{
+internal interface ICanEncodeIngredient {
     fun encodeIngredient(ingredient: Tag)
 }
 
-interface ICanDecodeIngredient{
-    fun decodeIngredient() : Tag
+interface ICanDecodeIngredient {
+    fun decodeIngredient(): Tag
 }

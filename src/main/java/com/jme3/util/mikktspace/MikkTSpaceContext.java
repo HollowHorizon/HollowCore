@@ -32,7 +32,6 @@
 package com.jme3.util.mikktspace;
 
 /**
- *
  * @author Nehon
  */
 public interface MikkTSpaceContext {
@@ -43,7 +42,7 @@ public interface MikkTSpaceContext {
      *
      * @return the count (&ge;0)
      */
-    public int getNumFaces();
+    int getNumFaces();
 
     /**
      * Returns the number of vertices on face number iFace iFace is a number in
@@ -52,7 +51,7 @@ public interface MikkTSpaceContext {
      * @param face which face (&ge;0, &lt;numFaces)
      * @return the count (&ge;0)
      */
-    public int getNumVerticesOfFace(int face);
+    int getNumVerticesOfFace(int face);
 
     /**
      * returns the position/normal/texcoord of the referenced face of vertex
@@ -60,14 +59,14 @@ public interface MikkTSpaceContext {
      * for quads.
      *
      * @param posOut storage for the results (modified)
-     * @param face which face (&ge;0, &lt;numFaces)
-     * @param vert which vertex in the face (&ge;0, &lt;numVertices)
+     * @param face   which face (&ge;0, &lt;numFaces)
+     * @param vert   which vertex in the face (&ge;0, &lt;numVertices)
      */
-    public void getPosition(float posOut[], int face, int vert);
+    void getPosition(float[] posOut, int face, int vert);
 
-    public void getNormal(float normOut[], int face, int vert);
+    void getNormal(float[] normOut, int face, int vert);
 
-    public void getTexCoord(float texOut[], int face, int vert);
+    void getTexCoord(float[] texOut, int face, int vert);
 
     /**
      * The callback setTSpaceBasic() is sufficient for basic normal mapping.
@@ -75,26 +74,26 @@ public interface MikkTSpaceContext {
      * tangent is a unit length vector. For normal maps it is sufficient to use
      * the following simplified version of the bitangent which is generated at
      * pixel/vertex level.
-     *
+     * <p>
      * bitangent = fSign * cross(vN, tangent);
-     *
+     * <p>
      * Note that the results are returned unindexed. It is possible to generate
      * a new index list But averaging/overwriting tangent spaces by using an
      * already existing index list WILL produce INCORRECT results. DO NOT! use
      * an already existing index list.
      *
      * @param tangent the desired tangent vector (unaffected)
-     * @param sign the desired sign
-     * @param face which face (&ge;0, &lt;numFaces)
-     * @param vert which vertex in the face (&ge;0, &lt;numVertices)
+     * @param sign    the desired sign
+     * @param face    which face (&ge;0, &lt;numFaces)
+     * @param vert    which vertex in the face (&ge;0, &lt;numVertices)
      */
-    public void setTSpaceBasic(float tangent[], float sign, int face, int vert);
+    void setTSpaceBasic(float[] tangent, float sign, int face, int vert);
 
     /**
      * This function is used to return tangent space results to the application.
      * tangent and biTangent are unit length vectors and fMagS and fMagT are
      * their true magnitudes which can be used for relief mapping effects.
-     *
+     * <p>
      * biTangent is the "real" bitangent and thus may not be perpendicular to
      * tangent. However, both are perpendicular to the vertex normal. For normal
      * maps it is sufficient to use the following simplified version of the
@@ -104,21 +103,21 @@ public interface MikkTSpaceContext {
      * fSign = bIsOrientationPreserving ? 1.0f : (-1.0f);
      * bitangent = fSign * cross(vN, tangent);
      * </pre>
-     *
+     * <p>
      * Note that the results are returned unindexed. It is possible to generate
      * a new index list. But averaging/overwriting tangent spaces by using an
      * already existing index list WILL produce INCORRECT results. DO NOT! use
      * an already existing index list.
      *
-     * @param tangent the desired tangent vector (unaffected)
-     * @param biTangent the desired bitangent vector (unaffected)
-     * @param magS true magnitude of S
-     * @param magT true magnitude of T
+     * @param tangent                 the desired tangent vector (unaffected)
+     * @param biTangent               the desired bitangent vector (unaffected)
+     * @param magS                    true magnitude of S
+     * @param magT                    true magnitude of T
      * @param isOrientationPreserving true&rarr;preserves, false&rarr;doesn't
-     * preserve
-     * @param face which face (&ge;0, &lt;numFaces)
-     * @param vert which vertex in the face (&ge;0, &lt;numVertices)
+     *                                preserve
+     * @param face                    which face (&ge;0, &lt;numFaces)
+     * @param vert                    which vertex in the face (&ge;0, &lt;numVertices)
      */
-    void setTSpace(float tangent[], float biTangent[], float magS, float magT,
-            boolean isOrientationPreserving, int face, int vert);
+    void setTSpace(float[] tangent, float[] biTangent, float magS, float magT,
+                   boolean isOrientationPreserving, int face, int vert);
 }

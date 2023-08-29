@@ -1,8 +1,9 @@
 package ru.hollowhorizon.hc.common.scripting.coroutines
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import ru.hollowhorizon.hc.common.scripting.coroutines.PersistingWrapper.wrapper
-import java.util.*
 
 fun main() {
     val res = runBlocking {

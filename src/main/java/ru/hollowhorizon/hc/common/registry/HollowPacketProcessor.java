@@ -15,8 +15,7 @@ public class HollowPacketProcessor {
         if (Modifier.isStatic(field.getModifiers())) {
             try {
                 Object someObject = field.get(null);
-                if (someObject instanceof HollowPacketInstance) {
-                    HollowPacketInstance packet = (HollowPacketInstance) someObject;
+                if (someObject instanceof HollowPacketInstance packet) {
 
                     data.put(path, new PacketPackage(packet, direction));
                 }
@@ -31,8 +30,8 @@ public class HollowPacketProcessor {
     }
 
     public static String getName(HollowPacketInstance instance) {
-        for(Map.Entry<String, PacketPackage> packet : data.entrySet()) {
-            if(packet.getValue().getInstance() == instance) {
+        for (Map.Entry<String, PacketPackage> packet : data.entrySet()) {
+            if (packet.getValue().getInstance() == instance) {
                 return packet.getKey();
             }
         }
@@ -40,8 +39,8 @@ public class HollowPacketProcessor {
     }
 
     public static PacketPackage getPackage(HollowPacketInstance instance) {
-        for(Map.Entry<String, PacketPackage> packet : data.entrySet()) {
-            if(packet.getValue().getInstance() == instance) {
+        for (Map.Entry<String, PacketPackage> packet : data.entrySet()) {
+            if (packet.getValue().getInstance() == instance) {
                 return packet.getValue();
             }
         }

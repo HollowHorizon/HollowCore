@@ -1,15 +1,12 @@
 package ru.hollowhorizon.hc.client.utils;
 
 import com.google.gson.JsonObject;
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler;
 
 import java.io.*;
 import java.nio.file.Files;

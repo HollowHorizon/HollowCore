@@ -8,7 +8,7 @@ import java.lang.reflect.Type;
 
 public class PlainReflectionMethod<T> implements ReflectionMethod {
 
-    private Method method;
+    private final Method method;
 
     public PlainReflectionMethod(Method method) {
         this.method = method;

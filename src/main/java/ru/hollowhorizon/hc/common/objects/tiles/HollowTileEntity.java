@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.common.objects.tiles;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -37,5 +36,6 @@ public abstract class HollowTileEntity extends BlockEntity {
     }
 
     public abstract void saveNBT(CompoundTag nbt);
+
     public abstract void loadNBT(CompoundTag nbt);
 }

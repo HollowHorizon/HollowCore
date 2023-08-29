@@ -26,31 +26,30 @@
  */
 package de.javagl.jgltf.model.v1;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import de.javagl.jgltf.impl.v1.Material;
 import de.javagl.jgltf.model.MaterialModel;
 import de.javagl.jgltf.model.TextureModel;
 import de.javagl.jgltf.model.gl.TechniqueModel;
 import de.javagl.jgltf.model.impl.AbstractNamedModelElement;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Implementation of a {@link MaterialModel} for glTF 1.0.<br>
- * <br> 
+ * <br>
  * Note: This class is actually no longer specific for glTF 1.0. It might
  * be renamed to "TechniqueBasedMaterialModel" and moved to a different
  * package in the future.
  */
 public final class MaterialModelV1 extends AbstractNamedModelElement
-    implements MaterialModel
-{
+        implements MaterialModel {
     /**
      * The {@link TechniqueModel}
      */
     private TechniqueModel techniqueModel;
-    
+
     /**
      * The material parameter values
      */
@@ -59,62 +58,54 @@ public final class MaterialModelV1 extends AbstractNamedModelElement
     /**
      * Creates a new instance
      */
-    public MaterialModelV1()
-    {
+    public MaterialModelV1() {
         this.values = Collections.emptyMap();
     }
-    
+
     /**
      * Set the material parameter values to be an unmodifiable shallow
      * copy of the given map (or the empty map if the given map is
      * <code>null</code>)
-     * 
+     *
      * @param values The material parameter values
      */
-    public void setValues(Map<String, Object> values)
-    {
-        if (values == null)
-        {
+    public void setValues(Map<String, Object> values) {
+        if (values == null) {
             this.values = Collections.emptyMap();
-        }
-        else
-        {
+        } else {
             this.values = Collections.unmodifiableMap(
-                new LinkedHashMap<String, Object>(values));
+                    new LinkedHashMap<String, Object>(values));
         }
     }
-    
+
     /**
-     * Set the {@link TechniqueModel} 
-     * 
+     * Set the {@link TechniqueModel}
+     *
      * @param techniqueModel The {@link TechniqueModel}
      */
-    public void setTechniqueModel(TechniqueModel techniqueModel)
-    {
+    public void setTechniqueModel(TechniqueModel techniqueModel) {
         this.techniqueModel = techniqueModel;
     }
 
     /**
      * Returns the {@link TechniqueModel}
-     * 
+     *
      * @return The {@link TechniqueModel}
      */
-    public TechniqueModel getTechniqueModel()
-    {
+    public TechniqueModel getTechniqueModel() {
         return techniqueModel;
     }
 
     /**
-     * Returns the parameter values of this material. Note that if any 
-     * parameter value of the original {@link Material} is the texture ID 
-     * for a parameter of type GL_SAMPLER2D, then the respective value 
+     * Returns the parameter values of this material. Note that if any
+     * parameter value of the original {@link Material} is the texture ID
+     * for a parameter of type GL_SAMPLER2D, then the respective value
      * will be the appropriate {@link TextureModel} instance.
-     * 
+     *
      * @return The values
      */
-    public Map<String, Object> getValues()
-    {
+    public Map<String, Object> getValues() {
         return values;
     }
-    
+
 }

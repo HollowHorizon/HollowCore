@@ -41,7 +41,7 @@ public class ChoiceButton extends Button {
         blit(stack, this.x + this.width - 16, this.y, 0, isCursorAtButton(x, y) ? this.height : 0, 16, this.height, 16, this.height * 2);
 
         stack.translate(0.0D, 0.0D, 120.0D);
-        fr.draw(stack, this.getMessage(), this.x + this.width / 2F - fr.width(this.getMessage()) / 2F , this.y + this.height / 4f, 0xFFFFFF);
+        fr.draw(stack, this.getMessage(), this.x + this.width / 2F - fr.width(this.getMessage()) / 2F, this.y + this.height / 4f, 0xFFFFFF);
 
         stack.popPose();
     }

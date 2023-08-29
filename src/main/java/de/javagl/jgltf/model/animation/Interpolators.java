@@ -29,25 +29,21 @@ package de.javagl.jgltf.model.animation;
 /**
  * Methods to create {@link Interpolator} instances
  */
-class Interpolators
-{
+class Interpolators {
     /**
      * Creates an {@link Interpolator} for the given {@link InterpolatorType}.
-     * If the given {@link InterpolatorType} is <code>null</code>, then 
+     * If the given {@link InterpolatorType} is <code>null</code>, then
      * a {@link InterpolatorType#LINEAR linear} interpolator will be returned.
-     * 
+     *
      * @param interpolatorType The {@link InterpolatorType}
      * @return The {@link Interpolator}
      */
-    static Interpolator create(InterpolatorType interpolatorType)
-    {
-        if (interpolatorType == null)
-        {
+    static Interpolator create(InterpolatorType interpolatorType) {
+        if (interpolatorType == null) {
             return new LinearInterpolator();
         }
-        switch (interpolatorType)
-        {
-            case SLERP: 
+        switch (interpolatorType) {
+            case SLERP:
                 return new SlerpQuaternionInterpolator();
 
             case LINEAR:
@@ -58,15 +54,14 @@ class Interpolators
 
             default:
                 throw new IllegalArgumentException(
-                    "Invalid interpolator type: "+interpolatorType);
+                        "Invalid interpolator type: " + interpolatorType);
         }
     }
-    
+
     /**
      * Private constructor to prevent instantiation
      */
-    private Interpolators()
-    {
+    private Interpolators() {
         // Private constructor to prevent instantiation
     }
 }

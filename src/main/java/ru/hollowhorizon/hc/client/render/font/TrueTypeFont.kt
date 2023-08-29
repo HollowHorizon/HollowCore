@@ -195,8 +195,12 @@ class TrueTypeFont(private var font: Font, var scale: Float = 1.0f) {
             begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX)
             vertex(x.toDouble(), (y + height).toDouble(), zLevel.toDouble()).uv(textureX * f, (textureY + height) * f1)
                 .endVertex()
-            vertex((x + width).toDouble(), (y + height).toDouble(), zLevel.toDouble()).uv((textureX + width) * f, (textureY + height) * f1).endVertex()
-            vertex((x + width).toDouble(), y.toDouble(), zLevel.toDouble()).uv((textureX + width) * f, textureY * f1).endVertex()
+            vertex((x + width).toDouble(), (y + height).toDouble(), zLevel.toDouble()).uv(
+                (textureX + width) * f,
+                (textureY + height) * f1
+            ).endVertex()
+            vertex((x + width).toDouble(), y.toDouble(), zLevel.toDouble()).uv((textureX + width) * f, textureY * f1)
+                .endVertex()
             vertex(x.toDouble(), y.toDouble(), zLevel.toDouble()).uv(textureX * f, textureY * f1).endVertex()
         }
         Tesselator.getInstance().end()

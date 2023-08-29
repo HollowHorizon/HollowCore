@@ -26,123 +26,104 @@
  */
 package de.javagl.jgltf.model.extensions;
 
-import java.util.Map;
-
 import com.google.gson.Gson;
+
+import java.util.Map;
 
 /**
  * Utility methods related to glTF extension objects.
  */
-public class GltfExtensions
-{
+public class GltfExtensions {
     /**
      * Obtain the specified extension object from the given glTF property.
-     * 
+     * <p>
      * If the given glTF object does not have an extension with the
      * given name, or this object cannot be converted to the given
      * target type, then <code>null</code> is returned.
-     *  
-     * @param <T> The type of the extension object
-     * 
-     * @param gltfProperty The glTF property
+     *
+     * @param <T>           The type of the extension object
+     * @param gltfProperty  The glTF property
      * @param extensionName The extension name
      * @param extensionType The extension type
      * @return The extension object, or <code>null</code>
      * @throws IllegalArgumentException If the given glTF property is neither
-     * a <code>de.javagl.jgltf.impl.v1.GlTFProperty</code> nor a
-     * a <code>de.javagl.jgltf.impl.v2.GlTFProperty</code>
+     *                                  a <code>de.javagl.jgltf.impl.v1.GlTFProperty</code> nor a
+     *                                  a <code>de.javagl.jgltf.impl.v2.GlTFProperty</code>
      */
     public static <T> T obtain(
-        Object gltfProperty, String extensionName, Class<T> extensionType)
-    {
-        if (gltfProperty instanceof de.javagl.jgltf.impl.v1.GlTFProperty)
-        {
-            de.javagl.jgltf.impl.v1.GlTFProperty gltfPropertyV1 = 
-                (de.javagl.jgltf.impl.v1.GlTFProperty) gltfProperty;
+            Object gltfProperty, String extensionName, Class<T> extensionType) {
+        if (gltfProperty instanceof de.javagl.jgltf.impl.v1.GlTFProperty gltfPropertyV1) {
             Map<String, Object> extensions = gltfPropertyV1.getExtensions();
             return obtainInternal(extensions, extensionName, extensionType);
         }
-        if (gltfProperty instanceof de.javagl.jgltf.impl.v2.GlTFProperty)
-        {
-            de.javagl.jgltf.impl.v2.GlTFProperty gltfPropertyV2 = 
-                (de.javagl.jgltf.impl.v2.GlTFProperty) gltfProperty;
+        if (gltfProperty instanceof de.javagl.jgltf.impl.v2.GlTFProperty gltfPropertyV2) {
             Map<String, Object> extensions = gltfPropertyV2.getExtensions();
             return obtainInternal(extensions, extensionName, extensionType);
         }
         throw new IllegalArgumentException(
-            "Not a valid glTF property: " + gltfProperty);
+                "Not a valid glTF property: " + gltfProperty);
     }
 
     /**
      * Internal method to obtain the extension object from the given map
-     * 
-     * @param <T> The type of the extension object
-     * @param extensions The optional extensions map
+     *
+     * @param <T>           The type of the extension object
+     * @param extensions    The optional extensions map
      * @param extensionName The extension name
      * @param extensionType The extension type
      * @return The extension object, or <code>null</code> if it cannot be
      * obtained
      */
     private static <T> T obtainInternal(
-        Map<String, Object> extensions,
-        String extensionName, Class<T> extensionType)
-    {
-        if (extensions == null)
-        {
+            Map<String, Object> extensions,
+            String extensionName, Class<T> extensionType) {
+        if (extensions == null) {
             return null;
         }
         Object object = extensions.get(extensionName);
-        if (object == null)
-        {
+        if (object == null) {
             return null;
         }
         return convertValueOptional(object, extensionType);
     }
-    
+
     /**
      * Convert the given object to the given target type
-     * 
-     * @param <T> The target type
+     *
+     * @param <T>    The target type
      * @param object The object
-     * @param type The target type
+     * @param type   The target type
      * @return The result
      * @throws IllegalArgumentException If the conversion failed
      */
     private static <T> T convertValue(Object object, Class<T> type)
-        throws IllegalArgumentException
-    {
-    	Gson gson = new Gson();
+            throws IllegalArgumentException {
+        Gson gson = new Gson();
         return gson.fromJson(gson.toJsonTree(object), type);
     }
-    
+
     /**
-     * Convert the given object to the given target type, returning 
+     * Convert the given object to the given target type, returning
      * <code>null</code> if the conversion failed
-     * 
-     * @param <T> The target type
+     *
+     * @param <T>    The target type
      * @param object The object
-     * @param type The target type
+     * @param type   The target type
      * @return The result
      */
-    private static <T> T convertValueOptional(Object object, Class<T> type)
-    {
-        try
-        {
+    private static <T> T convertValueOptional(Object object, Class<T> type) {
+        try {
             return convertValue(object, type);
-        }
-        catch (IllegalArgumentException e)
-        {
+        } catch (IllegalArgumentException e) {
             return null;
         }
     }
-    
 
-    
+
     /**
      * Private constructor to prevent instantiation
      */
-    private GltfExtensions()
-    {
+    private GltfExtensions() {
         // Private constructor to prevent instantiation
     }
 }

@@ -35,51 +35,48 @@ import de.javagl.jgltf.model.gl.impl.DefaultTechniqueStatesFunctionsModel;
  * Methods to create {@link TechniqueStatesFunctionsModel} instances from
  * glTF 1.0 {@link TechniqueStatesFunctions} objects
  */
-public class TechniqueStatesFunctionsModels
-{
+public class TechniqueStatesFunctionsModels {
     /**
      * Creates a new {@link TechniqueStatesFunctionsModel} object from the
      * given {@link TechniqueStatesFunctions}
-     * 
+     *
      * @param techniqueStatesFunctions The {@link TechniqueStatesFunctions}
      * @return The {@link TechniqueStatesFunctionsModel}
      */
     public static DefaultTechniqueStatesFunctionsModel create(
-        TechniqueStatesFunctions techniqueStatesFunctions)
-    {
-        DefaultTechniqueStatesFunctionsModel techniqueStatesFunctionsModel = 
-            new DefaultTechniqueStatesFunctionsModel();
+            TechniqueStatesFunctions techniqueStatesFunctions) {
+        DefaultTechniqueStatesFunctionsModel techniqueStatesFunctionsModel =
+                new DefaultTechniqueStatesFunctionsModel();
         techniqueStatesFunctionsModel.setBlendColor(Optionals.clone(
-            techniqueStatesFunctions.getBlendColor()));
+                techniqueStatesFunctions.getBlendColor()));
         techniqueStatesFunctionsModel.setBlendEquationSeparate(Optionals.clone(
-            techniqueStatesFunctions.getBlendEquationSeparate()));
+                techniqueStatesFunctions.getBlendEquationSeparate()));
         techniqueStatesFunctionsModel.setBlendFuncSeparate(Optionals.clone(
-            techniqueStatesFunctions.getBlendFuncSeparate()));
+                techniqueStatesFunctions.getBlendFuncSeparate()));
         techniqueStatesFunctionsModel.setColorMask(Optionals.clone(
-            techniqueStatesFunctions.getColorMask()));
+                techniqueStatesFunctions.getColorMask()));
         techniqueStatesFunctionsModel.setCullFace(Optionals.clone(
-            techniqueStatesFunctions.getCullFace()));
+                techniqueStatesFunctions.getCullFace()));
         techniqueStatesFunctionsModel.setDepthFunc(Optionals.clone(
-            techniqueStatesFunctions.getDepthFunc()));
+                techniqueStatesFunctions.getDepthFunc()));
         techniqueStatesFunctionsModel.setDepthMask(Optionals.clone(
-            techniqueStatesFunctions.getDepthMask()));
+                techniqueStatesFunctions.getDepthMask()));
         techniqueStatesFunctionsModel.setDepthRange(Optionals.clone(
-            techniqueStatesFunctions.getDepthRange()));
+                techniqueStatesFunctions.getDepthRange()));
         techniqueStatesFunctionsModel.setFrontFace(Optionals.clone(
-            techniqueStatesFunctions.getFrontFace()));
+                techniqueStatesFunctions.getFrontFace()));
         techniqueStatesFunctionsModel.setLineWidth(Optionals.clone(
-            techniqueStatesFunctions.getLineWidth()));
+                techniqueStatesFunctions.getLineWidth()));
         techniqueStatesFunctionsModel.setPolygonOffset(Optionals.clone(
-            techniqueStatesFunctions.getPolygonOffset()));
-     
+                techniqueStatesFunctions.getPolygonOffset()));
+
         return techniqueStatesFunctionsModel;
     }
-    
+
     /**
      * Private constructor to prevent instantiation
      */
-    private TechniqueStatesFunctionsModels()
-    {
+    private TechniqueStatesFunctionsModels() {
         // Private constructor to prevent instantiation
     }
 }

@@ -32,18 +32,16 @@ import de.javagl.jgltf.impl.v2.MaterialPbrMetallicRoughness;
 /**
  * Methods to create instances of classes related to a {@link Material}
  */
-public class Materials
-{
+public class Materials {
     /**
      * Create a {@link Material} with all default values
-     * 
+     *
      * @return The {@link Material}
      */
-    public static Material createDefaultMaterial()
-    {
+    public static Material createDefaultMaterial() {
         Material material = new Material();
         material.setPbrMetallicRoughness(
-            createDefaultMaterialPbrMetallicRoughness());
+                createDefaultMaterialPbrMetallicRoughness());
         material.setNormalTexture(null);
         material.setOcclusionTexture(null);
         material.setEmissiveTexture(null);
@@ -53,28 +51,26 @@ public class Materials
         material.setDoubleSided(material.defaultDoubleSided());
         return material;
     }
-    
+
     /**
      * Create a {@link MaterialPbrMetallicRoughness} with all default values
-     * 
+     *
      * @return The {@link MaterialPbrMetallicRoughness}
      */
-    public static MaterialPbrMetallicRoughness 
-        createDefaultMaterialPbrMetallicRoughness()
-    {
-        MaterialPbrMetallicRoughness result = 
-            new MaterialPbrMetallicRoughness();
+    public static MaterialPbrMetallicRoughness
+    createDefaultMaterialPbrMetallicRoughness() {
+        MaterialPbrMetallicRoughness result =
+                new MaterialPbrMetallicRoughness();
         result.setBaseColorFactor(result.defaultBaseColorFactor());
         result.setMetallicFactor(result.defaultMetallicFactor());
         result.setRoughnessFactor(result.defaultRoughnessFactor());
         return result;
     }
-    
+
     /**
      * Private constructor to prevent instantiation
      */
-    private Materials()
-    {
+    private Materials() {
         // Private constructor to prevent instantiation
     }
 }

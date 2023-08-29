@@ -26,6 +26,11 @@
  */
 package de.javagl.jgltf.model.io;
 
+import de.javagl.jgltf.model.io.v1.GltfAssetV1;
+import de.javagl.jgltf.model.io.v1.GltfAssetWriterV1;
+import de.javagl.jgltf.model.io.v2.GltfAssetV2;
+import de.javagl.jgltf.model.io.v2.GltfAssetWriterV2;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -35,193 +40,166 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.Map.Entry;
 
-import de.javagl.jgltf.model.io.v1.GltfAssetV1;
-import de.javagl.jgltf.model.io.v1.GltfAssetWriterV1;
-import de.javagl.jgltf.model.io.v2.GltfAssetV2;
-import de.javagl.jgltf.model.io.v2.GltfAssetWriterV2;
-
 /**
  * A class for writing a {@link GltfAsset}
  */
-public class GltfAssetWriter
-{
+public class GltfAssetWriter {
     /**
      * Default constructor
      */
-    public GltfAssetWriter()
-    {
+    public GltfAssetWriter() {
         // Default constructor
     }
 
     /**
-     * Write the the given {@link GltfAsset} to a file with the given name. 
+     * Write the the given {@link GltfAsset} to a file with the given name.
      * The {@link GltfAsset#getBinaryData() binary data} will be ignored.
-     * The {@link GltfAsset#getReferenceDatas() reference data elements} 
-     * will be written to files that are determined by resolving the 
+     * The {@link GltfAsset#getReferenceDatas() reference data elements}
+     * will be written to files that are determined by resolving the
      * (relative) URLs of the references against the parent of the specified
-     * file.  
-     * 
+     * file.
+     *
      * @param gltfAsset The {@link GltfAsset}
-     * @param fileName The file name for the JSON file
+     * @param fileName  The file name for the JSON file
      * @throws IOException If an IO error occurred
      */
-    public void write(GltfAsset gltfAsset, String fileName) 
-        throws IOException
-    {
+    public void write(GltfAsset gltfAsset, String fileName)
+            throws IOException {
         write(gltfAsset, new File(fileName));
     }
-    
+
     /**
-     * Write the the given {@link GltfAsset} to the given file.  
+     * Write the the given {@link GltfAsset} to the given file.
      * The {@link GltfAsset#getBinaryData() binary data} will be ignored.
-     * The {@link GltfAsset#getReferenceDatas() reference data elements} 
-     * will be written to files that are determined by resolving the 
+     * The {@link GltfAsset#getReferenceDatas() reference data elements}
+     * will be written to files that are determined by resolving the
      * (relative) URLs of the references against the parent of the specified
-     * file.  
-     * 
+     * file.
+     *
      * @param gltfAsset The {@link GltfAsset}
-     * @param file The file for the JSON part
+     * @param file      The file for the JSON part
      * @throws IOException If an IO error occurred
      */
-    public void write(GltfAsset gltfAsset, File file) 
-        throws IOException
-    {
-        try (OutputStream outputStream = new FileOutputStream(file))
-        {
+    public void write(GltfAsset gltfAsset, File file)
+            throws IOException {
+        try (OutputStream outputStream = new FileOutputStream(file)) {
             writeJson(gltfAsset, outputStream);
         }
-        for (Entry<String, ByteBuffer> entry : 
-            gltfAsset.getReferenceDatas().entrySet())
-        {
+        for (Entry<String, ByteBuffer> entry :
+                gltfAsset.getReferenceDatas().entrySet()) {
             String relativeUrlString = entry.getKey();
             ByteBuffer data = entry.getValue();
-            
-            String referenceFileName = 
-                file.toPath().getParent().resolve(relativeUrlString).toString();
+
+            String referenceFileName =
+                    file.toPath().getParent().resolve(relativeUrlString).toString();
             try (@SuppressWarnings("resource")
-                WritableByteChannel writableByteChannel = 
-                Channels.newChannel(new FileOutputStream(referenceFileName)))
-            {
+                 WritableByteChannel writableByteChannel =
+                         Channels.newChannel(new FileOutputStream(referenceFileName))) {
                 writableByteChannel.write(data.slice());
             }
         }
     }
-    
+
     /**
-     * Write the JSON part of the given {@link GltfAsset} to a file with 
+     * Write the JSON part of the given {@link GltfAsset} to a file with
      * the given name. The {@link GltfAsset#getBinaryData() binary data}
      * and {@link GltfAsset#getReferenceDatas() reference data elements}
      * will be ignored.
-     * 
+     *
      * @param gltfAsset The {@link GltfAsset}
-     * @param fileName The file name for the JSON file
+     * @param fileName  The file name for the JSON file
      * @throws IOException If an IO error occurred
      */
-    public void writeJson(GltfAsset gltfAsset, String fileName) 
-        throws IOException
-    {
+    public void writeJson(GltfAsset gltfAsset, String fileName)
+            throws IOException {
         writeJson(gltfAsset, new File(fileName));
     }
-    
+
     /**
-     * Write the JSON part of the given {@link GltfAsset} to a file with 
+     * Write the JSON part of the given {@link GltfAsset} to a file with
      * the given name. The {@link GltfAsset#getBinaryData() binary data}
      * and {@link GltfAsset#getReferenceDatas() reference data elements}
      * will be ignored.
-     * 
+     *
      * @param gltfAsset The {@link GltfAsset}
-     * @param file The file for the JSON part
+     * @param file      The file for the JSON part
      * @throws IOException If an IO error occurred
      */
-    public void writeJson(GltfAsset gltfAsset, File file) 
-        throws IOException
-    {
-        try (OutputStream outputStream = new FileOutputStream(file))
-        {
+    public void writeJson(GltfAsset gltfAsset, File file)
+            throws IOException {
+        try (OutputStream outputStream = new FileOutputStream(file)) {
             writeJson(gltfAsset, outputStream);
         }
     }
-    
+
     /**
      * Write the JSON part of the given {@link GltfAsset} to the given
      * output stream. The {@link GltfAsset#getBinaryData() binary data}
      * and {@link GltfAsset#getReferenceDatas() reference data elements}
      * will be ignored. The caller is responsible for closing the given
      * stream.
-     * 
-     * @param gltfAsset The {@link GltfAsset}
+     *
+     * @param gltfAsset    The {@link GltfAsset}
      * @param outputStream The output stream
      * @throws IOException If an IO error occurred
      */
-    public void writeJson(GltfAsset gltfAsset, OutputStream outputStream) 
-        throws IOException
-    {
+    public void writeJson(GltfAsset gltfAsset, OutputStream outputStream)
+            throws IOException {
         Object gltf = gltfAsset.getGltf();
         GltfWriter gltfWriter = new GltfWriter();
         gltfWriter.write(gltf, outputStream);
     }
-    
+
     /**
-     * Write the given {@link GltfAsset} as a binary glTF asset to file with 
+     * Write the given {@link GltfAsset} as a binary glTF asset to file with
      * the given name.
-     * 
+     *
      * @param gltfAsset The {@link GltfAsset}
-     * @param fileName The file name for the JSON file
+     * @param fileName  The file name for the JSON file
      * @throws IOException If an IO error occurred
      */
-    public void writeBinary(GltfAsset gltfAsset, String fileName) 
-        throws IOException
-    {
+    public void writeBinary(GltfAsset gltfAsset, String fileName)
+            throws IOException {
         writeBinary(gltfAsset, new File(fileName));
     }
-    
+
     /**
      * Write the given {@link GltfAsset} as a binary glTF asset to the given
      * file
-     * 
+     *
      * @param gltfAsset The {@link GltfAsset}
-     * @param file The file
+     * @param file      The file
      * @throws IOException If an IO error occurred
      */
-    public void writeBinary(GltfAsset gltfAsset, File file) 
-        throws IOException
-    {
-        try (OutputStream outputStream = new FileOutputStream(file))
-        {
+    public void writeBinary(GltfAsset gltfAsset, File file)
+            throws IOException {
+        try (OutputStream outputStream = new FileOutputStream(file)) {
             writeBinary(gltfAsset, outputStream);
         }
     }
-    
+
     /**
-     * Write the given {@link GltfAsset} as a binary glTF asset to the 
-     * given output stream. The caller is responsible for closing the 
+     * Write the given {@link GltfAsset} as a binary glTF asset to the
+     * given output stream. The caller is responsible for closing the
      * given stream.
-     * 
-     * @param gltfAsset The {@link GltfAsset}
+     *
+     * @param gltfAsset    The {@link GltfAsset}
      * @param outputStream The output stream
      * @throws IOException If an IO error occurred
      */
-    public void writeBinary(GltfAsset gltfAsset, OutputStream outputStream) 
-        throws IOException
-    {
-        if (gltfAsset instanceof GltfAssetV1)
-        {
-            GltfAssetV1 gltfAssetV1 = (GltfAssetV1)gltfAsset;
+    public void writeBinary(GltfAsset gltfAsset, OutputStream outputStream)
+            throws IOException {
+        if (gltfAsset instanceof GltfAssetV1 gltfAssetV1) {
             GltfAssetWriterV1 gltfAssetWriterV1 = new GltfAssetWriterV1();
             gltfAssetWriterV1.writeBinary(gltfAssetV1, outputStream);
-        }
-        else if (gltfAsset instanceof GltfAssetV2)
-        {
-            GltfAssetV2 gltfAssetV2 = (GltfAssetV2)gltfAsset;
+        } else if (gltfAsset instanceof GltfAssetV2 gltfAssetV2) {
             GltfAssetWriterV2 gltfAssetWriterV2 = new GltfAssetWriterV2();
             gltfAssetWriterV2.writeBinary(gltfAssetV2, outputStream);
-        }
-        else
-        {
+        } else {
             throw new IOException(
-                "The gltfAsset has an unknown version: " + gltfAsset);
+                    "The gltfAsset has an unknown version: " + gltfAsset);
         }
     }
-    
-    
+
+
 }

@@ -26,141 +26,120 @@
  */
 package de.javagl.jgltf.model.impl;
 
+import de.javagl.jgltf.model.*;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import de.javagl.jgltf.model.AccessorDatas;
-import de.javagl.jgltf.model.AccessorFloatData;
-import de.javagl.jgltf.model.AccessorModel;
-import de.javagl.jgltf.model.MathUtils;
-import de.javagl.jgltf.model.NodeModel;
-import de.javagl.jgltf.model.SkinModel;
-import de.javagl.jgltf.model.Utils;
-
 /**
  * Implementation of a {@link SkinModel}
  */
 public final class DefaultSkinModel extends AbstractNamedModelElement
-    implements SkinModel
-{
+        implements SkinModel {
     /**
      * The bind shape matrix
      */
-    private float bindShapeMatrix[];
-    
+    private float[] bindShapeMatrix;
+
     /**
      * The joint nodes
      */
     private final List<NodeModel> joints;
-    
+
     /**
      * The skeleton node
      */
     private NodeModel skeleton;
-    
+
     /**
      * The inverse bind matrices
      */
     private AccessorModel inverseBindMatrices;
-    
+
     /**
      * Creates a new instance
      */
-    public DefaultSkinModel()
-    {
+    public DefaultSkinModel() {
         this.bindShapeMatrix = MathUtils.createIdentity4x4();
         this.joints = new ArrayList<NodeModel>();
     }
-    
+
     /**
      * Set the bind shape matrix
-     * 
+     *
      * @param bindShapeMatrix The bind shape matrix. A copy of this array
-     * will be stored. If it is <code>null</code>, a new array will be 
-     * created, which represents the identity matrix.
+     *                        will be stored. If it is <code>null</code>, a new array will be
+     *                        created, which represents the identity matrix.
      */
-    public void setBindShapeMatrix(float[] bindShapeMatrix)
-    {
-        if (bindShapeMatrix == null)
-        {
+    public void setBindShapeMatrix(float[] bindShapeMatrix) {
+        if (bindShapeMatrix == null) {
             this.bindShapeMatrix = MathUtils.createIdentity4x4();
-        }
-        else
-        {
+        } else {
             this.bindShapeMatrix = bindShapeMatrix.clone();
         }
     }
-    
+
     /**
-     * Add the given joint 
-     * 
+     * Add the given joint
+     *
      * @param joint The joint
      */
-    public void addJoint(NodeModel joint)
-    {
+    public void addJoint(NodeModel joint) {
         Objects.requireNonNull(joint, "The joint may not be null");
         joints.add(joint);
     }
-    
+
     /**
      * Set the skeleton root node
-     * 
+     *
      * @param skeleton The skeleton root node
      */
-    public void setSkeleton(NodeModel skeleton)
-    {
+    public void setSkeleton(NodeModel skeleton) {
         this.skeleton = skeleton;
     }
-    
+
     /**
      * Set the inverse bind matrices
-     * 
+     *
      * @param inverseBindMatrices The inverse bind matrices
      */
-    public void setInverseBindMatrices(AccessorModel inverseBindMatrices)
-    {
+    public void setInverseBindMatrices(AccessorModel inverseBindMatrices) {
         this.inverseBindMatrices = Objects.requireNonNull(
-            inverseBindMatrices, "The inverseBindMatrices may not be null");
+                inverseBindMatrices, "The inverseBindMatrices may not be null");
     }
-    
+
 
     @Override
-    public float[] getBindShapeMatrix(float[] result)
-    {
-        float localResult[] = Utils.validate(result, 16);
+    public float[] getBindShapeMatrix(float[] result) {
+        float[] localResult = Utils.validate(result, 16);
         System.arraycopy(bindShapeMatrix, 0, localResult, 0, 16);
         return localResult;
     }
-    
+
 
     @Override
-    public List<NodeModel> getJoints()
-    {
+    public List<NodeModel> getJoints() {
         return Collections.unmodifiableList(joints);
     }
 
     @Override
-    public NodeModel getSkeleton()
-    {
+    public NodeModel getSkeleton() {
         return skeleton;
     }
 
     @Override
-    public AccessorModel getInverseBindMatrices()
-    {
+    public AccessorModel getInverseBindMatrices() {
         return inverseBindMatrices;
     }
 
     @Override
-    public float[] getInverseBindMatrix(int index, float[] result)
-    {
-        float localResult[] = Utils.validate(result, 16);
-        AccessorFloatData inverseBindMatricesData = 
-            AccessorDatas.createFloat(inverseBindMatrices);
-        for (int j = 0; j < 16; j++)
-        {
+    public float[] getInverseBindMatrix(int index, float[] result) {
+        float[] localResult = Utils.validate(result, 16);
+        AccessorFloatData inverseBindMatricesData =
+                AccessorDatas.createFloat(inverseBindMatrices);
+        for (int j = 0; j < 16; j++) {
             localResult[j] = inverseBindMatricesData.get(index, j);
         }
         return localResult;

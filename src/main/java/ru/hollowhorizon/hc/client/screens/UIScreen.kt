@@ -4,7 +4,6 @@ import net.minecraft.client.gui.components.Button
 import net.minecraft.client.gui.components.EditBox
 import ru.hollowhorizon.hc.client.screens.util.Alignment
 import ru.hollowhorizon.hc.client.screens.widget.layout.PlacementType
-import ru.hollowhorizon.hc.client.screens.widget.layout.WidgetBuilder
 import ru.hollowhorizon.hc.client.screens.widget.layout.box
 import ru.hollowhorizon.hc.client.utils.mcText
 import ru.hollowhorizon.hc.client.utils.toSTC
@@ -111,7 +110,7 @@ class UIScreen : HollowScreen("".toSTC()) {
                     placementType = PlacementType.HORIZONTAL
 
                     elements {
-                        for(i in 0..10) {
+                        for (i in 0..10) {
                             +EditBox(font, 0, 0, 90.pc.h().value * 4, 90.pc.h().value, "T${i}".mcText)
                         }
                     }

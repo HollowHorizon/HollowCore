@@ -26,44 +26,40 @@
  */
 package de.javagl.jgltf.model.io.v1;
 
+import com.google.gson.Gson;
+import de.javagl.jgltf.impl.v1.GlTF;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import com.google.gson.Gson;
-
-import de.javagl.jgltf.impl.v1.GlTF;
-
 /**
  * A class for reading a version 1.0 {@link GlTF} from an input stream
  */
-public final class GltfReaderV1
-{
+public final class GltfReaderV1 {
     // Note: This class could use GltfReader as a delegate, and could
     // then verify that the glTF has the right version. Right now, it
     // assumes that it is only used for glTF 1.0 inputs.
-    
+
     /**
      * Creates a new glTF reader
      */
-    public GltfReaderV1()
-    {
+    public GltfReaderV1() {
         // Default constructor
     }
-    
+
     /**
      * Read the {@link GlTF} from the given stream
-     *  
+     *
      * @param inputStream The input stream
      * @return The {@link GlTF}
      * @throws IOException If an IO error occurs
      */
-    public GlTF read(InputStream inputStream) throws IOException
-    {
-    	InputStreamReader reader = new InputStreamReader(inputStream);
-    	GlTF gltf = new Gson().fromJson(reader, GlTF.class);
-    	reader.close();
+    public GlTF read(InputStream inputStream) throws IOException {
+        InputStreamReader reader = new InputStreamReader(inputStream);
+        GlTF gltf = new Gson().fromJson(reader, GlTF.class);
+        reader.close();
         return gltf;
     }
-    
+
 }

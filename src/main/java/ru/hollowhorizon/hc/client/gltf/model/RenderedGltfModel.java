@@ -3143,19 +3143,19 @@ public class RenderedGltfModel {
         Matrix3f normal = new Matrix3f(pose);
 
         pose.transpose();
-		Matrix4f currentPose = CURRENT_POSE.copy();
-		currentPose.multiply(pose);
+        Matrix4f currentPose = CURRENT_POSE.copy();
+        currentPose.multiply(pose);
 
         normal.transpose();
-		Matrix3f currentNormal = CURRENT_NORMAL.copy();
-		currentNormal.mul(normal);
+        Matrix3f currentNormal = CURRENT_NORMAL.copy();
+        currentNormal.mul(normal);
 
         CURRENT_SHADER_INSTANCE.MODEL_VIEW_MATRIX.set(currentPose);
         CURRENT_SHADER_INSTANCE.MODEL_VIEW_MATRIX.upload();
 
-		currentNormal.transpose();
+        currentNormal.transpose();
         var light0 = LIGHT0_DIRECTION.copy();
-		var light1 = LIGHT1_DIRECTION.copy();
+        var light1 = LIGHT1_DIRECTION.copy();
         light0.transform(currentNormal);
         light1.transform(currentNormal);
         CURRENT_SHADER_INSTANCE.LIGHT0_DIRECTION.set(light0);
@@ -3165,25 +3165,25 @@ public class RenderedGltfModel {
     }
 
     protected void applyTransformShaderMod(NodeModel nodeModel) {
-		Matrix4f pose = new Matrix4f(findGlobalTransform(nodeModel));
-		Matrix3f normal = new Matrix3f(pose);
+        Matrix4f pose = new Matrix4f(findGlobalTransform(nodeModel));
+        Matrix3f normal = new Matrix3f(pose);
 
-		pose.transpose();
-		Matrix4f currentPose = CURRENT_POSE.copy();
-		currentPose.multiply(pose);
+        pose.transpose();
+        Matrix4f currentPose = CURRENT_POSE.copy();
+        currentPose.multiply(pose);
 
-		normal.transpose();
-		Matrix3f currentNormal = CURRENT_NORMAL.copy();
-		currentNormal.mul(normal);
+        normal.transpose();
+        Matrix3f currentNormal = CURRENT_NORMAL.copy();
+        currentNormal.mul(normal);
 
-		currentPose.store(BUF_FLOAT_16);
+        currentPose.store(BUF_FLOAT_16);
         GL20.glUniformMatrix4fv(MODEL_VIEW_MATRIX, false, BUF_FLOAT_16);
 
-		currentPose.invert();
-		currentPose.store(BUF_FLOAT_16);
+        currentPose.invert();
+        currentPose.store(BUF_FLOAT_16);
         GL20.glUniformMatrix4fv(MODEL_VIEW_MATRIX_INVERSE, false, BUF_FLOAT_16);
 
-		currentNormal.store(BUF_FLOAT_9);
+        currentNormal.store(BUF_FLOAT_9);
         GL20.glUniformMatrix3fv(NORMAL_MATRIX, false, BUF_FLOAT_9);
     }
 
@@ -4840,7 +4840,7 @@ public class RenderedGltfModel {
             List<TextureModel> textureModels = renderedModel.gltfModel.getTextureModels();
             if (materialModel instanceof MaterialModelV2 materialModelV2) {
 
-				if (baseColorTexture == null) {
+                if (baseColorTexture == null) {
                     TextureModel textureModel = materialModelV2.getBaseColorTexture();
                     if (textureModel != null) {
                         colorMap = renderedModel.obtainGlTexture(gltfRenderData, textureModel);

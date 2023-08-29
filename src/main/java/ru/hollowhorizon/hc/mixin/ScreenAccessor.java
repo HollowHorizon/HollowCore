@@ -11,6 +11,7 @@ import java.util.List;
 public interface ScreenAccessor {
     @Accessor("children")
     List<GuiEventListener> children();
+
     @Accessor("renderables")
     List<GuiEventListener> renderables();
 

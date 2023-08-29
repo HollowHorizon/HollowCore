@@ -32,19 +32,18 @@ import java.util.Map;
  * Interface for all classes of the model package. This is corresponds to
  * the <code>GlTFProperty</code> of the original glTF asset.
  */
-public interface ModelElement
-{
+public interface ModelElement {
     /**
      * Returns the extensions of this element. This is a mapping from
      * property names to the JSON objects.
-     * 
+     *
      * @return The extensions
      */
     Map<String, Object> getExtensions();
-    
+
     /**
-     * Returns the extras of this element. 
-     * 
+     * Returns the extras of this element.
+     *
      * @return The extras
      */
     Object getExtras();

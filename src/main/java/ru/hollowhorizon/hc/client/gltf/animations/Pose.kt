@@ -27,7 +27,7 @@ class Joint(
     val tX: Float, val tY: Float, val tZ: Float,
     val rX: Float, val rY: Float, val rZ: Float, val rW: Float,
     val sX: Float, val sY: Float, val sZ: Float,
-    val weight: Float = 0f
+    val weight: Float = 0f,
 ) {
     companion object {
         fun create(node: NodeModel): Joint {

@@ -17,13 +17,13 @@ public class JvmCompilationUtilMixin {
 
     @Inject(method = "makeCompiledModule", at = @At("HEAD"))
     private static void makeCacheForClassLoading(GenerationState generationState, CallbackInfoReturnable<KJvmCompiledModuleInMemoryImpl> cir) {
-        if(!FMLEnvironment.production) return;
+        if (!FMLEnvironment.production) return;
         generationState.getFactory().asList().forEach(file -> ASMRemapper.CLASS_CACHE.put(file.getRelativePath(), file.asByteArray()));
     }
 
     @Inject(method = "makeCompiledModule", at = @At("TAIL"))
     private static void clearCacheForClassLoading(GenerationState generationState, CallbackInfoReturnable<KJvmCompiledModuleInMemoryImpl> cir) {
-        if(!FMLEnvironment.production) return;
+        if (!FMLEnvironment.production) return;
         ASMRemapper.CLASS_CACHE.clear();
     }
 

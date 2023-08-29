@@ -155,7 +155,12 @@ class SyncableListImpl<T : Any>(val list: MutableList<T>, @Transient private val
         if (nbt is ListTag) {
             nbt.forEach { element ->
                 if (element is CompoundTag) {
-                    list.add(NBTFormat.deserializeNoInline(element.get("nbt")!!, Class.forName(element.getString("class"))) as T)
+                    list.add(
+                        NBTFormat.deserializeNoInline(
+                            element.get("nbt")!!,
+                            Class.forName(element.getString("class"))
+                        ) as T
+                    )
                 }
             }
         }

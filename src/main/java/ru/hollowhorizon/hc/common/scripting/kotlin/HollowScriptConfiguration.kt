@@ -46,8 +46,10 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
                 wholeClasspath = true
             )
         } else {
-            if(isIdeMode) {
-                files.addAll(File("C:\\Users\\user\\Twitch\\Minecraft\\Instances\\Instances\\test1\\intellij_idea.classpath").readLines().map { File(it) })
+            if (isIdeMode) {
+                files.addAll(
+                    File("C:\\Users\\user\\Twitch\\Minecraft\\Instances\\Instances\\test1\\intellij_idea.classpath").readLines()
+                        .map { File(it) })
             }
             dependenciesFromClassContext(HollowScriptConfiguration::class, wholeClasspath = true)
         }

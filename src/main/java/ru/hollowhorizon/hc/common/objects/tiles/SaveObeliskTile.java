@@ -7,18 +7,16 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import ru.hollowhorizon.hc.common.registry.ModTileEntities;
 
 public class SaveObeliskTile extends HollowTileEntity {
-    private boolean isAnimating = false;
+    private final boolean isAnimating = false;
     private boolean isActivated = false;
 
     public SaveObeliskTile(BlockPos pos, BlockState state) {
         super(ModTileEntities.INSTANCE.getSAVE_OBELISK_TILE().get(), pos, state);
     }
-
 
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos pos, BlockState state, T tile) {
@@ -55,7 +53,7 @@ public class SaveObeliskTile extends HollowTileEntity {
 
     @Override
     public void loadNBT(CompoundTag nbt) {
-        if(nbt.contains("is_activated")) isActivated = nbt.getBoolean("is_activated");
+        if (nbt.contains("is_activated")) isActivated = nbt.getBoolean("is_activated");
     }
 
     public boolean isActivated() {

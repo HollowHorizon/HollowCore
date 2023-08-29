@@ -29,34 +29,33 @@ package de.javagl.jgltf.model;
 /**
  * Interface for an orthographic camera
  */
-public interface CameraOrthographicModel
-{
+public interface CameraOrthographicModel {
     /**
      * Returns the horizontal magnification
-     * 
+     *
      * @return The magnification
      */
     Float getXmag();
 
     /**
      * Returns the vertical magnification
-     * 
+     *
      * @return The magnification
      */
     Float getYmag();
-    
+
     /**
      * Returns the distance of the far clipping plane
-     * 
+     *
      * @return The distance
      */
     Float getZfar();
-    
+
     /**
      * Returns the distance of the near clipping plane
-     * 
+     *
      * @return The distance
      */
     Float getZnear();
-    
+
 }

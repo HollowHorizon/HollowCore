@@ -6,7 +6,7 @@ import com.mojang.math.Vector3d
 object BezierUtils {
     fun calculateSpline(
         list: List<Vector3d>,
-        n: Int
+        n: Int,
     ): List<Vector3d> {
         return smoothCurve(list, n)
     }

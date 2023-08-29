@@ -29,7 +29,6 @@ package de.javagl.jgltf.model;
 /**
  * Interface for a material model
  */
-public interface MaterialModel extends NamedModelElement
-{
+public interface MaterialModel extends NamedModelElement {
     // No common methods
 }

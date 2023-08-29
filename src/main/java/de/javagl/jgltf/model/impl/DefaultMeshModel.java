@@ -26,67 +26,61 @@
  */
 package de.javagl.jgltf.model.impl;
 
+import de.javagl.jgltf.model.MeshModel;
+import de.javagl.jgltf.model.MeshPrimitiveModel;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import de.javagl.jgltf.model.MeshModel;
-import de.javagl.jgltf.model.MeshPrimitiveModel;
 
 /**
  * Implementation of a {@link MeshModel}
  */
 public class DefaultMeshModel extends AbstractNamedModelElement
-    implements MeshModel
-{
+        implements MeshModel {
     /**
-     * The {@link MeshPrimitiveModel} instances 
+     * The {@link MeshPrimitiveModel} instances
      */
     private final List<MeshPrimitiveModel> meshPrimitiveModels;
-    
+
     /**
      * The morph target weights
      */
-    private float weights[];
-    
+    private float[] weights;
+
     /**
      * Creates a new instance
      */
-    public DefaultMeshModel()
-    {
+    public DefaultMeshModel() {
         this.meshPrimitiveModels = new ArrayList<MeshPrimitiveModel>();
     }
 
     /**
      * Add the given {@link MeshPrimitiveModel}
-     * 
+     *
      * @param meshPrimitiveModel The {@link MeshPrimitiveModel}
      */
-    public void addMeshPrimitiveModel(MeshPrimitiveModel meshPrimitiveModel)
-    {
+    public void addMeshPrimitiveModel(MeshPrimitiveModel meshPrimitiveModel) {
         this.meshPrimitiveModels.add(meshPrimitiveModel);
     }
-    
+
     /**
-     * Set the default morph target weights to be a <b>reference</b> to the 
-     * given array. 
-     * 
+     * Set the default morph target weights to be a <b>reference</b> to the
+     * given array.
+     *
      * @param weights The weights
      */
-    public void setWeights(float[] weights)
-    {
+    public void setWeights(float[] weights) {
         this.weights = weights;
     }
-    
+
     @Override
-    public List<MeshPrimitiveModel> getMeshPrimitiveModels()
-    {
+    public List<MeshPrimitiveModel> getMeshPrimitiveModels() {
         return Collections.unmodifiableList(meshPrimitiveModels);
     }
-    
+
     @Override
-    public float[] getWeights()
-    {
+    public float[] getWeights() {
         return weights;
     }
 

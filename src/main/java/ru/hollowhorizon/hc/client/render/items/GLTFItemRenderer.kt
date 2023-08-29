@@ -1,8 +1,5 @@
 package ru.hollowhorizon.hc.client.render.items
 
-import ru.hollowhorizon.hc.client.gltf.model.GltfManager
-import ru.hollowhorizon.hc.client.gltf.model.RenderedGltfModel
-import ru.hollowhorizon.hc.client.gltf.model.RenderedGltfScene
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
@@ -17,9 +14,12 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL15
 import org.lwjgl.opengl.GL30
+import ru.hollowhorizon.hc.client.gltf.model.GltfManager
+import ru.hollowhorizon.hc.client.gltf.model.RenderedGltfModel
+import ru.hollowhorizon.hc.client.gltf.model.RenderedGltfScene
 
 
-class GLTFItemRenderer: IClientItemExtensions {
+class GLTFItemRenderer : IClientItemExtensions {
     val model = ExampleItemRenderer()
     override fun getCustomRenderer(): BlockEntityWithoutLevelRenderer {
         return object : BlockEntityWithoutLevelRenderer(
@@ -32,7 +32,7 @@ class GLTFItemRenderer: IClientItemExtensions {
                 pPoseStack: PoseStack,
                 pBuffer: MultiBufferSource,
                 pPackedLight: Int,
-                pPackedOverlay: Int
+                pPackedOverlay: Int,
             ) {
                 model.renderByItem(pTransformType, pPoseStack, pBuffer, pPackedLight, pPackedOverlay)
             }

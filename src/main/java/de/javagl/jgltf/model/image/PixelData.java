@@ -33,26 +33,25 @@ import java.nio.ByteBuffer;
  * <br>
  * This class should not be considered to be part of the public API.
  */
-public interface PixelData
-{
+public interface PixelData {
     /**
      * Returns the width of the image
-     * 
+     *
      * @return The width
      */
     int getWidth();
 
     /**
      * Returns the height of the image
-     * 
+     *
      * @return The height
      */
     int getHeight();
 
     /**
-     * Returns a new slice of the direct byte buffer containing the pixel 
+     * Returns a new slice of the direct byte buffer containing the pixel
      * data, as RGBA values
-     * 
+     *
      * @return The pixels
      */
     ByteBuffer getPixelsRGBA();

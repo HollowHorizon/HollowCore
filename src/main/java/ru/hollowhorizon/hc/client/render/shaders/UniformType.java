@@ -84,6 +84,6 @@ public enum UniformType {
         FLOAT,
         DOUBLE,
         MATRIX,
-        D_MATRIX;
+        D_MATRIX
     }
 }

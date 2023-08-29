@@ -1,7 +1,6 @@
 package ru.hollowhorizon.hc.common.capabilities
 
 import kotlinx.serialization.Serializable
-import net.minecraft.client.Minecraft
 import net.minecraft.nbt.Tag
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.network.NetworkDirection
@@ -56,7 +55,7 @@ class CSyncLevelCapabilityPacket : Packet<LevelCapabilityContainer>({ player, co
     val level = player.level
     HollowCore.LOGGER.info("Processing 1")
     val cap = level.getCapability(CapabilityStorage.storages[container.capability] as Capability<CapabilityInstance>)
-            .orElseThrow { IllegalStateException("Unknown capability: $container") }
+        .orElseThrow { IllegalStateException("Unknown capability: $container") }
     HollowCore.LOGGER.info("Processing 2")
     cap.deserializeNBT(container.value)
 })
@@ -68,7 +67,7 @@ class SSyncLevelCapabilityPacket : Packet<LevelCapabilityContainer>({ player, co
         ?: throw IllegalStateException("Unknown level: $container")
     val level = server.getLevel(levelKey) ?: throw IllegalStateException("Level not found: $container")
     val cap = level.getCapability(CapabilityStorage.storages[container.capability] as Capability<CapabilityInstance>)
-            .orElseThrow { IllegalStateException("Unknown capability: $container") }
+        .orElseThrow { IllegalStateException("Unknown capability: $container") }
 
     if (cap.consumeOnServer) {
         cap.deserializeNBT(container.value)

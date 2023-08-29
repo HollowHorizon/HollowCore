@@ -53,8 +53,7 @@ public class ListWidget extends HollowWidget {
 
         y = this.y + 5 - currentHeight;
         for (AbstractWidget widget : listWidgets) {
-            if (widget instanceof WidgetBox) {
-                WidgetBox box = (WidgetBox) widget;
+            if (widget instanceof WidgetBox box) {
 
                 box.setX(this.x + (this.width - 10) / 2 - widget.getWidth() / 2);
                 box.setY(y);

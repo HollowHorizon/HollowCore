@@ -34,42 +34,36 @@ import java.util.Objects;
 /**
  * Implementation of an input stream that reads from a byte buffer
  */
-class ByteBufferInputStream extends InputStream
-{
+class ByteBufferInputStream extends InputStream {
     /**
      * The byte buffer from which this stream is reading
      */
     private final ByteBuffer byteBuffer;
-    
+
     /**
      * Creates a new instance that read from the given byte buffer.
      * Reading from the stream will increase the position of the
      * given buffer. If this is not desired, a slice of the actual
-     * buffer may be passed to this constructor. 
-     * 
+     * buffer may be passed to this constructor.
+     *
      * @param byteBuffer The byte buffer from which this stream is reading
      */
-    ByteBufferInputStream(ByteBuffer byteBuffer)
-    {
+    ByteBufferInputStream(ByteBuffer byteBuffer) {
         this.byteBuffer = Objects.requireNonNull(byteBuffer,
-            "The byteBuffer may not be null");
+                "The byteBuffer may not be null");
     }
-    
+
     @Override
-    public int read() throws IOException
-    {
-        if (!byteBuffer.hasRemaining())
-        {
+    public int read() throws IOException {
+        if (!byteBuffer.hasRemaining()) {
             return -1;
         }
         return byteBuffer.get() & 0xFF;
     }
 
     @Override
-    public int read(byte[] bytes, int off, int len) throws IOException
-    {
-        if (!byteBuffer.hasRemaining())
-        {
+    public int read(byte[] bytes, int off, int len) throws IOException {
+        if (!byteBuffer.hasRemaining()) {
             return -1;
         }
         int readLength = Math.min(len, byteBuffer.remaining());

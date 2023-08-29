@@ -64,7 +64,7 @@ public class ShaderProgram implements ResourceManagerReloadListener {
         cacheCallback.accept(uniformCache);
         bound = true;
 
-        for(int i = 0; i < this.samplerLocations.size(); i++) {
+        for (int i = 0; i < this.samplerLocations.size(); i++) {
             String s = this.samplerNames.get(i);
             IntSupplier intsupplier = this.samplerMap.get(s);
             if (intsupplier != null) {
@@ -80,7 +80,7 @@ public class ShaderProgram implements ResourceManagerReloadListener {
     }
 
     public void setSampler(String samplerName, IntSupplier samplerValue) {
-        if(!this.samplerNames.contains(samplerName)) {
+        if (!this.samplerNames.contains(samplerName)) {
             this.samplerNames.add(samplerName);
             this.updateLocations();
         }
@@ -104,7 +104,7 @@ public class ShaderProgram implements ResourceManagerReloadListener {
         }
         GL20.glLinkProgram(programId);
 
-        for(int i = 0; i < this.attributes.size(); i++) {
+        for (int i = 0; i < this.attributes.size(); i++) {
             GL20.glBindAttribLocation(programId, i, attributes.get(i));
         }
 
@@ -141,7 +141,7 @@ public class ShaderProgram implements ResourceManagerReloadListener {
         bound = false;
         GL20.glUseProgram(0);
 
-        for(int i = 0; i < this.samplerLocations.size(); ++i) {
+        for (int i = 0; i < this.samplerLocations.size(); ++i) {
             if (this.samplerMap.get(this.samplerNames.get(i)) != null) {
                 GlStateManager._activeTexture('\u84c0' + i);
                 GlStateManager._disableTexture();

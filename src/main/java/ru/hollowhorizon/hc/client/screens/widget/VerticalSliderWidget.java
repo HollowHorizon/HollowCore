@@ -13,7 +13,8 @@ public class VerticalSliderWidget extends HollowWidget implements IOriginBlackLi
     private int maxHeight;
     private int yHeight;
     private boolean isClicked;
-    private Consumer<Float> consumer = (f) -> {};
+    private Consumer<Float> consumer = (f) -> {
+    };
 
     public VerticalSliderWidget(int x, int y, int w, int h, ResourceLocation texture) {
         super(x, y, w, h, Component.literal(""));

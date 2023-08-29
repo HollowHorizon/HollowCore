@@ -22,11 +22,11 @@ object CapabilityStorage {
     }
 
     @JvmStatic
-    fun <T: CapabilityInstance> getCapability(cap: Class<T>): Capability<T> {
+    fun <T : CapabilityInstance> getCapability(cap: Class<T>): Capability<T> {
         return storages[cap.name.replace(".", "/")] as Capability<T>
     }
 
-    inline fun <reified T: CapabilityInstance> getCapability(): Capability<T> {
+    inline fun <reified T : CapabilityInstance> getCapability(): Capability<T> {
         return storages[T::class.java.name] as Capability<T>
     }
 

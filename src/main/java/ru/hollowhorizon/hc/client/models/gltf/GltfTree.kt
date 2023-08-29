@@ -66,14 +66,27 @@ object GltfTree {
     }
 
     @Suppress("UnnecessaryVariable")
-    private fun intoList(listType: GltfType, componentType: GltfComponentType, count: Int, buffer: ByteBuffer): List<Any> {
+    private fun intoList(
+        listType: GltfType,
+        componentType: GltfComponentType,
+        count: Int,
+        buffer: ByteBuffer,
+    ): List<Any> {
         val t = componentType
         val b = buffer
         return when (listType) {
             GltfType.SCALAR -> List(count) { b.next(t) }
             GltfType.VEC2 -> List(count) { Pair(b.next(t).toFloat(), b.next(t).toFloat()) }
             GltfType.VEC3 -> List(count) { Vector3f(b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat()) }
-            GltfType.VEC4 -> List(count) { Vector4f(b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat()) }
+            GltfType.VEC4 -> List(count) {
+                Vector4f(
+                    b.next(t).toFloat(),
+                    b.next(t).toFloat(),
+                    b.next(t).toFloat(),
+                    b.next(t).toFloat()
+                )
+            }
+
             GltfType.MAT2 -> error("Unsupported")
             GltfType.MAT3 -> error("Unsupported")
             GltfType.MAT4 -> error("Unsupported")
@@ -90,8 +103,10 @@ object GltfTree {
         }
     }
 
-    private fun parseMeshes(file: GltfFile, accessors: List<Buffer>,
-                            location: ResourceLocation, textures: MutableSet<ResourceLocation>): List<Mesh> {
+    private fun parseMeshes(
+        file: GltfFile, accessors: List<Buffer>,
+        location: ResourceLocation, textures: MutableSet<ResourceLocation>,
+    ): List<Mesh> {
         return file.meshes.map { mesh ->
             val primitives = mesh.primitives.map { prim ->
 
@@ -121,7 +136,7 @@ object GltfTree {
 
         // If the texture path is a resource location, no extra processing is done
         if (texturePath.contains(':')) {
-            if(!ResourceLocation.isValidResourceLocation(texturePath)) return ResourceLocation("base64:value")
+            if (!ResourceLocation.isValidResourceLocation(texturePath)) return ResourceLocation("base64:value")
 
             return ResourceLocation(texturePath)
         }
@@ -167,8 +182,10 @@ object GltfTree {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun parseChannel(channel: GltfAnimationChannel, samplers: List<GltfAnimationSampler>,
-                             accessors: List<Buffer>): Channel {
+    private fun parseChannel(
+        channel: GltfAnimationChannel, samplers: List<GltfAnimationSampler>,
+        accessors: List<Buffer>,
+    ): Channel {
 
         val sampler = samplers[channel.sampler]
         val timeValues = accessors[sampler.input].data.map { (it as Number).toFloat() }
@@ -195,11 +212,11 @@ object GltfTree {
         val scenes: List<Scene>,
         val animations: List<Animation>,
         val textures: Set<ResourceLocation>,
-        val extra: Any?
+        val extra: Any?,
     )
 
     data class Scene(
-        val nodes: List<Node>
+        val nodes: List<Node>,
     )
 
     data class Node(
@@ -207,29 +224,29 @@ object GltfTree {
         val children: List<Node>,
         val transform: Transformation,
         val mesh: Mesh? = null,
-        val name: String? = null
+        val name: String? = null,
     )
 
     data class Mesh(
-        val primitives: List<Primitive>
+        val primitives: List<Primitive>,
     )
 
     data class Primitive(
         val attributes: Map<GltfAttribute, Buffer>,
         val indices: Buffer? = null,
         val mode: GltfMode,
-        val material: ResourceLocation
+        val material: ResourceLocation,
     )
 
     data class Buffer(
         val type: GltfType,
         val componentType: GltfComponentType,
-        val data: List<Any>
+        val data: List<Any>,
     )
 
     data class Animation(
         val name: String?,
-        val channels: List<Channel>
+        val channels: List<Channel>,
     )
 
     data class Channel(
@@ -237,6 +254,6 @@ object GltfTree {
         val path: GltfChannelPath,
         val times: List<Float>,
         val interpolation: GltfInterpolation,
-        val values: List<Any>
+        val values: List<Any>,
     )
 }

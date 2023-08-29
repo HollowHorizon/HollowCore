@@ -39,21 +39,20 @@ import java.util.function.LongConsumer;
  * An input stream that informs property change listeners and consumers
  * about the number of bytes that are read.
  */
-public final class ProgressInputStream extends FilterInputStream 
-{
+public final class ProgressInputStream extends FilterInputStream {
     // Originally based on http://stackoverflow.com/a/1339589, heavily modified
 
     /**
      * The property change support
      */
     private final PropertyChangeSupport propertyChangeSupport;
-    
+
     /**
-     * The consumers that will be informed about the total number of 
+     * The consumers that will be informed about the total number of
      * bytes that have been read
      */
     private final List<LongConsumer> totalNumBytesReadConsumers;
-    
+
     /**
      * The total number of bytes that have been read
      */
@@ -62,137 +61,120 @@ public final class ProgressInputStream extends FilterInputStream
     /**
      * Creates a new progress input stream that reads from the given input
      * stream
-     * 
+     *
      * @param inputStream The input stream
      */
-    public ProgressInputStream(InputStream inputStream)
-    {
+    public ProgressInputStream(InputStream inputStream) {
         super(inputStream);
         this.propertyChangeSupport = new PropertyChangeSupport(this);
-        this.totalNumBytesReadConsumers = 
-            new CopyOnWriteArrayList<LongConsumer>();
+        this.totalNumBytesReadConsumers =
+                new CopyOnWriteArrayList<LongConsumer>();
     }
-    
+
     /**
      * Returns the total number of bytes that already have been read
      * from the stream
-     * 
+     *
      * @return The number of bytes read
      */
-    long getTotalNumBytesRead()
-    {
+    long getTotalNumBytesRead() {
         return totalNumBytesRead;
     }
 
     /**
      * Add the given listener to be informed when the number of bytes
      * that have been read from this stream changes
-     * 
+     *
      * @param listener The listener to add
      */
-    void addPropertyChangeListener(PropertyChangeListener listener)
-    {
+    void addPropertyChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.addPropertyChangeListener(listener);
     }
 
     /**
      * Remove the given listener from this stream
-     * 
+     *
      * @param listener The listener to remove
      */
-    void removePropertyChangeListener(PropertyChangeListener listener)
-    {
+    void removePropertyChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.removePropertyChangeListener(listener);
     }
-    
+
     /**
-     * Add the given consumer to be informed about the total number of 
+     * Add the given consumer to be informed about the total number of
      * bytes that have been read
-     * 
+     *
      * @param consumer The consumer
      */
-    public void addTotalNumBytesReadConsumer(LongConsumer consumer)
-    {
+    public void addTotalNumBytesReadConsumer(LongConsumer consumer) {
         totalNumBytesReadConsumers.add(consumer);
     }
 
     /**
      * Remove the given consumer
-     * 
+     *
      * @param consumer The consumer
      */
-    public void removeTotalNumBytesReadConsumer(LongConsumer consumer)
-    {
+    public void removeTotalNumBytesReadConsumer(LongConsumer consumer) {
         totalNumBytesReadConsumers.remove(consumer);
     }
 
     @Override
-    public int read() throws IOException
-    {
+    public int read() throws IOException {
         int b = super.read();
-        if (b != -1)
-        {
+        if (b != -1) {
             updateProgress(1);
         }
         return b;
     }
 
     @Override
-    public int read(byte[] b) throws IOException
-    {
+    public int read(byte[] b) throws IOException {
         return read(b, 0, b.length);
     }
 
     @Override
-    public int read(byte[] b, int off, int len) throws IOException
-    {
+    public int read(byte[] b, int off, int len) throws IOException {
         int read = super.read(b, off, len);
-        if (read == -1)
-        {
+        if (read == -1) {
             return -1;
         }
         return (int) updateProgress(read);
     }
 
     @Override
-    public long skip(long n) throws IOException
-    {
+    public long skip(long n) throws IOException {
         return updateProgress(super.skip(n));
     }
 
     @Override
-    public void mark(int readlimit)
-    {
+    public void mark(int readlimit) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void reset() throws IOException
-    {
+    public void reset() throws IOException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean markSupported()
-    {
+    public boolean markSupported() {
         return false;
     }
 
     /**
      * Update the progress of this stream, based on the given number of
      * bytes that have been read, and inform all registered listeners
-     * 
-     * @param numBytesRead The number of bytes that have been read 
+     *
+     * @param numBytesRead The number of bytes that have been read
      * @return The number of bytes read
      */
-    private long updateProgress(long numBytesRead)
-    {
-        if (numBytesRead > 0)
-        {
+    private long updateProgress(long numBytesRead) {
+        if (numBytesRead > 0) {
             long oldTotalNumBytesRead = this.totalNumBytesRead;
             this.totalNumBytesRead += numBytesRead;
             propertyChangeSupport.firePropertyChange("totalNumBytesRead",
-                oldTotalNumBytesRead, this.totalNumBytesRead);
+                    oldTotalNumBytesRead, this.totalNumBytesRead);
             fireTotalNumBytesRead();
         }
         return numBytesRead;
@@ -202,10 +184,8 @@ public final class ProgressInputStream extends FilterInputStream
      * Forward the information about the total number of bytes that have
      * been read to the consumers
      */
-    private void fireTotalNumBytesRead() 
-    {
-        for (LongConsumer consumer : totalNumBytesReadConsumers)
-        {
+    private void fireTotalNumBytesRead() {
+        for (LongConsumer consumer : totalNumBytesReadConsumers) {
             consumer.accept(totalNumBytesRead);
         }
     }

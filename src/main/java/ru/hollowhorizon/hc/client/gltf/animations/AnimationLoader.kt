@@ -76,7 +76,7 @@ object AnimationLoader {
     private fun loadCubicSpline(
         outputData: AccessorFloatData,
         keys: FloatArray,
-        componentCount: Int
+        componentCount: Int,
     ): Interpolator<*> {
         val elementCount = keys.size
         val valuesCubic = Array(elementCount) { Array(3) { FloatArray(componentCount) } }
@@ -109,7 +109,7 @@ object AnimationLoader {
         outputData: AccessorFloatData,
         keys: FloatArray,
         componentCount: Int,
-        isRotation: Boolean
+        isRotation: Boolean,
     ): Interpolator<*> {
         val elementCount = keys.size
         val values = Array(elementCount) { FloatArray(componentCount) }

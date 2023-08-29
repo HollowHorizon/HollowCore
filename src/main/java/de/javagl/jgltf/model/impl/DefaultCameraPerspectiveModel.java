@@ -31,8 +31,7 @@ import de.javagl.jgltf.model.CameraPerspectiveModel;
 /**
  * Default implementation of a {@link CameraPerspectiveModel}
  */
-public class DefaultCameraPerspectiveModel implements CameraPerspectiveModel
-{
+public class DefaultCameraPerspectiveModel implements CameraPerspectiveModel {
     /**
      * The aspect ratio
      */
@@ -55,65 +54,57 @@ public class DefaultCameraPerspectiveModel implements CameraPerspectiveModel
 
     /**
      * Set the aspect ratio
-     * 
+     *
      * @param aspectRatio The aspect ratio
      */
-    public void setAspectRatio(Float aspectRatio)
-    {
+    public void setAspectRatio(Float aspectRatio) {
         this.aspectRatio = aspectRatio;
     }
 
     /**
      * Set the FOV
-     * 
+     *
      * @param yfov The FOV
      */
-    public void setYfov(Float yfov)
-    {
+    public void setYfov(Float yfov) {
         this.yfov = yfov;
     }
 
     /**
      * Set the far clipping plane distance
-     * 
+     *
      * @param zfar The distance
      */
-    public void setZfar(Float zfar)
-    {
+    public void setZfar(Float zfar) {
         this.zfar = zfar;
     }
 
     /**
      * Set the near clipping plane distance
-     * 
+     *
      * @param znear The distance
      */
-    public void setZnear(Float znear)
-    {
+    public void setZnear(Float znear) {
         this.znear = znear;
     }
-    
+
     @Override
-    public Float getAspectRatio()
-    {
+    public Float getAspectRatio() {
         return aspectRatio;
     }
-    
+
     @Override
-    public Float getYfov()
-    {
+    public Float getYfov() {
         return yfov;
     }
 
     @Override
-    public Float getZfar()
-    {
+    public Float getZfar() {
         return zfar;
     }
 
     @Override
-    public Float getZnear()
-    {
+    public Float getZnear() {
         return znear;
     }
 

@@ -2,7 +2,6 @@ package ru.hollowhorizon.hc.client.utils.math
 
 import com.mojang.blaze3d.vertex.BufferBuilder
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.VertexBuffer
 import com.mojang.math.Vector3f
 import ru.hollowhorizon.hc.client.utils.RGBA
 

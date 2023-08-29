@@ -66,13 +66,21 @@ class RegistryHolder<T>(private val config: ObjectConfig, val supplier: () -> T,
         when {
             Block::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(ForgeRegistries.BLOCKS, modId)
             Item::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(ForgeRegistries.ITEMS, modId)
-            EntityType::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(ForgeRegistries.ENTITY_TYPES, modId)
+            EntityType::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(
+                ForgeRegistries.ENTITY_TYPES,
+                modId
+            )
+
             BlockEntityType::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(
                 ForgeRegistries.BLOCK_ENTITY_TYPES,
                 modId
             )
 
-            SoundEvent::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(ForgeRegistries.SOUND_EVENTS, modId)
+            SoundEvent::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(
+                ForgeRegistries.SOUND_EVENTS,
+                modId
+            )
+
             Feature::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(ForgeRegistries.FEATURES, modId)
             RecipeSerializer::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(
                 ForgeRegistries.RECIPE_SERIALIZERS,
@@ -114,7 +122,7 @@ class RegistryHolder<T>(private val config: ObjectConfig, val supplier: () -> T,
                 }
                 if (config.attributeSupplier != null) {
                     MinecraftForge.EVENT_BUS.addListener<EntityAttributeCreationEvent> { event ->
-                        event.put(this.get() as EntityType<LivingEntity>, config.attributeSupplier!!())
+                        event.put(this.get() as EntityType<LivingEntity>, config.attributeSupplier())
                     }
                 }
             }

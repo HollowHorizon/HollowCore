@@ -26,25 +26,19 @@
  */
 package de.javagl.jgltf.model.io.v1;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import com.google.gson.Gson;
-
 import de.javagl.jgltf.impl.v1.BufferView;
 import de.javagl.jgltf.impl.v1.GlTF;
 import de.javagl.jgltf.impl.v1.Image;
 import de.javagl.jgltf.impl.v1.Shader;
 import de.javagl.jgltf.model.GltfException;
 
+import java.util.*;
+
 /**
  * Utility methods related to {@link GlTF}s
  */
-class GltfUtilsV1
-{
+class GltfUtilsV1 {
     /**
      * Creates a deep copy of the given {@link GlTF}.<br>
      * <br>
@@ -53,25 +47,23 @@ class GltfUtilsV1
      * in the copy. The goal of this method is to create a copy that is,
      * as far as reasonably possible, "structurally equivalent" to the
      * given input.
-     * 
-     * @param gltf The input 
+     *
+     * @param gltf The input
      * @return The copy
      * @throws GltfException If the copy can not be created
      */
-    static GlTF copy(GlTF gltf)
-    {
-    	Gson gson = new Gson();
-    	return gson.fromJson(gson.toJsonTree(gltf, GlTF.class), GlTF.class);
+    static GlTF copy(GlTF gltf) {
+        Gson gson = new Gson();
+        return gson.fromJson(gson.toJsonTree(gltf, GlTF.class), GlTF.class);
     }
 
     /**
      * Creates a shallow copy of the given {@link BufferView}
-     * 
+     *
      * @param bufferView The {@link BufferView}
      * @return The copy
      */
-    static BufferView copy(BufferView bufferView)
-    {
+    static BufferView copy(BufferView bufferView) {
         BufferView copy = new BufferView();
         copy.setExtensions(bufferView.getExtensions());
         copy.setExtras(bufferView.getExtras());
@@ -82,16 +74,15 @@ class GltfUtilsV1
         copy.setTarget(bufferView.getTarget());
         return copy;
     }
-    
-    
+
+
     /**
      * Creates a shallow copy of the given {@link Image}
-     * 
+     *
      * @param image The {@link Image}
      * @return The copy
      */
-    static Image copy(Image image)
-    {
+    static Image copy(Image image) {
         Image copy = new Image();
         copy.setExtensions(image.getExtensions());
         copy.setExtras(image.getExtras());
@@ -99,15 +90,14 @@ class GltfUtilsV1
         copy.setUri(image.getUri());
         return copy;
     }
-    
+
     /**
      * Creates a shallow copy of the given {@link Shader}
-     * 
+     *
      * @param shader The {@link Shader}
      * @return The copy
      */
-    static Shader copy(Shader shader)
-    {
+    static Shader copy(Shader shader) {
         Shader copy = new Shader();
         copy.setExtensions(shader.getExtensions());
         copy.setExtras(shader.getExtras());
@@ -116,47 +106,42 @@ class GltfUtilsV1
         copy.setUri(shader.getUri());
         return copy;
     }
-    
+
     /**
      * Combine the keys of the given map with the elements of the given
      * collection, in iteration order.
-     * 
-     * @param map The map
+     *
+     * @param map        The map
      * @param collection The collection
      * @return The resulting map
      * @throws IllegalArgumentException If the inputs have different sizes
      */
     static <K, V> Map<K, V> createMap(
-        Map<? extends K, ?> map, 
-        Collection<? extends V> collection)
-    {
-        if (map == null)
-        {
+            Map<? extends K, ?> map,
+            Collection<? extends V> collection) {
+        if (map == null) {
             return Collections.emptyMap();
         }
-        if (map.size() != collection.size())
-        {
+        if (map.size() != collection.size()) {
             throw new IllegalArgumentException(
-                "The inputs must have the same size, but the sizes are "
-                + map.size() + " and " + collection.size());
+                    "The inputs must have the same size, but the sizes are "
+                            + map.size() + " and " + collection.size());
         }
         Iterator<? extends K> iterator0 = map.keySet().iterator();
         Iterator<? extends V> iterator1 = collection.iterator();
         Map<K, V> result = new LinkedHashMap<K, V>();
-        while (iterator0.hasNext())
-        {
+        while (iterator0.hasNext()) {
             K k = iterator0.next();
             V v = iterator1.next();
             result.put(k, v);
         }
         return result;
     }
-    
+
     /**
      * Private constructor to prevent instantiation
      */
-    private GltfUtilsV1()
-    {
+    private GltfUtilsV1() {
         // Private constructor to prevent instantiation
     }
 }

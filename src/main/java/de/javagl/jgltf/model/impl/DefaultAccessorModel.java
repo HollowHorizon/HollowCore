@@ -26,230 +26,202 @@
  */
 package de.javagl.jgltf.model.impl;
 
-import de.javagl.jgltf.model.AccessorData;
-import de.javagl.jgltf.model.AccessorDatas;
-import de.javagl.jgltf.model.AccessorModel;
-import de.javagl.jgltf.model.Accessors;
-import de.javagl.jgltf.model.BufferViewModel;
-import de.javagl.jgltf.model.ElementType;
+import de.javagl.jgltf.model.*;
 
 /**
  * Implementation of an {@link AccessorModel}
  */
 public final class DefaultAccessorModel extends AbstractNamedModelElement
-    implements AccessorModel
-{
+        implements AccessorModel {
     /**
      * The component type, as a GL constant
      */
     private final int componentType;
-    
+
     /**
      * Whether the accessor is normalized
      */
     private boolean normalized;
-    
+
     /**
      * The offset in bytes, referring to the buffer view
      */
     private int byteOffset;
-    
+
     /**
      * The {@link BufferViewModel} for this model
      */
     private BufferViewModel bufferViewModel;
-    
+
     /**
      * The {@link ElementType} of this accessor
      */
     private final ElementType elementType;
-    
+
     /**
      * The number of elements
      */
     private final int count;
-    
+
     /**
      * The stride between the start of one element and the next
      */
     private int byteStride;
-    
+
     /**
      * The {@link AccessorData}
      */
     private AccessorData accessorData;
-    
+
     /**
      * The minimum components
      */
     private Number[] max;
-    
+
     /**
      * The maximum components
      */
     private Number[] min;
-    
+
     /**
      * Creates a new instance
-     * 
+     *
      * @param componentType The component type GL constant
-     * @param count The number of elements
-     * @param elementType The element type
+     * @param count         The number of elements
+     * @param elementType   The element type
      */
     public DefaultAccessorModel(
-        int componentType,
-        int count, 
-        ElementType elementType)
-    {
+            int componentType,
+            int count,
+            ElementType elementType) {
         this.componentType = componentType;
         this.count = count;
         this.elementType = elementType;
         this.byteStride = elementType.getByteStride(componentType);
     }
-    
+
     /**
      * Set the {@link BufferViewModel} for this model
-     * 
+     *
      * @param bufferViewModel The {@link BufferViewModel}
      */
-    public void setBufferViewModel(BufferViewModel bufferViewModel)
-    {
+    public void setBufferViewModel(BufferViewModel bufferViewModel) {
         this.bufferViewModel = bufferViewModel;
     }
-    
+
     /**
      * Set the byte offset, referring to the {@link BufferViewModel}
-     * 
+     *
      * @param byteOffset The byte offset
      */
-    public void setByteOffset(int byteOffset)
-    {
+    public void setByteOffset(int byteOffset) {
         this.byteOffset = byteOffset;
     }
-    
+
     /**
      * Set the byte stride, indicating the number of bytes between the start
      * of one element and the start of the next element.
-     * 
+     *
      * @param byteStride The byte stride
      */
-    public void setByteStride(int byteStride)
-    {
+    public void setByteStride(int byteStride) {
         this.byteStride = byteStride;
     }
 
     @Override
-    public BufferViewModel getBufferViewModel()
-    {
+    public BufferViewModel getBufferViewModel() {
         return bufferViewModel;
     }
-    
+
     @Override
-    public int getComponentType()
-    {
+    public int getComponentType() {
         return componentType;
     }
-    
+
     @Override
-    public Class<?> getComponentDataType()
-    {
+    public Class<?> getComponentDataType() {
         return Accessors.getDataTypeForAccessorComponentType(
-            getComponentType());
+                getComponentType());
     }
-    
+
     @Override
-    public boolean isNormalized()
-    {
+    public boolean isNormalized() {
         return normalized;
     }
-    
+
     /**
      * Set whether the underlying data is normalized
-     * 
-     * @param normalized Whether the underlying data is normalized 
+     *
+     * @param normalized Whether the underlying data is normalized
      */
-    public void setNormalized(boolean normalized)
-    {
+    public void setNormalized(boolean normalized) {
         this.normalized = normalized;
     }
-    
+
     @Override
-    public int getComponentSizeInBytes()
-    {
+    public int getComponentSizeInBytes() {
         return Accessors.getNumBytesForAccessorComponentType(componentType);
     }
-    
+
     @Override
-    public int getElementSizeInBytes()
-    {
+    public int getElementSizeInBytes() {
         return elementType.getNumComponents() * getComponentSizeInBytes();
     }
-    
+
     @Override
-    public int getPaddedElementSizeInBytes()
-    {
+    public int getPaddedElementSizeInBytes() {
         return elementType.getByteStride(componentType);
     }
-    
+
     @Override
-    public int getByteOffset()
-    {
+    public int getByteOffset() {
         return byteOffset;
     }
-    
+
     @Override
-    public int getCount()
-    {
+    public int getCount() {
         return count;
     }
-    
+
     @Override
-    public ElementType getElementType()
-    {
+    public ElementType getElementType() {
         return elementType;
     }
-    
+
     @Override
-    public int getByteStride()
-    {
+    public int getByteStride() {
         return byteStride;
     }
-    
+
     /**
      * Set the {@link AccessorData} for this accessor
-     * 
+     *
      * @param accessorData The {@link AccessorData}
      */
-    public void setAccessorData(AccessorData accessorData)
-    {
+    public void setAccessorData(AccessorData accessorData) {
         this.accessorData = accessorData;
     }
-    
+
     @Override
-    public AccessorData getAccessorData()
-    {
+    public AccessorData getAccessorData() {
         return accessorData;
     }
-    
-    
+
+
     @Override
-    public Number[] getMin()
-    {
-        if (min == null)
-        {
+    public Number[] getMin() {
+        if (min == null) {
             min = AccessorDatas.computeMin(getAccessorData());
         }
         return min.clone();
     }
-    
+
     @Override
-    public Number[] getMax()
-    {
-        if (max == null)
-        {
+    public Number[] getMax() {
+        if (max == null) {
             max = AccessorDatas.computeMax(getAccessorData());
         }
         return max.clone();
     }
-    
+
 }

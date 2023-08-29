@@ -85,9 +85,7 @@ object GltfDefinition {
 }
 
 @Serializable
-class test(val v: () -> Unit) {
-
-}
+class test(val v: () -> Unit)
 
 
 data class GltfFile(

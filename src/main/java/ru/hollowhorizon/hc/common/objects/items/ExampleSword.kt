@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.common.objects.items
 import net.minecraft.world.item.SwordItem
 import net.minecraft.world.item.Tiers
 import net.minecraftforge.client.extensions.common.IClientItemExtensions
-import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.render.items.GLTFItemRenderer
 import java.util.function.Consumer
 

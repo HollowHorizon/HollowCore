@@ -17,6 +17,7 @@ public class OpenGLUtils {
             isSupportedGL43 = caps.OpenGL43;
         });
     }
+
     public static void drawLine(BufferBuilder bufferbuilder, Matrix4f matrix, Vector3d from, Vector3d to, float r, float g, float b, float a) {
         bufferbuilder
                 .vertex(matrix, (float) from.x, (float) from.y - 0.1F, (float) from.z)

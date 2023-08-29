@@ -26,33 +26,18 @@
  */
 package de.javagl.jgltf.model.impl;
 
+import de.javagl.jgltf.model.*;
+import ru.hollowhorizon.hc.client.gltf.animations.Animation;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import de.javagl.jgltf.model.AccessorModel;
-import de.javagl.jgltf.model.AnimationModel;
-import de.javagl.jgltf.model.AssetModel;
-import de.javagl.jgltf.model.BufferModel;
-import de.javagl.jgltf.model.BufferViewModel;
-import de.javagl.jgltf.model.CameraModel;
-import de.javagl.jgltf.model.ExtensionsModel;
-import de.javagl.jgltf.model.GltfModel;
-import de.javagl.jgltf.model.ImageModel;
-import de.javagl.jgltf.model.MaterialModel;
-import de.javagl.jgltf.model.MeshModel;
-import de.javagl.jgltf.model.NodeModel;
-import de.javagl.jgltf.model.SceneModel;
-import de.javagl.jgltf.model.SkinModel;
-import de.javagl.jgltf.model.TextureModel;
-import ru.hollowhorizon.hc.client.gltf.animations.Animation;
-
 /**
  * Default implementation of a {@link GltfModel}.<br>
  */
-public class DefaultGltfModel extends AbstractModelElement implements GltfModel
-{
+public class DefaultGltfModel extends AbstractModelElement implements GltfModel {
     /**
      * The {@link AccessorModel} instances
      */
@@ -62,7 +47,7 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * The {@link AnimationModel} instances
      */
     private final List<DefaultAnimationModel> animationModels;
-    
+
     /**
      * The {@link BufferModel} instances
      */
@@ -72,7 +57,7 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * The {@link BufferViewModel} instances
      */
     private final List<DefaultBufferViewModel> bufferViewModels;
-    
+
     /**
      * The {@link CameraModel} instances
      */
@@ -87,7 +72,7 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * The {@link MaterialModel} instances
      */
     private final List<MaterialModel> materialModels;
-    
+
     /**
      * The {@link MeshModel} instances
      */
@@ -112,12 +97,12 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * The {@link TextureModel} instances
      */
     private final List<DefaultTextureModel> textureModels;
-    
+
     /**
      * The {@link ExtensionsModel}
      */
     private final DefaultExtensionsModel extensionsModel;
-    
+
     /**
      * The {@link AssetModel}
      */
@@ -129,10 +114,9 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
     }
 
     /**
-     * Creates a new model 
+     * Creates a new model
      */
-    public DefaultGltfModel()
-    {
+    public DefaultGltfModel() {
         this.accessorModels = new ArrayList<DefaultAccessorModel>();
         this.animationModels = new ArrayList<DefaultAnimationModel>();
         this.bufferModels = new ArrayList<DefaultBufferModel>();
@@ -148,37 +132,33 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
         this.extensionsModel = new DefaultExtensionsModel();
         this.assetModel = new DefaultAssetModel();
     }
-    
+
     /**
      * Add the given {@link AccessorModel} to this model
-     * 
+     *
      * @param accessorModel The object to add
      */
-    public void addAccessorModel(DefaultAccessorModel accessorModel)
-    {
+    public void addAccessorModel(DefaultAccessorModel accessorModel) {
         accessorModels.add(accessorModel);
     }
 
     /**
      * Remove the given {@link AccessorModel} from this model
-     * 
+     *
      * @param accessorModel The object to remove
      */
-    public void removeAccessorModel(DefaultAccessorModel accessorModel)
-    {
+    public void removeAccessorModel(DefaultAccessorModel accessorModel) {
         accessorModels.remove(accessorModel);
     }
 
     /**
      * Add the given {@link AccessorModel} instances to this model
-     * 
+     *
      * @param accessorModels The objects to add
      */
     public void addAccessorModels(
-        Collection<? extends DefaultAccessorModel> accessorModels)
-    {
-        for (DefaultAccessorModel accessorModel : accessorModels)
-        {
+            Collection<? extends DefaultAccessorModel> accessorModels) {
+        for (DefaultAccessorModel accessorModel : accessorModels) {
             addAccessorModel(accessorModel);
         }
     }
@@ -189,32 +169,28 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * @param index The index
      * @return The {@link AccessorModel}
      */
-    public DefaultAccessorModel getAccessorModel(int index)
-    {
+    public DefaultAccessorModel getAccessorModel(int index) {
         return accessorModels.get(index);
     }
 
     /**
      * Remove all {@link AccessorModel} instances
      */
-    public void clearAccessorModels()
-    {
+    public void clearAccessorModels() {
         accessorModels.clear();
     }
 
     @Override
-    public List<AccessorModel> getAccessorModels()
-    {
+    public List<AccessorModel> getAccessorModels() {
         return Collections.unmodifiableList(accessorModels);
     }
-    
+
     /**
      * Add the given {@link AnimationModel} to this model
      *
      * @param animationModel The instance to add
      */
-    public void addAnimationModel(DefaultAnimationModel animationModel)
-    {
+    public void addAnimationModel(DefaultAnimationModel animationModel) {
         animationModels.add(animationModel);
     }
 
@@ -223,8 +199,7 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      *
      * @param animationModel The instance to remove
      */
-    public void removeAnimationModel(DefaultAnimationModel animationModel)
-    {
+    public void removeAnimationModel(DefaultAnimationModel animationModel) {
         animationModels.remove(animationModel);
     }
 
@@ -234,10 +209,8 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * @param animationModels The instances to add
      */
     public void addAnimationModels(
-        Collection<? extends DefaultAnimationModel> animationModels)
-    {
-        for (DefaultAnimationModel animationModel : animationModels)
-        {
+            Collection<? extends DefaultAnimationModel> animationModels) {
+        for (DefaultAnimationModel animationModel : animationModels) {
             addAnimationModel(animationModel);
         }
     }
@@ -248,55 +221,48 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * @param index The index
      * @return The {@link AnimationModel}
      */
-    public DefaultAnimationModel getAnimationModel(int index)
-    {
+    public DefaultAnimationModel getAnimationModel(int index) {
         return animationModels.get(index);
     }
 
     /**
      * Remove all {@link AnimationModel} instances
      */
-    public void clearAnimationModels()
-    {
+    public void clearAnimationModels() {
         animationModels.clear();
     }
 
     @Override
-    public List<AnimationModel> getAnimationModels()
-    {
+    public List<AnimationModel> getAnimationModels() {
         return Collections.unmodifiableList(animationModels);
     }
-    
+
     /**
      * Add the given {@link BufferModel} to this model
-     * 
+     *
      * @param bufferModel The instance to add
      */
-    public void addBufferModel(DefaultBufferModel bufferModel)
-    {
+    public void addBufferModel(DefaultBufferModel bufferModel) {
         bufferModels.add(bufferModel);
     }
 
     /**
      * Remove the given {@link BufferModel} from this model
-     * 
+     *
      * @param bufferModel The instance to remove
      */
-    public void removeBufferModel(DefaultBufferModel bufferModel)
-    {
+    public void removeBufferModel(DefaultBufferModel bufferModel) {
         bufferModels.remove(bufferModel);
     }
 
     /**
      * Add the given {@link BufferModel} instances to this model
-     * 
+     *
      * @param bufferModels The instances to add
      */
     public void addBufferModels(
-        Collection<? extends DefaultBufferModel> bufferModels)
-    {
-        for (DefaultBufferModel bufferModel : bufferModels)
-        {
+            Collection<? extends DefaultBufferModel> bufferModels) {
+        for (DefaultBufferModel bufferModel : bufferModels) {
             addBufferModel(bufferModel);
         }
     }
@@ -307,55 +273,48 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * @param index The index
      * @return The {@link BufferModel}
      */
-    public DefaultBufferModel getBufferModel(int index)
-    {
+    public DefaultBufferModel getBufferModel(int index) {
         return bufferModels.get(index);
     }
 
     /**
      * Remove all {@link BufferModel} instances
      */
-    public void clearBufferModels()
-    {
+    public void clearBufferModels() {
         bufferModels.clear();
     }
 
     @Override
-    public List<BufferModel> getBufferModels()
-    {
+    public List<BufferModel> getBufferModels() {
         return Collections.unmodifiableList(bufferModels);
     }
-    
+
     /**
      * Add the given {@link BufferViewModel} to this model
-     * 
+     *
      * @param bufferViewModel The instance to add
      */
-    public void addBufferViewModel(DefaultBufferViewModel bufferViewModel)
-    {
+    public void addBufferViewModel(DefaultBufferViewModel bufferViewModel) {
         bufferViewModels.add(bufferViewModel);
     }
 
     /**
      * Remove the given {@link BufferViewModel} from this model
-     * 
+     *
      * @param bufferViewModel The instance to remove
      */
-    public void removeBufferViewModel(DefaultBufferViewModel bufferViewModel)
-    {
+    public void removeBufferViewModel(DefaultBufferViewModel bufferViewModel) {
         bufferViewModels.remove(bufferViewModel);
     }
 
     /**
      * Add the given {@link BufferViewModel} instances to this model
-     * 
+     *
      * @param bufferViewModels The instances to add
      */
     public void addBufferViewModels(
-        Collection<? extends DefaultBufferViewModel> bufferViewModels)
-    {
-        for (DefaultBufferViewModel bufferViewModel : bufferViewModels)
-        {
+            Collection<? extends DefaultBufferViewModel> bufferViewModels) {
+        for (DefaultBufferViewModel bufferViewModel : bufferViewModels) {
             addBufferViewModel(bufferViewModel);
         }
     }
@@ -366,55 +325,48 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * @param index The index
      * @return The {@link BufferViewModel}
      */
-    public DefaultBufferViewModel getBufferViewModel(int index)
-    {
+    public DefaultBufferViewModel getBufferViewModel(int index) {
         return bufferViewModels.get(index);
     }
 
     /**
      * Remove all {@link BufferViewModel} instances
      */
-    public void clearBufferViewModels()
-    {
+    public void clearBufferViewModels() {
         bufferViewModels.clear();
     }
 
     @Override
-    public List<BufferViewModel> getBufferViewModels()
-    {
+    public List<BufferViewModel> getBufferViewModels() {
         return Collections.unmodifiableList(bufferViewModels);
     }
-    
+
     /**
      * Add the given {@link CameraModel} to this model
-     * 
+     *
      * @param cameraModel The instance to add
      */
-    public void addCameraModel(DefaultCameraModel cameraModel)
-    {
+    public void addCameraModel(DefaultCameraModel cameraModel) {
         cameraModels.add(cameraModel);
     }
 
     /**
      * Remove the given {@link CameraModel} from this model
-     * 
+     *
      * @param cameraModel The instance to remove
      */
-    public void removeCameraModel(DefaultCameraModel cameraModel)
-    {
+    public void removeCameraModel(DefaultCameraModel cameraModel) {
         cameraModels.remove(cameraModel);
     }
 
     /**
      * Add the given {@link CameraModel} instances to this model
-     * 
+     *
      * @param cameraModels The instances to add
      */
     public void addCameraModels(
-        Collection<? extends DefaultCameraModel> cameraModels)
-    {
-        for (DefaultCameraModel cameraModel : cameraModels)
-        {
+            Collection<? extends DefaultCameraModel> cameraModels) {
+        for (DefaultCameraModel cameraModel : cameraModels) {
             addCameraModel(cameraModel);
         }
     }
@@ -425,55 +377,48 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * @param index The index
      * @return The {@link CameraModel}
      */
-    public DefaultCameraModel getCameraModel(int index)
-    {
+    public DefaultCameraModel getCameraModel(int index) {
         return cameraModels.get(index);
     }
 
     /**
      * Remove all {@link CameraModel} instances
      */
-    public void clearCameraModels()
-    {
+    public void clearCameraModels() {
         cameraModels.clear();
     }
 
     @Override
-    public List<CameraModel> getCameraModels()
-    {
+    public List<CameraModel> getCameraModels() {
         return Collections.unmodifiableList(cameraModels);
     }
-    
+
     /**
      * Add the given {@link ImageModel} to this model
-     * 
+     *
      * @param imageModel The instance to add
      */
-    public void addImageModel(DefaultImageModel imageModel)
-    {
+    public void addImageModel(DefaultImageModel imageModel) {
         imageModels.add(imageModel);
     }
 
     /**
      * Remove the given {@link ImageModel} from this model
-     * 
+     *
      * @param imageModel The instance to remove
      */
-    public void removeImageModel(DefaultImageModel imageModel)
-    {
+    public void removeImageModel(DefaultImageModel imageModel) {
         imageModels.remove(imageModel);
     }
 
     /**
      * Add the given {@link ImageModel} instances to this model
-     * 
+     *
      * @param imageModels The instances to add
      */
     public void addImageModels(
-        Collection<? extends DefaultImageModel> imageModels)
-    {
-        for (DefaultImageModel imageModel : imageModels)
-        {
+            Collection<? extends DefaultImageModel> imageModels) {
+        for (DefaultImageModel imageModel : imageModels) {
             addImageModel(imageModel);
         }
     }
@@ -484,55 +429,48 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * @param index The index
      * @return The {@link ImageModel}
      */
-    public DefaultImageModel getImageModel(int index)
-    {
+    public DefaultImageModel getImageModel(int index) {
         return imageModels.get(index);
     }
 
     /**
      * Remove all {@link ImageModel} instances
      */
-    public void clearImageModels()
-    {
+    public void clearImageModels() {
         imageModels.clear();
     }
 
     @Override
-    public List<ImageModel> getImageModels()
-    {
+    public List<ImageModel> getImageModels() {
         return Collections.unmodifiableList(imageModels);
     }
-    
+
     /**
      * Add the given {@link MaterialModel} to this model
-     * 
+     *
      * @param materialModel The instance to add
      */
-    public void addMaterialModel(MaterialModel materialModel)
-    {
+    public void addMaterialModel(MaterialModel materialModel) {
         materialModels.add(materialModel);
     }
 
     /**
      * Remove the given {@link MaterialModel} from this model
-     * 
+     *
      * @param materialModel The instance to remove
      */
-    public void removeMaterialModel(MaterialModel materialModel)
-    {
+    public void removeMaterialModel(MaterialModel materialModel) {
         materialModels.remove(materialModel);
     }
 
     /**
      * Add the given {@link MaterialModel} instances to this model
-     * 
+     *
      * @param materialModels The instances to add
      */
     public void addMaterialModels(
-        Collection<? extends MaterialModel> materialModels)
-    {
-        for (MaterialModel materialModel : materialModels)
-        {
+            Collection<? extends MaterialModel> materialModels) {
+        for (MaterialModel materialModel : materialModels) {
             addMaterialModel(materialModel);
         }
     }
@@ -543,55 +481,48 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * @param index The index
      * @return The {@link MaterialModel}
      */
-    public MaterialModel getMaterialModel(int index)
-    {
+    public MaterialModel getMaterialModel(int index) {
         return materialModels.get(index);
     }
 
     /**
      * Remove all {@link MaterialModel} instances
      */
-    public void clearMaterialModels()
-    {
+    public void clearMaterialModels() {
         materialModels.clear();
     }
 
     @Override
-    public List<MaterialModel> getMaterialModels()
-    {
+    public List<MaterialModel> getMaterialModels() {
         return Collections.unmodifiableList(materialModels);
     }
 
     /**
      * Add the given {@link MeshModel} to this model
-     * 
+     *
      * @param meshModel The instance to add
      */
-    public void addMeshModel(DefaultMeshModel meshModel)
-    {
+    public void addMeshModel(DefaultMeshModel meshModel) {
         meshModels.add(meshModel);
     }
 
     /**
      * Remove the given {@link MeshModel} from this model
-     * 
+     *
      * @param meshModel The instance to remove
      */
-    public void removeMeshModel(DefaultMeshModel meshModel)
-    {
+    public void removeMeshModel(DefaultMeshModel meshModel) {
         meshModels.remove(meshModel);
     }
 
     /**
      * Add the given {@link MeshModel} instances to this model
-     * 
+     *
      * @param meshModels The instances to add
      */
     public void addMeshModels(
-        Collection<? extends DefaultMeshModel> meshModels)
-    {
-        for (DefaultMeshModel meshModel : meshModels)
-        {
+            Collection<? extends DefaultMeshModel> meshModels) {
+        for (DefaultMeshModel meshModel : meshModels) {
             addMeshModel(meshModel);
         }
     }
@@ -602,55 +533,48 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * @param index The index
      * @return The {@link MeshModel}
      */
-    public DefaultMeshModel getMeshModel(int index)
-    {
+    public DefaultMeshModel getMeshModel(int index) {
         return meshModels.get(index);
     }
 
     /**
      * Remove all {@link MeshModel} instances
      */
-    public void clearMeshModels()
-    {
+    public void clearMeshModels() {
         meshModels.clear();
     }
 
     @Override
-    public List<MeshModel> getMeshModels()
-    {
+    public List<MeshModel> getMeshModels() {
         return Collections.unmodifiableList(meshModels);
     }
-    
+
     /**
      * Add the given {@link NodeModel} to this model
-     * 
+     *
      * @param nodeModel The instance to add
      */
-    public void addNodeModel(DefaultNodeModel nodeModel)
-    {
+    public void addNodeModel(DefaultNodeModel nodeModel) {
         nodeModels.add(nodeModel);
     }
 
     /**
      * Remove the given {@link NodeModel} from this model
-     * 
+     *
      * @param nodeModel The instance to remove
      */
-    public void removeNodeModel(DefaultNodeModel nodeModel)
-    {
+    public void removeNodeModel(DefaultNodeModel nodeModel) {
         nodeModels.remove(nodeModel);
     }
 
     /**
      * Add the given {@link NodeModel} instances to this model
-     * 
+     *
      * @param nodeModels The instances to add
      */
     public void addNodeModels(
-        Collection<? extends DefaultNodeModel> nodeModels)
-    {
-        for (DefaultNodeModel nodeModel : nodeModels)
-        {
+            Collection<? extends DefaultNodeModel> nodeModels) {
+        for (DefaultNodeModel nodeModel : nodeModels) {
             addNodeModel(nodeModel);
         }
     }
@@ -661,55 +585,48 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * @param index The index
      * @return The {@link NodeModel}
      */
-    public DefaultNodeModel getNodeModel(int index)
-    {
+    public DefaultNodeModel getNodeModel(int index) {
         return nodeModels.get(index);
     }
 
     /**
      * Remove all {@link NodeModel} instances
      */
-    public void clearNodeModels()
-    {
+    public void clearNodeModels() {
         nodeModels.clear();
     }
 
     @Override
-    public List<NodeModel> getNodeModels()
-    {
+    public List<NodeModel> getNodeModels() {
         return Collections.unmodifiableList(nodeModels);
     }
-    
+
     /**
      * Add the given {@link SceneModel} to this model
-     * 
+     *
      * @param sceneModel The instance to add
      */
-    public void addSceneModel(DefaultSceneModel sceneModel)
-    {
+    public void addSceneModel(DefaultSceneModel sceneModel) {
         sceneModels.add(sceneModel);
     }
 
     /**
      * Remove the given {@link SceneModel} from this model
-     * 
+     *
      * @param sceneModel The instance to remove
      */
-    public void removeSceneModel(DefaultSceneModel sceneModel)
-    {
+    public void removeSceneModel(DefaultSceneModel sceneModel) {
         sceneModels.remove(sceneModel);
     }
 
     /**
      * Add the given {@link SceneModel} instances to this model
-     * 
+     *
      * @param sceneModels The instances to add
      */
     public void addSceneModels(
-        Collection<? extends DefaultSceneModel> sceneModels)
-    {
-        for (DefaultSceneModel sceneModel : sceneModels)
-        {
+            Collection<? extends DefaultSceneModel> sceneModels) {
+        for (DefaultSceneModel sceneModel : sceneModels) {
             addSceneModel(sceneModel);
         }
     }
@@ -720,55 +637,48 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * @param index The index
      * @return The {@link SceneModel}
      */
-    public DefaultSceneModel getSceneModel(int index)
-    {
+    public DefaultSceneModel getSceneModel(int index) {
         return sceneModels.get(index);
     }
 
     /**
      * Remove all {@link SceneModel} instances
      */
-    public void clearSceneModels()
-    {
+    public void clearSceneModels() {
         sceneModels.clear();
     }
 
     @Override
-    public List<SceneModel> getSceneModels()
-    {
+    public List<SceneModel> getSceneModels() {
         return Collections.unmodifiableList(sceneModels);
     }
 
     /**
      * Add the given {@link SkinModel} to this model
-     * 
+     *
      * @param skinModel The instance to add
      */
-    public void addSkinModel(DefaultSkinModel skinModel)
-    {
+    public void addSkinModel(DefaultSkinModel skinModel) {
         skinModels.add(skinModel);
     }
 
     /**
      * Remove the given {@link SkinModel} from this model
-     * 
+     *
      * @param skinModel The instance to remove
      */
-    public void removeSkinModel(DefaultSkinModel skinModel)
-    {
+    public void removeSkinModel(DefaultSkinModel skinModel) {
         skinModels.remove(skinModel);
     }
 
     /**
      * Add the given {@link SkinModel} instances to this model
-     * 
+     *
      * @param skinModels The instances to add
      */
     public void addSkinModels(
-        Collection<? extends DefaultSkinModel> skinModels)
-    {
-        for (DefaultSkinModel skinModel : skinModels)
-        {
+            Collection<? extends DefaultSkinModel> skinModels) {
+        for (DefaultSkinModel skinModel : skinModels) {
             addSkinModel(skinModel);
         }
     }
@@ -779,55 +689,48 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * @param index The index
      * @return The {@link SkinModel}
      */
-    public DefaultSkinModel getSkinModel(int index)
-    {
+    public DefaultSkinModel getSkinModel(int index) {
         return skinModels.get(index);
     }
 
     /**
      * Remove all {@link SkinModel} instances
      */
-    public void clearSkinModels()
-    {
+    public void clearSkinModels() {
         skinModels.clear();
     }
 
     @Override
-    public List<SkinModel> getSkinModels()
-    {
+    public List<SkinModel> getSkinModels() {
         return Collections.unmodifiableList(skinModels);
     }
-    
+
     /**
      * Add the given {@link TextureModel} to this model
-     * 
+     *
      * @param textureModel The instance to add
      */
-    public void addTextureModel(DefaultTextureModel textureModel)
-    {
+    public void addTextureModel(DefaultTextureModel textureModel) {
         textureModels.add(textureModel);
     }
 
     /**
      * Remove the given {@link TextureModel} from this model
-     * 
+     *
      * @param textureModel The instance to remove
      */
-    public void removeTextureModel(DefaultTextureModel textureModel)
-    {
+    public void removeTextureModel(DefaultTextureModel textureModel) {
         textureModels.remove(textureModel);
     }
 
     /**
      * Add the given {@link TextureModel} instances to this model
-     * 
+     *
      * @param textureModels The instances to add
      */
     public void addTextureModels(
-        Collection<? extends DefaultTextureModel> textureModels)
-    {
-        for (DefaultTextureModel textureModel : textureModels)
-        {
+            Collection<? extends DefaultTextureModel> textureModels) {
+        for (DefaultTextureModel textureModel : textureModels) {
             addTextureModel(textureModel);
         }
     }
@@ -838,34 +741,29 @@ public class DefaultGltfModel extends AbstractModelElement implements GltfModel
      * @param index The index
      * @return The {@link TextureModel}
      */
-    public DefaultTextureModel getTextureModel(int index)
-    {
+    public DefaultTextureModel getTextureModel(int index) {
         return textureModels.get(index);
     }
 
     /**
      * Remove all {@link TextureModel} instances
      */
-    public void clearTextureModels()
-    {
+    public void clearTextureModels() {
         textureModels.clear();
     }
 
     @Override
-    public List<TextureModel> getTextureModels()
-    {
+    public List<TextureModel> getTextureModels() {
         return Collections.unmodifiableList(textureModels);
     }
-    
+
     @Override
-    public DefaultExtensionsModel getExtensionsModel()
-    {
+    public DefaultExtensionsModel getExtensionsModel() {
         return extensionsModel;
     }
-    
+
     @Override
-    public DefaultAssetModel getAssetModel()
-    {
+    public DefaultAssetModel getAssetModel() {
         return assetModel;
     }
 

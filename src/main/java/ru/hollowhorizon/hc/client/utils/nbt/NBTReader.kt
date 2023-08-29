@@ -47,6 +47,7 @@ private sealed class AbstractNBTReader(val format: NBTFormat, open val map: Tag)
                 )
                 else TagListDecoder(format, cast(currentObject))
             }
+
             is PolymorphicKind -> NbtMapDecoder(format, cast(currentObject))
             StructureKind.MAP -> selectMapMode(
                 descriptor,
@@ -97,7 +98,7 @@ private sealed class AbstractNBTReader(val format: NBTFormat, open val map: Tag)
     private inline fun <T> getNumberValue(
         tag: String,
         getter: NumericTag.() -> T,
-        stringGetter: String.() -> T
+        stringGetter: String.() -> T,
     ): T {
         val value = getValue(tag)
         return if (value is NumericTag) value.getter()
@@ -200,7 +201,8 @@ private class TagPrimitiveReader(json: NBTFormat, override val map: Tag) : Abstr
     init {
         pushTag(PRIMITIVE_TAG)
     }
-    override fun decodeElementIndex(descriptor: SerialDescriptor): Int  = 0
+
+    override fun decodeElementIndex(descriptor: SerialDescriptor): Int = 0
 
     override fun currentElement(tag: String): Tag {
         require(tag === PRIMITIVE_TAG) { "This input can only handle primitives with '$PRIMITIVE_TAG' tag" }

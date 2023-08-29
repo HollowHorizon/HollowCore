@@ -58,6 +58,7 @@ public interface ShaderObject {
 
     interface ShaderType {
         int getGLCode();
+
         boolean isSupported();
     }
 }

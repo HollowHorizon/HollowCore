@@ -9,7 +9,6 @@ import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.modules.*
 import net.minecraft.nbt.*
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.InputStream
@@ -80,7 +79,7 @@ class SerializableRunnable(private val inner: java.io.Serializable) : Runnable, 
 
 fun main() {
 
-    val test = Test(SerializableRunnable( {
+    val test = Test(SerializableRunnable({
         println("1")
         println("2")
         println("3")

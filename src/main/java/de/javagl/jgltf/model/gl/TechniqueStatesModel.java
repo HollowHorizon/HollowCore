@@ -26,49 +26,47 @@
  */
 package de.javagl.jgltf.model.gl;
 
+import de.javagl.jgltf.model.GltfConstants;
+
 import java.util.Arrays;
 import java.util.List;
 
-import de.javagl.jgltf.model.GltfConstants;
-
 /**
- * Interface for technique states.  
+ * Interface for technique states.
  */
-public interface TechniqueStatesModel
-{
+public interface TechniqueStatesModel {
     /**
      * Returns an unmodifiable list containing the enabled states,
      * or <code>null</code> if only the default states should be
      * enabled.
-     * 
+     *
      * @return The enabled states
      */
     List<Integer> getEnable();
-    
+
     /**
      * Returns the {@link TechniqueStatesFunctionsModel}, or <code>null</code>
      * if the default technique states functions should be used.
-     * 
+     *
      * @return The {@link TechniqueStatesFunctionsModel}
      */
     TechniqueStatesFunctionsModel getTechniqueStatesFunctionsModel();
-    
-    
+
+
     /**
      * Returns a list containing all possible states that may be contained
      * in a <code>technique.states.enable</code> list.
-     * 
+     *
      * @return All possible states
      */
-    public static List<Integer> getAllStates()
-    {
+    static List<Integer> getAllStates() {
         List<Integer> allStates = Arrays.asList(
-            GltfConstants.GL_BLEND,
-            GltfConstants.GL_CULL_FACE,
-            GltfConstants.GL_DEPTH_TEST,
-            GltfConstants.GL_POLYGON_OFFSET_FILL,
-            GltfConstants.GL_SAMPLE_ALPHA_TO_COVERAGE,
-            GltfConstants.GL_SCISSOR_TEST
+                GltfConstants.GL_BLEND,
+                GltfConstants.GL_CULL_FACE,
+                GltfConstants.GL_DEPTH_TEST,
+                GltfConstants.GL_POLYGON_OFFSET_FILL,
+                GltfConstants.GL_SAMPLE_ALPHA_TO_COVERAGE,
+                GltfConstants.GL_SCISSOR_TEST
         );
         return allStates;
     }

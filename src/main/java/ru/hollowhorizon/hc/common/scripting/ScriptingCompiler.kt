@@ -43,10 +43,10 @@ object ScriptingCompiler {
         val compilationConfiguration = createJvmCompilationConfigurationFromTemplate<T>()
 
         return runBlocking {
-            val compiledJar = script.parentFile.resolve(script.name+".jar")
+            val compiledJar = script.parentFile.resolve(script.name + ".jar")
             val hashcode = script.readText().hashCode().toString()
 
-            if(compiledJar.exists() && compiledJar.loadScriptHashCode()==hashcode) {
+            if (compiledJar.exists() && compiledJar.loadScriptHashCode() == hashcode) {
                 return@runBlocking CompiledScript(
                     script.name, hashcode,
                     compiledJar.loadScriptFromJar(), null

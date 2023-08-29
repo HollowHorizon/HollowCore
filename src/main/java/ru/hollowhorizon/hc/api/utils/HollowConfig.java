@@ -9,9 +9,11 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface HollowConfig {
     String value();
+
     String description() default "";
 
     float min() default 0.0F;
+
     float max() default 1.0F;
 
 }

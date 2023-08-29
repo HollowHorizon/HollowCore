@@ -54,7 +54,8 @@ public class ShaderProgramBuilder {
     }
 
     public ShaderProgram build() {
-        return new ShaderProgram(shaders.values(), allUniforms.values(), cacheCallback == null ? uniformCache -> {} : cacheCallback, attributes);
+        return new ShaderProgram(shaders.values(), allUniforms.values(), cacheCallback == null ? uniformCache -> {
+        } : cacheCallback, attributes);
     }
 
     public void nulll() {
@@ -79,7 +80,6 @@ public class ShaderProgramBuilder {
         }
 
 
-
         public ShaderObjectBuilder type(ShaderObject.ShaderType type) {
             if (this.type != null) throw new IllegalArgumentException("Type already set.");
 
@@ -88,14 +88,16 @@ public class ShaderProgramBuilder {
         }
 
         public ShaderObjectBuilder source(String source) {
-            if (this.simpleSource != null || assetSource != null) throw new IllegalArgumentException("Source already set.");
+            if (this.simpleSource != null || assetSource != null)
+                throw new IllegalArgumentException("Source already set.");
 
             this.simpleSource = Objects.requireNonNull(source);
             return this;
         }
 
         public ShaderObjectBuilder source(ResourceLocation asset) {
-            if (assetSource != null || this.simpleSource != null) throw new IllegalArgumentException("Source already set.");
+            if (assetSource != null || this.simpleSource != null)
+                throw new IllegalArgumentException("Source already set.");
 
             this.assetSource = Objects.requireNonNull(asset);
             return this;
@@ -103,8 +105,10 @@ public class ShaderProgramBuilder {
 
         public ShaderObjectBuilder uniform(String name, UniformType type) {
             Uniform uniform = allUniforms.get(name);
-            if (uniform != null && uniform.type() != type) throw new IllegalArgumentException("Uniform with name '" + name + "' already exists with a different type: " + uniform.type());
-            if (!type.isSupported()) throw new UnsupportedOperationException("Uniform type '" + type + "' is not supported in this Environment.");
+            if (uniform != null && uniform.type() != type)
+                throw new IllegalArgumentException("Uniform with name '" + name + "' already exists with a different type: " + uniform.type());
+            if (!type.isSupported())
+                throw new UnsupportedOperationException("Uniform type '" + type + "' is not supported in this Environment.");
 
             if (uniform == null) {
                 uniform = new Uniform(name, type);
@@ -116,7 +120,8 @@ public class ShaderProgramBuilder {
 
         protected ShaderObject build() {
             if (type == null) throw new IllegalStateException("Type not set.");
-            if (simpleSource == null && assetSource == null) throw new IllegalStateException("SimpleSource or AssetSource not set.");
+            if (simpleSource == null && assetSource == null)
+                throw new IllegalStateException("SimpleSource or AssetSource not set.");
             if (simpleSource != null) return new SimpleShaderObject(name, type, uniforms.values(), simpleSource);
 
             return new AssetShaderObject(name, type, uniforms.values(), assetSource);
@@ -130,7 +135,8 @@ public class ShaderProgramBuilder {
 
         private BinaryType binaryType;
         private String entryPoint;
-        private Consumer<ConstantCache> specializationCallback = (cache) -> {};
+        private Consumer<ConstantCache> specializationCallback = (cache) -> {
+        };
 
         private BinaryShaderObjectBuilder(String name) {
             super(name);

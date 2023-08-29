@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.common.registry
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.MobCategory
-import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity
 
 object ModEntities : HollowRegistry() {

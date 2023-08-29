@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.common.objects.entities
 
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.PathfinderMob
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal
@@ -8,7 +7,6 @@ import net.minecraft.world.entity.ai.goal.RandomStrollGoal
 import net.minecraft.world.level.Level
 import ru.hollowhorizon.hc.client.gltf.IAnimated
 import ru.hollowhorizon.hc.client.gltf.animations.manager.IModelManager
-import ru.hollowhorizon.hc.client.utils.rl
 
 class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(type, world), IAnimated {
 

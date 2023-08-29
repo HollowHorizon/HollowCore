@@ -10,7 +10,6 @@ import net.minecraftforge.server.ServerLifecycleHooks;
 import ru.hollowhorizon.hc.common.events.action.ActionPackage;
 import ru.hollowhorizon.hc.common.events.action.ActionStorage;
 import ru.hollowhorizon.hc.common.events.action.HollowAction;
-//import ru.hollowhorizon.hc.common.network.data.ActionsData;
 
 import java.util.*;
 
@@ -56,7 +55,7 @@ public class DelayHandler {
                         ActionPackage cpack = iterator.next();
                         if (cpack.tick()) {
                             HollowAction action = ActionStorage.getAction(cpack.getAction());
-                            if(action!=null) {
+                            if (action != null) {
                                 action.process(player);
                                 //ActionsData.INSTANCE.removeActionData(player, cpack.getAction());
                                 iterator.remove();
@@ -75,9 +74,9 @@ public class DelayHandler {
         String uuid = player.getUUID().toString();
         //if (!actions.containsKey(uuid)) actions.put(uuid, ActionsData.INSTANCE.getAllActions(player));
         //else {
-            //List<ActionPackage> packages = ActionsData.INSTANCE.getAllActions(player);
-            //packages.addAll(actions.get(uuid));
-            //actions.put(uuid, packages);
+        //List<ActionPackage> packages = ActionsData.INSTANCE.getAllActions(player);
+        //packages.addAll(actions.get(uuid));
+        //actions.put(uuid, packages);
         //}
 
     }

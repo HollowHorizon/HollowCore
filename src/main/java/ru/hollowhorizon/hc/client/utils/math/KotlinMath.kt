@@ -9,7 +9,7 @@ import java.nio.FloatBuffer
 fun Matrix4f.translationRotateScale(
     tx: Float, ty: Float, tz: Float,
     qx: Float, qy: Float, qz: Float, qw: Float,
-    sx: Float, sy: Float, sz: Float
+    sx: Float, sy: Float, sz: Float,
 ): Matrix4f {
     val dqx = qx + qx
     val dqy = qy + qy

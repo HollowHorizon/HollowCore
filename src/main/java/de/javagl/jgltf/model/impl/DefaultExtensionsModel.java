@@ -26,18 +26,13 @@
  */
 package de.javagl.jgltf.model.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
 import de.javagl.jgltf.model.ExtensionsModel;
+
+import java.util.*;
 
 /**
  * Default implementation of an {@link ExtensionsModel}.
- * 
+ * <p>
  * This implementation ensures a certain degree of consistency for
  * the extension information:
  * <ul>
@@ -52,11 +47,10 @@ import de.javagl.jgltf.model.ExtensionsModel;
  *   </li>
  * </ul>
  * (Of course, adding a "used" extension will not add it as a "required" one,
- * and <i>removing</i> a "required" extension will <i>not</i> remove it as 
- * a "used" extension) 
+ * and <i>removing</i> a "required" extension will <i>not</i> remove it as
+ * a "used" extension)
  */
-public class DefaultExtensionsModel implements ExtensionsModel
-{
+public class DefaultExtensionsModel implements ExtensionsModel {
     /**
      * The used extensions
      */
@@ -70,43 +64,38 @@ public class DefaultExtensionsModel implements ExtensionsModel
     /**
      * Default constructor
      */
-    public DefaultExtensionsModel()
-    {
+    public DefaultExtensionsModel() {
         this.extensionsUsed = new LinkedHashSet<String>();
         this.extensionsRequired = new LinkedHashSet<String>();
     }
 
     /**
      * Add the given extension name to the "used" extensions.
-     * 
+     *
      * @param extension The extension name.
      */
-    public void addExtensionUsed(String extension)
-    {
+    public void addExtensionUsed(String extension) {
         this.extensionsUsed.add(extension);
     }
 
     /**
      * Remove the given extension name from the "used" extensions and
      * from the list of "required" extensions.
-     * 
+     *
      * @param extension The extension name.
      */
-    public void removeExtensionUsed(String extension)
-    {
+    public void removeExtensionUsed(String extension) {
         this.extensionsUsed.remove(extension);
         removeExtensionRequired(extension);
     }
 
     /**
      * Add the given extension names to the "used" extensions.
-     * 
+     *
      * @param extensions The extension names
      */
-    public void addExtensionsUsed(Collection<String> extensions)
-    {
-        if (extensions != null) 
-        {
+    public void addExtensionsUsed(Collection<String> extensions) {
+        if (extensions != null) {
             this.extensionsUsed.addAll(extensions);
         }
     }
@@ -114,55 +103,49 @@ public class DefaultExtensionsModel implements ExtensionsModel
     /**
      * Clear the list of "used" extensions and the list of "required" extensions
      */
-    public void clearExtensionUsed()
-    {
+    public void clearExtensionUsed() {
         this.extensionsUsed.clear();
         clearExtensionRequired();
     }
 
     @Override
-    public List<String> getExtensionsUsed()
-    {
+    public List<String> getExtensionsUsed() {
         return Collections.unmodifiableList(
-            new ArrayList<String>(extensionsUsed));
+                new ArrayList<String>(extensionsUsed));
     }
 
-    
+
     /**
      * Add the given extension name to the "required" extensions and to
      * the "used" extensions.
-     * 
+     *
      * @param extension The extension name.
      */
-    public void addExtensionRequired(String extension)
-    {
+    public void addExtensionRequired(String extension) {
         this.extensionsRequired.add(extension);
         addExtensionUsed(extension);
     }
 
     /**
      * Remove the given extension name from the "required" extensions.
-     * 
+     * <p>
      * (Note that this will <i>not</i> remove the given extension name
      * from the "used" extensions!)
-     * 
+     *
      * @param extension The extension name.
      */
-    public void removeExtensionRequired(String extension)
-    {
+    public void removeExtensionRequired(String extension) {
         this.extensionsRequired.remove(extension);
     }
 
     /**
      * Add the given extension names to the "required" extensions and to
      * the "used" extensions.
-     * 
+     *
      * @param extensions The extension names
      */
-    public void addExtensionsRequired(Collection<String> extensions)
-    {
-        if (extensions != null)
-        {
+    public void addExtensionsRequired(Collection<String> extensions) {
+        if (extensions != null) {
             this.extensionsRequired.addAll(extensions);
             addExtensionsUsed(extensions);
         }
@@ -171,16 +154,14 @@ public class DefaultExtensionsModel implements ExtensionsModel
     /**
      * Clear the list of "required" extensions.
      */
-    public void clearExtensionRequired()
-    {
+    public void clearExtensionRequired() {
         this.extensionsRequired.clear();
     }
-    
+
     @Override
-    public List<String> getExtensionsRequired()
-    {
+    public List<String> getExtensionsRequired() {
         return Collections.unmodifiableList(
-            new ArrayList<String>(extensionsRequired));
+                new ArrayList<String>(extensionsRequired));
     }
 
 }

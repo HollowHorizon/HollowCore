@@ -26,33 +26,32 @@
  */
 package de.javagl.jgltf.model.gl;
 
-import java.util.List;
-
 import de.javagl.jgltf.model.NamedModelElement;
 
+import java.util.List;
+
 /**
- * Interface for a program that consists of a vertex- and fragment 
+ * Interface for a program that consists of a vertex- and fragment
  * {@link ShaderModel}
  */
-public interface ProgramModel extends NamedModelElement
-{
+public interface ProgramModel extends NamedModelElement {
     /**
      * Return the {@link ShaderModel} for the vertex shader
-     * 
+     *
      * @return The {@link ShaderModel}
      */
     ShaderModel getVertexShaderModel();
-    
+
     /**
      * Return the {@link ShaderModel} for the fragment shader
-     * 
+     *
      * @return The {@link ShaderModel}
      */
     ShaderModel getFragmentShaderModel();
-    
+
     /**
      * Returns an unmodifiable list of the program attribute names
-     * 
+     *
      * @return The attributes
      */
     List<String> getAttributes();

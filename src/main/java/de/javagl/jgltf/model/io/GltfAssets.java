@@ -32,144 +32,118 @@ import java.util.List;
 /**
  * Utility methods related to {@link GltfAsset} instances.<br>
  * <br>
- * The methods in this class may be used to check the "nature" of a 
- * {@link GltfAsset}. A <i>default</i> asset may contain references with 
- * URIs that refer to a file. An <i>embedded</i> asset may contain 
+ * The methods in this class may be used to check the "nature" of a
+ * {@link GltfAsset}. A <i>default</i> asset may contain references with
+ * URIs that refer to a file. An <i>embedded</i> asset may contain
  * references with URIs that are data URIs. A <i>binary</i> asset may
  * contain a binary data blob. Mixed forms of assets are possible:
  * It is possible to create an asset where one URI refers to a file,
  * and another URI is a data URI. The methods in this class allow
- * checking whether an asset is "purely" of one specific type.  
+ * checking whether an asset is "purely" of one specific type.
  * <br>
  * This class should not be considered as part of the public API. It may
  * change or be omitted in the future.
  */
-public class GltfAssets
-{
+public class GltfAssets {
     /**
      * Returns whether the given {@link GltfAsset} is a <i>default</i>
-     * asset. This means that it does <b>not</b> contain a (non-empty) 
+     * asset. This means that it does <b>not</b> contain a (non-empty)
      * {@link GltfAsset#getBinaryData() binary data} blob, and it
      * does <b>not</b> contain references with (embedded) data URIs.
-     *  
+     *
      * @param gltfAsset The {@link GltfAsset}
      * @return Whether the asset is a default asset
      */
-    public static boolean isDefault(GltfAsset gltfAsset)
-    {
+    public static boolean isDefault(GltfAsset gltfAsset) {
         ByteBuffer binaryData = gltfAsset.getBinaryData();
-        if (binaryData != null && binaryData.capacity() > 0)
-        {
+        if (binaryData != null && binaryData.capacity() > 0) {
             return false;
         }
-        if (containsDataUriReferences(gltfAsset))
-        {
-            return false;
-        }
-        return true;
+        return !containsDataUriReferences(gltfAsset);
     }
-    
+
     /**
      * Returns whether the given {@link GltfAsset} is an <i>embedded</i>
-     * asset. This means that it does <b>not</b> contain a (non-empty) 
+     * asset. This means that it does <b>not</b> contain a (non-empty)
      * {@link GltfAsset#getBinaryData() binary data} blob, and it
      * does <b>not</b> contain references that refer to files.
-     *  
+     *
      * @param gltfAsset The {@link GltfAsset}
      * @return Whether the asset is an embedded asset
      */
-    public static boolean isEmbedded(GltfAsset gltfAsset)
-    {
+    public static boolean isEmbedded(GltfAsset gltfAsset) {
         ByteBuffer binaryData = gltfAsset.getBinaryData();
-        if (binaryData != null && binaryData.capacity() > 0)
-        {
+        if (binaryData != null && binaryData.capacity() > 0) {
             return false;
         }
-        if (containsFileUriReferences(gltfAsset))
-        {
-            return false;
-        }
-        return true;
+        return !containsFileUriReferences(gltfAsset);
     }
-    
+
     /**
      * Returns whether the given {@link GltfAsset} is <i>binary</i>
-     * asset. This means that it does does <b>not</b> contain references 
+     * asset. This means that it does does <b>not</b> contain references
      * that refer to files or have (embedded) data URIs. (Note that
-     * this method returns <code>true</code> in this case even if 
+     * this method returns <code>true</code> in this case even if
      * the asset does not have a {@link GltfAsset#getBinaryData() binary data}
-     * blob) 
-     *  
+     * blob)
+     *
      * @param gltfAsset The {@link GltfAsset}
      * @return Whether the asset is a binary asset
      */
-    public static boolean isBinary(GltfAsset gltfAsset)
-    {
-        if (containsFileUriReferences(gltfAsset))
-        {
+    public static boolean isBinary(GltfAsset gltfAsset) {
+        if (containsFileUriReferences(gltfAsset)) {
             return false;
         }
-        if (containsDataUriReferences(gltfAsset))
-        {
-            return false;
-        }
-        return true;
+        return !containsDataUriReferences(gltfAsset);
     }
-    
+
     /**
-     * Returns whether the given {@link GltfAsset} contains any 
+     * Returns whether the given {@link GltfAsset} contains any
      * {@link GltfReference} that has a URI that is <b>not</b> a data URI.<br>
      * <br>
-     * If the asset does not contain any references, then 
+     * If the asset does not contain any references, then
      * <code>false</code> is returned.</br>
-     * 
+     *
      * @param gltfAsset The {@link GltfAsset}
      * @return Whether the asset contains (non-data) URI references
      */
-    private static boolean containsFileUriReferences(GltfAsset gltfAsset)
-    {
+    private static boolean containsFileUriReferences(GltfAsset gltfAsset) {
         List<GltfReference> references = gltfAsset.getReferences();
-        for (GltfReference reference : references)
-        {
+        for (GltfReference reference : references) {
             String uriString = reference.getUri();
-            if (!IO.isDataUriString(uriString))
-            {
+            if (!IO.isDataUriString(uriString)) {
                 return true;
             }
         }
         return false;
     }
-    
+
     /**
-     * Returns whether the given {@link GltfAsset} contains any 
+     * Returns whether the given {@link GltfAsset} contains any
      * {@link GltfReference} that has a URI that is a data URI. <br>
      * <br>
-     * If the asset does not contain any references, then 
+     * If the asset does not contain any references, then
      * <code>false</code> is returned.</br>
-     * 
+     *
      * @param gltfAsset The {@link GltfAsset}
      * @return Whether the asset contains data URI references
      */
-    private static boolean containsDataUriReferences(GltfAsset gltfAsset)
-    {
+    private static boolean containsDataUriReferences(GltfAsset gltfAsset) {
         List<GltfReference> references = gltfAsset.getReferences();
-        for (GltfReference reference : references)
-        {
+        for (GltfReference reference : references) {
             String uriString = reference.getUri();
-            if (!IO.isDataUriString(uriString))
-            {
+            if (!IO.isDataUriString(uriString)) {
                 return true;
             }
         }
         return false;
     }
-    
-    
+
+
     /**
      * Private constructor to prevent instantiation
      */
-    private GltfAssets()
-    {
+    private GltfAssets() {
         // Private constructor to prevent instantiation
     }
 }

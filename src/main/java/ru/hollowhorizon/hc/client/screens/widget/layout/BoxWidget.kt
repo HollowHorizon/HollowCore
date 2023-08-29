@@ -90,8 +90,8 @@ class BoxWidget(
 
         canMove = outOfBoundsX || outOfBoundsY
 
-        if(maxWidth == 0 && maxHeight > 0) this.verticalSlider?.height = this.height
-        if(maxHeight == 0 && maxWidth > 0) this.horizontalSlider?.width = this.width
+        if (maxWidth == 0 && maxHeight > 0) this.verticalSlider?.height = this.height
+        if (maxHeight == 0 && maxWidth > 0) this.horizontalSlider?.width = this.width
     }
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, scroll: Double): Boolean {

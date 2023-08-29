@@ -5,7 +5,7 @@ import java.io.InputStream
 object GLTFAdapter {
     @JvmStatic
     fun prepare(
-        stream: InputStream
+        stream: InputStream,
     ): InputStream {
         var json = stream.bufferedReader().use { it.readText() }
 

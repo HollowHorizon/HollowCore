@@ -59,7 +59,8 @@ public abstract class ForgeRegistryMixin<V> implements IForgeRegistry<V>, IReloa
     @Shadow
     public abstract void freeze();
 
-    @Shadow public abstract ResourceLocation getRegistryName();
+    @Shadow
+    public abstract ResourceLocation getRegistryName();
 
     @Override
     public V registerEntry(ResourceLocation location, V registryEntry) {

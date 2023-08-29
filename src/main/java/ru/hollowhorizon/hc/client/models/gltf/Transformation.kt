@@ -20,7 +20,7 @@ data class Transformation(
     val rotationW: Float,
     val scaleX: Float,
     val scaleY: Float,
-    val scaleZ: Float
+    val scaleZ: Float,
 ) {
 
     val translation: Vector3f get() = Vector3f(translationX, translationY, translationZ)
@@ -31,7 +31,7 @@ data class Transformation(
     constructor(
         translation: Vector3f = Vector3f(),
         rotation: Quaternion = Quaternion(0.0f, 0.0f, 0.0f, 1.0f),
-        scale: Vector3f = Vector3f(1.0f, 1.0f, 1.0f)
+        scale: Vector3f = Vector3f(1.0f, 1.0f, 1.0f),
     ) : this(
         translation.x(), translation.y(), translation.z(),
         rotation.i(), rotation.j(), rotation.k(), rotation.r(),

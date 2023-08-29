@@ -1,12 +1,12 @@
 package ru.hollowhorizon.hc.core;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 public class AsmReflectionMethodGenerator {
 
@@ -35,8 +35,7 @@ public class AsmReflectionMethodGenerator {
             Class definedClass;
             try { // checks if was already loaded
                 definedClass = declaringClass.getClassLoader().loadClass(className);
-            }
-            catch (ClassNotFoundException e) // need to build a new class
+            } catch (ClassNotFoundException e) // need to build a new class
             {
                 String classInternalName = className.replace('.', '/'); // build internal name for ASM
 

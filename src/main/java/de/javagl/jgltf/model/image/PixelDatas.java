@@ -37,54 +37,50 @@ import java.util.logging.Logger;
  * <br>
  * This class should not be considered to be part of the public API.
  */
-public class PixelDatas
-{
+public class PixelDatas {
     /**
      * The logger used in this class
      */
     private static final Logger logger =
-        Logger.getLogger(PixelDatas.class.getName());
-    
+            Logger.getLogger(PixelDatas.class.getName());
+
     /**
      * Create a {@link PixelData} from the given image data. The image data
      * may for example the the raw data of a JPG or PNG or GIF file. The
      * exact set of supported file formats is not specified. If the given
      * data can not be read, then a warning is printed and <code>null</code>
      * is returned.
-     * 
+     *
      * @param imageData The image data
      * @return The {@link PixelData}
      */
-    public static PixelData create(ByteBuffer imageData)
-    {
+    public static PixelData create(ByteBuffer imageData) {
         BufferedImage textureImage = ImageUtils.readAsBufferedImage(imageData);
-        if (textureImage == null)
-        {
+        if (textureImage == null) {
             logger.warning("Could not read image from image data");
             return null;
         }
-            
-        ByteBuffer pixelDataARGB = 
-            ImageUtils.getImagePixelsARGB(textureImage, false);
+
+        ByteBuffer pixelDataARGB =
+                ImageUtils.getImagePixelsARGB(textureImage, false);
         ByteBuffer pixelDataRGBA =
-            ImageUtils.swizzleARGBtoRGBA(pixelDataARGB);
+                ImageUtils.swizzleARGBtoRGBA(pixelDataARGB);
         int width = textureImage.getWidth();
         int height = textureImage.getHeight();
         return new DefaultPixelData(width, height, pixelDataRGBA);
     }
-    
+
     /**
-     * Create an unspecified {@link PixelData} object that may be used as 
+     * Create an unspecified {@link PixelData} object that may be used as
      * a placeholder for image data that could not be read
-     * 
+     *
      * @return The {@link PixelData} object
      */
-    public static PixelData createErrorPixelData()
-    {
+    public static PixelData createErrorPixelData() {
         // Right now, this is a 2x2 checkerboard of red and white pixels
         ByteBuffer pixelDataRGBA = ByteBuffer.allocateDirect(4 * Integer.SIZE);
-        IntBuffer intPixelDataRGBA = 
-            pixelDataRGBA.order(ByteOrder.BIG_ENDIAN).asIntBuffer();
+        IntBuffer intPixelDataRGBA =
+                pixelDataRGBA.order(ByteOrder.BIG_ENDIAN).asIntBuffer();
         intPixelDataRGBA.put(0, 0xFF0000FF);
         intPixelDataRGBA.put(1, 0xFFFFFFFF);
         intPixelDataRGBA.put(2, 0xFF0000FF);
@@ -93,13 +89,12 @@ public class PixelDatas
         int height = 2;
         return new DefaultPixelData(width, height, pixelDataRGBA);
     }
-    
-    
+
+
     /**
      * Private constructor to prevent instantiation
      */
-    private PixelDatas()
-    {
+    private PixelDatas() {
         // Private constructor to prevent instantiation
     }
 }

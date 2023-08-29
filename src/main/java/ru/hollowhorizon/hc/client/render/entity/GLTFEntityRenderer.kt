@@ -1,7 +1,5 @@
 package ru.hollowhorizon.hc.client.render.entity
 
-import ru.hollowhorizon.hc.client.gltf.model.GltfManager
-import ru.hollowhorizon.hc.client.gltf.model.RenderedGltfModel
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Vector3f
@@ -25,6 +23,8 @@ import ru.hollowhorizon.hc.client.gltf.animations.GLTFAnimationManager
 import ru.hollowhorizon.hc.client.gltf.animations.HeadLayer
 import ru.hollowhorizon.hc.client.gltf.animations.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.gltf.animations.manager.ClientModelManager
+import ru.hollowhorizon.hc.client.gltf.model.GltfManager
+import ru.hollowhorizon.hc.client.gltf.model.RenderedGltfModel
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage
 import kotlin.jvm.optionals.getOrNull
 

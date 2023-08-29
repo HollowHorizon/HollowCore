@@ -17,11 +17,11 @@ public class ActionStorage {
     }
 
     public static String getName(HollowAction action) {
-        for(String name : allActions.keySet()) {
+        for (String name : allActions.keySet()) {
             HollowAction action1 = allActions.get(name);
 
             HollowCore.LOGGER.info(action1.equals(action));
-            if(action1.equals(action)) return name;
+            if (action1.equals(action)) return name;
         }
         return null;
     }

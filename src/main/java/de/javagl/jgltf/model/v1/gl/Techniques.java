@@ -26,145 +26,133 @@
  */
 package de.javagl.jgltf.model.v1.gl;
 
+import de.javagl.jgltf.impl.v1.*;
+import de.javagl.jgltf.model.GltfConstants;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import de.javagl.jgltf.impl.v1.Material;
-import de.javagl.jgltf.impl.v1.Program;
-import de.javagl.jgltf.impl.v1.Technique;
-import de.javagl.jgltf.impl.v1.TechniqueParameters;
-import de.javagl.jgltf.impl.v1.TechniqueStates;
-import de.javagl.jgltf.impl.v1.TechniqueStatesFunctions;
-import de.javagl.jgltf.model.GltfConstants;
-
 /**
  * Utility methods related to {@link Technique}s
  */
-public class Techniques
-{
+public class Techniques {
     /**
      * Create a default {@link Technique} with the given {@link Program} ID,
      * which is assumed to refer to a {@link Programs#createDefaultProgram(
-     * String, String) default program}.<br>
+     *String, String) default program}.<br>
      * <br>
-     * The returned {@link Technique} is the {@link Technique} for the 
-     * default {@link Material}, as described in "Appendix A" of the 
-     * glTF 1.0 specification. 
-     * 
+     * The returned {@link Technique} is the {@link Technique} for the
+     * default {@link Material}, as described in "Appendix A" of the
+     * glTF 1.0 specification.
+     *
      * @param programId The {@link Program} ID
      * @return The default {@link Technique}
      */
-    static Technique createDefaultTechnique(String programId)
-    {
+    static Technique createDefaultTechnique(String programId) {
         Technique technique = new Technique();
         technique.addAttributes("a_position", "position");
-        technique.addParameters("modelViewMatrix", 
-            createDefaultTechniqueParameters(
-                "MODELVIEW", GltfConstants.GL_FLOAT_MAT4, null));
-        technique.addParameters("projectionMatrix", 
-            createDefaultTechniqueParameters(
-                "PROJECTION", GltfConstants.GL_FLOAT_MAT4, null));
-        technique.addParameters("emission", 
-            createDefaultTechniqueParameters(
-                null, GltfConstants.GL_FLOAT_VEC4, 
-                Arrays.asList(0.5f, 0.5f, 0.5f, 1.0f)));
-        technique.addParameters("position", 
-            createDefaultTechniqueParameters(
-                "POSITION", GltfConstants.GL_FLOAT_VEC3, null));
+        technique.addParameters("modelViewMatrix",
+                createDefaultTechniqueParameters(
+                        "MODELVIEW", GltfConstants.GL_FLOAT_MAT4, null));
+        technique.addParameters("projectionMatrix",
+                createDefaultTechniqueParameters(
+                        "PROJECTION", GltfConstants.GL_FLOAT_MAT4, null));
+        technique.addParameters("emission",
+                createDefaultTechniqueParameters(
+                        null, GltfConstants.GL_FLOAT_VEC4,
+                        Arrays.asList(0.5f, 0.5f, 0.5f, 1.0f)));
+        technique.addParameters("position",
+                createDefaultTechniqueParameters(
+                        "POSITION", GltfConstants.GL_FLOAT_VEC3, null));
         technique.setStates(createDefaultTechniqueStates());
         technique.setProgram(programId);
-        
+
         technique.addUniforms("u_modelViewMatrix", "modelViewMatrix");
         technique.addUniforms("u_projectionMatrix", "projectionMatrix");
         technique.addUniforms("u_emission", "emission");
-        
+
         return technique;
     }
-    
+
     /**
      * Create the default {@link TechniqueStates}
-     * 
+     *
      * @return The default {@link TechniqueStates}
      */
-    private static TechniqueStates createDefaultTechniqueStates()
-    {
+    private static TechniqueStates createDefaultTechniqueStates() {
         TechniqueStates techniqueStates = new TechniqueStates();
         techniqueStates.setEnable(
-            new ArrayList<Integer>(techniqueStates.defaultEnable()));
+                new ArrayList<Integer>(techniqueStates.defaultEnable()));
         techniqueStates.setFunctions(createDefaultTechniqueStatesFunctions());
         return techniqueStates;
     }
-    
+
     /**
      * Create the default {@link TechniqueStatesFunctions}
-     *  
+     *
      * @return The default {@link TechniqueStatesFunctions}
      */
-    public static TechniqueStatesFunctions 
-        createDefaultTechniqueStatesFunctions()
-    {
-        TechniqueStatesFunctions techniqueStatesFunctions = 
-            new TechniqueStatesFunctions();
+    public static TechniqueStatesFunctions
+    createDefaultTechniqueStatesFunctions() {
+        TechniqueStatesFunctions techniqueStatesFunctions =
+                new TechniqueStatesFunctions();
         techniqueStatesFunctions.setBlendColor(
-            techniqueStatesFunctions.defaultBlendColor());
+                techniqueStatesFunctions.defaultBlendColor());
         techniqueStatesFunctions.setBlendEquationSeparate(
-            techniqueStatesFunctions.defaultBlendEquationSeparate());
+                techniqueStatesFunctions.defaultBlendEquationSeparate());
         techniqueStatesFunctions.setBlendFuncSeparate(
-            techniqueStatesFunctions.defaultBlendFuncSeparate());
+                techniqueStatesFunctions.defaultBlendFuncSeparate());
         techniqueStatesFunctions.setColorMask(
-            techniqueStatesFunctions.defaultColorMask());
+                techniqueStatesFunctions.defaultColorMask());
         techniqueStatesFunctions.setCullFace(
-            techniqueStatesFunctions.defaultCullFace());
+                techniqueStatesFunctions.defaultCullFace());
         techniqueStatesFunctions.setDepthFunc(
-            techniqueStatesFunctions.defaultDepthFunc());
+                techniqueStatesFunctions.defaultDepthFunc());
         techniqueStatesFunctions.setDepthMask(
-            techniqueStatesFunctions.defaultDepthMask());
+                techniqueStatesFunctions.defaultDepthMask());
         techniqueStatesFunctions.setDepthRange(
-            techniqueStatesFunctions.defaultDepthRange());
+                techniqueStatesFunctions.defaultDepthRange());
         techniqueStatesFunctions.setFrontFace(
-            techniqueStatesFunctions.defaultFrontFace());
+                techniqueStatesFunctions.defaultFrontFace());
         techniqueStatesFunctions.setLineWidth(
-            techniqueStatesFunctions.defaultLineWidth());
+                techniqueStatesFunctions.defaultLineWidth());
         techniqueStatesFunctions.setPolygonOffset(
-            techniqueStatesFunctions.defaultPolygonOffset());
+                techniqueStatesFunctions.defaultPolygonOffset());
         techniqueStatesFunctions.setScissor(
-            techniqueStatesFunctions.defaultScissor());
+                techniqueStatesFunctions.defaultScissor());
         return techniqueStatesFunctions;
     }
 
     /**
      * Create default {@link TechniqueParameters} with the given semantic,
      * type and value
-     * 
+     *
      * @param semantic The semantic
-     * @param type The type
-     * @param value The value
+     * @param type     The type
+     * @param value    The value
      * @return The default {@link TechniqueParameters}
      */
     private static TechniqueParameters createDefaultTechniqueParameters(
-        String semantic, Integer type, Object value)
-    {
+            String semantic, Integer type, Object value) {
         TechniqueParameters techniqueParameters = new TechniqueParameters();
         techniqueParameters.setSemantic(semantic);
         techniqueParameters.setType(type);
         techniqueParameters.setValue(value);
         return techniqueParameters;
     }
-    
+
     /**
-     * Returns the set of states that should be enabled for the given 
+     * Returns the set of states that should be enabled for the given
      * {@link Technique}
-     * 
+     *
      * @param technique The {@link Technique}
      * @return The enabled states
      */
-    public static List<Integer> obtainEnabledStates(Technique technique)
-    {
+    public static List<Integer> obtainEnabledStates(Technique technique) {
         TechniqueStates states = obtainTechniqueStates(technique);
         List<Integer> enable = states.getEnable();
-        if (enable == null)
-        {
+        if (enable == null) {
             return states.defaultEnable();
         }
         return enable;
@@ -172,55 +160,50 @@ public class Techniques
 
     /**
      * Return the {@link TechniqueStates} from the given {@link Technique},
-     * or the {@link TechniqueStates} from the 
+     * or the {@link TechniqueStates} from the
      * {@link GltfDefaults#getDefaultTechnique() default technique} if
-     * the given {@link Technique} is <code>null</code> or does not 
+     * the given {@link Technique} is <code>null</code> or does not
      * contain any {@link TechniqueStates}
-     *  
+     *
      * @param technique The {@link Technique}
      * @return The {@link TechniqueStates}
      */
-    private static TechniqueStates obtainTechniqueStates(Technique technique)
-    {
+    private static TechniqueStates obtainTechniqueStates(Technique technique) {
         TechniqueStates states = technique.getStates();
-        if (states == null)
-        {
+        if (states == null) {
             return GltfDefaults.getDefaultTechnique().getStates();
         }
         return states;
     }
 
     /**
-     * Return the {@link TechniqueStatesFunctions} from the 
-     * {@link TechniqueStates} of the given {@link Technique}, or the 
-     * {@link TechniqueStatesFunctions} from the 
+     * Return the {@link TechniqueStatesFunctions} from the
+     * {@link TechniqueStates} of the given {@link Technique}, or the
+     * {@link TechniqueStatesFunctions} from the
      * {@link GltfDefaults#getDefaultTechnique() default technique} if
-     * the given {@link Technique} is <code>null</code> or does not 
+     * the given {@link Technique} is <code>null</code> or does not
      * contain any {@link TechniqueStates} or {@link TechniqueStatesFunctions}
-     *  
+     *
      * @param technique The {@link Technique}
      * @return The {@link TechniqueStatesFunctions}
      */
     public static TechniqueStatesFunctions obtainTechniqueStatesFunctions(
-        Technique technique)
-    {
+            Technique technique) {
         TechniqueStates states = obtainTechniqueStates(technique);
         TechniqueStatesFunctions functions = states.getFunctions();
-        if (functions == null)
-        {
-            TechniqueStates defaultStates = 
-                GltfDefaults.getDefaultTechnique().getStates();
+        if (functions == null) {
+            TechniqueStates defaultStates =
+                    GltfDefaults.getDefaultTechnique().getStates();
             return defaultStates.getFunctions();
         }
         return functions;
     }
-    
+
     /**
      * Private constructor to prevent instantiation
      */
-    private Techniques()
-    {
+    private Techniques() {
         // Private constructor to prevent instantiation
     }
-    
+
 }

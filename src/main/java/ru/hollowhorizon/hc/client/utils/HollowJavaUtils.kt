@@ -6,7 +6,6 @@ import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import java.io.File
 import java.io.FileNotFoundException
-import java.io.IOException
 import java.io.InputStream
 
 object HollowJavaUtils {
@@ -16,14 +15,14 @@ object HollowJavaUtils {
         return try {
             Minecraft.getInstance().resourceManager.getResource(location).orElseThrow().open()
         } catch (e: Exception) {
-            Thread.currentThread().contextClassLoader.getResourceAsStream("assets/" + location.namespace + "/" + location.path) ?: throw FileNotFoundException("Resource $location not found!")
+            Thread.currentThread().contextClassLoader.getResourceAsStream("assets/" + location.namespace + "/" + location.path)
+                ?: throw FileNotFoundException("Resource $location not found!")
         }
     }
 
     fun hasResource(location: ResourceLocation): Boolean {
         return Minecraft.getInstance().resourceManager.getResource(location).isPresent
     }
-
 
 
     @JvmStatic

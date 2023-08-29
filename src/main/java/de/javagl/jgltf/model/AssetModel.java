@@ -27,27 +27,26 @@
 package de.javagl.jgltf.model;
 
 /**
- * Interface for an asset. 
- * 
+ * Interface for an asset.
+ * <p>
  * Note that this model does not include the version information that
  * will eventually be written as the <code>gltf.asset.version</code>.
  * This version information is <i>intentionally</i> hidden in the
  * model, and will depend on the version in which the model will
  * be written.
  */
-public interface AssetModel extends NamedModelElement
-{
+public interface AssetModel extends NamedModelElement {
     /**
      * Returns the copyright message, suitable for display to credit
      * the content creator.
-     * 
+     *
      * @return The copyright message
      */
     String getCopyright();
-    
+
     /**
      * Returns the tool that generated this glTF model
-     * 
+     *
      * @return The tool
      */
     String getGenerator();

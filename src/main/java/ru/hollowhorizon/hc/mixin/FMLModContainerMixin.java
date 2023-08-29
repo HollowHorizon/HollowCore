@@ -10,7 +10,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
-import ru.hollowhorizon.hc.common.registry.HollowModProcessor;
 
 @Mixin(value = FMLModContainer.class)
 public abstract class FMLModContainerMixin {

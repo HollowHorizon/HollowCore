@@ -5,7 +5,7 @@ object ASMMethodBuilder {
     val LOADER = ASMClassLoader()
 
 
-    class ASMClassLoader() : ClassLoader() {
+    class ASMClassLoader : ClassLoader() {
         override fun loadClass(name: String, resolve: Boolean): Class<*> {
             return Class.forName(name, resolve, Thread.currentThread().contextClassLoader)
         }

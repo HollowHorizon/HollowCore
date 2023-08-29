@@ -45,7 +45,7 @@ public class ModShaders {
 
                 builder.uniform("modelViewMatrix", UniformType.MAT4);
                 builder.uniform("projectionMatrix", UniformType.MAT4);
-                for(int i = 0; i < 50; i++) builder.uniform("jointTransforms["+i+"]", UniformType.MAT4);
+                for (int i = 0; i < 50; i++) builder.uniform("jointTransforms[" + i + "]", UniformType.MAT4);
             })
             .build();
 

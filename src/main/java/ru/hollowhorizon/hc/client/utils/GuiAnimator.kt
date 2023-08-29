@@ -37,12 +37,12 @@ open class GuiAnimator protected constructor(
         private var switch = false
 
         override fun update(particalTick: Float) {
-            if(switch) {
+            if (switch) {
                 if (timePassed > 0) {
                     value = begin + ((end - begin) * interpolation(timePassed / maxTime)).toInt()
                 }
                 timePassed -= particalTick
-            }else super.update(particalTick)
+            } else super.update(particalTick)
 
             if (isFinished()) {
                 switch = !switch
@@ -51,7 +51,8 @@ open class GuiAnimator protected constructor(
         }
     }
 
-    class Looped(begin: Int, end: Int, time: Float, interpolation: (Float) -> Float) : GuiAnimator(begin, end, time, interpolation) {
+    class Looped(begin: Int, end: Int, time: Float, interpolation: (Float) -> Float) :
+        GuiAnimator(begin, end, time, interpolation) {
         override fun update(particalTick: Float) {
             super.update(particalTick)
             if (isFinished()) {
@@ -60,5 +61,6 @@ open class GuiAnimator protected constructor(
         }
     }
 
-    class Single(begin: Int, end: Int, time: Float, interpolation: (Float) -> Float) : GuiAnimator(begin, end, time, interpolation)
+    class Single(begin: Int, end: Int, time: Float, interpolation: (Float) -> Float) :
+        GuiAnimator(begin, end, time, interpolation)
 }

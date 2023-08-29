@@ -1,9 +1,9 @@
 package ru.hollowhorizon.hc.client.gltf.animations.manager
 
-import ru.hollowhorizon.hc.client.gltf.model.GltfManager
 import net.minecraft.world.entity.Entity
 import ru.hollowhorizon.hc.client.gltf.IAnimated
 import ru.hollowhorizon.hc.client.gltf.animations.PlayType
+import ru.hollowhorizon.hc.client.gltf.model.GltfManager
 import ru.hollowhorizon.hc.client.utils.isLogicalClient
 
 interface IModelManager {

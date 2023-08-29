@@ -113,7 +113,8 @@ public class VolumeWidget extends AbstractWidget {
         }
 
         public void setPos(int pos) {
-            if (pos > this.x + this.width / 4 + this.width - this.width / 3) pos = this.x + this.width / 4 + this.width - this.width / 3;
+            if (pos > this.x + this.width / 4 + this.width - this.width / 3)
+                pos = this.x + this.width / 4 + this.width - this.width / 3;
             else if (pos < this.x + this.width / 4) pos = this.x + this.width / 4;
             this.position = pos;
         }

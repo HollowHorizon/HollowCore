@@ -242,7 +242,7 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: Component
         pPoseStack: PoseStack,
         pClientTooltipComponents: List<ClientTooltipComponent>,
         pMouseX: Int,
-        pMouseY: Int
+        pMouseY: Int,
     ) {
         if (!pClientTooltipComponents.isEmpty()) {
             val preEvent = ForgeHooksClient.onRenderTooltipPre(

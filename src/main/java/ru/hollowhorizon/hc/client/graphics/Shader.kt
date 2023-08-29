@@ -1,11 +1,7 @@
 package ru.hollowhorizon.hc.client.graphics
 
 import com.mojang.blaze3d.platform.GlStateManager
-import com.mojang.blaze3d.vertex.DefaultVertexFormat
-import com.mojang.blaze3d.vertex.Tesselator
-import com.mojang.blaze3d.vertex.VertexFormat
 import net.minecraft.client.Minecraft
-import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL30
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.rl

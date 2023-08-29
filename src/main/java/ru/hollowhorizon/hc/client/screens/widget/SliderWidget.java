@@ -127,9 +127,8 @@ public class SliderWidget extends AbstractWidget {
 
     @Override
     public boolean keyPressed(int mouseX, int mouseY, int key) {
-        switch (key) {
-            case 28:
-                isTyping = false;
+        if (key == 28) {
+            isTyping = false;
         }
         return false;
     }

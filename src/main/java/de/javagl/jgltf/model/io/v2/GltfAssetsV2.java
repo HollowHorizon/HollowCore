@@ -34,57 +34,51 @@ import de.javagl.jgltf.model.GltfModel;
  * This class should not be considered as part of the public API. It may
  * change or be omitted in the future.
  */
-public class GltfAssetsV2
-{
+public class GltfAssetsV2 {
     /**
-     * Create a new default {@link GltfAssetV2} from the given 
+     * Create a new default {@link GltfAssetV2} from the given
      * {@link GltfModel}
-     * 
+     *
      * @param gltfModel The {@link GltfModel}
      * @return The {@link GltfAssetV2}
      */
-    public static GltfAssetV2 createDefault(GltfModel gltfModel)
-    {
+    public static GltfAssetV2 createDefault(GltfModel gltfModel) {
         DefaultAssetCreatorV2 assetCreator = new DefaultAssetCreatorV2();
         GltfAssetV2 gltfAsset = assetCreator.create(gltfModel);
         return gltfAsset;
     }
-    
+
     /**
-     * Create a new binary {@link GltfAssetV2} from the given 
+     * Create a new binary {@link GltfAssetV2} from the given
      * {@link GltfModel}
-     * 
+     *
      * @param gltfModel The {@link GltfModel}
      * @return The {@link GltfAssetV2}
      */
-    public static GltfAssetV2 createBinary(GltfModel gltfModel)
-    {
+    public static GltfAssetV2 createBinary(GltfModel gltfModel) {
         BinaryAssetCreatorV2 assetCreator = new BinaryAssetCreatorV2();
         GltfAssetV2 gltfAsset = assetCreator.create(gltfModel);
         return gltfAsset;
     }
-    
+
     /**
-     * Create a new embedded {@link GltfAssetV2} from the given 
+     * Create a new embedded {@link GltfAssetV2} from the given
      * {@link GltfModel}
-     * 
+     *
      * @param gltfModel The {@link GltfModel}
      * @return The {@link GltfAssetV2}
      */
-    public static GltfAssetV2 createEmbedded(GltfModel gltfModel)
-    {
+    public static GltfAssetV2 createEmbedded(GltfModel gltfModel) {
         EmbeddedAssetCreatorV2 assetCreator = new EmbeddedAssetCreatorV2();
         GltfAssetV2 gltfAsset = assetCreator.create(gltfModel);
         return gltfAsset;
     }
-    
-    
-    
+
+
     /**
      * Private constructor to prevent instantiation
      */
-    private GltfAssetsV2()
-    {
+    private GltfAssetsV2() {
         // Private constructor to prevent instantiation
     }
 

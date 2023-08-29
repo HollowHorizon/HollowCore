@@ -14,7 +14,6 @@ import net.minecraft.world.item.ItemStack
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.fml.loading.FMLEnvironment
-import net.minecraftforge.fml.loading.FMLLoader
 import net.minecraftforge.fml.util.thread.SidedThreadGroups
 import net.minecraftforge.registries.IForgeRegistry
 import ru.hollowhorizon.hc.HollowCore
@@ -73,7 +72,7 @@ fun Screen.open() {
 
 @OnlyIn(Dist.CLIENT)
 fun ResourceLocation.toTexture(): AbstractTexture {
-    val texture: AbstractTexture? = mc.textureManager.getTexture(this)
+    val texture: AbstractTexture = mc.textureManager.getTexture(this)
     return if (texture == null) {
         HollowCore.LOGGER.warn("Texture \"$this\" not found")
         mc.textureManager.getTexture("textures/block/beacon.png".toRL())

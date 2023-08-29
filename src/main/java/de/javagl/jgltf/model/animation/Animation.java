@@ -32,148 +32,137 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A class representing a generic animation. The animation consists of
- * a mapping between time key frames and values, and allows 
- * {@link AnimationListener}s to be informed about the progress of the 
- * animation, including the current time and the (interpolated) values 
+ * a mapping between time key frames and values, and allows
+ * {@link AnimationListener}s to be informed about the progress of the
+ * animation, including the current time and the (interpolated) values
  * for this time point.
  */
-public final class Animation
-{
+public final class Animation {
     /**
      * The key frame times, in seconds
      */
-    private final float timesS[];
-    
+    private final float[] timesS;
+
     /**
      * The values. Each element of this array corresponds to one key
      * frame time
      */
-    private final float values[][];
-    
+    private final float[][] values;
+
     /**
      * The interpolator for the values
      */
     private final Interpolator interpolator;
-    
+
     /**
      * A pre-allocated array of the output values that will be passed
      * to the listeners. The listeners are not allowed to store or
      * modify this array.
      */
-    private final float outputValues[];
-    
+    private final float[] outputValues;
+
     /**
      * The {@link AnimationListener}s that are informed about the progress
      * of this animation
      */
     private final List<AnimationListener> listeners;
-    
+
     /**
-     * Creates a new animation with the given time key frames and the 
+     * Creates a new animation with the given time key frames and the
      * corresponding values.
-     *  
-     * @param timesS The time key frames, in seconds
-     * @param values The values. Each element of this array consists of the
-     * values for the corresponding key frame time.
+     *
+     * @param timesS           The time key frames, in seconds
+     * @param values           The values. Each element of this array consists of the
+     *                         values for the corresponding key frame time.
      * @param interpolatorType The {@link InterpolatorType} that will be
-     * used for interpolating the values
-     * @throws NullPointerException If either of the given parameters is
-     * <code>null</code>, or the given values array contains <code>null</code>
-     * elements
+     *                         used for interpolating the values
+     * @throws NullPointerException     If either of the given parameters is
+     *                                  <code>null</code>, or the given values array contains <code>null</code>
+     *                                  elements
      * @throws IllegalArgumentException If any of the given arrays has a
-     * length of 0
+     *                                  length of 0
      * @throws IllegalArgumentException If any of the given values arrays
-     * has a length that is different from the length of the times array. 
+     *                                  has a length that is different from the length of the times array.
      */
     public Animation(
-        float timesS[],
-        float values[][], 
-        InterpolatorType interpolatorType)
-    {
+            float[] timesS,
+            float[][] values,
+            InterpolatorType interpolatorType) {
         Objects.requireNonNull(timesS, "The times may not be null");
         Objects.requireNonNull(values, "The values may not be null");
-        if (timesS.length == 0)
-        {
+        if (timesS.length == 0) {
             throw new IllegalArgumentException(
-                "The keys may not have a length of 0");
+                    "The keys may not have a length of 0");
         }
-        if (values.length != timesS.length)
-        {
+        if (values.length != timesS.length) {
             throw new IllegalArgumentException(
-                "The values must have a length of "+timesS.length+", " + 
-                "but have a length of "+values.length);
+                    "The values must have a length of " + timesS.length + ", " +
+                            "but have a length of " + values.length);
         }
         this.timesS = timesS.clone();
         this.values = new float[values.length][];
-        for (int i=0; i<values.length; i++)
-        {
+        for (int i = 0; i < values.length; i++) {
             this.values[i] = values[i].clone();
         }
         this.outputValues = new float[values[0].length];
         this.interpolator = Interpolators.create(interpolatorType);
         this.listeners = new CopyOnWriteArrayList<AnimationListener>();
     }
-    
+
 
     /**
      * Returns the start time of this animation, in seconds
-     * 
+     *
      * @return The start time
      */
-    float getStartTimeS()
-    {
+    float getStartTimeS() {
         return timesS[0];
     }
-    
+
     /**
      * Returns the end time of this animation, in seconds
-     * 
+     *
      * @return The end time
      */
-    float getEndTimeS()
-    {
-        return timesS[timesS.length-1];
+    float getEndTimeS() {
+        return timesS[timesS.length - 1];
     }
-    
+
     /**
      * Returns the duration of this animation, in seconds
-     * 
+     *
      * @return The duration
      */
-    float getDurationS()
-    {
+    float getDurationS() {
         return getEndTimeS() - getStartTimeS();
     }
-    
+
     /**
      * Add the given {@link AnimationListener} to be informed about any
      * progress in this animation
-     * 
+     *
      * @param listener The listener to add
      */
-    public void addAnimationListener(AnimationListener listener)
-    {
+    public void addAnimationListener(AnimationListener listener) {
         listeners.add(listener);
     }
 
     /**
-     * Remove the given {@link AnimationListener} 
-     * 
+     * Remove the given {@link AnimationListener}
+     *
      * @param listener The listener to remove
      */
-    public void removeAnimationListener(AnimationListener listener)
-    {
+    public void removeAnimationListener(AnimationListener listener) {
         listeners.remove(listener);
     }
-    
+
     /**
      * Package-private method to update this animation based on the given time,
      * and inform all registered listeners.
-     * 
+     *
      * @param timeS The time, in seconds
      */
-    void update(float timeS)
-    {
+    void update(float timeS) {
         int index0 = InterpolatorKeys.computeIndex(timeS, timesS);
         int index1 = Math.min(timesS.length - 1, index0 + 1);
         float alpha = InterpolatorKeys.computeAlpha(timeS, timesS, index0);
@@ -182,14 +171,13 @@ public final class Animation
         //System.out.println("index0 "+index0);
         //System.out.println("index1 "+index1);
         //System.out.println("alpha  "+alpha);
-        
-        float a[] = values[index0];
-        float b[] = values[index1];
+
+        float[] a = values[index0];
+        float[] b = values[index1];
         interpolator.interpolate(a, b, alpha, outputValues);
-        for (AnimationListener listener : listeners)
-        {
+        for (AnimationListener listener : listeners) {
             listener.animationUpdated(this, timeS, outputValues);
         }
     }
-    
+
 }

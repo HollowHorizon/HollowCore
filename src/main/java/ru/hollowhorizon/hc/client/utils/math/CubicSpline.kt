@@ -9,7 +9,13 @@ class CubicSpline {
     private lateinit var xOrig: FloatArray
     private lateinit var yOrig: FloatArray
 
-    fun fitAndEval(x: FloatArray, y: FloatArray, xs: FloatArray, startSlope: Float = Float.NaN, endSlope: Float = Float.NaN): FloatArray {
+    fun fitAndEval(
+        x: FloatArray,
+        y: FloatArray,
+        xs: FloatArray,
+        startSlope: Float = Float.NaN,
+        endSlope: Float = Float.NaN,
+    ): FloatArray {
         fit(x, y, startSlope, endSlope)
         return eval(xs)
     }
@@ -18,7 +24,7 @@ class CubicSpline {
         x: FloatArray,
         y: FloatArray,
         startSlope: Float = Float.NaN,
-        endSlope: Float = Float.NaN
+        endSlope: Float = Float.NaN,
     ) {
         if (startSlope.isInfinite() || endSlope.isInfinite()) {
             throw IllegalStateException("startSlope and endSlope cannot be infinity.")
@@ -83,7 +89,7 @@ class CubicSpline {
 
     private fun eval(x: FloatArray): FloatArray {
 
-        val n = x.size;
+        val n = x.size
         val y = FloatArray(n)
 
         lastIndex = 0
@@ -97,7 +103,7 @@ class CubicSpline {
     }
 
     private fun EvalSpline(x: Float, j: Int): Float {
-        val dx = xOrig[j + 1] - xOrig[j];
+        val dx = xOrig[j + 1] - xOrig[j]
         val t = (x - xOrig[j]) / dx
         return (1 - t) * yOrig[j] + t * yOrig[j + 1] + t * (1 - t) * (a[j] * (1 - t) + b[j] * t)
 
