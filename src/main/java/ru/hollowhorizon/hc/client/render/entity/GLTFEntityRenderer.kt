@@ -51,6 +51,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
         val model = GltfManager.getOrCreate(entity.model)
         val manager = entity.manager as ClientModelManager
+        manager.setTick(entity.tickCount)
 
         val type = getRenderType(entity)
 

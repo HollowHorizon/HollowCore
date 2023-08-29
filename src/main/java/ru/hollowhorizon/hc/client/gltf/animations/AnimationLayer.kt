@@ -14,7 +14,7 @@ interface ILayer {
 
     fun compute(node: NodeModel, target: AnimationTarget, partialTick: Float): FloatArray?
 
-    fun update(partialTick: Float) {}
+    fun update(manager: GLTFAnimationManager, partialTick: Float) {}
 }
 
 class AnimationLayer(
@@ -27,8 +27,8 @@ class AnimationLayer(
     override fun compute(node: NodeModel, target: AnimationTarget, partialTick: Float) =
         animation.compute(node, target)
 
-    override fun update(partialTick: Float) {
-        animation.update(this, partialTick)
+    override fun update(manager: GLTFAnimationManager, partialTick: Float) {
+        animation.update(this, manager, partialTick)
     }
 
 }
@@ -36,7 +36,7 @@ class AnimationLayer(
 class SmoothLayer(
     private var bindPose: Animation,
     private var first: Animation?,
-    private var second: Animation?,
+    var second: Animation?,
     override var priority: Float,
     private val switchSpeed: Float = 2.5f,
     override val playType: PlayType = PlayType.LOOPED,
@@ -44,13 +44,17 @@ class SmoothLayer(
 ) : ILayer {
     private var switchPriority = 1.0f
     override var shouldRemove = false
+    var shouldUpdate = false
 
     val current: Animation?
         get() = second
 
-    override fun update(partialTick: Float) {
-        first?.update(this, partialTick)
-        second?.update(this, partialTick)
+    override fun update(manager: GLTFAnimationManager, partialTick: Float) {
+        first?.update(this, manager, partialTick)
+        second?.update(this, manager, partialTick)
+        if(second?.isEnded == true) {
+            shouldUpdate = true
+        }
         if (switchPriority > 0f) {
             switchPriority -= (switchSpeed * partialTick) / 20f
             if (switchPriority < 0f) switchPriority = 0f

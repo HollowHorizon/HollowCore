@@ -4,9 +4,17 @@ import de.javagl.jgltf.model.GltfModel
 import de.javagl.jgltf.model.NodeModel
 
 class Animation(val name: String, val animationData: Map<NodeModel, AnimationData>) {
-    private var currentTime = 0f
+    var startTime = 0
+    var currentTime = 0f
+    var isEnded = false
     val maxTime = animationData.maxOf { it.value.maxTime }.let {
         if (it == 0f) 0.0001f else it
+    }
+
+    fun reset(manager: GLTFAnimationManager) {
+        startTime = manager.currentTick
+        currentTime = 0f
+        isEnded = false
     }
 
     fun hasNode(node: NodeModel, target: AnimationTarget): Boolean {
@@ -20,25 +28,26 @@ class Animation(val name: String, val animationData: Map<NodeModel, AnimationDat
         }
     }
 
-    fun update(layer: ILayer, partialTick: Float) {
+    fun update(layer: ILayer, manager: GLTFAnimationManager, partialTick: Float) {
+
         when (layer.playType) {
             PlayType.ONCE -> {
-                if (currentTime < maxTime) currentTime += partialTick / 30 * layer.speed
-                else layer.shouldRemove = true
+                if (currentTime < maxTime) currentTime = (manager.currentTick - startTime + partialTick) / 20 * layer.speed
+                else isEnded = true
             }
 
             PlayType.LOOPED -> {
-                currentTime += partialTick / 30 * layer.speed
-                currentTime %= maxTime
+                currentTime = ((manager.currentTick - startTime + partialTick) / 20 * layer.speed) % maxTime
             }
 
             PlayType.LAST_FRAME -> {
-                if (currentTime < maxTime) currentTime += partialTick / 30 * layer.speed
+                if (currentTime < maxTime) currentTime = (manager.currentTick - startTime + partialTick) / 20 * layer.speed
             }
 
             PlayType.REVERSED -> {
-                currentTime += partialTick / 30 * layer.speed
-                if (currentTime > maxTime || currentTime < 0f) layer.speed *= -1
+                //currentTime = ((manager.currentTick - startTime + partialTick) / 20 * layer.speed) % maxTime
+                //if (currentTime > maxTime || currentTime < 0f) layer.speed *= -1
+                TODO("Make it works")
             }
         }
     }

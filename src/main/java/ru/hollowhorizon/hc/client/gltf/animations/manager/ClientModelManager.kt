@@ -9,7 +9,9 @@ import ru.hollowhorizon.hc.client.gltf.model.RenderedGltfModel
 class ClientModelManager(model: RenderedGltfModel) : GLTFAnimationManager(model), IModelManager {
 
     override fun startAnimation(name: String, priority: Float, playType: PlayType, speed: Float) {
-        this.addLayer(
+        if(playType == PlayType.ONCE) {
+            this.setSmoothAnimation(name)
+        } else this.addLayer(
             AnimationLayer(
                 animationCache[name] ?: throw AnimationException("Animation \"$name\" not found!"),
                 priority,

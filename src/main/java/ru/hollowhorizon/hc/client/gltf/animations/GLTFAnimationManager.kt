@@ -19,9 +19,15 @@ open class GLTFAnimationManager(val model: RenderedGltfModel) {
     private var smoothLayer = SmoothLayer(bindPose, null, null, 1.0f).apply {
         layers.add(this)
     }
+    val hasCustomAnimation: Boolean
+        get() = smoothLayer.second != null && smoothLayer.second!!.name !in templates.values && !smoothLayer.shouldUpdate
     var currentAnimation: String by Delegates.observable("") { _, oldValue, newValue ->
-        if (oldValue != newValue && newValue != "") setLivingAnimation(newValue)
+        if (oldValue != newValue && newValue != "" && !hasCustomAnimation) {
+            smoothLayer.shouldUpdate = false
+            setSmoothAnimation(newValue)
+        }
     }
+    var currentTick = 0
 
     val current: Animation?
         get() = this.smoothLayer.current
@@ -31,7 +37,7 @@ open class GLTFAnimationManager(val model: RenderedGltfModel) {
      */
     fun update(partialTick: Float) {
         layers.removeIf {
-            it.update(partialTick)
+            it.update(this, partialTick)
             it.shouldRemove
         }
 
@@ -44,6 +50,10 @@ open class GLTFAnimationManager(val model: RenderedGltfModel) {
             }
 
         }
+    }
+
+    fun setTick(tick: Int) {
+        this.currentTick = tick
     }
 
     private fun applyTarget(node: NodeModel, target: AnimationTarget, time: Float) {
@@ -63,12 +73,13 @@ open class GLTFAnimationManager(val model: RenderedGltfModel) {
     }
 
     //Добавляет новую анимацию, плавно переходя от прошлой к этой
-    fun setLivingAnimation(animation: Animation) {
+    fun setSmoothAnimation(animation: Animation) {
+        animation.reset(this)
         this.smoothLayer.push(animation)
     }
 
-    fun setLivingAnimation(animation: String) {
-        setLivingAnimation(animationCache[animation] ?: throw AnimationException("Animation \"$animation\" not found!"))
+    fun setSmoothAnimation(animation: String) {
+        setSmoothAnimation(animationCache[animation] ?: throw AnimationException("Animation \"$animation\" not found!"))
     }
 
     //Добавляет новую анимацию, одновременно с остальными
@@ -80,7 +91,9 @@ open class GLTFAnimationManager(val model: RenderedGltfModel) {
     }
 
     fun addAnimation(animation: String) {
-        addLayer(animationCache[animation] ?: throw AnimationException("Animation \"$animation\" not found!"), 3.0f)
+        val anim = animationCache[animation] ?: throw AnimationException("Animation \"$animation\" not found!")
+        anim.reset(this)
+        addLayer(anim, 1.0f)
     }
 
     fun removeLayer(layer: ILayer) = layers.remove(layer)
