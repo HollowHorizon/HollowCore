@@ -122,7 +122,7 @@ class RegistryHolder<T>(private val config: ObjectConfig, val supplier: () -> T,
                 }
                 if (config.attributeSupplier != null) {
                     MinecraftForge.EVENT_BUS.addListener<EntityAttributeCreationEvent> { event ->
-                        event.put(this.get() as EntityType<LivingEntity>, config.attributeSupplier())
+                        event.put(this.get() as EntityType<LivingEntity>, config.attributeSupplier!!())
                     }
                 }
             }
