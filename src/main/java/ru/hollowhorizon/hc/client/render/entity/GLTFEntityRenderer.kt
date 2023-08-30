@@ -71,7 +71,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         RenderedGltfModel.setCurrentNormal(stack.last().normal())
         stack.popPose()
 
-        GL30.glVertexAttribI2i(
+        /*GL30.glVertexAttribI2i(
             RenderedGltfModel.vaUV2,
             packedLight and '\uffff'.code,
             packedLight shr 16 and '\uffff'.code
@@ -81,7 +81,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             RenderedGltfModel.vaUV1,
             (partialTick * 15).toInt(),
             if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10
-        )
+        )*/
 
         type.setupRenderState()
         if (GltfManager.getInstance().isShaderModActive) {
@@ -94,8 +94,8 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
             GL13.glActiveTexture(GL13.GL_TEXTURE1) //Оверлей
             val currentTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-            val overlay = if (entity.hurtTime > 0 || !entity.isAlive) RenderSystem.getShaderTexture(1) else currentTexture1
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, overlay)
+            //val overlay = if (entity.hurtTime > 0 || !entity.isAlive) RenderSystem.getShaderTexture(1) else currentTexture1
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0)
 
             GL13.glActiveTexture(GL13.GL_TEXTURE0) //Текстуры модели
             val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
@@ -133,8 +133,8 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         }
         type.clearRenderState()
 
-        GL30.glVertexAttribI2i(RenderedGltfModel.vaUV2, 0, 0)
-        GL30.glVertexAttribI2i(RenderedGltfModel.vaUV1, 0, 0)
+        //GL30.glVertexAttribI2i(RenderedGltfModel.vaUV2, 0, 0)
+        //GL30.glVertexAttribI2i(RenderedGltfModel.vaUV1, 0, 0)
 
         GL30.glBindVertexArray(currentVAO)
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, currentArrayBuffer)

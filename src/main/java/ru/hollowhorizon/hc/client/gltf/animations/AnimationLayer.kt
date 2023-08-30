@@ -38,7 +38,7 @@ class SmoothLayer(
     private var first: Animation?,
     var second: Animation?,
     override var priority: Float,
-    private val switchSpeed: Float = 2.5f,
+    private val switchSpeed: Float = 0.5f,
     override var playType: PlayType = PlayType.LOOPED,
     override var speed: Float = 1.0f,
 ) : ILayer {
@@ -56,7 +56,8 @@ class SmoothLayer(
             shouldUpdate = true
         }
         if (switchPriority > 0f) {
-            switchPriority -= (switchSpeed * partialTick) / 20f
+            val currentTicks = (manager.currentTick - (second?.startTime ?: 0) + partialTick) / 20f
+            switchPriority = 1.0f - currentTicks / switchSpeed
             if (switchPriority < 0f) switchPriority = 0f
         }
     }

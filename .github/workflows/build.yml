@@ -32,7 +32,7 @@ jobs:
         with:
           name: Artifacts
           path: build/libs/
-      - name: authomatic upload
+      - name: automatic upload
         uses: marvinpinto/action-automatic-releases@latest
         with: 
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
