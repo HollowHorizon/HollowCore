@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.client.gltf.model;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import de.javagl.jgltf.model.io.Buffers;
 import de.javagl.jgltf.model.io.GltfModelReader;
 import net.minecraft.client.Minecraft;
@@ -22,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.opengl.*;
 import ru.hollowhorizon.hc.HollowCore;
+import ru.hollowhorizon.hc.client.render.OpenGLUtils;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -43,7 +45,6 @@ public class GltfManager {
 
     private static GltfManager INSTANCE;
 
-    private final Pair<CompatibilityConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(CompatibilityConfig::new);
     private final Map<ResourceLocation, Supplier<ByteBuffer>> loadedBufferResources = new HashMap<ResourceLocation, Supplier<ByteBuffer>>();
     private final Map<ResourceLocation, Supplier<ByteBuffer>> loadedImageResources = new HashMap<ResourceLocation, Supplier<ByteBuffer>>();
     private final List<Runnable> gltfRenderData = new ArrayList<Runnable>();
@@ -59,24 +60,11 @@ public class GltfManager {
 
         isShadersExist = ModList.get().isLoaded("oculus") || ModList.get().isLoaded("optifine");
 
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, specPair.getRight());
-
-        Minecraft.getInstance().execute(() -> {
-            switch (INSTANCE.specPair.getLeft().renderedModelGLProfile.get()) {
-                case GL43:
-                    INSTANCE.createSkinningProgramGL43();
-                    break;
-                case GL40:
-                case GL33:
-                    INSTANCE.createSkinningProgramGL33();
-                    break;
-                case GL30:
-                    break;
-                default:
-                    //Since max OpenGL version on Windows from GLCapabilities will always return 3.2 as of Minecraft 1.17, this is a workaround to check if OpenGL 4.3 is available.
-                    if (GL.getCapabilities().glTexBufferRange != 0) INSTANCE.createSkinningProgramGL43();
-                    else INSTANCE.createSkinningProgramGL33();
-                    break;
+        RenderSystem.recordRenderCall(() -> {
+            if(OpenGLUtils.glVersion == null) OpenGLUtils.init();
+            switch (OpenGLUtils.glVersion) {
+                case GL43 -> INSTANCE.createSkinningProgramGL43();
+                case GL40, GL33 -> INSTANCE.createSkinningProgramGL33();
             }
         });
     }
@@ -136,7 +124,7 @@ public class GltfManager {
             RenderedGltfModel renderedModel = null;
             try {
                 var gltfModel = new GltfModelReader().readWithoutReferences(new BufferedInputStream(Minecraft.getInstance().getResourceManager().getResource(model).orElseThrow().open()));
-                switch (INSTANCE.specPair.getLeft().renderedModelGLProfile.get()) {
+                switch (OpenGLUtils.glVersion) {
                     case GL43 -> renderedModel = new RenderedGltfModel(INSTANCE.gltfRenderData, gltfModel);
                     case GL40 -> renderedModel = new RenderedGltfModelGL40(INSTANCE.gltfRenderData, gltfModel);
                     case GL33 -> renderedModel = new RenderedGltfModelGL33(INSTANCE.gltfRenderData, gltfModel);
@@ -154,7 +142,7 @@ public class GltfManager {
                 HollowCore.LOGGER.error("Model {} could not be loaded!", model, e);
             }
 
-            switch (INSTANCE.specPair.getLeft().renderedModelGLProfile.get()) {
+            switch (OpenGLUtils.glVersion) {
                 case GL43 -> INSTANCE.processRenderedGltfModelsGL43();
                 case GL40 -> INSTANCE.processRenderedGltfModelsGL40();
                 case GL33 -> INSTANCE.processRenderedGltfModelsGL33();
@@ -346,10 +334,6 @@ public class GltfManager {
 
     private void processRenderedGltfModelsGL30() {
 
-    }
-
-    public EnumRenderedModelGLProfile getRenderedModelGLProfile() {
-        return specPair.getLeft().renderedModelGLProfile.get();
     }
 
     public enum EnumRenderedModelGLProfile {

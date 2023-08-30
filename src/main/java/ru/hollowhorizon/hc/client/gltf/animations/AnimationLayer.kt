@@ -8,7 +8,7 @@ import net.minecraft.world.entity.LivingEntity
 
 interface ILayer {
     var priority: Float
-    val playType: PlayType
+    var playType: PlayType
     var speed: Float
     var shouldRemove: Boolean
 
@@ -19,7 +19,7 @@ interface ILayer {
 
 class AnimationLayer(
     val animation: Animation, override var priority: Float,
-    override val playType: PlayType = PlayType.ONCE,
+    override var playType: PlayType = PlayType.ONCE,
     override var speed: Float = 1.0f,
 ) : ILayer {
     override var shouldRemove = false
@@ -39,7 +39,7 @@ class SmoothLayer(
     var second: Animation?,
     override var priority: Float,
     private val switchSpeed: Float = 2.5f,
-    override val playType: PlayType = PlayType.LOOPED,
+    override var playType: PlayType = PlayType.LOOPED,
     override var speed: Float = 1.0f,
 ) : ILayer {
     private var switchPriority = 1.0f
@@ -91,7 +91,7 @@ class SmoothLayer(
 }
 
 class HeadLayer(var animatable: LivingEntity, override var priority: Float) : ILayer {
-    override val playType = PlayType.LOOPED
+    override var playType = PlayType.LOOPED
     override var speed = 1.0f
     override var shouldRemove = false
 

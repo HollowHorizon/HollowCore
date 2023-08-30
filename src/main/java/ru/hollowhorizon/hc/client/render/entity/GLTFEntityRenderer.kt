@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.client.renderer.entity.EntityRendererProvider
+import net.minecraft.client.renderer.entity.LivingEntityRenderer
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
@@ -90,10 +91,12 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             GL13.glActiveTexture(GL13.GL_TEXTURE2) //Лайтмап
             val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().lightTexture.id)
+
             GL13.glActiveTexture(GL13.GL_TEXTURE1) //Оверлей
             val currentTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
             val overlay = if (entity.hurtTime > 0 || !entity.isAlive) RenderSystem.getShaderTexture(1) else 0
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, overlay)
+
             GL13.glActiveTexture(GL13.GL_TEXTURE0) //Текстуры модели
             val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
 

@@ -41,7 +41,8 @@ class Animation(val name: String, val animationData: Map<NodeModel, AnimationDat
             }
 
             PlayType.LAST_FRAME -> {
-                if (currentTime < maxTime) currentTime = (manager.currentTick - startTime + partialTick) / 20 * layer.speed
+                currentTime = if (currentTime < maxTime) (manager.currentTick - startTime + partialTick) / 20 * layer.speed
+                else maxTime
             }
 
             PlayType.REVERSED -> {

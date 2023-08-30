@@ -70,7 +70,6 @@ public class HollowCore {
 
         if (FMLEnvironment.dist.isClient()) {
             new GltfManager();
-            OpenGLUtils.init();
             //клавиши
             forgeBus.register(new HollowKeyHandler());
             forgeBus.addListener(HollowKeyHandler::onKeyInput);

@@ -10,7 +10,7 @@ class ClientModelManager(model: RenderedGltfModel) : GLTFAnimationManager(model)
 
     override fun startAnimation(name: String, priority: Float, playType: PlayType, speed: Float) {
         if(playType == PlayType.ONCE) {
-            this.setSmoothAnimation(name)
+            this.setSmoothAnimation(name, true)
         } else this.addLayer(
             AnimationLayer(
                 animationCache[name] ?: throw AnimationException("Animation \"$name\" not found!"),

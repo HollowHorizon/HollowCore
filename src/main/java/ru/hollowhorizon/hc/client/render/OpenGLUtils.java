@@ -1,21 +1,30 @@
 package ru.hollowhorizon.hc.client.render;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3d;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLCapabilities;
+import ru.hollowhorizon.hc.HollowCore;
 
 public class OpenGLUtils {
-    public static boolean isSupportedGL43;
+    public static GLMode glVersion;
 
     public static void init() {
-        RenderSystem.recordRenderCall(() -> {
-            GLCapabilities caps = GL.getCapabilities();
-            isSupportedGL43 = caps.OpenGL43;
-        });
+
+        GLCapabilities caps = GL.getCapabilities();
+        if (caps.glTexBufferRange != 0) {
+            glVersion = GLMode.GL43;
+        } else if (caps.glGenTransformFeedbacks != 0) {
+            glVersion = GLMode.GL40;
+        } else if (caps.glGenSamplers != 0) {
+            glVersion = GLMode.GL33;
+        } else {
+            glVersion = GLMode.GL30;
+        }
+
+        HollowCore.LOGGER.info("Supported OpenGL version: {}", glVersion);
     }
 
     public static void drawLine(BufferBuilder bufferbuilder, Matrix4f matrix, Vector3d from, Vector3d to, float r, float g, float b, float a) {
@@ -44,6 +53,13 @@ public class OpenGLUtils {
         GL11.glEnd();
 
         GL11.glPopMatrix();
+    }
+
+    public enum GLMode {
+        GL30,
+        GL33,
+        GL40,
+        GL43
     }
 }
 

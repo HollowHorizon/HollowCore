@@ -20,11 +20,11 @@ open class GLTFAnimationManager(val model: RenderedGltfModel) {
         layers.add(this)
     }
     val hasCustomAnimation: Boolean
-        get() = smoothLayer.second != null && smoothLayer.second!!.name !in templates.values && !smoothLayer.shouldUpdate
+        get() = smoothLayer.second != null && smoothLayer.second!!.name !in templates.values
     var currentAnimation: String by Delegates.observable("") { _, oldValue, newValue ->
-        if (oldValue != newValue && newValue != "" && !hasCustomAnimation) {
+        if ((oldValue != newValue && newValue != "" && !hasCustomAnimation) || smoothLayer.shouldUpdate) {
             smoothLayer.shouldUpdate = false
-            setSmoothAnimation(newValue)
+            setSmoothAnimation(newValue, false)
         }
     }
     var currentTick = 0
@@ -73,13 +73,15 @@ open class GLTFAnimationManager(val model: RenderedGltfModel) {
     }
 
     //Добавляет новую анимацию, плавно переходя от прошлой к этой
-    fun setSmoothAnimation(animation: Animation) {
+    fun setSmoothAnimation(animation: Animation, once: Boolean = false) {
         animation.reset(this)
         this.smoothLayer.push(animation)
+        if(once) this.smoothLayer.playType = PlayType.ONCE
+        else this.smoothLayer.playType = PlayType.LOOPED
     }
 
-    fun setSmoothAnimation(animation: String) {
-        setSmoothAnimation(animationCache[animation] ?: throw AnimationException("Animation \"$animation\" not found!"))
+    fun setSmoothAnimation(animation: String, once: Boolean = false) {
+        setSmoothAnimation(animationCache[animation] ?: throw AnimationException("Animation \"$animation\" not found!"), once)
     }
 
     //Добавляет новую анимацию, одновременно с остальными
