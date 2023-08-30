@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.client.renderer.entity.EntityRendererProvider
 import net.minecraft.client.renderer.entity.LivingEntityRenderer
+import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
@@ -71,19 +72,18 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         RenderedGltfModel.setCurrentNormal(stack.last().normal())
         stack.popPose()
 
+        type.setupRenderState()
+
         GL30.glVertexAttribI2i(
             RenderedGltfModel.vaUV2,
             packedLight and '\uffff'.code,
             packedLight shr 16 and '\uffff'.code
         )
-
         GL30.glVertexAttribI2i(
             RenderedGltfModel.vaUV1,
-            (partialTick * 15).toInt(),
+            0,
             if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10
         )
-
-        type.setupRenderState()
         if (GltfManager.getInstance().isShaderModActive) {
             model.renderedGltfScenes.forEach { it.renderForShaderMod() }
         } else {
