@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.client.screens;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -60,7 +61,7 @@ public class HollowScreen extends Screen implements ILayoutConsumer {
     }
 
     public void bind(String modid, String path) {
-        this.textureManager.bindForSetup(new ResourceLocation(modid, "textures/" + path));
+        RenderSystem.setShaderTexture(0, new ResourceLocation(modid, "textures/" + path));
     }
 
     public void drawString(PoseStack stack, Component text, Alignment alignment, int offsetX, int offsetY, int color) {

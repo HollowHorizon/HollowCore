@@ -28,7 +28,7 @@ object DrawUtils {
 
         GL11.glColor4f(rgba.r, rgba.g, rgba.b, rgba.a)
 
-        mc.textureManager.bindForSetup(location)
+        RenderSystem.setShaderTexture(0, location)
 
         val size = if (width > height) width / 3 else height / 3
 

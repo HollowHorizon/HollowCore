@@ -11,7 +11,7 @@ class ImageWidget(val location: ResourceLocation, x: Int, y: Int, width: Int, he
     HollowWidget(x, y, width, height, "IMAGE_WIDGET".toSTC()) {
 
     override fun renderButton(stack: PoseStack, mouseX: Int, mouseY: Int, ticks: Float) {
-        mc.textureManager.bindForSetup(location)
+        bind(location)
         blit(stack, x, y, 0F, 0F, width, height, width, height)
         super.renderButton(stack, mouseX, mouseY, ticks)
     }

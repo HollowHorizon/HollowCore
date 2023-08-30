@@ -173,11 +173,12 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: Component
     }
 
     fun bind(modid: String, path: String) {
-        textureManager.bindForSetup(ResourceLocation(modid, "textures/$path"))
+        bind(ResourceLocation(modid, "textures/$path"))
+
     }
 
     fun bind(path: ResourceLocation) {
-        textureManager.bindForSetup(path)
+        RenderSystem.setShaderTexture(0, path)
     }
 
 

@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 
-public class SliderWidget extends AbstractWidget {
+public class SliderWidget extends HollowWidget {
     private static final ResourceLocation SLIDER_BASE = new ResourceLocation(MODID, "textures/gui/buttons/slider_base.png");
     private static final ResourceLocation ARROW_LEFT = new ResourceLocation(MODID, "textures/gui/buttons/arrow_left.png");
     private static final ResourceLocation ARROW_RIGHT = new ResourceLocation(MODID, "textures/gui/buttons/arrow_right.png");
@@ -84,7 +84,7 @@ public class SliderWidget extends AbstractWidget {
     @Override
     public void render(PoseStack stack, int mouseX, int mouseY, float p_230430_4_) {
         stack.pushPose();
-        Minecraft.getInstance().getTextureManager().bindForSetup(SLIDER_BASE);
+        bind(SLIDER_BASE);
         blit(stack, this.x, this.y, 0, 0, this.width, this.height, this.width, this.height);
         renderLeftArrow(stack, mouseX, mouseY);
         renderRightArrow(stack, mouseX, mouseY);
@@ -139,7 +139,7 @@ public class SliderWidget extends AbstractWidget {
         if (isCursorAtLeftButton(mouseX, mouseY)) {
             GL11.glColor4f(0.546F, 0.546F, 0.546F, 1.0F);
         }
-        Minecraft.getInstance().getTextureManager().bindForSetup(ARROW_LEFT);
+        bind(ARROW_LEFT);
         blit(stack, this.x, this.y, 0, 0, this.height, this.height, this.height, this.height);
         GL11.glPopMatrix();
         stack.popPose();
@@ -151,7 +151,7 @@ public class SliderWidget extends AbstractWidget {
         if (isCursorAtRightButton(mouseX, mouseY)) {
             GL11.glColor4f(0.546F, 0.546F, 0.546F, 1.0F);
         }
-        Minecraft.getInstance().getTextureManager().bindForSetup(ARROW_RIGHT);
+        bind(ARROW_RIGHT);
         blit(stack, this.x + this.width - this.height, this.y, 0, 0, this.height, this.height, this.height, this.height);
         GL11.glPopMatrix();
         stack.popPose();

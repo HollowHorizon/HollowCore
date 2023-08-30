@@ -60,7 +60,7 @@ open class BaseButton @JvmOverloads constructor(
         if (isClickable) pressable.invoke(this)
     }
 
-    fun isCursorAtButton(cursorX: Int, cursorY: Int): Boolean {
+    open fun isCursorAtButton(cursorX: Int, cursorY: Int): Boolean {
         return cursorX >= x && cursorY >= y && cursorX <= x + width && cursorY <= y + height && isClickable
     }
 
