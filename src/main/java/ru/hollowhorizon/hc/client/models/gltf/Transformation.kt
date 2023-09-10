@@ -6,10 +6,6 @@ import com.mojang.math.Vector3f
 import org.lwjgl.opengl.GL11
 import java.nio.FloatBuffer
 
-/**
- * Class that represents a transformation that consists in translation, rotation and scale,
- * can be converted to a 4x4 matrix.
- */
 data class Transformation(
     val translationX: Float,
     val translationY: Float,
@@ -38,11 +34,6 @@ data class Transformation(
         scale.x(), scale.y(), scale.z()
     )
 
-    /**
-     * Converts this transformation into a Matrix
-     * val matrix = getTransform(node, time).matrixVec.apply { transpose() }
-    ForgeHooksClient.multiplyCurrentGlMatrix(matrix)
-     */
     fun getMatrixVec(): Matrix4f {
         val m = Matrix4f()
         m.setIdentity()
@@ -74,10 +65,6 @@ data class Transformation(
         return m
     }
 
-    /**
-     * Applies the translation, rotation, scale to OpenGL,
-     * Equivalent to Gl11.glTranslatef(...), Gl11.glRotatef(...), Gl11.glScalef(...) but faster
-     */
     fun glMultiply() {
         val matrix = getMatrixVec()
         matrix.transpose()
@@ -85,24 +72,8 @@ data class Transformation(
         GL11.glMultMatrixf(buffer.apply { matrix.store(buffer) })
     }
 
-    /**
-     * Converts this transformation into a Matrix
-     */
     fun getMatrix4f(): Matrix4f = getMatrixVec()
 
-    /**
-     * Combines two transformations using matrix multiplication
-     */
-//    operator fun plus(other: TRSTransformation): TRSTransformation {
-//        return this.getMatrixVec().apply {
-//            multiply(other.getMatrix4f())
-//        })
-//    }
-
-    /**
-     * Linear interpolation of two transformations
-     * @param step must be a value between 0.0 and 1.0 (both inclusive)
-     */
     fun lerp(other: Transformation, step: Float): Transformation {
         return Transformation(
             translation = this.translation.interpolated(other.translation, step),

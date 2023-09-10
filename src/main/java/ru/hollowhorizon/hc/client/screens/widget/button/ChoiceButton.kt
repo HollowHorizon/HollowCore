@@ -13,8 +13,8 @@ import javax.annotation.Nonnull
 
 class ChoiceButton(x: Int, y: Int, width: Int, height: Int, text: Component, onPress: BaseButton.() -> Unit) :
     BaseButton(x, y, width, height, text, onPress, TextureManager.INTENTIONAL_MISSING_TEXTURE) {
-    override fun playDownSound(soundHandler: SoundManager) {
-        soundHandler.play(
+    override fun playDownSound(pHandler: SoundManager) {
+        pHandler.play(
             SimpleSoundInstance.forUI(
                 ForgeRegistries.SOUND_EVENTS.getValue(ResourceLocation("hc:choice_button"))!!,
                 1f

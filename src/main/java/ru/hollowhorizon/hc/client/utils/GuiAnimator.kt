@@ -1,5 +1,7 @@
 package ru.hollowhorizon.hc.client.utils
 
+import ru.hollowhorizon.hc.client.handlers.ClientTickHandler
+
 open class GuiAnimator protected constructor(
     val begin: Int,
     val end: Int,
@@ -11,12 +13,13 @@ open class GuiAnimator protected constructor(
     protected var timePassed: Float = maxTime
     protected var current: Int = begin
     protected var last: Int = begin
+    protected var startTicks = 0
 
-    open fun update(particalTick: Float) {
+    open fun update(partialTick: Float) {
         if (timePassed > 0) {
             value = begin + ((end - begin) * interpolation(1 - timePassed / maxTime)).toInt()
         }
-        timePassed -= particalTick
+        timePassed = maxTime - (startTicks - ClientTickHandler.ticks) - partialTick
     }
 
     fun setTime(v: Float) {
@@ -28,6 +31,7 @@ open class GuiAnimator protected constructor(
     }
 
     fun reset() {
+        startTicks = ClientTickHandler.ticks
         timePassed = maxTime
         value = begin
     }
@@ -36,13 +40,13 @@ open class GuiAnimator protected constructor(
         GuiAnimator(begin, end, time, interpolation) {
         private var switch = false
 
-        override fun update(particalTick: Float) {
+        override fun update(partialTick: Float) {
             if (switch) {
                 if (timePassed > 0) {
                     value = begin + ((end - begin) * interpolation(timePassed / maxTime)).toInt()
                 }
-                timePassed -= particalTick
-            } else super.update(particalTick)
+                timePassed = maxTime - (startTicks - ClientTickHandler.ticks) - partialTick
+            } else super.update(partialTick)
 
             if (isFinished()) {
                 switch = !switch
@@ -53,8 +57,8 @@ open class GuiAnimator protected constructor(
 
     class Looped(begin: Int, end: Int, time: Float, interpolation: (Float) -> Float) :
         GuiAnimator(begin, end, time, interpolation) {
-        override fun update(particalTick: Float) {
-            super.update(particalTick)
+        override fun update(partialTick: Float) {
+            super.update(partialTick)
             if (isFinished()) {
                 reset()
             }

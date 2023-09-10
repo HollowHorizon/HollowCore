@@ -156,10 +156,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         stack.mulPoseMatrix(capability.transform.matrix)
         stack.mulPose(Vector3f.YP.rotationDegrees(180f))
 
-        if (!hasHeadLayer) {
-            hasHeadLayer = true
-            manager.addLayer(HeadLayer(entity, 1.0f))
-        }
+        manager.updateEntity(entity)
 
         updateAnimations(entity, manager, capability.customAnimations)
         manager.update(partialTick)

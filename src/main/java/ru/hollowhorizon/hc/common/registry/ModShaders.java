@@ -20,7 +20,7 @@ public class ModShaders {
                 builder.uniform("windowY", UniformType.INT);
             })
             .whenUsed((uniformCache -> {
-                uniformCache.glUniform1i("t", ClientTickHandler.ticksInGame);
+                uniformCache.glUniform1i("t", ClientTickHandler.ticksPaused);
                 uniformCache.glUniform1i("windowX", Minecraft.getInstance().getMainRenderTarget().width);
                 uniformCache.glUniform1i("windowY", Minecraft.getInstance().getMainRenderTarget().height);
             }))

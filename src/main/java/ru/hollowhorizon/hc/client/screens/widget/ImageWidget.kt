@@ -4,7 +4,6 @@ package ru.hollowhorizon.hc.client.screens.widget
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.sounds.SoundManager
 import net.minecraft.resources.ResourceLocation
-import ru.hollowhorizon.hc.client.utils.mc
 import ru.hollowhorizon.hc.client.utils.toSTC
 
 class ImageWidget(val location: ResourceLocation, x: Int, y: Int, width: Int, height: Int) :
@@ -16,7 +15,7 @@ class ImageWidget(val location: ResourceLocation, x: Int, y: Int, width: Int, he
         super.renderButton(stack, mouseX, mouseY, ticks)
     }
 
-    override fun playDownSound(p_230988_1_: SoundManager) {
+    override fun playDownSound(pHandler: SoundManager) {
         // NO-OP
     }
 }

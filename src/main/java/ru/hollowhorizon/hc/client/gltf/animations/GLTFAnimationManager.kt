@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.client.gltf.animations
 
 import de.javagl.jgltf.model.NodeModel
+import net.minecraft.world.entity.LivingEntity
 import ru.hollowhorizon.hc.client.gltf.model.RenderedGltfModel
 import kotlin.properties.Delegates
 
@@ -28,9 +29,17 @@ open class GLTFAnimationManager(val model: RenderedGltfModel) {
         }
     }
     var currentTick = 0
+    var hasHeadLayer = false
 
     val current: Animation?
         get() = this.smoothLayer.current
+
+    fun updateEntity(entity: LivingEntity) {
+        if(!hasHeadLayer) {
+            hasHeadLayer = true
+            this.addLayer(HeadLayer(entity, 1.0f))
+        }
+    }
 
     /**
      * Метод, обновляющий все анимации с учётом приоритетов
