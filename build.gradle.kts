@@ -91,7 +91,14 @@ repositories {
     maven { url = uri("https://jitpack.io") }
 }
 
-val shadowCompileOnly by configurations.creating
+val quasar = configurations.create("quasar")
+val library = configurations.create("library")
+
+configurations {
+    implementation.get().extendsFrom(library)
+    library.extendsFrom(quasar)
+    library.extendsFrom(this["shadow"])
+}
 
 dependencies {
     val minecraft = configurations["minecraft"]
@@ -109,7 +116,7 @@ dependencies {
     shadow("org.jetbrains.kotlin:kotlin-scripting-jvm:1.9.0")
 
     shadow("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.9.0")
-    shadowCompileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.0")
+    shadow("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.0")
 
     shadow("org.jetbrains.kotlin:kotlin-script-runtime:1.9.0")
 
@@ -125,19 +132,7 @@ dependencies {
 val copyJar by tasks.registering(Copy::class) {
     from("build/libs/hc-1.1.0.jar")
     into("C:\\Users\\user\\Twitch\\Minecraft\\Instances\\Instances\\test1\\mods")
-}
-
-
-
-val library = configurations.create("library")
-
-configurations {
-    //library - 3rd-party library (not a mod)
-    //shade - dep that should be shaded
-    implementation.get().extendsFrom(library)
-    library.extendsFrom(this["shadow"])
-
-    compileOnly.get().extendsFrom(shadowCompileOnly)
+    into("../HS/hc")
 }
 
 tasks.getByName("build").dependsOn("shadowJar")
@@ -151,7 +146,7 @@ tasks.getByName<ShadowJar>("shadowJar") {
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-    configurations = listOf(project.configurations.getByName("shadow"), project.configurations.getByName("shadowCompileOnly"))
+    configurations = listOf(project.configurations.getByName("shadow"))
 
     val shadowPackages = listOf(
         "gnu.trove"

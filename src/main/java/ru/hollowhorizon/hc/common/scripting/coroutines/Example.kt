@@ -1,28 +1,28 @@
 package ru.hollowhorizon.hc.common.scripting.coroutines
 
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import ru.hollowhorizon.hc.common.scripting.coroutines.PersistingWrapper.wrapper
+import kotlin.concurrent.thread
 
 fun main() {
-    val res = runBlocking {
+    runBlocking {
         wrapper {
-            val t1 = async(this.coroutineContext) {
-                delay(1000)
-                println("here")
-                "10"
+            println("World")
+            persistAndSave()
+            println("!")
+
+            val result = thread {
+                println("Hello 1")
+                Thread.sleep(500L)
+                println("Hello 2")
             }
-            val t2 = async(this.coroutineContext) {
-                delay(2000)
-                println("here2")
-                "20"
-            }
-            val res = t1.await() + t2.await()
-            println(res)
-            persist()
-            res
+            result.start()
+            delay(250L)
+            println("World 2")
+            persistAndSave()
+            result.join()
         }
     }
-    println(res)
+
 }

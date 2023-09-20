@@ -22,7 +22,7 @@ interface Wrapper {
 
 var resumed = true
 
-suspend fun persist() {
+suspend fun persistAndSave() {
     resumed = false
     coroutineContext[Persistor.Key]!!.persist()
     if (!resumed) {

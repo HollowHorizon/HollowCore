@@ -11,6 +11,8 @@ import kotlin.jvm.JvmClassMappingKt;
 import kotlin.jvm.functions.Function1;
 import kotlinx.coroutines.CancellableContinuation;
 import kotlinx.coroutines.CancellableContinuationKt;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.Dispatchers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objenesis.instantiator.ObjectInstantiator;
@@ -23,6 +25,7 @@ import java.nio.file.StandardCopyOption;
 
 public class PersistingWrapper {
     private static final Path STATE_PATH = Path.of("coroutine.bin");
+
     public static final Wrapper wrapper = new Wrapper() {
         public <T> Object invoke(
                 @NotNull Function1<? super Continuation<? super T>, ?> function1,
@@ -31,7 +34,7 @@ public class PersistingWrapper {
             var persistedContinuation = new PersistedContinuation<>(continuation);
             if (Files.exists(STATE_PATH)) {
                 try (var input = new Input(Files.newInputStream(STATE_PATH))) {
-                    var kryo = getKryo();
+                    var kryo = getKryo(persistedContinuation);
                     var references = kryo.getReferenceResolver();
                     references.setReadObject(references.nextReadId(null), persistedContinuation.getContext());
                     references.setReadObject(references.nextReadId(null), persistedContinuation);
@@ -61,7 +64,7 @@ public class PersistingWrapper {
     };
 
     @NotNull
-    private static Kryo getKryo() {
+    private static <T> Kryo getKryo(Continuation<T> continuation) {
         var kryo = new Kryo();
         kryo.setAutoReset(false);
         kryo.setRegistrationRequired(false);
@@ -89,7 +92,13 @@ public class PersistingWrapper {
                     };
                 } catch (NoSuchMethodException ignored) {
                 }
-                return super.newInstantiatorOf(type);
+                return () -> {
+                    try {
+                        return type.getDeclaredConstructors()[0].newInstance((CoroutineScope) continuation::getContext, continuation);
+                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                        return super.newInstantiatorOf(type).newInstance();
+                    }
+                };
             }
         });
         return kryo;
@@ -129,7 +138,7 @@ public class PersistingWrapper {
             try {
                 var tempFile = Files.createTempFile(null, null);
                 try (var output = new Output(Files.newOutputStream(tempFile))) {
-                    var kryo = getKryo();
+                    var kryo = getKryo($completion);
                     kryo.getReferenceResolver().addWrittenObject(persistedContinuation.getContext());
                     kryo.getReferenceResolver().addWrittenObject(persistedContinuation);
                     kryo.writeClassAndObject(output, $completion);

@@ -134,7 +134,7 @@ enum class AnimationType {
             animations[FLY] = names.findOr("fly") ?: animations[IDLE] ?: ""
             animations[SIT] = names.findOr("sit") ?: animations[IDLE] ?: ""
             animations[SLEEP] = names.findOr("sleep") ?: animations[SLEEP] ?: ""
-            animations[SWING] = names.findOr("attack", "swing") ?: ""
+            animations[SWING] = names.findOr("attack", "swing", "use") ?: ""
             animations[DEATH] = names.findOr("death") ?: ""
 
             return animations
