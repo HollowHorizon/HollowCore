@@ -17,6 +17,7 @@ data class Transformation(
     val scaleX: Float,
     val scaleY: Float,
     val scaleZ: Float,
+    private val matrix: Matrix4f = Matrix4f().apply(Matrix4f::setIdentity)
 ) {
 
     val translation: Vector3f get() = Vector3f(translationX, translationY, translationZ)
@@ -28,15 +29,16 @@ data class Transformation(
         translation: Vector3f = Vector3f(),
         rotation: Quaternion = Quaternion(0.0f, 0.0f, 0.0f, 1.0f),
         scale: Vector3f = Vector3f(1.0f, 1.0f, 1.0f),
+        matrix: Matrix4f = Matrix4f().apply(Matrix4f::setIdentity)
     ) : this(
         translation.x(), translation.y(), translation.z(),
         rotation.i(), rotation.j(), rotation.k(), rotation.r(),
-        scale.x(), scale.y(), scale.z()
+        scale.x(), scale.y(), scale.z(),
+        matrix
     )
 
-    fun getMatrixVec(): Matrix4f {
-        val m = Matrix4f()
-        m.setIdentity()
+    fun getMatrix(): Matrix4f {
+        val m = matrix.copy()
 
         // rotation
         if (rotationW != 0f && !(rotationX == 0f && rotationY == 0f && rotationZ == 0f && rotationW == 1f)) {
@@ -47,9 +49,9 @@ data class Transformation(
             })
         }
         // translation
-        m.m30 = translationX
-        m.m31 = translationY
-        m.m32 = translationZ
+        m.m30 += translationX
+        m.m31 += translationY
+        m.m32 += translationZ
 
         // scale
         m.m00 *= scaleX
@@ -64,15 +66,6 @@ data class Transformation(
 
         return m
     }
-
-    fun glMultiply() {
-        val matrix = getMatrixVec()
-        matrix.transpose()
-        val buffer = FloatBuffer.allocate(16)
-        GL11.glMultMatrixf(buffer.apply { matrix.store(buffer) })
-    }
-
-    fun getMatrix4f(): Matrix4f = getMatrixVec()
 
     fun lerp(other: Transformation, step: Float): Transformation {
         return Transformation(

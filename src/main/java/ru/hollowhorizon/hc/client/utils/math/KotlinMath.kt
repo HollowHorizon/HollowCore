@@ -6,6 +6,13 @@ import com.mojang.math.Vector3f
 import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 
+val Matrix4f.array: FloatArray
+    get() {
+        val buffer = FloatBuffer.allocate(16)
+        store(buffer)
+        return buffer.array()
+    }
+
 fun Matrix4f.translationRotateScale(
     tx: Float, ty: Float, tz: Float,
     qx: Float, qy: Float, qz: Float, qw: Float,

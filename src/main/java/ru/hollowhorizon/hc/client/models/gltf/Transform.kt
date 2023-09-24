@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.gltf
+package ru.hollowhorizon.hc.client.models.gltf
 
 import com.mojang.math.Matrix4f
 import com.mojang.math.Vector3f

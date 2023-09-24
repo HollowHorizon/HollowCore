@@ -1,33 +1,106 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
+import com.mojang.math.Matrix3f
+import com.mojang.math.Matrix4f
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
 import com.mojang.math.Vector4f
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
-import java.io.InputStream
+import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.utils.toIS
+import java.io.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.FloatBuffer
+
+fun DataInputStream.readUInt(): Int {
+    val ch1 = this.read()
+    val ch2 = this.read()
+    val ch3 = this.read()
+    val ch4 = this.read()
+    if ((ch1 or ch2 or ch3 or ch4) < 0) {
+        throw EOFException()
+    } else {
+        return (ch4 shl 24) + (ch3 shl 16) + (ch2 shl 8) + (ch1 shl 0)
+    }
+}
 
 object GltfTree {
 
-    fun parse(file: GltfFile, location: ResourceLocation, folder: (String) -> InputStream): DefinitionTree {
+    fun parse(file: GltfFile, location: ResourceLocation, folder: (String) -> InputStream): GLTFTree {
         val buffers = parseBuffers(file, folder)
         val bufferViews = parseBufferViews(file, buffers)
         val accessors = parseAccessors(file, bufferViews)
         val textures = mutableSetOf<ResourceLocation>()
         val meshes = parseMeshes(file, accessors, location, textures)
-        val scenes = parseScenes(file, meshes)
+        val skins = parseSkins(file, accessors)
+        val scenes = parseScenes(file, meshes, skins)
         val animations = parseAnimations(file, accessors)
 
-        return DefinitionTree(file.scene ?: 0, scenes, animations, textures, file.extras)
+        return GLTFTree(file.scene ?: 0, scenes, animations, textures, file.extras)
+    }
+
+    fun parse(location: ResourceLocation): GLTFTree {
+        val file = if (location.path.endsWith(".glb")) {
+            val bytes = location.toIS().readBytes()
+            val dataStream = DataInputStream(ByteArrayInputStream(bytes))
+            val magic = dataStream.readUInt()
+            val version = dataStream.readUInt()
+            if (magic != GltfFile.GLB_FILE_MAGIC || version != 2) {
+                throw UnsupportedOperationException("Unsupported glTF version or file format!")
+            }
+            dataStream.skipBytes(4)
+            var chunkLength = dataStream.readUInt()
+            var chunkType = dataStream.readUInt()
+            if (chunkType != GltfFile.GLB_CHUNK_MAGIC_JSON) throw UnsupportedOperationException("Unexpected chunk type for json chunk: $chunkType (should be ${GltfFile.GLB_CHUNK_MAGIC_JSON}: JSON)")
+            val data = ByteArray(chunkLength)
+            dataStream.readFully(data)
+
+            GltfDefinition.parse(ByteArrayInputStream(data)).apply {
+                val array = ArrayList<ByteArray>()
+                while (dataStream.available() > 0) {
+                    chunkLength = dataStream.readUInt()
+                    chunkType = dataStream.readUInt()
+                    if (chunkType == GltfFile.GLB_CHUNK_MAGIC_BIN) {
+                        val binBytes = ByteArray(chunkLength)
+                        dataStream.readFully(binBytes)
+                        array += binBytes
+                    } else {
+                        HollowCore.LOGGER.warn("Unexpected chunk type for bin chunk: $chunkType (should be ${GltfFile.GLB_CHUNK_MAGIC_BIN}: BIN)")
+                        dataStream.skip(chunkLength.toLong())
+                    }
+                }
+                this.binaryBuffer = array
+            }
+        } else GltfDefinition.parse(location.toIS())
+
+        fun retrieveFile(path: String): InputStream {
+            if (path.startsWith("data:application/octet-stream;base64,")) {
+                return java.util.Base64.getDecoder().wrap(path.substring(37).byteInputStream())
+            }
+            if (path.startsWith("data:image/png;base64,")) {
+                return java.util.Base64.getDecoder().wrap(path.substring(22).byteInputStream())
+            }
+
+            val basePath = location.path.substringBeforeLast('/', "")
+            val loc = ResourceLocation(location.namespace, if (basePath.isEmpty()) path else "$basePath/$path")
+
+            return loc.toIS()
+        }
+
+        return parse(file, location, ::retrieveFile)
     }
 
     private fun parseBuffers(file: GltfFile, folder: (String) -> InputStream): List<ByteArray> {
+        if (file.binaryBuffer != null) return file.binaryBuffer!!
+
         return file.buffers.map { buff ->
 
-            val uri = buff.uri ?: error("Found buffer without uri, unable to load, buffer: $buff")
-            val bytes = folder(uri).readBytes()
+            val bytes = if (buff.uri != null) {
+                val uri = buff.uri
+                folder(uri).readBytes()
+            } else throw UnsupportedOperationException("Unsupported Empty URI")
 
             if (bytes.size != buff.byteLength) {
                 error("Buffer byteLength, and resource size doesn't match, buffer: $buff, resource size: ${bytes.size}")
@@ -50,10 +123,10 @@ object GltfTree {
 
     private fun parseAccessors(file: GltfFile, bufferViews: List<ByteArray>): List<Buffer> {
         return file.accessors.map { accessor ->
-
             val viewIndex = accessor.bufferView ?: error("Unsupported Empty BufferView at accessor: $accessor")
 
             val buffer = bufferViews[viewIndex]
+            val view = file.bufferViews[viewIndex]
 
             val offset = accessor.byteOffset ?: 0
             val type = GltfComponentType.fromId(accessor.componentType)
@@ -61,7 +134,7 @@ object GltfTree {
             val buff = ByteBuffer.wrap(buffer, offset, buffer.size - offset).order(ByteOrder.LITTLE_ENDIAN)
             val list: List<Any> = intoList(accessor.type, type, accessor.count, buff)
 
-            Buffer(accessor.type, type, list)
+            Buffer(accessor.type, type, list, view.byteStride ?: 0, view.byteOffset ?: 0)
         }
     }
 
@@ -88,8 +161,31 @@ object GltfTree {
             }
 
             GltfType.MAT2 -> error("Unsupported")
-            GltfType.MAT3 -> error("Unsupported")
-            GltfType.MAT4 -> error("Unsupported")
+            GltfType.MAT3 -> List(count) {
+                Matrix3f().apply {
+                    load(
+                        FloatBuffer.wrap(
+                            floatArrayOf(
+                                b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(),
+                                b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(),
+                                b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat()
+                            )
+                        )
+                    )
+                    transpose()
+                }
+            }
+
+            GltfType.MAT4 -> List(count) {
+                Matrix4f(
+                    floatArrayOf(
+                        b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(),
+                        b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(),
+                        b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(),
+                        b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat()
+                    )
+                ).apply(Matrix4f::transpose)
+            }
         }
     }
 
@@ -100,6 +196,13 @@ object GltfTree {
             GltfComponentType.SHORT, GltfComponentType.UNSIGNED_SHORT -> short
             GltfComponentType.UNSIGNED_INT -> int
             GltfComponentType.FLOAT -> float
+        }
+    }
+
+    private fun parseSkins(file: GltfFile, accessors: List<Buffer>): List<Skin> {
+        return file.skins.map { skin ->
+            val inverseBindMatrices = accessors[skin.inverseBindMatrices!!].get<Matrix4f>()
+            return@map Skin(skin.joints, inverseBindMatrices)
         }
     }
 
@@ -144,10 +247,6 @@ object GltfTree {
         val relativeModelPath = location.path.substringAfter("models/")
         val localPath = relativeModelPath.substringBeforeLast('/', "")
 
-        // TexturePath: windmill.png
-        // Location: modid:models/block/gltf/windmill.gltf
-        // Result: modid:textures/block/gltf/windmill
-
         val finalPath = buildString {
             if (localPath.isNotEmpty()) {
                 append(localPath)
@@ -159,26 +258,30 @@ object GltfTree {
         return ResourceLocation(location.namespace, finalPath)
     }
 
-    private fun parseScenes(file: GltfFile, meshes: List<Mesh>): List<Scene> {
+    private fun parseScenes(file: GltfFile, meshes: List<Mesh>, skins: List<Skin>): List<Scene> {
         return file.scenes.map { scene ->
             val nodes = scene.nodes ?: emptyList()
-            val parsedNodes = nodes.map { parseNode(file, it, file.nodes[it], meshes) }
+            val parsedNodes = nodes.map { parseNode(file, it, file.nodes[it], meshes, skins) }
 
             Scene(parsedNodes)
         }
     }
 
-    private fun parseNode(file: GltfFile, nodeIndex: Int, node: GltfNode, meshes: List<Mesh>): Node {
-        val children = node.children.map { parseNode(file, it, file.nodes[it], meshes) }
+    private fun parseNode(file: GltfFile, nodeIndex: Int, node: GltfNode, meshes: List<Mesh>, skins: List<Skin>): Node {
+        val children = node.children.map { parseNode(file, it, file.nodes[it], meshes, skins) }
         val mesh = node.mesh?.let { meshes[it] }
+        val skin = node.skin?.let { skins[it] }
 
         val transform = Transformation(
             translation = node.translation ?: Vector3f(),
             rotation = node.rotation ?: Quaternion(0.0f, 0.0f, 0.0f, 1.0f),
-            scale = node.scale ?: Vector3f(1.0f, 1.0f, 1.0f)
+            scale = node.scale ?: Vector3f(1.0f, 1.0f, 1.0f),
+            matrix = node.matrix ?: Matrix4f().apply(Matrix4f::setIdentity)
         )
 
-        return Node(nodeIndex, children, transform, mesh, node.name)
+        return Node(nodeIndex, children, transform, mesh, skin, node.name).apply {
+            this.children.forEach { it.parent = this }
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -207,7 +310,7 @@ object GltfTree {
         }
     }
 
-    data class DefinitionTree(
+    data class GLTFTree(
         val scene: Int,
         val scenes: List<Scene>,
         val animations: List<Animation>,
@@ -224,8 +327,25 @@ object GltfTree {
         val children: List<Node>,
         val transform: Transformation,
         val mesh: Mesh? = null,
+        val skin: Skin? = null,
         val name: String? = null,
-    )
+    ) {
+        var parent: Node? = null
+
+        fun getMatrix() = transform.getMatrix()
+    }
+
+    data class Skin(
+        private val jointsIds: List<Int>,
+        val inverseBindMatrices: List<Matrix4f>,
+    ) {
+        fun getInverseBindMatrix(joint: Int, inverseBindMatrix: FloatArray) {
+            val buffer = FloatBuffer.wrap(inverseBindMatrix)
+            inverseBindMatrices[joint].store(buffer)
+        }
+
+        val joints = ArrayList<Node>(jointsIds.size)
+    }
 
     data class Mesh(
         val primitives: List<Primitive>,
@@ -242,7 +362,26 @@ object GltfTree {
         val type: GltfType,
         val componentType: GltfComponentType,
         val data: List<Any>,
-    )
+        val byteStride: Int,
+        val byteOffset: Int
+    ) {
+        @Suppress("UNCHECKED_CAST")
+        fun <T> get() = data as List<T>
+
+        fun buffer(): ByteBuffer {
+            val buffer = ByteBuffer.allocate(data.size * componentType.size)
+            when(componentType) {
+                GltfComponentType.BYTE -> get<Byte>().forEach(buffer::put)
+                GltfComponentType.UNSIGNED_BYTE -> get<Byte>().forEach(buffer::put)
+                GltfComponentType.SHORT -> get<Short>().forEach(buffer::putShort)
+                GltfComponentType.UNSIGNED_SHORT ->get<Short>().forEach(buffer::putShort)
+                GltfComponentType.UNSIGNED_INT -> get<Int>().forEach(buffer::putInt)
+                GltfComponentType.FLOAT -> get<Float>().forEach(buffer::putFloat)
+            }
+            buffer.rewind()
+            return buffer
+        }
+    }
 
     data class Animation(
         val name: String?,

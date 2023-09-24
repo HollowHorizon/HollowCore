@@ -5,10 +5,10 @@ import net.minecraft.world.entity.PathfinderMob
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal
 import net.minecraft.world.level.Level
-import ru.hollowhorizon.hc.client.gltf.IAnimated
-import ru.hollowhorizon.hc.client.gltf.animations.manager.IModelManager
+//import ru.hollowhorizon.hc.client.gltf.IAnimated
+//import ru.hollowhorizon.hc.client.gltf.animations.manager.IModelManager
 
-class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(type, world), IAnimated {
+class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(type, world)/*, IAnimated*/ {
 
     override fun registerGoals() {
         super.registerGoals()
@@ -17,6 +17,6 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
     }
 
     //если сделать напрямую тут инициализацию, то Kotlin каждый раз будет новый менеджер анимаций создавать, что нам не нужно
-    override val manager by lazy { IModelManager.create(this) }
+    //override val manager by lazy { IModelManager.create(this) }
 
 }

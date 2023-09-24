@@ -28,7 +28,7 @@ import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
-import ru.hollowhorizon.hc.client.gltf.model.GltfManager;
+//import ru.hollowhorizon.hc.client.gltf.model.GltfManager;
 import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
 import ru.hollowhorizon.hc.client.render.OpenGLUtils;
@@ -69,7 +69,7 @@ public class HollowCore {
         //GltfModelSources.INSTANCE.addSource(new PathSource(FMLPaths.GAMEDIR.get().resolve("hollowengine")));
 
         if (FMLEnvironment.dist.isClient()) {
-            new GltfManager();
+            //new GltfManager();
             //клавиши
             forgeBus.register(new HollowKeyHandler());
             forgeBus.addListener(HollowKeyHandler::onKeyInput);
