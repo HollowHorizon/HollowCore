@@ -2,6 +2,8 @@ package ru.hollowhorizon.hc.common.scripting
 
 import kotlinx.coroutines.runBlocking
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.common.scripting.kotlin.AbstractHollowScriptHost
+import ru.hollowhorizon.hc.common.scripting.kotlin.HollowScript
 import ru.hollowhorizon.hc.common.scripting.kotlin.loadScriptFromJar
 import ru.hollowhorizon.hc.common.scripting.kotlin.loadScriptHashCode
 import java.io.File
@@ -9,11 +11,9 @@ import java.io.FileOutputStream
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
-import kotlin.script.experimental.api.ScriptCompilationConfiguration
-import kotlin.script.experimental.api.defaultImports
-import kotlin.script.experimental.api.dependencies
-import kotlin.script.experimental.api.valueOrThrow
+import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.FileScriptSource
+import kotlin.script.experimental.host.createCompilationConfigurationFromTemplate
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
 import kotlin.script.experimental.jvm.impl.*
@@ -38,9 +38,13 @@ object ScriptingCompiler {
     }
 
     inline fun <reified T : Any> compileFile(script: File): CompiledScript {
-        val hostConfiguration = defaultJvmScriptingHostConfiguration
+        val hostConfiguration = AbstractHollowScriptHost()
 
-        val compilationConfiguration = createJvmCompilationConfigurationFromTemplate<T>()
+        val compilationConfiguration = createCompilationConfigurationFromTemplate(
+            KotlinType(T::class),
+            hostConfiguration,
+            HollowCore::class
+        ) {}
 
         return runBlocking {
             val compiledJar = script.parentFile.resolve(script.name + ".jar")
@@ -108,4 +112,14 @@ object ScriptingCompiler {
 private fun shrinkSerializableScriptData(compiledScript: KJvmCompiledScript) {
     (compiledScript.compilationConfiguration.entries() as? MutableSet<Map.Entry<PropertiesCollection.Key<*>, Any?>>)
         ?.removeIf { it.key == ScriptCompilationConfiguration.dependencies || it.key == ScriptCompilationConfiguration.defaultImports }
+}
+
+fun main() {
+    val command = "println(\"Hello World!\")"
+
+    val result = ScriptingCompiler.compileText<HollowScript>(command).execute()
+
+    result.reports.map { it.render() }.forEach(::println)
+
+    println(result.valueOrThrow().returnValue)
 }

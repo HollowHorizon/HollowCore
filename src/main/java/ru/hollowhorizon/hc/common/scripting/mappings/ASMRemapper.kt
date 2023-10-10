@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.common.scripting.mappings
 
+import cpw.mods.modlauncher.TransformingClassLoader
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.tree.*
@@ -86,12 +87,12 @@ val String.node: ClassNode?
                 val clazz = this@node.replace(".", "/") + ".class"
                 val stream =
                     if (ASMRemapper.CLASS_CACHE.containsKey(clazz)) ByteArrayInputStream(ASMRemapper.CLASS_CACHE[clazz])
-                    else HollowCore::class.java.classLoader.getResourceAsStream(clazz)
+                    else TransformingClassLoader.getSystemClassLoader().getResourceAsStream(clazz) ?: Class.forName(this@node.replace("/", ".")).classLoader.getResourceAsStream(clazz)
 
                 if (stream == null) HollowCore.LOGGER.warn(
                     "Class {} not found! It may be classLoader: {}",
                     this@node.replace("/", "."),
-                    Class.forName(this@node.replace("/", ".")).classLoader
+                    Class.forName(this@node.replace("/", ".")).classLoader.name
                 )
                 ClassReader(stream).accept(this, 0)
                 stream?.close()

@@ -361,7 +361,7 @@ enum class GltfComponentType(val id: Int, val size: Int) {
     FLOAT(5126, 4);
 
     companion object {
-        val conversionMap: Map<Int, GltfComponentType> = entries.associateBy { it.id }
+        val conversionMap: Map<Int, GltfComponentType> = values().associateBy { it.id }
 
         fun fromId(value: Int) = conversionMap[value] ?: error("Invalid Component type value: $value")
     }
@@ -390,7 +390,7 @@ enum class GltfMode(val code: Int) {
     POLYGON(0x9);
 
     companion object {
-        val conversionMap: Map<Int, GltfMode> = entries.associateBy { it.code }
+        private val conversionMap: Map<Int, GltfMode> = values().associateBy { it.code }
 
         fun fromId(value: Int) = conversionMap[value] ?: error("Invalid GL mode: $value")
     }

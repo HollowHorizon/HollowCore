@@ -1,34 +1,52 @@
 package ru.hollowhorizon.hc.client.render.entity
 
-import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.blaze3d.vertex.VertexFormat
 import com.mojang.math.Vector3f
+import net.minecraft.Util
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.RenderStateShard
+import net.minecraft.client.renderer.RenderStateShard.TextureStateShard
 import net.minecraft.client.renderer.RenderType
+import net.minecraft.client.renderer.RenderType.CompositeState
 import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.client.renderer.entity.EntityRendererProvider
-import net.minecraft.client.renderer.entity.LivingEntityRenderer
 import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.FlyingAnimal
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL13
-import org.lwjgl.opengl.GL15
-import org.lwjgl.opengl.GL30
+import ru.hollowhorizon.hc.client.gltf.animations.GLTFAnimationManager
+import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
+import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.gltf.manager.ClientModelManager
+import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
+import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage
-import kotlin.jvm.optionals.getOrNull
 
 
 class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
-    EntityRenderer<T>(manager) where T : LivingEntity {
+    EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimated {
 
-    private var hasHeadLayer = false
+    val renderType = Util.memoize { texture: ResourceLocation, data: Boolean ->
+        val compositestate: CompositeState =
+            CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
+                .setTextureState(TextureStateShard(texture, false, false))
+                .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setCullState(RenderStateShard.NO_CULL)
+                .setLightmapState(RenderStateShard.LIGHTMAP).setOverlayState(RenderStateShard.OVERLAY)
+                .createCompositeState(data)
+        RenderType.create(
+            "hc:gltf_entity", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES,
+            256, true, true, compositestate
+        )
+    }
 
     override fun getTextureLocation(entity: T): ResourceLocation {
+        //return "hc:textures/entity/vuzz.png".rl
         return TextureManager.INTENTIONAL_MISSING_TEXTURE
     }
 
@@ -38,171 +56,102 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         yaw: Float,
         partialTick: Float,
         stack: PoseStack,
-        p_225623_5_: MultiBufferSource,
+        source: MultiBufferSource,
         packedLight: Int,
     ) {
-        super.render(entity, yaw, partialTick, stack, p_225623_5_, packedLight)
+        super.render(entity, yaw, partialTick, stack, source, packedLight)
 
-//        val model = GltfManager.getOrCreate(entity.model)
-//        val manager = entity.manager as ClientModelManager
-//        manager.setTick(entity.tickCount)
-//
-//        val type = getRenderType(entity)
-//
-//        preRender(entity, manager, stack, partialTick)
-//
-//        val currentVAO = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING)
-//        val currentArrayBuffer = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING)
-//        val currentElementArrayBuffer = GL11.glGetInteger(GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING)
-//
-//        stack.pushPose()
-//
-//        val lerpBodyRot = Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot)
-//        stack.mulPose(Vector3f.YP.rotationDegrees(-lerpBodyRot))
-//
-//        RenderedGltfModel.setCurrentPose(stack.last().pose())
-//        RenderedGltfModel.setCurrentNormal(stack.last().normal())
-//        stack.popPose()
-//
-//        type.setupRenderState()
-//
-//        GL30.glVertexAttribI2i(
-//            RenderedGltfModel.vaUV2,
-//            packedLight and '\uffff'.code,
-//            packedLight shr 16 and '\uffff'.code
-//        )
-//        GL30.glVertexAttribI2i(
-//            RenderedGltfModel.vaUV1,
-//            0,
-//            if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10
-//        )
-//        if (GltfManager.getInstance().isShaderModActive) {
-//            model.renderedGltfScenes.forEach { it.renderForShaderMod() }
-//        } else {
-//
-//            GL13.glActiveTexture(GL13.GL_TEXTURE2) //Лайтмап
-//            val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-//            GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().lightTexture.id)
-//
-//            GL13.glActiveTexture(GL13.GL_TEXTURE1) //Оверлей
-//            val currentTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-//            GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(1))
-//
-//            GL13.glActiveTexture(GL13.GL_TEXTURE0) //Текстуры модели
-//            val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-//
-//            model.renderedGltfScenes.forEach { it.renderForVanilla() }
-//
-//            if (Minecraft.getInstance().shouldEntityAppearGlowing(entity)) {
-//                val outline = type.outline().getOrNull() ?: return
-//                outline.setupRenderState()
-//
-//                GL13.glActiveTexture(GL13.GL_TEXTURE2) //Лайтмап
-//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().lightTexture.id)
-//
-//                GL30.glVertexAttribI2i(RenderedGltfModel.vaUV2, 255, 255) //нужно для чистого белого цвета
-//
-//                GL13.glActiveTexture(GL13.GL_TEXTURE1) //Оверлей
-//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(1))
-//
-//                GL13.glActiveTexture(GL13.GL_TEXTURE0) //Текстуры модели
-//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.getInstance().defaultColorMap)
-//
-//                GL13.glActiveTexture(GL13.GL_TEXTURE10) //Текстуры модели
-//
-//                model.renderedGltfScenes.forEach { it.renderForVanilla() }
-//
-//                outline.clearRenderState()
-//            }
-//
-//            GL13.glActiveTexture(GL13.GL_TEXTURE2) //Возврат Лайтмапа
-//            GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture2)
-//            GL13.glActiveTexture(GL13.GL_TEXTURE1) //Возврат Оверлея
-//            GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture1)
-//            GL13.glActiveTexture(GL13.GL_TEXTURE0) //Возврат Исходных текстур
-//            GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture0)
-//        }
-//        type.clearRenderState()
-//
-//        GL30.glVertexAttribI2i(RenderedGltfModel.vaUV2, 0, 0)
-//        GL30.glVertexAttribI2i(RenderedGltfModel.vaUV1, 0, 0)
-//
-//        GL30.glBindVertexArray(currentVAO)
-//        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, currentArrayBuffer)
-//        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
+        val model = GltfManager.getOrCreate(entity.model)
+        val manager = entity.manager as ClientModelManager
+        manager.setTick(entity.tickCount)
+
+        val type = getRenderType(entity)
+
+        preRender(entity, manager, stack, partialTick)
+
+        stack.pushPose()
+
+        val lerpBodyRot = Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot)
+        stack.mulPose(Vector3f.YP.rotationDegrees(-lerpBodyRot))
+
+        model.render(
+            stack,
+            source.getBuffer(type),
+            packedLight,
+            OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
+        )
+        stack.popPose()
     }
 
     protected fun getRenderType(
         entity: T,
     ): RenderType {
         val location = getTextureLocation(entity)
-        return if (!entity.isInvisible && entity.isInvisibleTo(Minecraft.getInstance().player!!)) {
-            RenderType.itemEntityTranslucentCull(location)
-        } else RenderType.entityTranslucent(location)
+        return renderType.apply(location, true)
     }
 
 
-//    private fun preRender(entity: T, manager: ClientModelManager, stack: PoseStack, partialTick: Float) {
-//        val capability = entity.getCapability(CapabilityStorage.getCapability(AnimatedEntityCapability::class.java))
-//            .orElseThrow { IllegalStateException("AnimatedEntityCapability is missing") }
-//        stack.mulPoseMatrix(capability.transform.matrix)
-//        stack.mulPose(Vector3f.YP.rotationDegrees(180f))
-//
-//        manager.updateEntity(entity)
-//
-//        updateAnimations(entity, manager, capability.customAnimations)
-//        manager.update(partialTick)
-//    }
-//
-//    private fun updateAnimations(entity: T, manager: GLTFAnimationManager, overrides: Map<AnimationType, String>) {
-//        val templates = manager.templates + overrides
-//
-//        if (!entity.isAlive) {
-//            manager.currentAnimation = templates.getOrDefault(AnimationType.DEATH, "")
-//            return
-//        }
-//
-//        if (entity is FlyingAnimal) {
-//            manager.currentAnimation = templates.getOrDefault(AnimationType.FLY, "")
-//            return
-//        }
-//
-//        if (entity.isSleeping) {
-//            manager.currentAnimation = templates.getOrDefault(AnimationType.SLEEP, "")
-//            return
-//        }
-//
-//        if (entity.swinging) {
-////            val anim = AnimationLoader.createAnimation(
-////                renderedScene.gl!!.model?.gltfModel ?: return,
-////                templates.getOrDefault(AnimationType.SWING, "")
-////            ) ?: return
-//            //manager.addLayer(anim)
-//            return
-//        }
-//
-//        entity.vehicle?.let {
-//            manager.currentAnimation = templates.getOrDefault(AnimationType.SIT, "")
-//            return
-//        }
-//
-//        if (entity.fallFlyingTicks > 4) {
-//            manager.currentAnimation = templates.getOrDefault(AnimationType.FALL, "")
-//            return
-//        }
-//
-//        manager.currentAnimation = if (entity.animationSpeed > 0.01) {
-//            templates.getOrDefault(
-//                if (entity.isVisuallySwimming) AnimationType.SWIM
-//                else if (entity.animationSpeed > 1.5f) AnimationType.RUN
-//                else if (entity.isShiftKeyDown) AnimationType.WALK_SNEAKED
-//                else AnimationType.WALK, ""
-//            )
-//        } else {
-//            templates.getOrDefault(
-//                if (entity.isShiftKeyDown) AnimationType.IDLE_SNEAKED else AnimationType.IDLE,
-//                ""
-//            )
-//        }
-//    }
+    private fun preRender(entity: T, manager: ClientModelManager, stack: PoseStack, partialTick: Float) {
+        val capability = entity.getCapability(CapabilityStorage.getCapability(AnimatedEntityCapability::class.java))
+            .orElseThrow { IllegalStateException("AnimatedEntityCapability is missing") }
+        stack.mulPoseMatrix(capability.transform.matrix)
+        stack.mulPose(Vector3f.YP.rotationDegrees(180f))
+
+        manager.updateEntity(entity)
+
+        updateAnimations(entity, manager, capability.customAnimations)
+        manager.update(partialTick)
+    }
+
+    private fun updateAnimations(entity: T, manager: GLTFAnimationManager, overrides: Map<AnimationType, String>) {
+        val templates = manager.templates + overrides
+
+        if (!entity.isAlive) {
+            manager.currentAnimation = templates.getOrDefault(AnimationType.DEATH, "")
+            return
+        }
+
+        if (entity is FlyingAnimal) {
+            manager.currentAnimation = templates.getOrDefault(AnimationType.FLY, "")
+            return
+        }
+
+        if (entity.isSleeping) {
+            manager.currentAnimation = templates.getOrDefault(AnimationType.SLEEP, "")
+            return
+        }
+
+        if (entity.swinging) {
+//            val anim = AnimationLoader.createAnimation(
+//                renderedScene.gl!!.model?.gltfModel ?: return,
+//                templates.getOrDefault(AnimationType.SWING, "")
+//            ) ?: return
+            //manager.addLayer(anim)
+            return
+        }
+
+        entity.vehicle?.let {
+            manager.currentAnimation = templates.getOrDefault(AnimationType.SIT, "")
+            return
+        }
+
+        if (entity.fallFlyingTicks > 4) {
+            manager.currentAnimation = templates.getOrDefault(AnimationType.FALL, "")
+            return
+        }
+
+        manager.currentAnimation = if (entity.animationSpeed > 0.01) {
+            templates.getOrDefault(
+                if (entity.isVisuallySwimming) AnimationType.SWIM
+                else if (entity.animationSpeed > 1.5f) AnimationType.RUN
+                else if (entity.isShiftKeyDown) AnimationType.WALK_SNEAKED
+                else AnimationType.WALK, ""
+            )
+        } else {
+            templates.getOrDefault(
+                if (entity.isShiftKeyDown) AnimationType.IDLE_SNEAKED else AnimationType.IDLE,
+                ""
+            )
+        }
+    }
 }

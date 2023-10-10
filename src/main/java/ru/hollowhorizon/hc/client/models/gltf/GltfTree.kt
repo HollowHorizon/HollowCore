@@ -5,9 +5,11 @@ import com.mojang.math.Matrix4f
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
 import com.mojang.math.Vector4f
+import net.minecraft.client.renderer.RenderStateShard.EmptyTextureStateShard
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.toIS
 import java.io.*
 import java.nio.ByteBuffer
@@ -316,13 +318,27 @@ object GltfTree {
         val animations: List<Animation>,
         val textures: Set<ResourceLocation>,
         val extra: Any?,
-    )
+    ) {
+        fun walkNodes(): List<Node> {
+            val nodes = mutableListOf<Node>()
+            fun walk(node: Node) {
+                nodes += node
+                node.children.forEach { walk(it) }
+            }
+            scenes.flatMap { it.nodes }.forEach(::walk)
+            return nodes
+        }
+
+        fun findNodeByIndex(index: Int): Node? {
+            return walkNodes().find { it.index == index }
+        }
+    }
 
     data class Scene(
         val nodes: List<Node>,
     )
 
-    data class Node(
+    class Node(
         val index: Int,
         val children: List<Node>,
         val transform: Transformation,
@@ -333,6 +349,13 @@ object GltfTree {
         var parent: Node? = null
 
         fun getMatrix() = transform.getMatrix()
+
+        fun computeMatrix(): Matrix4f {
+            val matrix = getMatrix()
+            if (parent != null) matrix.multiply(parent!!.computeMatrix())
+            return matrix
+        }
+
     }
 
     data class Skin(
@@ -358,23 +381,25 @@ object GltfTree {
         val material: ResourceLocation,
     )
 
+    @Suppress("UNCHECKED_CAST")
     data class Buffer(
         val type: GltfType,
         val componentType: GltfComponentType,
         val data: List<Any>,
         val byteStride: Int,
-        val byteOffset: Int
+        val byteOffset: Int,
     ) {
-        @Suppress("UNCHECKED_CAST")
         fun <T> get() = data as List<T>
+
+        fun <T> get(index: Int) = data[index] as T
 
         fun buffer(): ByteBuffer {
             val buffer = ByteBuffer.allocate(data.size * componentType.size)
-            when(componentType) {
+            when (componentType) {
                 GltfComponentType.BYTE -> get<Byte>().forEach(buffer::put)
                 GltfComponentType.UNSIGNED_BYTE -> get<Byte>().forEach(buffer::put)
                 GltfComponentType.SHORT -> get<Short>().forEach(buffer::putShort)
-                GltfComponentType.UNSIGNED_SHORT ->get<Short>().forEach(buffer::putShort)
+                GltfComponentType.UNSIGNED_SHORT -> get<Short>().forEach(buffer::putShort)
                 GltfComponentType.UNSIGNED_INT -> get<Int>().forEach(buffer::putInt)
                 GltfComponentType.FLOAT -> get<Float>().forEach(buffer::putFloat)
             }
@@ -395,4 +420,10 @@ object GltfTree {
         val interpolation: GltfInterpolation,
         val values: List<Any>,
     )
+}
+
+fun main() {
+    val tree = GltfTree.parse("hc:models/entity/hilda_regular.glb".rl)
+
+    println(tree)
 }
