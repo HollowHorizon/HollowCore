@@ -1,11 +1,16 @@
 modLoader = "javafml"
 loaderVersion = "[43,)"
 license = "MIT License"
+logoFile="hollow_core_logo.png"
+authors="HollowHorizon"
+credits="Anyone who has contributed on Github or supports the mod development."
 [[mods]]
 modId = "hc"
 version = "${file.jarVersion}"
 displayName = "HollowCore"
 description = '''
+HollowCore is a minecraft modding library by HollowHorizon.
+It is designed to be a lightweight, easy to use, and powerful library for more easily creating minecraft mods.
 '''
 [[dependencies.hc]]
 modId = "forge"

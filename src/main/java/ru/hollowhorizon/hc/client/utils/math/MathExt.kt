@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.client.utils.math
 import com.mojang.blaze3d.vertex.BufferBuilder
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Vector3f
+import com.mojang.math.Vector4f
 import ru.hollowhorizon.hc.client.utils.RGBA
 
 /**
@@ -55,6 +56,48 @@ operator fun Vector3f.times(scale: Float): Vector3f {
 
 operator fun Vector3f.unaryMinus(): Vector3f {
     return Vector3f(-this.x(), -this.y(), -this.z())
+}
+
+operator fun Vector4f.plusAssign(vector: Vector4f) {
+    this.add(vector.x(), vector.y(), vector.z(), vector.w())
+}
+
+operator fun Vector4f.minusAssign(vector: Vector4f) {
+    this.setX(x() - vector.x())
+    this.setY(y() - vector.y())
+    this.setZ(z() - vector.z())
+    this.setW(w() - vector.w())
+}
+
+operator fun Vector4f.timesAssign(vector: Vector4f) {
+    this.setX(x() * vector.x())
+    this.setY(y() * vector.y())
+    this.setZ(z() * vector.z())
+    this.setW(w() * vector.w())
+}
+
+operator fun Vector4f.timesAssign(scale: Float) {
+    this.mul(scale)
+}
+
+operator fun Vector4f.plus(vector: Vector4f): Vector4f {
+    return Vector4f(this.x() + vector.x(), this.y() + vector.y(), this.z() + vector.z(), this.w() + vector.w())
+}
+
+operator fun Vector4f.minus(vector: Vector4f): Vector4f {
+    return Vector4f(this.x() - vector.x(), this.y() - vector.y(), this.z() - vector.z(), this.w() - vector.w())
+}
+
+operator fun Vector4f.times(vector: Vector4f): Vector4f {
+    return Vector4f(this.x() * vector.x(), this.y() * vector.y(), this.z() * vector.z(), this.w() * vector.w())
+}
+
+operator fun Vector4f.times(scale: Float): Vector4f {
+    return Vector4f(this.x() * scale, this.y() * scale, this.z() * scale, this.w() * scale)
+}
+
+operator fun Vector4f.unaryMinus(): Vector4f {
+    return Vector4f(-this.x(), -this.y(), -this.z(), -this.w())
 }
 
 /**

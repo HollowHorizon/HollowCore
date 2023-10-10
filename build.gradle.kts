@@ -1,44 +1,34 @@
-import com.github.jengelman.gradle.plugins.shadow.relocation.SimpleRelocator
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import net.minecraftforge.gradle.common.util.RunConfig
 import net.minecraftforge.gradle.userdev.UserDevExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import net.minecraftforge.gradle.userdev.DependencyManagementExtension
-//^(.+)$(?=[\s\S]*^(\1)$[\s\S]*)
-buildscript {
-    repositories {
-        maven { url = uri("https://repo.spongepowered.org/repository/maven-public/") }
-        maven { url = uri("https://maven.parchmentmc.org") }
-        mavenCentral()
-    }
-    dependencies {
-        //classpath("net.minecraftforge.gradle:ForgeGradle:5+") { isChanging = true }
-        classpath("org.parchmentmc:librarian:1.+")
-        classpath("org.spongepowered:mixingradle:0.7.38")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
-        classpath("com.github.johnrengelman:shadow:8+")
-    }
-}
+
+val minecraft_version: String by project
+val forge_version: String by project
+val mod_id: String by project
+val mod_group: String by project
+val mod_version: String by project
+val mappings_version: String by project
+val mod_author: String by project
+
+buildscript { dependencies { classpath("org.spongepowered:mixingradle:0.7.38") } }
 
 plugins {
-    id("net.minecraftforge.gradle") version "[6.0,6.2)"
-    id("org.jetbrains.kotlin.jvm").version("1.9.0")
-    id("org.jetbrains.kotlin.plugin.serialization").version("1.9.0")
+    id("net.minecraftforge.gradle")
+    id("org.parchmentmc.librarian.forgegradle")
+    id("org.jetbrains.kotlin.jvm") version "1.8.21"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.8.21"
+    id("com.github.johnrengelman.shadow") version "8+"
+    `maven-publish`
 }
 
-apply {
-    plugin("kotlin")
-    plugin("maven-publish")
-    plugin("net.minecraftforge.gradle")
-    plugin("org.spongepowered.mixin")
-    plugin("org.parchmentmc.librarian.forgegradle")
-    plugin("com.github.johnrengelman.shadow")
-}
+apply(plugin="org.spongepowered.mixin")
 
-group = "ru.hollowhorizon"
-version = "1.1.0"
-project.setProperty("archivesBaseName", "hc")
+group = mod_group
+version = mod_version
+project.setProperty("archivesBaseName", mod_id)
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
@@ -50,145 +40,153 @@ tasks.withType<KotlinCompile> {
 }
 
 configure<UserDevExtension> {
-    //copyIdeResources.set(true)
-
-    mappings("parchment", "2022.11.27-1.19.2")
+    mappings("parchment", "$mappings_version-$minecraft_version")
 
     accessTransformer("src/main/resources/META-INF/accesstransformer.cfg")
 
-    runs.create("client") {
+    val defaultConfig = Action<RunConfig>{
         workingDirectory(project.file("run"))
-        property("forge.logging.markers", "REGISTRIES") // eg: SCAN,REGISTRIES,REGISTRYDUMP
-        property("forge.logging.console.level", "debug")
+        properties(mapOf(
+            "forge.logging.markers" to "REGISTRIES",
+            "forge.logging.console.level" to "debug"
+        ))
         jvmArg("-XX:+AllowEnhancedClassRedefinition")
-        arg("-mixin.config=hc.mixins.json")
-        mods.create("hc") {
+        arg("-mixin.config=$mod_id.mixins.json")
+        mods.create(mod_id) {
             source(the<JavaPluginExtension>().sourceSets.getByName("main"))
         }
     }
 
-    runs.create("server") {
-        workingDirectory(project.file("run"))
-        property("forge.logging.markers", "REGISTRIES") // eg: SCAN,REGISTRIES,REGISTRYDUMP
-        property("forge.logging.console.level", "debug")
-        arg("-mixin.config=hc.mixins.json")
-        jvmArg("-XX:+AllowEnhancedClassRedefinition")
-        mods.create("hc") {
-            source(the<JavaPluginExtension>().sourceSets.getByName("main"))
-        }
-    }
+    runs.create("client", defaultConfig)
+    runs.create("server", defaultConfig)
 
     runs.all {
         lazyToken("minecraft_classpath") {
-            configurations["library"].copyRecursive().resolve().joinToString(File.pathSeparator) { it.absolutePath }
+            shadowJar.get().archiveFile.get().asFile.absolutePath
         }
     }
 }
-
 
 repositories {
     mavenCentral()
     maven { url = uri("https://jitpack.io") }
+    maven { url = uri("https://thedarkcolour.github.io/KotlinForForge/") }
+    flatDir { dir("libs") }
 }
 
-val quasar = configurations.create("quasar")
+val shadeKotlin by configurations.creating
 val library = configurations.create("library")
 
 configurations {
-    implementation.get().extendsFrom(library)
-    library.extendsFrom(quasar)
+    compileOnly.get().extendsFrom(library)
+    library.extendsFrom(shadeKotlin)
     library.extendsFrom(this["shadow"])
 }
 
 dependencies {
     val minecraft = configurations["minecraft"]
     val shadow = configurations["shadow"]
-    val fg = project.extensions.findByType(DependencyManagementExtension::class.java)!!
 
-    minecraft("net.minecraftforge:forge:1.19.2-43.2.21")
+    minecraft("net.minecraftforge:forge:$minecraft_version-$forge_version")
 
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
 
-    shadow("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0")
-    shadow("org.jetbrains.kotlin:kotlin-stdlib-common:1.9.0")
+    shadow("gnu.trove:trove:1.0.2")
+    implementation("thedarkcolour:kotlinforforge:3.12.0")
 
-    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.9.0")
-    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm:1.9.0")
+    val withoutKotlinStd: ExternalModuleDependency.() -> Unit = {
+        exclude("gnu.trove", "trove")
+        exclude("org.jetbrains.kotlin", "kotlin-stdlib")
+        exclude("org.jetbrains.kotlin", "kotlin-stdlib-common")
+        exclude("org.jetbrains.kotlin", "kotlin-reflect")
+        exclude("org.jetbrains.kotlin", "kotlinx-coroutines-core")
+        exclude("org.jetbrains.kotlin", "kotlinx-coroutines-core-jvm")
+        exclude("org.jetbrains.kotlin", "kotlinx-coroutines-jdk8")
+        exclude("org.jetbrains.kotlin", "kotlinx-serialization-core")
+        exclude("org.jetbrains.kotlin", "kotlinx-serialization-json")
+    }
+    shadeKotlin("org.jetbrains.kotlin:kotlin-scripting-jvm:1.8.21", withoutKotlinStd)
+    shadeKotlin("org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.8.21", withoutKotlinStd)
+    shadeKotlin("org.jetbrains.kotlin:kotlin-script-runtime:1.8.21", withoutKotlinStd)
+    shadeKotlin("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.8.21", withoutKotlinStd)
+    shadeKotlin("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.8.21", withoutKotlinStd)
+    shadeKotlin("org.jetbrains:annotations:23.0.0")
 
-    shadow("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.9.0")
-    shadow("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.0")
-
-    shadow("org.jetbrains.kotlin:kotlin-script-runtime:1.9.0")
-
-    shadow("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    shadow("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.4")
-    shadow("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
-    shadow("org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.0")
     shadow("com.esotericsoftware:kryo:5.4.0")
-
-    shadow("trove:trove:1.0.2")
 }
-
-val copyJar by tasks.registering(Copy::class) {
-    from("build/libs/hc-1.1.0.jar")
-    into("C:\\Users\\user\\Twitch\\Minecraft\\Instances\\Instances\\test1\\mods")
-    into("../HS/hc")
-}
-
-tasks.getByName("build").dependsOn("shadowJar")
 
 if (System.getProperty("user.name").equals("user")) {
     tasks.getByName("shadowJar").finalizedBy("copyJar")
 }
 
-tasks.getByName<ShadowJar>("shadowJar") {
-    //archiveFileName.set("hollowcore")
-
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    configurations = listOf(project.configurations.getByName("shadow"))
-
-    val shadowPackages = listOf(
-        "gnu.trove"
+fun Jar.createManifest() = manifest {
+    attributes(
+        mapOf(
+            "Automatic-Module-Name" to mod_id,
+            "Specification-Title" to mod_id,
+            "Specification-Vendor" to mod_author,
+            "Specification-Version" to "1",
+            "Implementation-Title" to project.name,
+            "Implementation-Version" to version,
+            "Implementation-Vendor" to mod_author,
+            "Implementation-Timestamp" to ZonedDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")),
+            "MixinConfigs" to "$mod_id.mixins.json"
+        ),
+        "$mod_author/${project.name}/"
     )
+}
 
-    shadowPackages.forEach {
-        relocate(it, "ru.hollowhorizon.repack.$it")
+val jar = tasks.named<Jar>("jar") {
+    archiveClassifier.set("original")
+    createManifest()
+    finalizedBy("reobfJar")
+}
+
+val shadowJar = tasks.named<ShadowJar>("shadowJar") {
+    archiveClassifier.set("")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    configurations = listOf(library)
+
+    exclude("META-INF/versions/**")
+
+    dependencies {
+        exclude(dependency("net.java.dev.jna:jna"))
     }
 
-    //Нужно переименовать все пакеты с названием "native" в "notnative" потому что JDK отказывается загружать пакеты с такими именами
-    relocate(HollowRelocator("native", "notnative", ArrayList<String>(), ArrayList<String>(), true))
+    relocate("org.jetbrains.kotlin.fir.analysis.native", "org.jetbrains.kotlin.fir.analysis.notnative")
+    relocate(
+        "org.jetbrains.kotlin.fir.analysis.diagnostics.native",
+        "org.jetbrains.kotlin.fir.analysis.diagnostics.notnative"
+    )
 
-    archiveClassifier.set("")
+    val packages = listOf(
+        "gnu.trove",
+        //"org.jetbrains.kotlin",
+        //"kotlin",
+        //"kotlinx"
+    )
 
-    mergeServiceFiles()
+    packages.forEach { relocate(it, "ru.hollowhorizon.repack.$it") }
+
     exclude("**/module-info.class")
+
+    createManifest()
 
     finalizedBy("reobfShadowJar")
 }
 
 (extensions["reobf"] as NamedDomainObjectContainer<*>).create("shadowJar")
+tasks.getByName("build").dependsOn("shadowJar")
 
-tasks.getByName<Jar>("jar") {
-    archiveClassifier.set("original")
-    //archiveFileName.set("hollowcore")
-
-    manifest {
-        attributes(
-            mapOf(
-                "Specification-Title" to "HollowCore",
-                "Specification-Vendor" to "HollowHorizon",
-                "Specification-Version" to "1", // We are version 1 of ourselves
-                "Implementation-Title" to project.name,
-                "Implementation-Version" to version,
-                "Implementation-Vendor" to "HollowHorizon",
-                "Implementation-Timestamp" to ZonedDateTime.now()
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")),
-                "MixinConfigs" to "hc.mixins.json"
-            )
-        )
+tasks {
+    whenTaskAdded {
+        if (name == "prepareRuns") dependsOn(shadowJar)
     }
-
-    finalizedBy("reobfJar")
 }
 
+val copyJar by tasks.registering(Copy::class) {
+    from(shadowJar.flatMap(Jar::getArchiveFile).get().asFile)
+    into("C:\\Users\\user\\Twitch\\Minecraft\\Instances\\Instances\\test1\\mods")
+    into("../HS/hc")
+}

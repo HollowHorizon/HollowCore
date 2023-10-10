@@ -7,8 +7,6 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.capabilities.CapabilityProvider
 import net.minecraftforge.event.AttachCapabilitiesEvent
-import org.jetbrains.kotlin.utils.addToStdlib.UnsafeCastFunction
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import ru.hollowhorizon.hc.client.utils.toRL
 
 object CapabilityStorage {
@@ -16,9 +14,8 @@ object CapabilityStorage {
     val playerCapabilities = arrayListOf<Capability<*>>()
     val providers = hashSetOf<Pair<Class<*>, (CapabilityProvider<*>) -> CapabilityInstance>>()
 
-    @OptIn(UnsafeCastFunction::class)
     fun getCapabilitiesForPlayer(): List<Capability<CapabilityInstance>> {
-        return playerCapabilities.cast()
+        return playerCapabilities as List<Capability<CapabilityInstance>>
     }
 
     @JvmStatic

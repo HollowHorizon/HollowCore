@@ -1,60 +1,64 @@
 package ru.hollowhorizon.hc.common.scripting.kotlin
 
+import cpw.mods.modlauncher.TransformingClassLoader
 import net.minecraftforge.fml.ModList
 import net.minecraftforge.fml.loading.FMLLoader
-import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.utils.isIdeMode
+import ru.hollowhorizon.hc.client.utils.isProduction
 import java.io.File
-import java.nio.file.FileSystems
 import kotlin.io.path.absolutePathString
+import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.FileBasedScriptSource
 import kotlin.script.experimental.host.FileScriptSource
+import kotlin.script.experimental.host.ScriptingHostConfiguration
+import kotlin.script.experimental.host.getScriptingClass
+import kotlin.script.experimental.jvm.JvmGetScriptingClass
 import kotlin.script.experimental.jvm.dependenciesFromClassContext
 import kotlin.script.experimental.jvm.jvm
 import kotlin.script.experimental.jvm.updateClasspath
+import kotlin.script.experimental.jvm.util.classpathFromClassloader
 
 class HollowScriptConfiguration : AbstractHollowScriptConfiguration({})
+
+@KotlinScript(
+    "HollowScript", "hs.kts", compilationConfiguration = HollowScriptConfiguration::class
+)
+abstract class HollowScript
+
+class AbstractHollowScriptHost : ScriptingHostConfiguration({
+    getScriptingClass(JvmGetScriptingClass())
+    classpathFromClassloader(TransformingClassLoader.getSystemClassLoader())
+})
 
 abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : ScriptCompilationConfiguration({
     body()
 
     jvm {
         val stdLib =
-            if (!isIdeMode && FMLLoader.isProduction()) ModList.get()
-                .getModFileById("hc").file.filePath.toFile().absolutePath
-            else File("C:\\Users\\user\\Desktop\\papka_with_papkami\\MyJavaProjects\\HollowCore\\build\\libs\\hc-1.1.0.jar").absolutePath
-        System.setProperty(
-            "kotlin.java.stdlib.jar",
-            stdLib
-        )
+            if (isProduction) ModList.get().getModFileById("hc").file.filePath.toFile().absolutePath
+            else File("C:\\Users\\user\\Desktop\\papka_with_papkami\\MyJavaProjects\\HollowCore\\build\\libs\\hc-deps-kotlin-1.9.0.jar").absolutePath
+        System.setProperty("kotlin.java.stdlib.jar", stdLib)
 
         val files = HashSet<File>()
-        if (!isIdeMode && FMLLoader.isProduction()) {
-            files.addAll(ModList.get().modFiles.map { it.file.filePath.toFile() })
 
-            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherModPaths.flatten().map { it.toFile() })
-            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherArtifacts.map { it.toFile() })
+        files.addAll(ModList.get().mods.map { File(it.owningFile.file.filePath.absolutePathString()) })
+        FMLLoader.getGamePath().resolve("mods").toFile().listFiles()?.forEach(files::add)
+        files.addAll(
+            FMLLoader.getLaunchHandler().minecraftPaths.otherModPaths.flatten().map { File(it.absolutePathString()) })
+        files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherArtifacts.map { File(it.absolutePathString()) })
+        files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map { File(it.absolutePathString()) })
 
-            files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map {
-                HollowCore.LOGGER.info("Trying to add dependency from ${it.absolutePathString()}, will success: ${it.fileSystem === FileSystems.getDefault()}")
-                File(it.absolutePathString())
-            })
-
+        if (isProduction) {
             dependenciesFromClassContext(
                 HollowScriptConfiguration::class,
                 wholeClasspath = true
             )
         } else {
-            if (isIdeMode) {
-                files.addAll(
-                    File("C:\\Users\\user\\Twitch\\Minecraft\\Instances\\Instances\\test1\\intellij_idea.classpath").readLines()
-                        .map { File(it) })
-            }
             dependenciesFromClassContext(HollowScriptConfiguration::class, wholeClasspath = true)
         }
 
-        updateClasspath(files.sortedBy { it.absolutePath })
+        files.removeIf { it.isDirectory }
+        updateClasspath(files.distinct().sortedBy { it.absolutePath.also(::println) })
 
         compilerOptions(
             "-opt-in=kotlin.time.ExperimentalTime,kotlin.ExperimentalStdlibApi",
@@ -72,9 +76,7 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
         onAnnotations(Import::class, handler = HollowScriptConfigurator())
     }
 
-    ide {
-        acceptedLocations(ScriptAcceptedLocation.Everywhere)
-    }
+    ide { acceptedLocations(ScriptAcceptedLocation.Everywhere) }
 })
 
 class HollowScriptConfigurator : RefineScriptCompilationConfigurationHandler {

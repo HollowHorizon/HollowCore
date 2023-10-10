@@ -28,9 +28,10 @@ import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
-import ru.hollowhorizon.hc.client.gltf.model.GltfManager;
+//import ru.hollowhorizon.hc.client.gltf.model.GltfManager;
 import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
+import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager;
 import ru.hollowhorizon.hc.client.render.OpenGLUtils;
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
@@ -45,6 +46,7 @@ import ru.hollowhorizon.hc.common.registry.HollowModProcessor;
 import ru.hollowhorizon.hc.common.registry.ModEntities;
 import ru.hollowhorizon.hc.common.registry.ModShaders;
 import ru.hollowhorizon.hc.common.registry.RegistryLoader;
+import ru.hollowhorizon.hc.common.scripting.ScriptingCompilerKt;
 
 
 @HollowMod(HollowCore.MODID)
@@ -56,6 +58,7 @@ public class HollowCore {
     public static final boolean DEBUG_MODE = true;
 
     public HollowCore() {
+        ScriptingCompilerKt.main();
         HollowModProcessor.initMod();
         LOGGER.info("Starting HollowCore...");
 
@@ -69,7 +72,7 @@ public class HollowCore {
         //GltfModelSources.INSTANCE.addSource(new PathSource(FMLPaths.GAMEDIR.get().resolve("hollowengine")));
 
         if (FMLEnvironment.dist.isClient()) {
-            new GltfManager();
+            //new GltfManager();
             //клавиши
             forgeBus.register(new HollowKeyHandler());
             forgeBus.addListener(HollowKeyHandler::onKeyInput);
@@ -78,7 +81,7 @@ public class HollowCore {
             forgeBus.addListener(ClientTickHandler::clientTickEnd);
 
             //модели
-            //new GlTFModelManager();
+            modBus.addListener(GltfManager::onReload);
             //modBus.addListener(GlTFModelManager::clientSetup);
             modBus.addListener(this::onRendererCreating);
 

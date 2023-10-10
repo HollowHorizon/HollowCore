@@ -4,17 +4,14 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
-import com.google.gson.annotations.SerializedName
 import com.mojang.math.Matrix4f
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
 import com.mojang.math.Vector4f
-import kotlinx.serialization.Serializable
-import net.minecraft.resources.ResourceLocation
-import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
 import ru.hollowhorizon.hc.client.utils.rl
 import java.io.InputStream
 import java.lang.reflect.Type
+import java.nio.Buffer
 
 private typealias JsObject = Map<String, Any>
 
@@ -61,31 +58,13 @@ object GltfDefinition {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        val modelLocation = "hc:models/entity/npc.geo.gltf".rl
-        val file = parse(HollowJavaUtils.getResource(modelLocation))
+        val modelLocation = "hc:models/entity/hilda_regular.glb".rl
+        val file = GltfTree.parse(modelLocation)
 
-        fun retrieveFile(path: String): InputStream {
-            if (path.startsWith("data:application/octet-stream;base64,")) {
-                return java.util.Base64.getDecoder().wrap(path.substring(37).byteInputStream())
-            }
-            if (path.startsWith("data:image/png;base64,")) {
-                return java.util.Base64.getDecoder().wrap(path.substring(22).byteInputStream())
-            }
-
-            val basePath = modelLocation.path.substringBeforeLast('/', "")
-            val loc = ResourceLocation(modelLocation.namespace, if (basePath.isEmpty()) path else "$basePath/$path")
-
-            return HollowJavaUtils.getResource(loc)
-        }
-
-        val data = GltfTree.parse(file, modelLocation, ::retrieveFile)
-
-        println(data)
+        println(file)
     }
 }
 
-@Serializable
-class test(val v: () -> Unit)
 
 
 data class GltfFile(
@@ -109,6 +88,14 @@ data class GltfFile(
     val extensions: JsObject? = null,
     val extras: Any? = null,
 ) {
+    companion object {
+        const val GLB_FILE_MAGIC = 0x46546c67 // String: "glTF"
+        const val GLB_CHUNK_MAGIC_JSON = 0x4e4f534a // String: "JSON"
+        const val GLB_CHUNK_MAGIC_BIN = 0x004e4942 // String: "BIN"
+    }
+
+    var binaryBuffer: List<ByteArray>? = null
+
     override fun toString(): String {
         return "glTF(\n" +
                 "  extensionsUsed = $extensionsUsed, \n" +
@@ -263,9 +250,8 @@ data class GltfSampler(
 
 data class GltfMaterial(
     val name: String? = null,
-    val extensions: String? = null,
+    val extensions: Any? = null,
     val extras: Any? = null,
-    @SerializedName(value = "pbrMetallicRoughness", alternate = ["extras"])
     val pbrMetallicRoughness: GltfPbrMetallicRoughness? = null,
     val normalTexture: GltfNormalTextureInfo? = null,
     val occlusionTexture: GltfOcclusionTextureInfo? = null,
@@ -363,7 +349,7 @@ enum class GltfAlphaMode {
 }
 
 enum class GltfAttribute {
-    POSITION, NORMAL, TANGENT, TEXCOORD_0, TEXCOORD_1, COLOR_0, JOINTS_0, WEIGHTS_0
+    POSITION, NORMAL, TANGENT, TEXCOORD_0, TEXCOORD_1, COLOR_0, JOINTS_0, JOINTS_1, WEIGHTS_0
 }
 
 enum class GltfComponentType(val id: Int, val size: Int) {
@@ -404,7 +390,7 @@ enum class GltfMode(val code: Int) {
     POLYGON(0x9);
 
     companion object {
-        val conversionMap: Map<Int, GltfMode> = GltfMode.values().associateBy { it.code }
+        private val conversionMap: Map<Int, GltfMode> = values().associateBy { it.code }
 
         fun fromId(value: Int) = conversionMap[value] ?: error("Invalid GL mode: $value")
     }
