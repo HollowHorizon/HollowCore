@@ -111,7 +111,7 @@ fun Vector4f.array(): FloatArray {
 }
 
 enum class AnimationType {
-    IDLE, IDLE_SNEAKED, WALK, WALK_SNEAKED,
+    IDLE, IDLE_SNEAKED, WALK, WALK_SNEAKED, HURT,
     RUN, SWIM, FALL, FLY, SIT, SLEEP, SWING, DEATH;
 
     companion object {
@@ -134,6 +134,7 @@ enum class AnimationType {
                     else -> 4
                 }
             } ?: ""
+            animations[HURT] = names.findOr("hurt", "damage") ?: ""
             animations[WALK_SNEAKED] = names.findAnd("walk", "sneak") ?: animations[WALK] ?: ""
             animations[RUN] = names.findOr("run", "flee", "dash") ?: animations[WALK] ?: ""
             animations[SWIM] = names.findOr("swim") ?: animations[WALK] ?: ""

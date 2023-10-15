@@ -67,6 +67,11 @@ object ScriptingCompiler {
         }
     }
 
+    fun shouldRecompile(script: File): Boolean {
+        val compiledJar = script.parentFile.resolve(script.name + ".jar")
+        return compiledJar.exists() && compiledJar.loadScriptHashCode() != script.readText().hashCode().toString()
+    }
+
     fun KJvmCompiledScript.saveScriptToJar(outputJar: File, hash: String) {
         HollowCore.LOGGER.info("saving script jar to: {}", outputJar.absolutePath)
         // Get the compiled module, which contains the output files

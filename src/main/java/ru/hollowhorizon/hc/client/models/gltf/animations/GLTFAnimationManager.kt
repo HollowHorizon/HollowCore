@@ -52,7 +52,7 @@ open class GLTFAnimationManager(val model: GltfModel) {
             it.shouldRemove
         }
 
-        nodeModels.forEach { node ->
+        nodeModels.parallelStream().forEach { node ->
             bindPose.apply(node, 0.0f) //Попробуем сбросить положение модели перед анимацией
 
             //для каждого канала в анимации (перемещение, поворот, размер, веса)

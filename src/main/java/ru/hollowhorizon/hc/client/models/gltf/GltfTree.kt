@@ -1,17 +1,18 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
-import com.mojang.math.Matrix3f
-import com.mojang.math.Matrix4f
-import com.mojang.math.Quaternion
-import com.mojang.math.Vector3f
-import com.mojang.math.Vector4f
-import net.minecraft.client.renderer.RenderStateShard.EmptyTextureStateShard
+import com.mojang.blaze3d.platform.NativeImage
+import com.mojang.math.*
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.toIS
-import java.io.*
+import java.io.ByteArrayInputStream
+import java.io.DataInputStream
+import java.io.EOFException
+import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -35,12 +36,32 @@ object GltfTree {
         val bufferViews = parseBufferViews(file, buffers)
         val accessors = parseAccessors(file, bufferViews)
         val textures = mutableSetOf<ResourceLocation>()
-        val meshes = parseMeshes(file, accessors, location, textures)
+        val meshes = parseMeshes(file, accessors, location, textures, folder)
         val skins = parseSkins(file, accessors)
         val scenes = parseScenes(file, meshes, skins)
+        connectNodes(skins, scenes)
         val animations = parseAnimations(file, accessors)
 
         return GLTFTree(file.scene ?: 0, scenes, animations, textures, file.extras)
+    }
+
+    private fun connectNodes(skins: List<Skin>, scenes: List<Scene>) {
+        skins.forEach { skin ->
+            skin.jointsIds.forEachIndexed { j, id ->
+                fun walkNodes(): List<Node> {
+                    val nodes = mutableListOf<Node>()
+                    fun walk(node: Node) {
+                        nodes += node
+                        node.children.forEach { walk(it) }
+                    }
+                    scenes.flatMap { it.nodes }.forEach(::walk)
+                    return nodes
+                }
+
+                skin.joints[j] = walkNodes().find { it.index == id }
+                    ?: throw IllegalStateException("Node with id $id not found! Available: ${walkNodes().map { it.index }}")
+            }
+        }
     }
 
     fun parse(location: ResourceLocation): GLTFTree {
@@ -210,7 +231,7 @@ object GltfTree {
 
     private fun parseMeshes(
         file: GltfFile, accessors: List<Buffer>,
-        location: ResourceLocation, textures: MutableSet<ResourceLocation>,
+        location: ResourceLocation, textures: MutableSet<ResourceLocation>, folder: (String) -> InputStream,
     ): List<Mesh> {
         return file.meshes.map { mesh ->
             val primitives = mesh.primitives.map { prim ->
@@ -222,7 +243,8 @@ object GltfTree {
                 val indices = prim.indices?.let { accessors[it] }
                 val mode = GltfMode.fromId(prim.mode)
 
-                val material = getMaterial(file, prim.material, location) ?: TextureManager.INTENTIONAL_MISSING_TEXTURE
+                val material =
+                    getMaterial(file, prim.material, location, folder) ?: TextureManager.INTENTIONAL_MISSING_TEXTURE
                 textures += material
 
                 Primitive(attr, indices, mode, material)
@@ -232,7 +254,12 @@ object GltfTree {
         }
     }
 
-    private fun getMaterial(file: GltfFile, mat: Int?, location: ResourceLocation): ResourceLocation? {
+    private fun getMaterial(
+        file: GltfFile,
+        mat: Int?,
+        location: ResourceLocation,
+        folder: (String) -> InputStream,
+    ): ResourceLocation? {
         if (mat == null) return null
         val material = file.materials[mat]
         val texture = material.pbrMetallicRoughness?.baseColorTexture?.index ?: return null
@@ -241,7 +268,16 @@ object GltfTree {
 
         // If the texture path is a resource location, no extra processing is done
         if (texturePath.contains(':')) {
-            if (!ResourceLocation.isValidResourceLocation(texturePath)) return ResourceLocation("base64:value")
+            if (!ResourceLocation.isValidResourceLocation(texturePath)) {
+                if (texturePath.startsWith("data:image/png;base64,")) {
+                    val decoded = folder(texturePath)
+                    val dynamicTexture = DynamicTexture(NativeImage.read(decoded))
+                    return Minecraft.getInstance().textureManager.register("gltf_dynamic_texture", dynamicTexture).also {
+                        HollowCore.LOGGER.info("Creating texture: {}", it)
+                    }
+                }
+                return ResourceLocation("base64:value")
+            }
 
             return ResourceLocation(texturePath)
         }
@@ -351,15 +387,15 @@ object GltfTree {
         fun getMatrix() = transform.getMatrix()
 
         fun computeMatrix(): Matrix4f {
-            val matrix = getMatrix()
-            if (parent != null) matrix.multiply(parent!!.computeMatrix())
+            val matrix = parent?.computeMatrix() ?: Matrix4f().apply(Matrix4f::setIdentity)
+            matrix.multiply(getMatrix())
             return matrix
         }
 
     }
 
     data class Skin(
-        private val jointsIds: List<Int>,
+        val jointsIds: List<Int>,
         val inverseBindMatrices: List<Matrix4f>,
     ) {
         fun getInverseBindMatrix(joint: Int, inverseBindMatrix: FloatArray) {
@@ -367,7 +403,7 @@ object GltfTree {
             inverseBindMatrices[joint].store(buffer)
         }
 
-        val joints = ArrayList<Node>(jointsIds.size)
+        val joints = HashMap<Int, Node>(jointsIds.size)
     }
 
     data class Mesh(

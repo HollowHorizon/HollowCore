@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexFormat
 import com.mojang.math.Vector3f
 import net.minecraft.Util
-import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderStateShard
 import net.minecraft.client.renderer.RenderStateShard.TextureStateShard
@@ -25,15 +24,14 @@ import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.ClientModelManager
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
-import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage
 
 
-class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
+open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimated {
 
     val renderType = Util.memoize { texture: ResourceLocation, data: Boolean ->
-        val compositestate: CompositeState =
+        val state =
             CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
                 .setTextureState(TextureStateShard(texture, false, false))
                 .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setCullState(RenderStateShard.NO_CULL)
@@ -41,7 +39,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                 .createCompositeState(data)
         RenderType.create(
             "hc:gltf_entity", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES,
-            256, true, true, compositestate
+            256, true, true, state
         )
     }
 
@@ -65,8 +63,6 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         val manager = entity.manager as ClientModelManager
         manager.setTick(entity.tickCount)
 
-        val type = getRenderType(entity)
-
         preRender(entity, manager, stack, partialTick)
 
         stack.pushPose()
@@ -76,19 +72,14 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
         model.render(
             stack,
-            source.getBuffer(type),
+            { texture -> source.getBuffer(getRenderType(texture)) },
             packedLight,
             OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
         )
         stack.popPose()
     }
 
-    protected fun getRenderType(
-        entity: T,
-    ): RenderType {
-        val location = getTextureLocation(entity)
-        return renderType.apply(location, true)
-    }
+    protected fun getRenderType(texture: ResourceLocation): RenderType = renderType.apply(texture, true)
 
 
     private fun preRender(entity: T, manager: ClientModelManager, stack: PoseStack, partialTick: Float) {
@@ -111,6 +102,10 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             return
         }
 
+        if(entity.hurtTime > 0) {
+            manager.currentAnimation = templates.getOrDefault(AnimationType.HURT, "")
+        }
+
         if (entity is FlyingAnimal) {
             manager.currentAnimation = templates.getOrDefault(AnimationType.FLY, "")
             return
@@ -126,7 +121,7 @@ class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 //                renderedScene.gl!!.model?.gltfModel ?: return,
 //                templates.getOrDefault(AnimationType.SWING, "")
 //            ) ?: return
-            //manager.addLayer(anim)
+//            manager.addLayer(anim)
             return
         }
 

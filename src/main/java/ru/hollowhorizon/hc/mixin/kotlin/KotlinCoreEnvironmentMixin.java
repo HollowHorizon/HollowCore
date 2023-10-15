@@ -18,8 +18,6 @@ public class KotlinCoreEnvironmentMixin {
      */
     @Redirect(method = "registerApplicationExtensionPointsAndExtensionsFrom", at = @At(value = "INVOKE", target = "Lorg/jetbrains/kotlin/utils/PathUtil;getResourcePathForClass(Ljava/lang/Class;)Ljava/io/File;"), remap = false)
     private File getResourcePathForClass(Class<?> aClass) {
-        HollowCore.LOGGER.info("trying: {}", aClass);
-        if(ForgeKotlinKt.isProduction()) return ModList.get().getModFileById("hc").getFile().getFilePath().toFile();
-        else return new File("C:\\Users\\user\\Desktop\\papka_with_papkami\\MyJavaProjects\\HollowCore\\build\\libs\\hc-deps-kotlin-1.9.20-Beta2.jar");
+        return ModList.get().getModFileById("hc").getFile().getFilePath().toFile();
     }
 }

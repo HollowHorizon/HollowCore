@@ -1,7 +1,7 @@
 {
   "package": "ru.hollowhorizon.hc.mixin",
   "required": true,
-  "refmap": "mixin.refmap.json",
+  "refmap": "hollowcore.refmap.json",
   "target": "@env(DEFAULT)",
   "minVersion": "0.8",
   "compatibilityLevel": "JAVA_17",

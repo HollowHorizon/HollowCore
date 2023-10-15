@@ -34,9 +34,7 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
     body()
 
     jvm {
-        val stdLib =
-            if (isProduction) ModList.get().getModFileById("hc").file.filePath.toFile().absolutePath
-            else File("C:\\Users\\user\\Desktop\\papka_with_papkami\\MyJavaProjects\\HollowCore\\build\\libs\\hc-deps-kotlin-1.9.0.jar").absolutePath
+        val stdLib = ModList.get().getModFileById("hc").file.filePath.toFile().absolutePath
         System.setProperty("kotlin.java.stdlib.jar", stdLib)
 
         val files = HashSet<File>()
@@ -48,14 +46,7 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
         files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherArtifacts.map { File(it.absolutePathString()) })
         files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map { File(it.absolutePathString()) })
 
-        if (isProduction) {
-            dependenciesFromClassContext(
-                HollowScriptConfiguration::class,
-                wholeClasspath = true
-            )
-        } else {
-            dependenciesFromClassContext(HollowScriptConfiguration::class, wholeClasspath = true)
-        }
+        dependenciesFromClassContext(HollowScriptConfiguration::class, wholeClasspath = true)
 
         files.removeIf { it.isDirectory }
         updateClasspath(files.distinct().sortedBy { it.absolutePath.also(::println) })

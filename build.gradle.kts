@@ -2,6 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import net.minecraftforge.gradle.common.util.RunConfig
 import net.minecraftforge.gradle.userdev.UserDevExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.spongepowered.asm.gradle.plugins.MixinExtension
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
@@ -13,7 +14,11 @@ val mod_version: String by project
 val mappings_version: String by project
 val mod_author: String by project
 
-buildscript { dependencies { classpath("org.spongepowered:mixingradle:0.7.38") } }
+buildscript {
+    dependencies {
+        classpath("org.spongepowered:mixingradle:0.7.38")
+    }
+}
 
 plugins {
     id("net.minecraftforge.gradle")
@@ -24,7 +29,7 @@ plugins {
     `maven-publish`
 }
 
-apply(plugin="org.spongepowered.mixin")
+apply(plugin = "org.spongepowered.mixin")
 
 group = mod_group
 version = mod_version
@@ -44,12 +49,14 @@ configure<UserDevExtension> {
 
     accessTransformer("src/main/resources/META-INF/accesstransformer.cfg")
 
-    val defaultConfig = Action<RunConfig>{
+    val defaultConfig = Action<RunConfig> {
         workingDirectory(project.file("run"))
-        properties(mapOf(
-            "forge.logging.markers" to "REGISTRIES",
-            "forge.logging.console.level" to "debug"
-        ))
+        properties(
+            mapOf(
+                "forge.logging.markers" to "REGISTRIES",
+                "forge.logging.console.level" to "debug"
+            )
+        )
         jvmArg("-XX:+AllowEnhancedClassRedefinition")
         arg("-mixin.config=$mod_id.mixins.json")
         mods.create(mod_id) {
@@ -62,7 +69,7 @@ configure<UserDevExtension> {
 
     runs.all {
         lazyToken("minecraft_classpath") {
-            shadowJar.get().archiveFile.get().asFile.absolutePath
+            library.copyRecursive().resolve().joinToString(File.pathSeparator) { it.absolutePath }
         }
     }
 }
@@ -78,8 +85,8 @@ val shadeKotlin by configurations.creating
 val library = configurations.create("library")
 
 configurations {
-    compileOnly.get().extendsFrom(library)
-    library.extendsFrom(shadeKotlin)
+    implementation.get().extendsFrom(library)
+    compileOnly.get().extendsFrom(shadeKotlin)
     library.extendsFrom(this["shadow"])
 }
 
@@ -105,12 +112,12 @@ dependencies {
         exclude("org.jetbrains.kotlin", "kotlinx-serialization-core")
         exclude("org.jetbrains.kotlin", "kotlinx-serialization-json")
     }
-    shadeKotlin("org.jetbrains.kotlin:kotlin-scripting-jvm:1.8.21", withoutKotlinStd)
-    shadeKotlin("org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.8.21", withoutKotlinStd)
-    shadeKotlin("org.jetbrains.kotlin:kotlin-script-runtime:1.8.21", withoutKotlinStd)
+    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm:1.8.21", withoutKotlinStd)
+    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.8.21", withoutKotlinStd)
+    shadow("org.jetbrains.kotlin:kotlin-script-runtime:1.8.21", withoutKotlinStd)
     shadeKotlin("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.8.21", withoutKotlinStd)
     shadeKotlin("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.8.21", withoutKotlinStd)
-    shadeKotlin("org.jetbrains:annotations:23.0.0")
+    shadow("org.jetbrains:annotations:23.0.0")
 
     shadow("com.esotericsoftware:kryo:5.4.0")
 }
@@ -121,24 +128,29 @@ if (System.getProperty("user.name").equals("user")) {
 
 fun Jar.createManifest() = manifest {
     attributes(
-        mapOf(
-            "Automatic-Module-Name" to mod_id,
-            "Specification-Title" to mod_id,
-            "Specification-Vendor" to mod_author,
-            "Specification-Version" to "1",
-            "Implementation-Title" to project.name,
-            "Implementation-Version" to version,
-            "Implementation-Vendor" to mod_author,
-            "Implementation-Timestamp" to ZonedDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")),
-            "MixinConfigs" to "$mod_id.mixins.json"
-        ),
-        "$mod_author/${project.name}/"
+        "Automatic-Module-Name" to mod_id,
+        "Specification-Title" to mod_id,
+        "Specification-Vendor" to mod_author,
+        "Specification-Version" to "1",
+        "Implementation-Title" to project.name,
+        "Implementation-Version" to version,
+        "Implementation-Vendor" to mod_author,
+        "Implementation-Timestamp" to ZonedDateTime.now()
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ")),
+        "MixinConfigs" to "$mod_id.mixins.json"
     )
+}
+
+configure<MixinExtension> {
+    add(sourceSets.main.get(), "hollowcore.refmap.json")
 }
 
 val jar = tasks.named<Jar>("jar") {
     archiveClassifier.set("original")
+    exclude(
+        "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**",
+        "META-INF/*.RSA", "META-INF/*.SF", "META-INF/versions/**"
+    )
     createManifest()
     finalizedBy("reobfJar")
 }
@@ -146,9 +158,12 @@ val jar = tasks.named<Jar>("jar") {
 val shadowJar = tasks.named<ShadowJar>("shadowJar") {
     archiveClassifier.set("")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    configurations = listOf(library)
+    configurations = listOf(library, shadeKotlin)
 
-    exclude("META-INF/versions/**")
+    exclude(
+        "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**",
+        "META-INF/*.RSA", "META-INF/*.SF", "META-INF/versions/**"
+    )
 
     dependencies {
         exclude(dependency("net.java.dev.jna:jna"))
@@ -162,9 +177,6 @@ val shadowJar = tasks.named<ShadowJar>("shadowJar") {
 
     val packages = listOf(
         "gnu.trove",
-        //"org.jetbrains.kotlin",
-        //"kotlin",
-        //"kotlinx"
     )
 
     packages.forEach { relocate(it, "ru.hollowhorizon.repack.$it") }
@@ -187,6 +199,5 @@ tasks {
 
 val copyJar by tasks.registering(Copy::class) {
     from(shadowJar.flatMap(Jar::getArchiveFile).get().asFile)
-    into("C:\\Users\\user\\Twitch\\Minecraft\\Instances\\Instances\\test1\\mods")
-    into("../HS/hc")
+    into("../HollowEngine/hc")
 }
