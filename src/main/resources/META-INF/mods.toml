@@ -24,3 +24,10 @@ mandatory = true
 versionRange = "[1.19,1.20)"
 ordering = "NONE"
 side = "BOTH"
+
+[[dependencies.hc]]
+modId="kotlinforforge"
+mandatory=true
+versionRange="[3.12.0)"
+ordering = "AFTER"
+side = "BOTH"
