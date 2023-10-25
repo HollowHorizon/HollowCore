@@ -4,10 +4,11 @@ import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
-import ru.hollowhorizon.hc.client.utils.drawCentredScaled
+import ru.hollowhorizon.hc.client.screens.util.Anchor
+import ru.hollowhorizon.hc.client.utils.drawScaled
 import ru.hollowhorizon.hc.client.utils.mc
 import ru.hollowhorizon.hc.client.utils.mcText
-import ru.hollowhorizon.hc.client.utils.toRL
+import ru.hollowhorizon.hc.client.utils.rl
 
 class ColorButton @JvmOverloads constructor(
     x: Int,
@@ -22,7 +23,7 @@ class ColorButton @JvmOverloads constructor(
     textColorHovered: Int = 0xF0F0F0,
     tooltip: Component = "".mcText,
     textScale: Float = 1.0F,
-) : BaseButton(x, y, width, height, text, pressable, "".toRL(), textColor, textColorHovered, tooltip, textScale) {
+) : BaseButton(x, y, width, height, text, pressable, "".rl, textColor, textColorHovered, tooltip, textScale) {
 
     override fun render(stack: PoseStack, x: Int, y: Int, f: Float) {
         val minecraft = Minecraft.getInstance()
@@ -39,8 +40,8 @@ class ColorButton @JvmOverloads constructor(
             else buttonColor
         )
 
-        fr.drawCentredScaled(
-            stack, text,
+        fr.drawScaled(
+            stack, Anchor.CENTER, text,
             this.x + width / 2, this.y + height / 2,
             if (isHovered) textColorHovered else textColor, textScale
         )

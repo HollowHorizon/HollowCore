@@ -5,8 +5,9 @@ import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
+import ru.hollowhorizon.hc.client.screens.util.Anchor
 import ru.hollowhorizon.hc.client.screens.widget.HollowWidget
-import ru.hollowhorizon.hc.client.utils.drawCentredScaled
+import ru.hollowhorizon.hc.client.utils.drawScaled
 import ru.hollowhorizon.hc.client.utils.mc
 import ru.hollowhorizon.hc.client.utils.mcText
 import javax.annotation.Nonnull
@@ -43,8 +44,8 @@ open class BaseButton @JvmOverloads constructor(
             stack, this.x, this.y, 0f, (if (isHovered) height else 0).toFloat(), width, height, width, height * 2
         )
 
-        fr.drawCentredScaled(
-            stack, text,
+        fr.drawScaled(
+            stack, Anchor.CENTER, text,
             this.x + width / 2, this.y + height / 2,
             if (isHovered) textColorHovered else textColor, textScale
         )

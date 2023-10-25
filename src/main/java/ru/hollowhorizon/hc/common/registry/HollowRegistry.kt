@@ -20,7 +20,6 @@ import net.minecraft.world.level.levelgen.feature.Feature
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent
 import net.minecraftforge.fml.ModLoadingContext
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import net.minecraftforge.registries.DeferredRegister
 import net.minecraftforge.registries.ForgeRegistries
 import net.minecraftforge.registries.IForgeRegistry
@@ -30,6 +29,7 @@ import ru.hollowhorizon.hc.client.render.entity.RenderFactoryBuilder
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.isPhysicalClient
 import ru.hollowhorizon.hc.common.objects.blocks.IBlockProperties
+import thedarkcolour.kotlinforforge.forge.MOD_CONTEXT
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
@@ -164,7 +164,7 @@ object RegistryLoader {
         HollowCore.LOGGER.info("[RegistryLoader] Registering all registries.")
         REGISTRIES.values.forEach { registries ->
             registries.values.forEach { registry ->
-                registry.register(FMLJavaModLoadingContext.get().modEventBus)
+                registry.register(MOD_CONTEXT.getKEventBus())
             }
         }
 

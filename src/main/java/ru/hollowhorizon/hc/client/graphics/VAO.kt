@@ -16,14 +16,14 @@ class VAO(private val id: Int) {
         private set
 
     fun createIndexBuffer(indices: IntArray) {
-        indexVbo = GPUMemoryManager.instance.createVBO(GL15.GL_ELEMENT_ARRAY_BUFFER)
+        indexVbo = GPUMemoryManager.createVBO(GL15.GL_ELEMENT_ARRAY_BUFFER)
         indexVbo?.bind()
         indexVbo?.storeData(indices)
         indexCount = indices.size
     }
 
     fun createAttribute(attribute: Int, data: FloatArray, attrSize: Int) {
-        val dataVbo = GPUMemoryManager.instance.createVBO(GL15.GL_ARRAY_BUFFER)
+        val dataVbo = GPUMemoryManager.createVBO(GL15.GL_ARRAY_BUFFER)
         dataVbo.bind()
         dataVbo.storeData(data)
         GL20.glVertexAttribPointer(attribute, attrSize, GL11.GL_FLOAT, false, attrSize * BYTES_PER_FLOAT, 0)
@@ -32,10 +32,10 @@ class VAO(private val id: Int) {
         attributesSet.add(attribute)
     }
 
-    fun createIntAttribute(attribute: Int, data: IntArray?, attrSize: Int) {
-        val dataVbo: VBO = GPUMemoryManager.instance.createVBO(GL15.GL_ARRAY_BUFFER)
+    fun createAttribute(attribute: Int, data: IntArray, attrSize: Int) {
+        val dataVbo: VBO = GPUMemoryManager.createVBO(GL15.GL_ARRAY_BUFFER)
         dataVbo.bind()
-        dataVbo.storeData(data!!)
+        dataVbo.storeData(data)
         GL30.glVertexAttribIPointer(attribute, attrSize, GL11.GL_INT, attrSize * BYTES_PER_INT, 0)
         dataVbo.unbind()
         dataVBOs.add(dataVbo)

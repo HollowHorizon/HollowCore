@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.capabilities.CapabilityProvider
 import net.minecraftforge.event.AttachCapabilitiesEvent
-import ru.hollowhorizon.hc.client.utils.toRL
+import ru.hollowhorizon.hc.client.utils.rl
 
 object CapabilityStorage {
     val storages = hashMapOf<String, Capability<*>>()
@@ -44,9 +44,6 @@ object CapabilityStorage {
     }
 
     private fun Capability<*>.createName(): ResourceLocation {
-        return ("hc_capabilities:" +
-                this.name.lowercase()
-                    .replace(Regex("[^a-z0-9/._-]"), "")
-                ).toRL()
+        return "hc_capabilities:${this.name.lowercase().replace(Regex("[^a-z0-9/._-]"), "")}".rl
     }
 }

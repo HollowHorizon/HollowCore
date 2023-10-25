@@ -1,7 +1,5 @@
 package ru.hollowhorizon.hc.common.capabilities
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
@@ -11,8 +9,7 @@ import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 
 
-@Serializable
-class SyncableListImpl<T : Any>(val list: MutableList<T>, @Transient private val updateMethod: () -> Unit = {}) :
+class SyncableListImpl<T : Any>(val list: MutableList<T>, private val updateMethod: () -> Unit = {}) :
     MutableList<T>,
     INBTSerializable<Tag> {
     override val size = list.size
@@ -151,8 +148,8 @@ class SyncableListImpl<T : Any>(val list: MutableList<T>, @Transient private val
     }
 
     override fun deserializeNBT(nbt: Tag) {
-        list.clear()
         if (nbt is ListTag) {
+            list.clear()
             nbt.forEach { element ->
                 if (element is CompoundTag) {
                     list.add(

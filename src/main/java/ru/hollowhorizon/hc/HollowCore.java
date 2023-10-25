@@ -22,17 +22,14 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
-//import ru.hollowhorizon.hc.client.gltf.model.GltfManager;
 import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager;
-import ru.hollowhorizon.hc.client.render.OpenGLUtils;
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
@@ -47,6 +44,7 @@ import ru.hollowhorizon.hc.common.registry.ModEntities;
 import ru.hollowhorizon.hc.common.registry.ModShaders;
 import ru.hollowhorizon.hc.common.registry.RegistryLoader;
 import ru.hollowhorizon.hc.common.scripting.ScriptingCompilerKt;
+import thedarkcolour.kotlinforforge.forge.ForgeKt;
 
 
 @HollowMod(HollowCore.MODID)
@@ -62,7 +60,8 @@ public class HollowCore {
         HollowModProcessor.initMod();
         LOGGER.info("Starting HollowCore...");
 
-        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        IEventBus modBus = ForgeKt.getMOD_CONTEXT().getKEventBus();
         modBus.addListener(this::setup);
         modBus.addListener(this::loadEnd);
         modBus.addListener(this::onAttribute);
@@ -85,7 +84,7 @@ public class HollowCore {
             //modBus.addListener(GlTFModelManager::clientSetup);
             modBus.addListener(this::onRendererCreating);
 
-            GPUMemoryManager.Companion.getInstance().initialize();
+            GPUMemoryManager.INSTANCE.initialize();
 
             forgeBus.addListener(ModShaders::init);
         }

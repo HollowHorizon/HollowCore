@@ -12,7 +12,7 @@ import java.util.stream.Collectors
 
 
 @OnlyIn(Dist.CLIENT)
-class GPUMemoryManager private constructor() {
+object GPUMemoryManager {
     private val vboMap = ConcurrentHashMap<WeakReference<VBO?>, Int>()
     private val vaoMap = ConcurrentHashMap<WeakReference<VAO?>, Int>()
 
@@ -62,9 +62,5 @@ class GPUMemoryManager private constructor() {
             }
             rescheduleThread.start()
         }
-    }
-
-    companion object {
-        val instance = GPUMemoryManager()
     }
 }

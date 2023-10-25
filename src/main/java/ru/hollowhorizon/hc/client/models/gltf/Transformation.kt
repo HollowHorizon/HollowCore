@@ -3,8 +3,12 @@ package ru.hollowhorizon.hc.client.models.gltf
 import com.mojang.math.Matrix4f
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
+import net.minecraft.util.Mth
+import net.minecraft.world.phys.Vec2
 import org.lwjgl.opengl.GL11
 import java.nio.FloatBuffer
+import kotlin.math.acos
+
 
 data class Transformation(
     var translationX: Float,
@@ -19,6 +23,11 @@ data class Transformation(
     var scaleZ: Float,
     private val matrix: Matrix4f = Matrix4f().apply(Matrix4f::setIdentity)
 ) {
+    var hasChanged = true
+    val bindTranslation = Vector3f(translationX, translationY, translationZ)
+    val bindRotation = Quaternion(rotationX, rotationY, rotationZ, rotationW)
+    val bindScale = Vector3f(scaleX, scaleY, scaleZ)
+
 
     val translation: Vector3f get() = Vector3f(translationX, translationY, translationZ)
     val rotation: Quaternion get() = Quaternion(rotationX, rotationY, rotationZ, rotationW)
@@ -26,6 +35,7 @@ data class Transformation(
 
     fun setTranslation(array: FloatArray?) {
         if (array == null) return
+        hasChanged = true
         translationX = array[0]
         translationY = array[1]
         translationZ = array[2]
@@ -33,6 +43,7 @@ data class Transformation(
 
     fun setRotation(array: FloatArray?) {
         if (array == null) return
+        hasChanged = true
         rotationX = array[0]
         rotationY = array[1]
         rotationZ = array[2]
@@ -41,6 +52,7 @@ data class Transformation(
 
     fun setScale(array: FloatArray?) {
         if (array == null) return
+        hasChanged = true
         scaleX = array[0]
         scaleY = array[1]
         scaleZ = array[2]
@@ -59,6 +71,23 @@ data class Transformation(
         scaleZ = transformation.scaleZ
         matrix.setIdentity()
         matrix.multiply(transformation.matrix)
+        hasChanged = true
+    }
+
+    fun set(transformationMap: Map<Transformation, Float>) {
+        translationX = transformationMap.sumComponent(Transformation::translationX)
+        translationY = transformationMap.sumComponent(Transformation::translationY)
+        translationZ = transformationMap.sumComponent(Transformation::translationZ)
+
+        rotationX = transformationMap.sumComponent(Transformation::rotationX)
+        rotationY = transformationMap.sumComponent(Transformation::rotationY)
+        rotationZ = transformationMap.sumComponent(Transformation::rotationZ)
+        rotationW = transformationMap.sumComponent(Transformation::rotationW)
+
+        scaleX = transformationMap.sumComponent(Transformation::scaleX)
+        scaleY = transformationMap.sumComponent(Transformation::scaleY)
+        scaleZ = transformationMap.sumComponent(Transformation::scaleZ)
+        hasChanged = true
     }
 
     @JvmOverloads
@@ -88,17 +117,25 @@ data class Transformation(
         return m
     }
 
-    fun lerp(other: Transformation, step: Float): Transformation {
-        return Transformation(
-            translation = this.translation.interpolated(other.translation, step),
-            rotation = this.rotation.interpolated(other.rotation, step),
-            scale = this.scale.interpolated(other.scale, step)
-        )
-    }
-
     companion object {
         val IDENTITY: Transformation = Transformation()
+
+        fun lerp(first: Transformation, second: Transformation, step: Float): Transformation {
+            return Transformation(
+                translation = first.translation.interpolated(second.translation, step),
+                rotation = first.rotation.interpolated(second.rotation, step),
+                scale = first.scale.interpolated(second.scale, step)
+            )
+        }
     }
+}
+
+private fun Map<Transformation, Float>.sumComponent(component: (Transformation) -> Float): Float {
+    var sum = 0f
+    this.entries.forEach { (transformation, value) ->
+        sum += value * component(transformation)
+    }
+    return sum / this.values.sum()
 }
 
 private fun Vector3f.interpolated(other: Vector3f, step: Float): Vector3f {
@@ -109,11 +146,40 @@ private fun Vector3f.interpolated(other: Vector3f, step: Float): Vector3f {
     )
 }
 
-private fun Quaternion.interpolated(other: Quaternion, step: Float): Quaternion {
+private fun Quaternion.interpolated(other: Quaternion, alpha: Float): Quaternion {
+    val beginX = this.i()
+    val beginY = this.j()
+    val beginZ = this.k()
+    val beginW = this.r()
+    var endX = other.i()
+    var endY = other.j()
+    var endZ = other.k()
+    var endW = other.r()
+
+    var dot = beginX * endX + beginY * endY + beginZ * endZ + beginW * endW
+    if(dot < 0) {
+        endX = -endX
+        endY = -endY
+        endZ = -endZ
+        endW = -endW
+        dot = -dot
+    }
+    val epsilon = 1e-6f
+    val s0: Float
+    val s1: Float
+    if(1.0 - dot > epsilon) {
+        val omega = acos(dot)
+        val invSinOmega = 1.0f / Mth.sin(omega)
+        s0 = Mth.sin((1.0f - alpha) * omega) * invSinOmega
+        s1 = Mth.sin(alpha * omega) * invSinOmega
+    } else {
+        s0 = 1.0f - alpha
+        s1 = alpha
+    }
+
     return Quaternion(
-        this.i() + (other.i() - this.i()) * step,
-        this.j() + (other.j() - this.j()) * step,
-        this.k() + (other.k() - this.k()) * step,
-        this.r() + (other.r() - this.r()) * step,
-    )
+        s0 * beginX + s1 * endX,
+        s0 * beginY + s1 * endY,
+        s0 * beginZ + s1 * endZ,
+        s0 * beginW + s1 * endW)
 }

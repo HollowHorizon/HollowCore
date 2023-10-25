@@ -6,12 +6,16 @@ import com.mojang.math.Matrix4f
 import com.mojang.math.Vector3f
 import com.mojang.math.Vector4f
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.entity.LivingEntity
 import ru.hollowhorizon.hc.client.models.gltf.animations.Animation
+import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
+import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 
 
-open class GltfModel(val model: GltfTree.GLTFTree) {
-    val bindPose = Animation.createFromPose(model.walkNodes())
-    val renderCommands = model.scenes.flatMap { scene ->
+class GltfModel(val modelPath: GltfTree.GLTFTree) {
+    val bindPose = Animation.createFromPose(modelPath.walkNodes())
+    val animationPlayer = GLTFAnimationPlayer(this)
+    private val renderCommands = modelPath.scenes.flatMap { scene ->
         val commands =
             ArrayList<(stack: PoseStack, consumer: (ResourceLocation) -> VertexConsumer, overlay: Int, light: Int) -> Unit>()
         scene.nodes.forEach { createNodeCommands(it, commands) }
@@ -86,6 +90,15 @@ open class GltfModel(val model: GltfTree.GLTFTree) {
             }
         }
         node.children.forEach { createNodeCommands(it, commands) }
+    }
+
+    fun update(capability: AnimatedEntityCapability, currentTick: Int, partialTick: Float) {
+        animationPlayer.setTick(currentTick)
+        animationPlayer.update(capability, partialTick)
+    }
+
+    fun entityUpdate(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
+        animationPlayer.updateEntity(entity, capability, partialTick)
     }
 
     fun render(stack: PoseStack, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int) {

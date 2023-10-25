@@ -49,7 +49,7 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
         dependenciesFromClassContext(HollowScriptConfiguration::class, wholeClasspath = true)
 
         files.removeIf { it.isDirectory }
-        updateClasspath(files.distinct().sortedBy { it.absolutePath.also(::println) })
+        updateClasspath(files.distinct().sortedBy { it.absolutePath }.onEach(::println))
 
         compilerOptions(
             "-opt-in=kotlin.time.ExperimentalTime,kotlin.ExperimentalStdlibApi",

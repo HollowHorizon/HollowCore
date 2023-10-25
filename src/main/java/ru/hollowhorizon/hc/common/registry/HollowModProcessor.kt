@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.common.registry
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.fml.ModLoadingContext
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.forgespi.language.ModFileScanData
 import net.minecraftforge.registries.DeferredRegister
@@ -18,6 +17,7 @@ import ru.hollowhorizon.hc.common.network.HollowPacketV2Loader
 import ru.hollowhorizon.hc.common.network.Packet
 import ru.hollowhorizon.hc.core.AsmReflectionMethodGenerator
 import ru.hollowhorizon.hc.core.ReflectionMethod
+import thedarkcolour.kotlinforforge.forge.MOD_CONTEXT
 import java.lang.annotation.ElementType
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -190,7 +190,7 @@ object Registries {
     fun registerAll() {
         REGISTRIES.values.forEach { registries ->
             registries.values.forEach { registry ->
-                registry.register(FMLJavaModLoadingContext.get().modEventBus)
+                registry.register(MOD_CONTEXT.getKEventBus())
             }
         }
 

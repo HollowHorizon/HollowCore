@@ -1,111 +1,246 @@
 package ru.hollowhorizon.hc.client.graphics
 
-import com.mojang.blaze3d.platform.GlStateManager
-import net.minecraft.client.Minecraft
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.math.Matrix3f
+import com.mojang.math.Matrix4f
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.packs.resources.ResourceManager
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import org.lwjgl.opengl.GL30
-import ru.hollowhorizon.hc.HollowCore
+import org.lwjgl.opengl.GL33
+import org.lwjgl.opengl.GL40
+import org.lwjgl.opengl.GL43
 import ru.hollowhorizon.hc.client.utils.rl
-import ru.hollowhorizon.hc.client.utils.stream
+import ru.hollowhorizon.hc.client.utils.toIS
 import java.nio.FloatBuffer
-import java.util.stream.Collectors
+import java.nio.IntBuffer
 
 
-class Shader(fragmentShaderName: String) {
-    private val programId: Int
+fun main() {
+    val shader = ShaderProgram {
+        +Shader(Shader.Type.VERTEX, "hc:shaders/vertex_vao.glsl".rl)
+        +Shader(Shader.Type.FRAGMENT, "hc:shaders/fragment_vao.glsl".rl)
+
+        attributes {
+            indices(
+                0, 1, 2, 3, 1, 2,
+                4, 5, 6, 7, 5, 6,
+                0, 4, 1, 5, 4, 1,
+                2, 6, 3, 7, 6, 3,
+                0, 2, 4, 6, 2, 4,
+                1, 3, 5, 7, 3, 5
+            )
+
+            "position"(
+                AttributeContext.Type.VEC3,
+                0f, 0f, 0f,
+                1f, 0f, 0f,
+                0f, 0f, 1f,
+                1f, 0f, 1f,
+                0f, 1f, 0f,
+                1f, 1f, 0f,
+                0f, 1f, 1f,
+                1f, 1f, 1f,
+            )
+            "normal"(
+                AttributeContext.Type.VEC3,
+                0f, 0f, 0f,
+                1f, 0f, 0f,
+                0f, 0f, 1f,
+                1f, 0f, 1f,
+                0f, 1f, 0f,
+                1f, 1f, 0f,
+                0f, 1f, 1f,
+                1f, 1f, 1f,
+            )
+            "texcoords"(
+                AttributeContext.Type.VEC2,
+                0f, 0f,
+                1f, 0f,
+                0f, 1f,
+                1f, 1f,
+                0f, 0f,
+                1f, 0f,
+                0f, 1f,
+                1f, 1f
+            )
+        }
+
+        uniforms("matrixStack", "texture")
+    }
+
+    val stack = PoseStack()
+    shader.use {
+        "matrixStack"(stack.last().pose())
+        "texture"(RenderSystem.getShaderTexture(0))
+    }
+}
+
+class ShaderProgram(onInit: ShaderProgram.() -> Unit) : ResourceManagerReloadListener {
+    private val shaders = mutableListOf<Shader>()
+    val attributes = mutableListOf<String>()
+    private var programId: Int = -1
+    val uniforms = hashMapOf<String, Int>()
+    val uniformContext = UniformContext(this)
+    val atributeContext = AttributeContext(this)
 
     init {
-        val programId = GlStateManager.glCreateProgram()
-        try {
-            val fragmentShader = GlStateManager.glCreateShader(GL30.GL_FRAGMENT_SHADER)
-            GlStateManager.glShaderSource(fragmentShader, mutableListOf(getShaderSource(fragmentShaderName)))
-            GlStateManager.glCompileShader(fragmentShader)
-            val isFragmentCompiled = GL30.glGetShaderi(fragmentShader, GL30.GL_COMPILE_STATUS)
-            if (isFragmentCompiled == 0) {
-                GlStateManager.glDeleteShader(fragmentShader)
-                System.err.println("Fragment shader couldn't compile. It has been deleted.")
+        onInit()
+        compile()
+    }
+
+    fun attributes(onCreate: AttributeContext.() -> Unit) {
+        atributeContext.vao.bindVAO()
+        atributeContext.onCreate()
+        atributeContext.vao.unbindVAO()
+    }
+
+    fun uniforms(vararg uniforms: String) {
+        this.uniforms.clear()
+        this.uniforms.putAll(uniforms.associateWith { GL30.glGetUniformLocation(programId, it) })
+    }
+
+    fun bind() = GL30.glUseProgram(programId)
+    fun unbind() = GL30.glUseProgram(0)
+
+    fun use(loadUniforms: UniformContext.() -> Unit = {}) {
+        bind()
+        this.uniformContext.loadUniforms()
+        atributeContext.vao.bind()
+        GL30.glDrawElements(GL30.GL_TRIANGLES, atributeContext.vao.indexCount, GL30.GL_UNSIGNED_INT, 0)
+        unbind()
+    }
+
+    operator fun Shader.unaryPlus() {
+        shaders += this
+    }
+
+    fun compile() {
+        programId = GL30.glCreateProgram()
+        shaders.forEach { shader ->
+            val shaderId = GL30.glCreateShader(shader.type.id)
+            GL30.glShaderSource(shaderId, shader.source.toIS().bufferedReader().readText().replace("\t", "    "))
+            GL30.glCompileShader(shaderId)
+            if (GL30.glGetShaderi(shaderId, GL30.GL_COMPILE_STATUS) == 0) {
+                throw IllegalStateException(
+                    "Error compiling Shader(${shader.source}): " + GL30.glGetShaderInfoLog(
+                        shaderId,
+                        1024
+                    )
+                )
             }
-            GlStateManager.glAttachShader(programId, VERTEX_SHADER)
-            GlStateManager.glAttachShader(programId, fragmentShader)
-            GlStateManager.glLinkProgram(programId)
-        } catch (e: Exception) {
-            e.printStackTrace()
+            GL30.glAttachShader(programId, shaderId)
+            shader.shaderId = shaderId
         }
-        this.programId = programId
-    }
-
-    fun load() {
-        GlStateManager._glUseProgram(programId)
-    }
-
-    fun unload() {
-        GlStateManager._glUseProgram(0)
-    }
-
-    fun getUniform(name: String?): Int {
-        return GL30.glGetUniformLocation(programId, name!!)
-    }
-
-    fun setUniformf(name: String?, vararg args: Float) {
-        val loc = GL30.glGetUniformLocation(programId, name!!)
-        when (args.size) {
-            1 -> GL30.glUniform1f(loc, args[0])
-            2 -> GL30.glUniform2f(loc, args[0], args[1])
-            3 -> GL30.glUniform3f(loc, args[0], args[1], args[2])
-            4 -> GL30.glUniform4f(loc, args[0], args[1], args[2], args[3])
+        attributes.forEachIndexed { index, attribute ->
+            GL30.glBindAttribLocation(programId, index, attribute)
         }
+        GL30.glLinkProgram(programId)
     }
 
-    fun setUniformi(name: String?, vararg args: Int) {
-        val loc = GL30.glGetUniformLocation(programId, name!!)
-        when (args.size) {
-            1 -> GL30.glUniform1i(loc, args[0])
-            2 -> GL30.glUniform2i(loc, args[0], args[1])
-            3 -> GL30.glUniform3i(loc, args[0], args[1], args[2])
-            4 -> GL30.glUniform4i(loc, args[0], args[1], args[2], args[3])
+    override fun onResourceManagerReload(pResourceManager: ResourceManager) {
+        shaders.forEach {
+            GL30.glDetachShader(programId, it.shaderId)
+            GL30.glDeleteShader(it.shaderId)
         }
+        GL30.glDeleteProgram(programId)
+        compile()
+    }
+}
+
+class Shader(val type: Type, val source: ResourceLocation) {
+    var shaderId: Int = -1
+
+    enum class Type(val id: Int) {
+        VERTEX(GL30.GL_VERTEX_SHADER),
+        FRAGMENT(GL30.GL_FRAGMENT_SHADER),
+        GEOMETRY(GL33.GL_GEOMETRY_SHADER),
+        TESS_CONTROL(GL40.GL_TESS_CONTROL_SHADER),
+        TESS_EVALUATION(GL40.GL_TESS_EVALUATION_SHADER),
+        COMPUTE(GL43.GL_COMPUTE_SHADER)
+    }
+}
+
+class AttributeContext(val shader: ShaderProgram) {
+    val vao = GPUMemoryManager.createVAO()
+
+    fun indices(indices: IntArray) {
+        vao.createIndexBuffer(indices)
     }
 
-    fun setUniformfb(name: String?, buffer: FloatBuffer?) {
-        GL30.glUniform1fv(GL30.glGetUniformLocation(programId, name!!), buffer!!)
+    @JvmName("indicesBuffer")
+    fun indices(vararg indices: Int) {
+        vao.createIndexBuffer(indices)
     }
 
-    companion object {
-        val VERTEX_SHADER = GlStateManager.glCreateShader(GL30.GL_VERTEX_SHADER)
-
-        init {
-            GlStateManager.glShaderSource(VERTEX_SHADER, mutableListOf(getShaderSource("empty.vert")))
-            GlStateManager.glCompileShader(VERTEX_SHADER)
-        }
-
-        @JvmOverloads
-        fun draw(
-            x: Double = 0.0,
-            y: Double = 0.0,
-            width: Int = Minecraft.getInstance().window.guiScaledWidth,
-            height: Int = Minecraft.getInstance().window.guiScaledHeight,
-        ) {
-
-//            val builder = Tesselator.getInstance().builder
-//            builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLIT_SCREEN)
-//            builder.vertex(x, y, 0.0)
-//            builder.uv(0.0f, 0.0f)
-//            builder.vertex(x, y+height, 0.0)
-//            builder.uv(0.0f, 1.0f)
-//            builder.vertex(x+width, y+height, 0.0)
-//            builder.uv(1.0f, 1.0f)
-//            builder.vertex(x + width, y, 0.0)
-//            builder.uv(1.0f, 0.0f)
-//            Tesselator.getInstance().end()
-        }
-
-        fun getShaderSource(fileName: String): String {
-            val bufferedReader = "${HollowCore.MODID}:shaders/$fileName".rl.stream.reader().buffered()
-            val source = bufferedReader.lines()
-                .filter { str: String -> str.isNotEmpty() }
-                .map { it.replace("\t", "") }
-                .collect(Collectors.joining("\n"))
-            bufferedReader.close()
-            return source
-        }
+    operator fun String.invoke(data: FloatArray, type: Type) {
+        vao.createAttribute(shader.attributes.size, data, type.id)
+        shader.attributes += this
     }
+
+    operator fun String.invoke(data: IntArray, type: Type) {
+        vao.createAttribute(shader.attributes.size, data, type.id)
+        shader.attributes += this
+    }
+
+    operator fun String.invoke(type: Type, vararg data: Float) {
+        vao.createAttribute(shader.attributes.size, data, type.id)
+        shader.attributes += this
+    }
+
+    operator fun String.invoke(type: Type, vararg data: Int) {
+        vao.createAttribute(shader.attributes.size, data, type.id)
+        shader.attributes += this
+    }
+
+    enum class Type(val id: Int) {
+        VEC2(3),
+        VEC3(3),
+        VEC4(4),
+    }
+}
+
+class UniformContext(val shader: ShaderProgram) {
+    operator fun String.invoke(value: Int) = shader.uniforms[this]?.let { GL30.glUniform1i(it, value) }
+    operator fun String.invoke(value: Float) = shader.uniforms[this]?.let { GL30.glUniform1f(it, value) }
+    operator fun String.invoke(value: IntArray) = shader.uniforms[this]?.let { GL30.glUniform1iv(it, value) }
+    operator fun String.invoke(value: FloatArray) = shader.uniforms[this]?.let { GL30.glUniform1fv(it, value) }
+    operator fun String.invoke(value: IntBuffer) = shader.uniforms[this]?.let { GL30.glUniform1iv(it, value) }
+    operator fun String.invoke(value: FloatBuffer) = shader.uniforms[this]?.let { GL30.glUniform1fv(it, value) }
+    operator fun String.invoke(value: Matrix4f) = shader.uniforms[this]?.let {
+        GL30.glUniformMatrix4fv(it, false, FloatBuffer.allocate(16).apply(value::store))
+    }
+
+    operator fun String.invoke(value: Matrix3f) = shader.uniforms[this]?.let {
+        GL30.glUniformMatrix3fv(it, false, FloatBuffer.allocate(9).apply(value::store))
+    }
+
+    operator fun String.invoke(vararg values: Int) =
+        values.forEachIndexed { i, v -> shader.uniforms[this]?.let { GL30.glUniform1i(it, v) } }
+
+    operator fun String.invoke(vararg values: Float) =
+        values.forEachIndexed { i, v -> shader.uniforms[this]?.let { GL30.glUniform1f(it, v) } }
+
+    operator fun String.invoke(vararg values: Matrix4f) =
+        values.forEachIndexed { i, v ->
+            shader.uniforms[this]?.let {
+                GL30.glUniformMatrix4fv(
+                    it,
+                    false,
+                    FloatBuffer.allocate(16).apply(v::store)
+                )
+            }
+        }
+
+    operator fun String.invoke(vararg values: Matrix3f) =
+        values.forEachIndexed { i, v ->
+            shader.uniforms[this]?.let {
+                GL30.glUniformMatrix3fv(
+                    it,
+                    false,
+                    FloatBuffer.allocate(9).apply(v::store)
+                )
+            }
+        }
 }

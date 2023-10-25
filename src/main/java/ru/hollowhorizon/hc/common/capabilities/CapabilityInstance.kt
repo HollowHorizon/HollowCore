@@ -22,6 +22,7 @@ import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 import ru.hollowhorizon.hc.common.network.send
 
+@Suppress("API_STATUS_INTERNAL")
 open class CapabilityInstance :
     ICapabilitySerializable<Tag> {
     val properties = hashMapOf<String, Any?>()
@@ -38,14 +39,15 @@ open class CapabilityInstance :
             is Entity -> {
                 val entity = provider as Entity
                 val isPlayer = entity is Player
-                if (entity.level.isClientSide) SSyncEntityCapabilityPacket().send(
-                    EntityCapabilityContainer(
-                        entity.id,
-                        capability.name,
-                        serializeNBT()
+                if (entity.level.isClientSide) {
+                    if (consumeOnServer) SSyncEntityCapabilityPacket().send(
+                        EntityCapabilityContainer(
+                            entity.id,
+                            capability.name,
+                            serializeNBT()
+                        )
                     )
-                )
-                else CSyncEntityCapabilityPacket().send(
+                } else CSyncEntityCapabilityPacket().send(
                     EntityCapabilityContainer(
                         entity.id,
                         capability.name,
@@ -55,6 +57,7 @@ open class CapabilityInstance :
                     else if (canOtherPlayersAccess) PacketDistributor.TRACKING_ENTITY_AND_SELF.with { (provider as Entity) }
                     else PacketDistributor.PLAYER.with { entity as ServerPlayer }
                 )
+
             }
 
             is BlockEntity -> {
@@ -69,9 +72,15 @@ open class CapabilityInstance :
 
             is Level -> {
                 val level = provider as Level
-                if (level.isClientSide) SSyncLevelCapabilityPacket().send(
-                    LevelCapabilityContainer(level.dimension().location().toString(), capability.name, serializeNBT())
-                ) else CSyncLevelCapabilityPacket().send(
+                if (level.isClientSide) {
+                    if (consumeOnServer) SSyncLevelCapabilityPacket().send(
+                        LevelCapabilityContainer(
+                            level.dimension().location().toString(),
+                            capability.name,
+                            serializeNBT()
+                        )
+                    )
+                } else CSyncLevelCapabilityPacket().send(
                     LevelCapabilityContainer(level.dimension().location().toString(), capability.name, serializeNBT()),
                     PacketDistributor.DIMENSION.with { level.dimension() }
                 )

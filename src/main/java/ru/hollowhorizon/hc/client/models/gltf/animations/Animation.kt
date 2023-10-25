@@ -3,65 +3,23 @@ package ru.hollowhorizon.hc.client.models.gltf.animations
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
 import com.mojang.math.Vector4f
-import ru.hollowhorizon.hc.client.gltf.animations.GLTFAnimationManager
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
+import ru.hollowhorizon.hc.client.models.gltf.Transformation
+import ru.hollowhorizon.hc.client.models.gltf.manager.AnimationLayer
 
-class Animation(val name: String, val animationData: Map<GltfTree.Node, AnimationData>) {
-    var startTime = 0
-    var currentTime = 0f
-    var isEnded = false
-    val maxTime = animationData.maxOf { it.value.maxTime }.let {
-        if (it == 0f) 0.0001f else it
-    }
+class Animation(val name: String, private val animationData: Map<GltfTree.Node, AnimationData>) {
+    val maxTime = animationData.values.maxOf { it.maxTime }
 
-    fun reset(manager: GLTFAnimationManager) {
-        startTime = manager.currentTick
-        currentTime = 0f
-        isEnded = false
-    }
-
-    fun hasNode(node: GltfTree.Node, target: AnimationTarget): Boolean {
-        val data = animationData.entries.find { it.key.index == node.index }?.value ?: return false
-
-        return when (target) {
-            AnimationTarget.TRANSLATION -> data.translation != null
-            AnimationTarget.ROTATION -> data.rotation != null
-            AnimationTarget.SCALE -> data.scale != null
-        }
-    }
-
-    fun update(layer: ILayer, manager: GLTFAnimationManager, partialTick: Float) {
-
-        when (layer.playType) {
-            PlayType.ONCE -> {
-                if (currentTime < maxTime) currentTime = (manager.currentTick - startTime + partialTick) / 20 * layer.speed
-                else isEnded = true
-            }
-
-            PlayType.LOOPED -> {
-                currentTime = ((manager.currentTick - startTime + partialTick) / 20 * layer.speed) % maxTime
-            }
-
-            PlayType.LAST_FRAME -> {
-                currentTime = if (currentTime < maxTime) (manager.currentTick - startTime + partialTick) / 20 * layer.speed
-                else maxTime
-            }
-
-            PlayType.REVERSED -> {
-                //currentTime = ((manager.currentTick - startTime + partialTick) / 20 * layer.speed) % maxTime
-                //if (currentTime > maxTime || currentTime < 0f) layer.speed *= -1
-                TODO("Make it works")
-            }
-        }
-    }
-
-    fun compute(node: GltfTree.Node, target: AnimationTarget): FloatArray? {
+    fun compute(node: GltfTree.Node, currentTime: Float): Transformation? {
         return animationData.entries.find { it.key.index == node.index }?.value?.let {
-            when (target) {
-                AnimationTarget.TRANSLATION -> it.translation?.compute(currentTime)
-                AnimationTarget.ROTATION -> it.rotation?.compute(currentTime)
-                AnimationTarget.SCALE -> it.scale?.compute(currentTime)
-            }
+            val t = it.translation?.compute(currentTime)
+            val r = it.rotation?.compute(currentTime)
+            val s = it.scale?.compute(currentTime)
+            Transformation(
+                t?.let { arr -> Vector3f(arr[0], arr[1], arr[2]) } ?: node.transform.translation,
+                r?.let { arr -> Quaternion(arr[0], arr[1], arr[2], arr[3]) } ?: node.transform.rotation,
+                s?.let { arr -> Vector3f(arr[0], arr[1], arr[2]) } ?: node.transform.scale
+            )
         }
     }
 
@@ -102,6 +60,7 @@ class Animation(val name: String, val animationData: Map<GltfTree.Node, Animatio
 fun Vector3f.array(): FloatArray {
     return floatArrayOf(x(), y(), z())
 }
+
 fun Quaternion.array(): FloatArray {
     return floatArrayOf(i(), j(), k(), r())
 }
@@ -173,7 +132,9 @@ class AnimationData(
     )
 }
 
-enum class AnimationTarget { TRANSLATION, ROTATION, SCALE;
+enum class AnimationTarget {
+    TRANSLATION, ROTATION, SCALE;
+
     val numComponents: Int
-        get() = if(this == ROTATION) 4 else 3
+        get() = if (this == ROTATION) 4 else 3
 }

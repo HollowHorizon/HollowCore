@@ -13,36 +13,32 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
+import net.minecraftforge.common.capabilities.ICapabilityProviderImpl
 import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.fml.loading.FMLLoader
 import net.minecraftforge.fml.util.thread.SidedThreadGroups
 import net.minecraftforge.registries.IForgeRegistry
-import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.screens.util.Anchor
+import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
+import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage
 import java.io.InputStream
+import kotlin.reflect.KClass
 
 
-val mc: Minecraft
-    @OnlyIn(Dist.CLIENT)
-    get() = Minecraft.getInstance()
+val mc: Minecraft @OnlyIn(Dist.CLIENT) get() = Minecraft.getInstance()
 
 
-val isProduction: Boolean
-    get() = FMLLoader.isProduction()
-val isLogicalClient: Boolean
-    get() = Thread.currentThread().threadGroup != SidedThreadGroups.SERVER
-val isLogicalServer: Boolean
-    get() = !isLogicalClient
-val isPhysicalClient: Boolean
-    get() = FMLEnvironment.dist.isClient
-val isPhysicalServer: Boolean
-    get() = !isPhysicalClient
+val isProduction get() = FMLLoader.isProduction()
+val isLogicalClient get() = Thread.currentThread().threadGroup != SidedThreadGroups.SERVER
+val isLogicalServer get() = !isLogicalClient
+val isPhysicalClient get() = FMLEnvironment.dist.isClient
+val isPhysicalServer get() = !isPhysicalClient
 
-fun String.toRL(): ResourceLocation {
-    return ResourceLocation(this)
-}
+operator fun <T : CapabilityInstance> ICapabilityProviderImpl<*>.get(capability: KClass<T>): T =
+    getCapability(CapabilityStorage.getCapability(capability.java))
+        .orElseThrow { IllegalStateException("Capability ${capability.simpleName} not found!") }
 
-val String.rl: ResourceLocation
-    get() = ResourceLocation(this)
+val String.rl get() = ResourceLocation(this)
 
 @OnlyIn(Dist.CLIENT)
 fun ResourceLocation.toIS(): InputStream {
@@ -72,13 +68,7 @@ fun Screen.open() {
 }
 
 @OnlyIn(Dist.CLIENT)
-fun ResourceLocation.toTexture(): AbstractTexture {
-    val texture: AbstractTexture = mc.textureManager.getTexture(this)
-    return if (texture == null) {
-        HollowCore.LOGGER.warn("Texture \"$this\" not found")
-        mc.textureManager.getTexture("textures/block/beacon.png".toRL())
-    } else texture
-}
+fun ResourceLocation.toTexture(): AbstractTexture = mc.textureManager.getTexture(this)
 
 @OnlyIn(Dist.CLIENT)
 fun AbstractTexture.render(stack: PoseStack, x: Int, y: Int, width: Int, height: Int) {
@@ -87,29 +77,16 @@ fun AbstractTexture.render(stack: PoseStack, x: Int, y: Int, width: Int, height:
 }
 
 @OnlyIn(Dist.CLIENT)
-fun Font.drawScaled(stack: PoseStack, text: Component, x: Int, y: Int, color: Int, scale: Float) {
+@JvmOverloads
+fun Font.drawScaled(stack: PoseStack, anchor: Anchor = Anchor.CENTER, text: Component, x: Int, y: Int, color: Int, scale: Float) {
     stack.pushPose()
     stack.translate((x).toDouble(), (y).toDouble(), 0.0)
     stack.scale(scale, scale, 0F)
-    this.draw(stack, text, 0f, 0f, color)
-    stack.popPose()
-}
-
-@OnlyIn(Dist.CLIENT)
-fun Font.drawScaledEnd(stack: PoseStack, text: Component, x: Int, y: Int, color: Int, scale: Float) {
-    stack.pushPose()
-    stack.translate((x).toDouble(), (y).toDouble(), 0.0)
-    stack.scale(scale, scale, 0F)
-    this.draw(stack, text, -this.width(text) + 0f, 0f, color)
-    stack.popPose()
-}
-
-@OnlyIn(Dist.CLIENT)
-fun Font.drawCentredScaled(stack: PoseStack, text: Component, x: Int, y: Int, color: Int, scale: Float) {
-    stack.pushPose()
-    stack.translate((x).toDouble(), (y).toDouble(), 0.0)
-    stack.scale(scale, scale, 0F)
-    this.draw(stack, text, -this.width(text) / 2f, -this.lineHeight / 2f, color)
+    when (anchor) {
+        Anchor.CENTER -> this.draw(stack, text, -this.width(text) / 2f, -this.lineHeight / 2f, color)
+        Anchor.END -> this.draw(stack, text, -this.width(text).toFloat(), 0f, color)
+        Anchor.START -> this.draw(stack, text, 0f, 0f, color)
+    }
     stack.popPose()
 }
 

@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.graphics.AttributeContext
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.toIS
 import java.io.ByteArrayInputStream
@@ -272,9 +273,10 @@ object GltfTree {
                 if (texturePath.startsWith("data:image/png;base64,")) {
                     val decoded = folder(texturePath)
                     val dynamicTexture = DynamicTexture(NativeImage.read(decoded))
-                    return Minecraft.getInstance().textureManager.register("gltf_dynamic_texture", dynamicTexture).also {
-                        HollowCore.LOGGER.info("Creating texture: {}", it)
-                    }
+                    return Minecraft.getInstance().textureManager.register("gltf_dynamic_texture", dynamicTexture)
+                        .also {
+                            HollowCore.LOGGER.info("Creating texture: {}", it)
+                        }
                 }
                 return ResourceLocation("base64:value")
             }
@@ -382,14 +384,20 @@ object GltfTree {
         val skin: Skin? = null,
         val name: String? = null,
     ) {
+        val hasChanged: Boolean get() = transform.hasChanged || parent?.hasChanged == true
+        private var lastMatrix = Matrix4f().apply(Matrix4f::setIdentity)
         var parent: Node? = null
 
         fun getMatrix() = transform.getMatrix()
 
         fun computeMatrix(): Matrix4f {
-            val matrix = parent?.computeMatrix() ?: Matrix4f().apply(Matrix4f::setIdentity)
-            matrix.multiply(getMatrix())
-            return matrix
+            if (hasChanged) {
+                val matrix = parent?.computeMatrix() ?: Matrix4f().apply(Matrix4f::setIdentity)
+                matrix.multiply(getMatrix())
+                lastMatrix = matrix
+                transform.hasChanged = false
+            }
+            return lastMatrix
         }
 
     }
@@ -415,7 +423,20 @@ object GltfTree {
         val indices: Buffer? = null,
         val mode: GltfMode,
         val material: ResourceLocation,
-    )
+    ) {
+        fun AttributeContext.writeToVao() {
+            indices(this@Primitive.indices?.get<Int>()?.toIntArray() ?: return)
+            attributes[GltfAttribute.POSITION]?.getAsFloatArray()?.let {
+                "position"(it, AttributeContext.Type.VEC3)
+            }
+            attributes[GltfAttribute.NORMAL]?.getAsFloatArray()?.let {
+                "normal"(it, AttributeContext.Type.VEC3)
+            }
+            attributes[GltfAttribute.TEXCOORD_0]?.getAsIntArray()?.let {
+                "texcoord"(it, AttributeContext.Type.VEC2)
+            }
+        }
+    }
 
     @Suppress("UNCHECKED_CAST")
     data class Buffer(
@@ -426,6 +447,8 @@ object GltfTree {
         val byteOffset: Int,
     ) {
         fun <T> get() = data as List<T>
+        fun getAsFloatArray() = (data as List<Float>).toFloatArray();
+        fun getAsIntArray() = (data as List<Int>).toIntArray();
 
         fun <T> get(index: Int) = data[index] as T
 

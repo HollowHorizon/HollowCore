@@ -18,13 +18,13 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.FlyingAnimal
-import ru.hollowhorizon.hc.client.gltf.animations.GLTFAnimationManager
 import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
+import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.gltf.manager.ClientModelManager
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
-import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage
+import ru.hollowhorizon.hc.client.utils.get
+import ru.hollowhorizon.hc.client.utils.rl
 
 
 open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
@@ -59,17 +59,21 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     ) {
         super.render(entity, yaw, partialTick, stack, source, packedLight)
 
-        val model = GltfManager.getOrCreate(entity.model)
-        val manager = entity.manager as ClientModelManager
-        manager.setTick(entity.tickCount)
+        val capability = entity[AnimatedEntityCapability::class]
+        val modelPath = capability.model
+        if (modelPath == NO_MODEL) return
 
-        preRender(entity, manager, stack, partialTick)
+        val model = GltfManager.getOrCreate(modelPath.rl)
+
+        preRender(entity, capability, model.animationPlayer, stack)
 
         stack.pushPose()
 
         val lerpBodyRot = Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot)
         stack.mulPose(Vector3f.YP.rotationDegrees(-lerpBodyRot))
 
+        model.update(capability, entity.tickCount, partialTick)
+        model.entityUpdate(entity, capability, partialTick)
         model.render(
             stack,
             { texture -> source.getBuffer(getRenderType(texture)) },
@@ -82,71 +86,42 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     protected fun getRenderType(texture: ResourceLocation): RenderType = renderType.apply(texture, true)
 
 
-    private fun preRender(entity: T, manager: ClientModelManager, stack: PoseStack, partialTick: Float) {
-        val capability = entity.getCapability(CapabilityStorage.getCapability(AnimatedEntityCapability::class.java))
-            .orElseThrow { IllegalStateException("AnimatedEntityCapability is missing") }
+    private fun preRender(
+        entity: T,
+        capability: AnimatedEntityCapability,
+        manager: GLTFAnimationPlayer,
+        stack: PoseStack,
+    ) {
         stack.mulPoseMatrix(capability.transform.matrix)
         stack.mulPose(Vector3f.YP.rotationDegrees(180f))
-
-        manager.updateEntity(entity)
-
-        updateAnimations(entity, manager, capability.customAnimations)
-        manager.update(partialTick)
+        updateAnimations(entity, capability, manager)
     }
 
-    private fun updateAnimations(entity: T, manager: GLTFAnimationManager, overrides: Map<AnimationType, String>) {
-        val templates = manager.templates + overrides
-
-        if (!entity.isAlive) {
-            manager.currentAnimation = templates.getOrDefault(AnimationType.DEATH, "")
-            return
+    private fun updateAnimations(entity: T, capability: AnimatedEntityCapability, manager: GLTFAnimationPlayer) {
+        when {
+            entity.hurtTime > 0 -> manager.playOnce(capability, AnimationType.HURT)
+            entity.swinging -> manager.playOnce(capability, AnimationType.SWING)
         }
+        manager.currentLoopAnimation = when {
+            !entity.isAlive -> AnimationType.DEATH
+            entity is FlyingAnimal && entity.isFlying -> AnimationType.FLY
+            entity.isSleeping -> AnimationType.SLEEP
+            entity.vehicle != null -> AnimationType.SIT
+            entity.fallFlyingTicks > 4 -> AnimationType.FALL
+            entity.animationSpeed > 0.01 -> {
+                when {
+                    entity.isVisuallySwimming -> AnimationType.SWIM
+                    entity.isShiftKeyDown -> AnimationType.WALK_SNEAKED
+                    entity.animationSpeed > 1.5f -> AnimationType.WALK
+                    else -> AnimationType.WALK
+                }
+            }
 
-        if(entity.hurtTime > 0) {
-            manager.currentAnimation = templates.getOrDefault(AnimationType.HURT, "")
+            else -> AnimationType.IDLE
         }
+    }
 
-        if (entity is FlyingAnimal) {
-            manager.currentAnimation = templates.getOrDefault(AnimationType.FLY, "")
-            return
-        }
-
-        if (entity.isSleeping) {
-            manager.currentAnimation = templates.getOrDefault(AnimationType.SLEEP, "")
-            return
-        }
-
-        if (entity.swinging) {
-//            val anim = AnimationLoader.createAnimation(
-//                renderedScene.gl!!.model?.gltfModel ?: return,
-//                templates.getOrDefault(AnimationType.SWING, "")
-//            ) ?: return
-//            manager.addLayer(anim)
-            return
-        }
-
-        entity.vehicle?.let {
-            manager.currentAnimation = templates.getOrDefault(AnimationType.SIT, "")
-            return
-        }
-
-        if (entity.fallFlyingTicks > 4) {
-            manager.currentAnimation = templates.getOrDefault(AnimationType.FALL, "")
-            return
-        }
-
-        manager.currentAnimation = if (entity.animationSpeed > 0.01) {
-            templates.getOrDefault(
-                if (entity.isVisuallySwimming) AnimationType.SWIM
-                else if (entity.animationSpeed > 1.5f) AnimationType.RUN
-                else if (entity.isShiftKeyDown) AnimationType.WALK_SNEAKED
-                else AnimationType.WALK, ""
-            )
-        } else {
-            templates.getOrDefault(
-                if (entity.isShiftKeyDown) AnimationType.IDLE_SNEAKED else AnimationType.IDLE,
-                ""
-            )
-        }
+    companion object {
+        const val NO_MODEL = "%NO_MODEL%"
     }
 }
