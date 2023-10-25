@@ -1,5 +1,5 @@
-modLoader = "javafml"
-loaderVersion = "[43,)"
+modLoader = "kotlinforforge"
+loaderVersion = "[3,)"
 license = "MIT License"
 logoFile="hollow_core_logo.png"
 authors="HollowHorizon"
@@ -24,10 +24,9 @@ mandatory = true
 versionRange = "[1.19,1.20)"
 ordering = "NONE"
 side = "BOTH"
-
 [[dependencies.hc]]
 modId="kotlinforforge"
 mandatory=true
-versionRange="[3.12.0)"
+versionRange="[3.12.0,)"
 ordering = "AFTER"
 side = "BOTH"
