@@ -53,7 +53,7 @@ class DefinedLayer {
     var priority = 0f
 
     fun update(animationType: AnimationType, currentTick: Int, partialTick: Float) {
-        priority = (currentTick - currentStartTime + partialTick).coerceAtMost(1f)
+        priority = ((currentTick - currentStartTime + partialTick) / 10f).coerceAtMost(1f)
         if (animationType == currentAnimation) return
         lastAnimation = currentAnimation
         currentAnimation = animationType
@@ -78,7 +78,7 @@ class DefinedLayer {
         return Transformation.lerp(
             f.compute(node, firstTime % f.maxTime) ?: bindPose.compute(node, 0f)!!,
             s.compute(node, secondTime % s.maxTime) ?: bindPose.compute(node, 0f)!!,
-            priority
+            1.0f - priority
         )
     }
 }

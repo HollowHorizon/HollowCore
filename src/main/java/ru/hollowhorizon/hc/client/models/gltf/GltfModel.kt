@@ -35,7 +35,7 @@ class GltfModel(val modelPath: GltfTree.GLTFTree) {
             joints.values.forEachIndexed { i, joint ->
                 computeSkinMatrixCommands += { matrix ->
                     val inverseTransform = matrix.copy().apply { invert() }
-                    val jointMat = joint.computeMatrix().apply { multiply(matrices[i]) }
+                    val jointMat = joint.transformationMatrix.apply { multiply(matrices[i]) }
                     inverseTransform.apply { multiply(jointMat) }
                 }
             }
@@ -58,7 +58,7 @@ class GltfModel(val modelPath: GltfTree.GLTFTree) {
                         commands += { stack: PoseStack, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int ->
                             val buffer = consumer(primitive.material)
                             val transformed = Vector4f()
-                            val mat = node.computeMatrix()
+                            val mat = node.transformationMatrix
                             if(weights.isNotEmpty()) {
                                 val first = Vector4f(position)
                                 first.transform(computeSkinMatrixCommands[joints.x().toInt()](mat))

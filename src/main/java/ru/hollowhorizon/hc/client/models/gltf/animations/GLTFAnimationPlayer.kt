@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.client.models.gltf.animations
 
 import net.minecraft.world.entity.LivingEntity
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.gltf.GltfModel
 import ru.hollowhorizon.hc.client.models.gltf.Transformation
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
@@ -30,6 +31,7 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
 
     fun updateEntity(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
         head?.let {
+            HollowCore.LOGGER.info("Updating head")
             val newRot = capability.headLayer.computeRotation(entity, partialTick)
             it.transform.rotation.set(newRot.i(), newRot.j(), newRot.k(), newRot.r())
         }
@@ -44,7 +46,7 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
 
         capability.onceAnimations.removeIf { it.isEnd(nameToAnimationMap, currentTick, partialTick) }
 
-        nodeModels.parallelStream().forEach { node ->
+        nodeModels.forEach { node ->
             val transforms = HashMap<Transformation, Float>()
             definedLayer.computeTransform(node, bindPose, typeToAnimationMap, currentTick, partialTick)?.let {
                 transforms.put(it, 1.0f)

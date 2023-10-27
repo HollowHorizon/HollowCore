@@ -384,20 +384,12 @@ object GltfTree {
         val skin: Skin? = null,
         val name: String? = null,
     ) {
-        val hasChanged: Boolean get() = transform.hasChanged || parent?.hasChanged == true
-        private var lastMatrix = Matrix4f().apply(Matrix4f::setIdentity)
         var parent: Node? = null
 
-        fun getMatrix() = transform.getMatrix()
-
-        fun computeMatrix(): Matrix4f {
-            if (hasChanged) {
-                val matrix = parent?.computeMatrix() ?: Matrix4f().apply(Matrix4f::setIdentity)
-                matrix.multiply(getMatrix())
-                lastMatrix = matrix
-                transform.hasChanged = false
-            }
-            return lastMatrix
+        val transformationMatrix: Matrix4f get() {
+            val matrix = parent?.transformationMatrix ?: Matrix4f().apply(Matrix4f::setIdentity)
+            matrix.multiply(transform.getMatrix())
+            return matrix
         }
 
     }

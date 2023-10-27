@@ -112,12 +112,12 @@ dependencies {
         exclude("org.jetbrains.kotlin", "kotlinx-serialization-core")
         exclude("org.jetbrains.kotlin", "kotlinx-serialization-json")
     }
-    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm:1.8.21", withoutKotlinStd)
-    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.8.21", withoutKotlinStd)
-    shadow("org.jetbrains.kotlin:kotlin-script-runtime:1.8.21", withoutKotlinStd)
+    shadeKotlin("org.jetbrains.kotlin:kotlin-scripting-jvm:1.8.21", withoutKotlinStd)
+    shadeKotlin("org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.8.21", withoutKotlinStd)
+    shadeKotlin("org.jetbrains.kotlin:kotlin-script-runtime:1.8.21", withoutKotlinStd)
     shadeKotlin("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.8.21", withoutKotlinStd)
     shadeKotlin("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.8.21", withoutKotlinStd)
-    shadow("org.jetbrains:annotations:23.0.0")
+    shadeKotlin("org.jetbrains:annotations:23.0.0")
 
     shadow("com.esotericsoftware:kryo:5.4.0")
 }

@@ -75,18 +75,19 @@ data class Transformation(
     }
 
     fun set(transformationMap: Map<Transformation, Float>) {
-        translationX = transformationMap.sumComponent(Transformation::translationX)
-        translationY = transformationMap.sumComponent(Transformation::translationY)
-        translationZ = transformationMap.sumComponent(Transformation::translationZ)
+        if(transformationMap.isEmpty()) return
+        translationX = transformationMap.sumComponent { it.translationX }
+        translationY = transformationMap.sumComponent { it.translationY }
+        translationZ = transformationMap.sumComponent { it.translationZ }
 
-        rotationX = transformationMap.sumComponent(Transformation::rotationX)
-        rotationY = transformationMap.sumComponent(Transformation::rotationY)
-        rotationZ = transformationMap.sumComponent(Transformation::rotationZ)
-        rotationW = transformationMap.sumComponent(Transformation::rotationW)
+        rotationX = transformationMap.sumComponent { it.rotationX }
+        rotationY = transformationMap.sumComponent { it.rotationY }
+        rotationZ = transformationMap.sumComponent { it.rotationZ }
+        rotationW = transformationMap.sumComponent { it.rotationW }
 
-        scaleX = transformationMap.sumComponent(Transformation::scaleX)
-        scaleY = transformationMap.sumComponent(Transformation::scaleY)
-        scaleZ = transformationMap.sumComponent(Transformation::scaleZ)
+        scaleX = transformationMap.sumComponent { it.scaleX }
+        scaleY = transformationMap.sumComponent { it.scaleY }
+        scaleZ = transformationMap.sumComponent { it.scaleZ }
         hasChanged = true
     }
 
