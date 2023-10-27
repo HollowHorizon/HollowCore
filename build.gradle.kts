@@ -89,7 +89,7 @@ configurations {
     compileOnly.get().extendsFrom(shadeKotlin)
     library.extendsFrom(this["shadow"])
 }
-
+jarJar.enable()
 dependencies {
     val minecraft = configurations["minecraft"]
     val shadow = configurations["shadow"]
@@ -99,7 +99,8 @@ dependencies {
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
 
     shadow("gnu.trove:trove:1.0.2")
-    implementation("thedarkcolour:kotlinforforge:3.12.0")
+    //implementation("thedarkcolour:kotlinforforge:3.12.0")
+    jarJar(group = "thedarkcolour", name = "kotlinforforge", version = "[3.12,4.0)")
 
     val withoutKotlinStd: ExternalModuleDependency.() -> Unit = {
         exclude("gnu.trove", "trove")
