@@ -11,7 +11,7 @@ class AnimatedEntityCapability : CapabilityInstance() {
     internal val headLayer = HeadLayer()
     internal val onceAnimations = ArrayList<AnimationLayer>()
     val layers by syncableList<AnimationLayer>()
-    val customAnimations by syncableMap<AnimationType, String>()
+    //val customAnimations by syncableMap<AnimationType, String>()
     val customTextures by syncableMap<String, String>()
     var model by syncable("%NO_MODEL%")
     var transform by syncable(Transform())

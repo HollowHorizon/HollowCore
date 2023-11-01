@@ -31,7 +31,6 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
 
     fun updateEntity(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
         head?.let {
-            HollowCore.LOGGER.info("Updating head")
             val newRot = capability.headLayer.computeRotation(entity, partialTick)
             it.transform.rotation.set(newRot.i(), newRot.j(), newRot.k(), newRot.r())
         }
@@ -72,6 +71,7 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
     }
 
     fun playOnce(capability: AnimatedEntityCapability, name: String) {
+        if (capability.onceAnimations.any { it.animation == name }) return
         capability.onceAnimations.add(AnimationLayer(name, 1.0f, PlayType.ONCE, 1.0f, 0))
     }
 }

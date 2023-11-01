@@ -4,6 +4,7 @@ import com.mojang.math.Quaternion
 import kotlinx.serialization.Serializable
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.Transformation
 import ru.hollowhorizon.hc.client.models.gltf.animations.Animation
@@ -14,7 +15,7 @@ import ru.hollowhorizon.hc.client.models.gltf.animations.PlayType
 data class AnimationLayer(
     val animation: String,
     val priority: Float,
-    val playType: PlayType,
+    val type: PlayType,
     val speed: Float,
     var time: Int,
 ) {
@@ -24,9 +25,9 @@ data class AnimationLayer(
         partialTick: Float,
     ): Boolean {
         val animation = nameToAnimationMap[animation] ?: return true
-        val currentTime = ((currentTick - time + partialTick) / 20f) % animation.maxTime
-
-        return currentTime % animation.maxTime == 0f
+        return (((currentTick - time + partialTick) / 20f) >= animation.maxTime).also {
+            if(it) HollowCore.LOGGER.info("Animation ended: $animation")
+        }
     }
 
     fun computeTransform(

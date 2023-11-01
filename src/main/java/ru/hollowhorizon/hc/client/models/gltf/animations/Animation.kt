@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.client.models.gltf.animations
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
 import com.mojang.math.Vector4f
+import kotlinx.serialization.Serializable
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.Transformation
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimationLayer
@@ -109,6 +110,7 @@ enum class AnimationType {
     }
 }
 
+@Serializable
 enum class PlayType {
     ONCE, //Одиночный запуск анимации
     LOOPED, //После завершения анимация начнётся с начала

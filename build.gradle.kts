@@ -176,7 +176,7 @@ val shadowJar = tasks.named<ShadowJar>("shadowJar") {
     )
 
     val packages = listOf(
-        "gnu.trove",
+        "gnu.trove"
     )
 
     packages.forEach { relocate(it, "ru.hollowhorizon.repack.$it") }
