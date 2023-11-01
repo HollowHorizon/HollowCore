@@ -29,7 +29,7 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
     fun updateEntity(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
         head.forEach {
             val newRot = capability.headLayer.computeRotation(entity, partialTick)
-            it.transform.rotation.set(newRot.i(), newRot.j(), newRot.k(), newRot.r())
+            it.transform.setRotation(floatArrayOf(newRot.i(), newRot.j(), newRot.k(), newRot.r()))
         }
     }
 
@@ -40,9 +40,8 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
         val definedLayer = capability.definedLayer
         definedLayer.update(currentLoopAnimation, currentTick, partialTick)
 
-        capability.onceAnimations.removeIf { it.isEnd(nameToAnimationMap, currentTick, partialTick) }
-
         nodeModels.forEach { node ->
+            bindPose.apply(node, 0f)
             val transforms = HashMap<Transformation, Float>()
             definedLayer.computeTransform(node, bindPose, typeToAnimationMap, currentTick, partialTick)?.let {
                 transforms.put(it, 1.0f)
@@ -53,10 +52,12 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
             }.toMap()
             transforms += capability.onceAnimations.mapNotNull {
                 (it.computeTransform(node, nameToAnimationMap, currentTick, partialTick)
-                    ?: return@mapNotNull null) to it.priority
+                    ?: return@mapNotNull null) to it.priority + 10f
             }.toMap()
             node.transform.set(transforms)
         }
+
+        capability.onceAnimations.removeIf { it.isEnd(nameToAnimationMap, currentTick, partialTick) }
     }
 
     fun setTick(tick: Int) {

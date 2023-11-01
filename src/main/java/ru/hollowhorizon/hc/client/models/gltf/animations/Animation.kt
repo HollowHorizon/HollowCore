@@ -6,7 +6,6 @@ import com.mojang.math.Vector4f
 import kotlinx.serialization.Serializable
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.Transformation
-import ru.hollowhorizon.hc.client.models.gltf.manager.AnimationLayer
 
 class Animation(val name: String, private val animationData: Map<GltfTree.Node, AnimationData>) {
     val maxTime = animationData.values.maxOf { it.maxTime }
@@ -79,19 +78,19 @@ enum class AnimationType {
         fun load(model: GltfTree.GLTFTree): HashMap<AnimationType, String> {
             val names = model.animations.map { it.name ?: "Unnamed" }
 
-            fun List<String>.findOr(vararg names: String) = this.find { anim -> names.any { anim.contains(it) } }
-            fun List<String>.findAnd(vararg names: String) = this.find { anim -> names.all { anim.contains(it) } }
+            fun List<String>.findOr(vararg names: String) = this.find { anim -> names.any { anim.contains(it, ignoreCase = true) } }
+            fun List<String>.findAnd(vararg names: String) = this.find { anim -> names.all { anim.contains(it, ignoreCase = true) } }
             val animations = hashMapOf<AnimationType, String>()
 
             animations[IDLE] = names.findOr("idle") ?: ""
             animations[IDLE_SNEAKED] = names.findAnd("idle", "sneak") ?: animations[IDLE] ?: ""
             animations[WALK] = names.minByOrNull {
                 when {
-                    it.contains("walk") -> 0
-                    it.contains("go") -> 1
-                    it.contains("run") -> 2
-                    it.contains("move") -> 3
-                    else -> 4
+                    it.contains("walk", ignoreCase = true) -> 0
+                    it.contains("go", ignoreCase = true) -> 1
+                    it.contains("run", ignoreCase = true) -> 2
+                    it.contains("move", ignoreCase = true) -> 3
+                    else -> 5
                 }
             } ?: ""
             animations[HURT] = names.findOr("hurt", "damage") ?: ""

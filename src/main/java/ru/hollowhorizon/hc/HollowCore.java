@@ -56,7 +56,6 @@ public class HollowCore {
     public static final boolean DEBUG_MODE = true;
 
     public HollowCore() {
-        ScriptingCompilerKt.main();
         HollowModProcessor.initMod();
         LOGGER.info("Starting HollowCore...");
 

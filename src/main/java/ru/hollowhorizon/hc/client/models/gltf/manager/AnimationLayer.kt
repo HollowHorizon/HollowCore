@@ -25,9 +25,7 @@ data class AnimationLayer(
         partialTick: Float,
     ): Boolean {
         val animation = nameToAnimationMap[animation] ?: return true
-        return (((currentTick - time) / 20f + partialTick) >= animation.maxTime).also {
-            if(it) HollowCore.LOGGER.info("Animation ended: $animation")
-        }
+        return (((currentTick - time + partialTick) / 20f) >= animation.maxTime)
     }
 
     fun computeTransform(
@@ -40,7 +38,7 @@ data class AnimationLayer(
 
         if (time == 0) time = currentTick
 
-        val currentTime = ((currentTick - time) / 20f + partialTick) % animation.maxTime
+        val currentTime = ((currentTick - time + partialTick) / 20f * speed) % animation.maxTime
 
         return animation.compute(node, currentTime)
     }
@@ -73,8 +71,8 @@ class DefinedLayer {
         val f = animationCache[currentAnimation] ?: animationCache[lastAnimation] ?: return null
         val s = animationCache[lastAnimation] ?: f
 
-        val firstTime = (currentTick - lastStartTime) / 20f + partialTick
-        val secondTime = (currentTick - currentStartTime) / 20f + partialTick
+        val firstTime = (currentTick - lastStartTime + partialTick) / 20f
+        val secondTime = (currentTick - currentStartTime + partialTick) / 20f
 
         return Transformation.lerp(
             f.compute(node, firstTime % f.maxTime) ?: bindPose.compute(node, 0f)!!,
@@ -90,10 +88,10 @@ class HeadLayer {
         partialTick: Float,
     ): Quaternion {
 
-        val bodyYaw = -Mth.rotLerp(partialTick * 20f, animatable.yBodyRotO, animatable.yBodyRot)
-        val headYaw = -Mth.rotLerp(partialTick * 20f, animatable.yHeadRotO, animatable.yHeadRot)
+        val bodyYaw = -Mth.rotLerp(partialTick, animatable.yBodyRotO, animatable.yBodyRot)
+        val headYaw = -Mth.rotLerp(partialTick, animatable.yHeadRotO, animatable.yHeadRot)
         val netHeadYaw = headYaw - bodyYaw
-        val headPitch = -Mth.rotLerp(partialTick * 20f, animatable.xRotO, animatable.xRot)
+        val headPitch = -Mth.rotLerp(partialTick, animatable.xRotO, animatable.xRot)
 
         return Quaternion(headPitch, netHeadYaw, 0f, true)
 
