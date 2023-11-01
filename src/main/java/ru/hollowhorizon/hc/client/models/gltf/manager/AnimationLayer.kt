@@ -25,7 +25,7 @@ data class AnimationLayer(
         partialTick: Float,
     ): Boolean {
         val animation = nameToAnimationMap[animation] ?: return true
-        return (((currentTick - time + partialTick) / 20f) >= animation.maxTime).also {
+        return (((currentTick - time) / 20f + partialTick) >= animation.maxTime).also {
             if(it) HollowCore.LOGGER.info("Animation ended: $animation")
         }
     }
@@ -40,7 +40,7 @@ data class AnimationLayer(
 
         if (time == 0) time = currentTick
 
-        val currentTime = ((currentTick - time + partialTick) / 20f) % animation.maxTime
+        val currentTime = ((currentTick - time) / 20f + partialTick) % animation.maxTime
 
         return animation.compute(node, currentTime)
     }
@@ -73,8 +73,8 @@ class DefinedLayer {
         val f = animationCache[currentAnimation] ?: animationCache[lastAnimation] ?: return null
         val s = animationCache[lastAnimation] ?: f
 
-        val firstTime = (currentTick - lastStartTime + partialTick) / 20f
-        val secondTime = (currentTick - currentStartTime + partialTick) / 20f
+        val firstTime = (currentTick - lastStartTime) / 20f + partialTick
+        val secondTime = (currentTick - currentStartTime) / 20f + partialTick
 
         return Transformation.lerp(
             f.compute(node, firstTime % f.maxTime) ?: bindPose.compute(node, 0f)!!,
