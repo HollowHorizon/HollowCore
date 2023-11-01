@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.client.models.gltf.animations
 import net.minecraft.world.entity.LivingEntity
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.gltf.GltfModel
+import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.Transformation
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimationLayer
@@ -23,14 +24,10 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
         templates.mapNotNull { it.key to (nameToAnimationMap[it.value] ?: return@mapNotNull null) }.toMap()
     var currentLoopAnimation = AnimationType.IDLE
     var currentTick = 0
-    val head by lazy {
-        nodeModels.find {
-            it.name?.lowercase()?.contains("head") == true && it.parent?.name?.lowercase()?.contains("head") == false
-        }
-    }
+    val head by lazy { nodeModels.filter(GltfTree.Node::isHead) }
 
     fun updateEntity(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
-        head?.let {
+        head.forEach {
             val newRot = capability.headLayer.computeRotation(entity, partialTick)
             it.transform.rotation.set(newRot.i(), newRot.j(), newRot.k(), newRot.r())
         }

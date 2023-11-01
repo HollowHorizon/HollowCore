@@ -385,7 +385,7 @@ object GltfTree {
         val name: String? = null,
     ) {
         var parent: Node? = null
-
+        val isHead: Boolean get() = name?.lowercase()?.contains("head") == true && parent?.isHead == false
         val transformationMatrix: Matrix4f get() {
             val matrix = parent?.transformationMatrix ?: Matrix4f().apply(Matrix4f::setIdentity)
             matrix.multiply(transform.getMatrix())
