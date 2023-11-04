@@ -17,8 +17,8 @@ open class GuiAnimator protected constructor(
     protected var startTicks = ClientTickHandler.ticks
 
     open fun update(partialTick: Float) {
-        if (timePassed > 0) value = begin + ((end - begin) * interpolation(1 - timePassed / maxTime)).toInt()
-        timePassed = ClientTickHandler.ticks - startTicks + partialTick
+        if (timePassed > 0) value = begin + ((end - begin) * interpolation(1f - (timePassed / maxTime).coerceAtMost(1.0f))).toInt()
+        timePassed = maxTime - ClientTickHandler.ticks - startTicks + partialTick
     }
 
     fun setTime(v: Float) {
