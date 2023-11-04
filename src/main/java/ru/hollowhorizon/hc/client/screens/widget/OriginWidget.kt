@@ -49,11 +49,8 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
         stack.translate(-originX.toDouble(), -originY.toDouble(), 0.0)
         stack.scale(scale, scale, 1f)
 
-        ScissorUtil.push()
-        ScissorUtil.start(x, y, width, height)
-
+        ScissorUtil.push(x, y, width, height)
         super.renderButton(stack, mouseX, mouseY, ticks)
-        ScissorUtil.stop()
         ScissorUtil.pop()
 
         stack.popPose()

@@ -93,9 +93,9 @@ public class ListWidget extends HollowWidget {
     public void renderButton(PoseStack stack, int mouseX, int mouseY, float ticks) {
         this.slider.render(stack, mouseX, mouseY, ticks);
 
-        ScissorUtil.start(this.x, this.y, this.width, this.height);
+        ScissorUtil.INSTANCE.push(this.x, this.y, this.width, this.height);
         super.renderButton(stack, mouseX, mouseY, ticks);
-        ScissorUtil.stop();
+        ScissorUtil.INSTANCE.pop();
     }
 
     @Override

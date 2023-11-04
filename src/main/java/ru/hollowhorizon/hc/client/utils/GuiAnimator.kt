@@ -1,25 +1,24 @@
 package ru.hollowhorizon.hc.client.utils
 
+import net.minecraft.client.Minecraft
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
 open class GuiAnimator protected constructor(
     val begin: Int,
     val end: Int,
-    protected val time: Float,
+    time: Float,
     protected val interpolation: (Float) -> Float,
-) {
+) : ReadOnlyProperty<Any?, Int> {
     var value: Int = begin
     val maxTime = time * 20
     protected var timePassed: Float = maxTime
-    protected var current: Int = begin
-    protected var last: Int = begin
-    protected var startTicks = 0
+    protected var startTicks = ClientTickHandler.ticks
 
     open fun update(partialTick: Float) {
-        if (timePassed > 0) {
-            value = begin + ((end - begin) * interpolation(1 - timePassed / maxTime)).toInt()
-        }
-        timePassed = maxTime - (startTicks - ClientTickHandler.ticks) - partialTick
+        if (timePassed > 0) value = begin + ((end - begin) * interpolation(1 - timePassed / maxTime)).toInt()
+        timePassed = ClientTickHandler.ticks - startTicks + partialTick
     }
 
     fun setTime(v: Float) {
@@ -45,7 +44,7 @@ open class GuiAnimator protected constructor(
                 if (timePassed > 0) {
                     value = begin + ((end - begin) * interpolation(timePassed / maxTime)).toInt()
                 }
-                timePassed = maxTime - (startTicks - ClientTickHandler.ticks) - partialTick
+                timePassed = ClientTickHandler.ticks - startTicks + partialTick
             } else super.update(partialTick)
 
             if (isFinished()) {
@@ -67,4 +66,9 @@ open class GuiAnimator protected constructor(
 
     class Single(begin: Int, end: Int, time: Float, interpolation: (Float) -> Float) :
         GuiAnimator(begin, end, time, interpolation)
+
+    override fun getValue(thisRef: Any?, property: KProperty<*>): Int {
+        update(mc.partialTick)
+        return value
+    }
 }

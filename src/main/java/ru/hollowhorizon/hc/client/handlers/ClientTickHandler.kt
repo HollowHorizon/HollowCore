@@ -6,16 +6,14 @@ import net.minecraftforge.event.TickEvent.ClientTickEvent
 
 object ClientTickHandler {
     @JvmField
-    var ticksPaused = 0
+    var ticksNotPaused = 0
     @JvmField
     var ticks = 0
 
     @JvmStatic
     fun clientTickEnd(event: ClientTickEvent) {
         if (event.phase == TickEvent.Phase.END) {
-            if (!Minecraft.getInstance().isPaused) {
-                ticksPaused++
-            }
+            if (!Minecraft.getInstance().isPaused) ticksNotPaused++
             ticks++
         }
     }

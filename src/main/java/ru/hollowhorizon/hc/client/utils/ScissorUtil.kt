@@ -4,87 +4,63 @@ import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.Minecraft
 import org.lwjgl.opengl.GL11
 import java.util.*
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
+import kotlin.math.max
+import kotlin.math.min
 
 object ScissorUtil {
-    private val STACK: Deque<ScissorBox> = ArrayDeque()
+    private val stack = ArrayDeque<Frame>()
 
-    @JvmStatic
-    fun start(x: Int, y: Int, width: Int, height: Int) {
-        push()
-        ScissorBox.fromScreenSpace(x, y, width, height)
-            .clampInside(STACK.peek()).apply()
+    fun push(x: Int, y: Int, width: Int, height: Int) =
+        push(Frame(x, y, x + width, y + height))
+
+    fun push(frame: Frame) {
+        stack.addLast(frame)
+        apply()
     }
 
-    @JvmStatic
-    fun stop() {
-        RenderSystem.disableScissor()
-        pop()
+    fun pop(): Frame {
+        val frame = stack.removeLast()
+        apply()
+        return frame
     }
 
-    fun push() {
-        if (GL11.glIsEnabled(GL11.GL_SCISSOR_TEST)) {
-            val raw = IntArray(4)
-            GL11.glGetIntegerv(GL11.GL_SCISSOR_BOX, raw)
-            STACK.push(ScissorBox(raw[0], raw[1], raw[2], raw[3]))
+    @OptIn(ExperimentalContracts::class)
+    inline fun suspendScissors(fn: () -> Unit) {
+        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+        val frame = pop()
+        fn()
+        push(frame)
+    }
+
+    private fun apply() {
+        val window = Minecraft.getInstance().window
+
+        if (stack.isEmpty()) {
             RenderSystem.disableScissor()
+            return
         }
+
+        var x1 = 0
+        var y1 = 0
+        var x2 = window.guiScaledWidth
+        var y2 = window.guiScaledHeight
+
+        for (frame in stack) {
+            x1 = max(x1, frame.x1)
+            y1 = max(y1, frame.y1)
+            x2 = min(x2, frame.x2)
+            y2 = min(y2, frame.y2)
+        }
+
+        val scale = window.guiScale
+        RenderSystem.enableScissor(
+            (x1 * scale).toInt(), (window.height - scale * y2).toInt(),
+            ((x2 - x1) * scale).toInt(), ((y2 - y1) * scale).toInt()
+        )
     }
 
-    fun pop() {
-        if (!STACK.isEmpty()) {
-            STACK.pop().apply()
-        }
-    }
-
-    @JvmRecord
-    private data class ScissorBox(val left: Int, val bottom: Int, val width: Int, val height: Int) {
-        fun apply() {
-            if (this !== INVALID) {
-                RenderSystem.enableScissor(left, bottom, width, height)
-            }
-        }
-
-        private fun minX(): Int {
-            return left
-        }
-
-        private fun maxX(): Int {
-            return left + width
-        }
-
-        private fun minY(): Int {
-            return bottom
-        }
-
-        private fun maxY(): Int {
-            return bottom + height
-        }
-
-        fun clampInside(other: ScissorBox?): ScissorBox {
-            if (other != null) {
-                val minX = minX().coerceAtLeast(other.minX())
-                val maxX = maxX().coerceAtMost(other.maxX())
-                val minY = minY().coerceAtLeast(other.minY())
-                val maxY = maxY().coerceAtMost(other.maxY())
-                return if (maxX > minX && maxY > minY) {
-                    ScissorBox(minX, minY, maxX - minX, maxY - minY)
-                } else INVALID
-            }
-            return this
-        }
-
-        companion object {
-            private val INVALID = ScissorBox(0, 0, 0, 0)
-            fun fromScreenSpace(x: Int, y: Int, width: Int, height: Int): ScissorBox {
-                val window = Minecraft.getInstance().window
-                val scale = window.guiScale
-                return ScissorBox(
-                    (x * scale).toInt(),
-                    ((window.guiScaledHeight - y - height) * scale).toInt(),
-                    (width * scale).toInt(),
-                    (height * scale).toInt()
-                )
-            }
-        }
-    }
+    class Frame(val x1: Int, val y1: Int, val x2: Int, val y2: Int)
 }
