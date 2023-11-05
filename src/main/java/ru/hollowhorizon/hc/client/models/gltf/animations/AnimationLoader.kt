@@ -5,7 +5,6 @@ import com.mojang.math.Vector4f
 import net.minecraft.util.Mth
 import ru.hollowhorizon.hc.client.models.gltf.GltfInterpolation
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
-import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationException
 import java.util.*
 import kotlin.math.acos
 
@@ -19,16 +18,17 @@ object AnimationLoader {
     @JvmStatic
     fun createAnimation(model: GltfTree.GLTFTree, animationModel: GltfTree.Animation): Animation {
         val animData = animationModel.channels.map { channel ->
-            val timeKeys = channel.times
+            val timeKeys = channel.times.toFloatArray()
 
             val target = AnimationTarget.valueOf(channel.path.toString().uppercase())
             return@map Pair(target, readAnimationData(
                 channel.interpolation,
                 target,
                 channel.values,
-                timeKeys.toFloatArray()
+                timeKeys
             ).apply {
-                this.node = model.findNodeByIndex(channel.node) ?: throw AnimationException("Node with index ${channel.node} not found!")
+                this.node = model.findNodeByIndex(channel.node)
+                    ?: throw AnimationException("Node with index ${channel.node} not found!")
             })
         }
 
@@ -55,14 +55,8 @@ object AnimationLoader {
     ): Interpolator<*> {
         return when (interpolation) {
             GltfInterpolation.STEP -> loadStep(outputData, timeKeys, target)
-            GltfInterpolation.LINEAR -> loadLinear(
-                outputData,
-                timeKeys,
-                target
-            )
-
+            GltfInterpolation.LINEAR -> loadLinear(outputData, timeKeys, target)
             GltfInterpolation.CUBICSPLINE -> loadCubicSpline(outputData, timeKeys, target)
-
         }
     }
 
@@ -161,9 +155,8 @@ abstract class Interpolator<T>(val keys: FloatArray, val values: Array<T>) {
         get() {
             val index = Arrays.binarySearch(keys, this)
 
-            return if (index >= 0) {
-                index
-            } else 0.coerceAtLeast(-index - 2)
+            return if (index >= 0) index
+            else 0.coerceAtLeast(-index - 2)
         }
 
     lateinit var node: GltfTree.Node

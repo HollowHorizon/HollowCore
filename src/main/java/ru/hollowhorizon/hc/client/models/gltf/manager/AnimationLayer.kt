@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.client.models.gltf.manager
 
 import com.mojang.math.Quaternion
 import kotlinx.serialization.Serializable
+import net.minecraft.Util
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import ru.hollowhorizon.hc.HollowCore
@@ -56,7 +57,7 @@ class DefinedLayer {
         if (animationType == currentAnimation) return
         lastAnimation = currentAnimation
         currentAnimation = animationType
-        priority = 0f
+        priority = 1f - priority
         lastStartTime = currentStartTime
         currentStartTime = currentTick
     }
@@ -70,13 +71,12 @@ class DefinedLayer {
     ): Transformation? {
         val f = animationCache[currentAnimation] ?: animationCache[lastAnimation] ?: return null
         val s = animationCache[lastAnimation] ?: f
-
-        val firstTime = (currentTick - lastStartTime + partialTick) / 20f
-        val secondTime = (currentTick - currentStartTime + partialTick) / 20f
+        val firstTime = (currentTick - lastStartTime + partialTick) / 20.0001f % f.maxTime
+        val secondTime = (currentTick - currentStartTime + partialTick) / 20.0001f % s.maxTime
 
         return Transformation.lerp(
-            f.compute(node, firstTime % f.maxTime) ?: bindPose.compute(node, 0f)!!,
-            s.compute(node, secondTime % s.maxTime) ?: bindPose.compute(node, 0f)!!,
+            f.compute(node, firstTime) ?: bindPose.compute(node, 0f)!!,
+            s.compute(node, secondTime) ?: bindPose.compute(node, 0f)!!,
             1.0f - priority
         )
     }

@@ -112,7 +112,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                 when {
                     entity.isVisuallySwimming -> AnimationType.SWIM
                     entity.isShiftKeyDown -> AnimationType.WALK_SNEAKED
-                    entity.animationSpeed > 1.5f -> AnimationType.WALK
+                    entity.animationSpeed > 1.5f -> AnimationType.RUN
                     else -> AnimationType.WALK
                 }
             }

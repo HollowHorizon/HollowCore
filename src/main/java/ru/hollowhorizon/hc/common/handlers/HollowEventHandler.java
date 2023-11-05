@@ -24,20 +24,7 @@ public class HollowEventHandler {
     public static boolean ENABLE_BLUR = true;
 
     public void init() {
-
         MinecraftForge.EVENT_BUS.register(this);
-    }
-
-    @SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
-    public void tooltipEvent(ItemTooltipEvent event) {
-        ItemStack stack = event.getItemStack();
-        ResourceLocation location = new ResourceLocation(stack.getItem().getDescriptionId());
-
-        String rawPath = "item." + location.getNamespace() + "." + location.getPath() + ".hollow_desc";
-
-        Component text = Component.literal(rawPath);
-        if (!text.getString().equals(rawPath)) event.getToolTip().add(text);
     }
 
 

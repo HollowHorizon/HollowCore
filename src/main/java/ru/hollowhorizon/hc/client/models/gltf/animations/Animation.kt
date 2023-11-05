@@ -11,7 +11,7 @@ class Animation(val name: String, private val animationData: Map<GltfTree.Node, 
     val maxTime = animationData.values.maxOf { it.maxTime }
 
     fun compute(node: GltfTree.Node, currentTime: Float): Transformation? {
-        return animationData.entries.find { it.key.index == node.index }?.value?.let {
+        return animationData[node]?.let {
             val t = it.translation?.compute(currentTime)
             val r = it.rotation?.compute(currentTime)
             val s = it.scale?.compute(currentTime)
