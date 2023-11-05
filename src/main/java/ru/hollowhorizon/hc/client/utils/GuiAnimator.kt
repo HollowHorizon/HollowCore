@@ -13,12 +13,12 @@ open class GuiAnimator protected constructor(
 ) : ReadOnlyProperty<Any?, Int> {
     var value: Int = begin
     val maxTime = time * 20
-    protected var timePassed: Float = maxTime
+    protected var timePassed: Float = 0f
     protected var startTicks = ClientTickHandler.ticks
 
     open fun update(partialTick: Float) {
-        if (timePassed > 0) value = begin + ((end - begin) * interpolation(1f - (timePassed / maxTime).coerceAtMost(1.0f))).toInt()
-        timePassed = maxTime - ClientTickHandler.ticks - startTicks + partialTick
+        value = begin + ((end - begin) * interpolation((timePassed / maxTime).coerceAtMost(1.0f))).toInt()
+        if(!isFinished()) timePassed = ClientTickHandler.ticks - startTicks + partialTick
     }
 
     fun setTime(v: Float) {
@@ -26,12 +26,12 @@ open class GuiAnimator protected constructor(
     }
 
     fun isFinished(): Boolean {
-        return timePassed <= 0
+        return timePassed >= maxTime
     }
 
     fun reset() {
         startTicks = ClientTickHandler.ticks
-        timePassed = maxTime
+        timePassed = 0f
         value = begin
     }
 
@@ -41,10 +41,8 @@ open class GuiAnimator protected constructor(
 
         override fun update(partialTick: Float) {
             if (switch) {
-                if (timePassed > 0) {
-                    value = begin + ((end - begin) * interpolation(timePassed / maxTime)).toInt()
-                }
-                timePassed = ClientTickHandler.ticks - startTicks + partialTick
+                value = begin + ((end - begin) * interpolation(1f - (timePassed / maxTime).coerceAtMost(1.0f))).toInt()
+                if(!isFinished()) timePassed = ClientTickHandler.ticks - startTicks + partialTick
             } else super.update(partialTick)
 
             if (isFinished()) {
@@ -58,9 +56,7 @@ open class GuiAnimator protected constructor(
         GuiAnimator(begin, end, time, interpolation) {
         override fun update(partialTick: Float) {
             super.update(partialTick)
-            if (isFinished()) {
-                reset()
-            }
+            if (isFinished()) reset()
         }
     }
 
