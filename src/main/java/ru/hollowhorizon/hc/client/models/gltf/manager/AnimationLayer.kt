@@ -71,8 +71,8 @@ class DefinedLayer {
     ): Transformation? {
         val f = animationCache[currentAnimation] ?: animationCache[lastAnimation] ?: return null
         val s = animationCache[lastAnimation] ?: f
-        val firstTime = (currentTick - lastStartTime + partialTick) / 20.0001f % f.maxTime
-        val secondTime = (currentTick - currentStartTime + partialTick) / 20.0001f % s.maxTime
+        val firstTime = (currentTick - lastStartTime + partialTick) / 20 % f.maxTime
+        val secondTime = (currentTick - currentStartTime + partialTick) / 20 % s.maxTime
 
         return Transformation.lerp(
             f.compute(node, firstTime) ?: bindPose.compute(node, 0f)!!,

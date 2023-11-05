@@ -18,6 +18,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.FlyingAnimal
+import ru.hollowhorizon.hc.client.models.gltf.ModelData
 import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
@@ -29,6 +30,7 @@ import ru.hollowhorizon.hc.client.utils.rl
 
 open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimated {
+    val itemInHandRenderer = manager.itemInHandRenderer
 
     val renderType = Util.memoize { texture: ResourceLocation, data: Boolean ->
         val state =
@@ -76,6 +78,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         model.entityUpdate(entity, capability, partialTick)
         model.render(
             stack,
+            ModelData(entity.offhandItem, entity.mainHandItem, itemInHandRenderer, entity),
             { texture -> source.getBuffer(getRenderType(texture)) },
             packedLight,
             OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)

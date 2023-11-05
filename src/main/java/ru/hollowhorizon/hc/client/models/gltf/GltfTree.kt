@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.client.graphics.AttributeContext
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.toIS
@@ -31,6 +32,8 @@ fun DataInputStream.readUInt(): Int {
 }
 
 object GltfTree {
+    val TEXTURE_MAP = HashMap<ResourceLocation, DynamicTexture>()
+
 
     fun parse(file: GltfFile, location: ResourceLocation, folder: (String) -> InputStream): GLTFTree {
         val buffers = parseBuffers(file, folder)
@@ -273,10 +276,16 @@ object GltfTree {
                 if (texturePath.startsWith("data:image/png;base64,")) {
                     val decoded = folder(texturePath)
                     val dynamicTexture = DynamicTexture(NativeImage.read(decoded))
-                    return Minecraft.getInstance().textureManager.register("gltf_dynamic_texture", dynamicTexture)
-                        .also {
-                            HollowCore.LOGGER.info("Creating texture: {}", it)
-                        }
+                    val textureName = file.textures[texture].name?.substringBefore(".png")
+                        ?: "gltf_texture_${location.path.replace("/", ".")}_$texture"
+                    val textureLocation = ResourceLocation(MODID, textureName)
+
+                    if (!TEXTURE_MAP.contains(textureLocation)) {
+                        TEXTURE_MAP[textureLocation] = dynamicTexture
+                        Minecraft.getInstance().textureManager.register(textureLocation, dynamicTexture)
+                    }
+
+                    return textureLocation
                 }
                 return ResourceLocation("base64:value")
             }
@@ -386,11 +395,12 @@ object GltfTree {
     ) {
         var parent: Node? = null
         val isHead: Boolean get() = name?.lowercase()?.contains("head") == true && parent?.isHead == false
-        val transformationMatrix: Matrix4f get() {
-            val matrix = parent?.transformationMatrix ?: return transform.getMatrix()
-            matrix.multiply(transform.getMatrix())
-            return matrix
-        }
+        val transformationMatrix: Matrix4f
+            get() {
+                val matrix = parent?.transformationMatrix ?: return transform.getMatrix()
+                matrix.multiply(transform.getMatrix())
+                return matrix
+            }
 
     }
 

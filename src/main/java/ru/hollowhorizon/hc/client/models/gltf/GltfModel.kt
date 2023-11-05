@@ -5,29 +5,64 @@ import com.mojang.blaze3d.vertex.VertexConsumer
 import com.mojang.math.Matrix4f
 import com.mojang.math.Vector3f
 import com.mojang.math.Vector4f
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.ItemInHandRenderer
+import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.ItemStack
 import ru.hollowhorizon.hc.client.models.gltf.animations.Animation
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 
+
+class ModelData(
+    val leftHand: ItemStack?,
+    val rightHand: ItemStack?,
+    val itemInHandRenderer: ItemInHandRenderer?,
+    val entity: LivingEntity?,
+)
 
 class GltfModel(val modelPath: GltfTree.GLTFTree) {
     val bindPose = Animation.createFromPose(modelPath.walkNodes())
     val animationPlayer = GLTFAnimationPlayer(this)
     private val renderCommands = modelPath.scenes.flatMap { scene ->
         val commands =
-            ArrayList<(stack: PoseStack, consumer: (ResourceLocation) -> VertexConsumer, overlay: Int, light: Int) -> Unit>()
+            ArrayList<(PoseStack, ModelData, (ResourceLocation) -> VertexConsumer, Int, Int) -> Unit>()
         scene.nodes.forEach { createNodeCommands(it, commands) }
         return@flatMap commands
     }.toSet()
 
     fun createNodeCommands(
         node: GltfTree.Node,
-        commands: MutableList<(PoseStack, (ResourceLocation) -> VertexConsumer, Int, Int) -> Unit>,
+        commands: MutableList<(PoseStack, ModelData, (ResourceLocation) -> VertexConsumer, Int, Int) -> Unit>,
     ) {
         val computeSkinMatrixCommands = ArrayList<(Matrix4f) -> Matrix4f>()
-        if(node.skin != null) {
+
+        if ((node.name?.contains("left", ignoreCase = true) == true || node.name?.contains(
+                "right",
+                ignoreCase = true
+            ) == true) &&
+            node.name.contains("hand", ignoreCase = true) &&
+            node.name.contains("item", ignoreCase = true)
+        ) commands += cmd@{ stack: PoseStack, modelData: ModelData, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int ->
+            val isLeft = node.name.contains("left", ignoreCase = true)
+
+            val entity = modelData.entity ?: return@cmd
+
+            val item = (if (isLeft) modelData.leftHand else modelData.rightHand) ?: return@cmd
+
+            stack.pushPose()
+
+            stack.mulPoseMatrix(node.transformationMatrix)
+            stack.mulPose(Vector3f.XP.rotationDegrees(-90.0f))
+
+            modelData.itemInHandRenderer?.renderItem(entity, item, if(isLeft) ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND else ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, isLeft, stack, Minecraft.getInstance().renderBuffers().bufferSource(), light)
+
+            stack.popPose()
+        }
+
+        if (node.skin != null) {
             val skin = node.skin
             val joints = skin.joints
             val matrices = skin.inverseBindMatrices
@@ -55,25 +90,46 @@ class GltfModel(val modelPath: GltfTree.GLTFTree) {
                         val joints = primitive.attributes[GltfAttribute.JOINTS_0]?.get<Vector4f>(index) ?: Vector4f()
                         val weights = primitive.attributes[GltfAttribute.WEIGHTS_0]?.get<Vector4f>(index) ?: Vector4f()
 
-                        commands += { stack: PoseStack, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int ->
+                        commands += { stack: PoseStack, modelData: ModelData, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int ->
                             val buffer = consumer(primitive.material)
                             val transformed = Vector4f()
                             val mat = node.transformationMatrix
-                            if(weights.isNotEmpty()) {
+
+                            if (weights.isNotEmpty()) {
                                 val first = Vector4f(position)
                                 first.transform(computeSkinMatrixCommands[joints.x().toInt()](mat))
-                                transformed.add(first.x() * weights.x(), first.y() * weights.x(), first.z() * weights.x(), 0.0f)
+                                transformed.add(
+                                    first.x() * weights.x(),
+                                    first.y() * weights.x(),
+                                    first.z() * weights.x(),
+                                    0.0f
+                                )
                                 val second = Vector4f(position)
                                 second.transform(computeSkinMatrixCommands[joints.y().toInt()](mat))
-                                transformed.add(second.x() * weights.y(), second.y() * weights.y(), second.z() * weights.y(), 0.0f)
+                                transformed.add(
+                                    second.x() * weights.y(),
+                                    second.y() * weights.y(),
+                                    second.z() * weights.y(),
+                                    0.0f
+                                )
                                 val third = Vector4f(position)
                                 third.transform(computeSkinMatrixCommands[joints.z().toInt()](mat))
-                                transformed.add(third.x() * weights.z(), third.y() * weights.z(), third.z() * weights.z(), 0.0f)
+                                transformed.add(
+                                    third.x() * weights.z(),
+                                    third.y() * weights.z(),
+                                    third.z() * weights.z(),
+                                    0.0f
+                                )
                                 val fourth = Vector4f(position)
                                 fourth.transform(computeSkinMatrixCommands[joints.w().toInt()](mat))
-                                transformed.add(fourth.x() * weights.w(), fourth.y() * weights.w(), fourth.z() * weights.w(), 0.0f)
-                            }
-                            else transformed.apply { set(position.x(), position.y(), position.z(), 1.0f) }.transform(mat)
+                                transformed.add(
+                                    fourth.x() * weights.w(),
+                                    fourth.y() * weights.w(),
+                                    fourth.z() * weights.w(),
+                                    0.0f
+                                )
+                            } else transformed.apply { set(position.x(), position.y(), position.z(), 1.0f) }
+                                .transform(mat)
 
                             buffer.apply {
                                 vertex(stack.last().pose(), transformed.x(), transformed.y(), transformed.z())
@@ -101,8 +157,14 @@ class GltfModel(val modelPath: GltfTree.GLTFTree) {
         animationPlayer.updateEntity(entity, capability, partialTick)
     }
 
-    fun render(stack: PoseStack, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int) {
-        renderCommands.forEach { it(stack, consumer, light, overlay) }
+    fun render(
+        stack: PoseStack,
+        modelData: ModelData,
+        consumer: (ResourceLocation) -> VertexConsumer,
+        light: Int,
+        overlay: Int,
+    ) {
+        renderCommands.forEach { it(stack, modelData, consumer, light, overlay) }
     }
 }
 

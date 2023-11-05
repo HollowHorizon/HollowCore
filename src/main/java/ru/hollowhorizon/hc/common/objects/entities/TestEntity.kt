@@ -1,9 +1,12 @@
 package ru.hollowhorizon.hc.common.objects.entities
 
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.PathfinderMob
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
 import net.minecraft.world.level.Level
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
@@ -14,6 +17,8 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
 
     init {
         this[AnimatedEntityCapability::class].model = "hc:models/entity/player_model.gltf"
+        this.setItemInHand(InteractionHand.MAIN_HAND, ItemStack(Items.NETHERITE_HOE))
+        this.setItemInHand(InteractionHand.OFF_HAND, ItemStack(Items.TNT))
     }
 
     override fun registerGoals() {
@@ -21,8 +26,4 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
         this.goalSelector.addGoal(0, RandomLookAroundGoal(this))
         this.goalSelector.addGoal(1, RandomStrollGoal(this, 1.0, 10))
     }
-
-    //если сделать напрямую тут инициализацию, то Kotlin каждый раз будет новый менеджер анимаций создавать, что нам не нужно
-    //override val manager by lazy { IModelManager.create(this) }
-
 }

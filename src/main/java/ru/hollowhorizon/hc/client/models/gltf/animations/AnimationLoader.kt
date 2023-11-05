@@ -133,7 +133,7 @@ object AnimationLoader {
                 outputData.map { (it as Vector3f).array() }.toTypedArray()
             )
 
-            AnimationTarget.ROTATION -> Interpolator.SphericalLinear(
+            AnimationTarget.ROTATION -> Interpolator.Linear(
                 keys,
                 outputData.map { (it as Vector4f).array() }.toTypedArray()
             )
