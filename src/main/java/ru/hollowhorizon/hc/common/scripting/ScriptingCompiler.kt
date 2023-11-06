@@ -6,8 +6,10 @@ import ru.hollowhorizon.hc.common.scripting.kotlin.AbstractHollowScriptHost
 import ru.hollowhorizon.hc.common.scripting.kotlin.HollowScript
 import ru.hollowhorizon.hc.common.scripting.kotlin.loadScriptFromJar
 import ru.hollowhorizon.hc.common.scripting.kotlin.loadScriptHashCode
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.io.PrintStream
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.jar.Manifest
@@ -62,12 +64,36 @@ object ScriptingCompiler {
             return@runBlocking CompiledScript(
                 script.name, hashcode,
                 compiler(FileScriptSource(script), compilationConfiguration)
-                    .apply {
-                        reports.forEach {
-                            HollowCore.LOGGER.error("COMPILE ERROR: {}", it.render(withStackTrace = true))
-                        }
-                    }
-                    .valueOrThrow() as KJvmCompiledScript, compiledJar
+                    .valueOr {
+                        throw IllegalStateException(
+                            it.reports.joinToString("\n") { diagnostic ->
+                                buildString {
+                                    append(diagnostic.severity.name)
+                                    append(' ')
+                                    append(diagnostic.message)
+                                    append(" (")
+                                    diagnostic.sourcePath?.let { append(it.substringAfterLast(File.separatorChar)) }
+                                    diagnostic.location?.let { path ->
+                                        append(':')
+                                        append(path.start.line)
+                                        append(':')
+                                        append(path.start.col)
+                                    }
+                                    append(')')
+                                    append(": ")
+                                    append(diagnostic.exception)
+                                    ByteArrayOutputStream().use { os ->
+                                        val ps = PrintStream(os)
+                                        diagnostic.exception?.printStackTrace(ps)
+                                        ps.flush()
+                                        append("\n")
+                                        append(os.toString())
+                                    }
+                                }
+                            },
+                            it.reports.find { it.exception != null }?.exception
+                        )
+                    } as KJvmCompiledScript, compiledJar
             )
         }
     }
