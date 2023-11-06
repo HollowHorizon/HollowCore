@@ -62,6 +62,11 @@ object ScriptingCompiler {
             return@runBlocking CompiledScript(
                 script.name, hashcode,
                 compiler(FileScriptSource(script), compilationConfiguration)
+                    .apply {
+                        reports.forEach {
+                            HollowCore.LOGGER.error("COMPILE ERROR: {}", it.render(withStackTrace = true))
+                        }
+                    }
                     .valueOrThrow() as KJvmCompiledScript, compiledJar
             )
         }
