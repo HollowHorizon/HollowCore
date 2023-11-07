@@ -12,10 +12,7 @@ import kotlin.script.experimental.host.FileBasedScriptSource
 import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.getScriptingClass
-import kotlin.script.experimental.jvm.JvmGetScriptingClass
-import kotlin.script.experimental.jvm.dependenciesFromClassContext
-import kotlin.script.experimental.jvm.jvm
-import kotlin.script.experimental.jvm.updateClasspath
+import kotlin.script.experimental.jvm.*
 import kotlin.script.experimental.jvm.util.classpathFromClassloader
 
 class HollowScriptConfiguration : AbstractHollowScriptConfiguration({})
@@ -34,6 +31,17 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
     body()
 
     jvm {
+        compilerOptions(
+            "-opt-in=kotlin.time.ExperimentalTime,kotlin.ExperimentalStdlibApi",
+            "-jvm-target=17",
+            "-Xadd-modules=ALL-MODULE-PATH" //Loading kotlin from shadowed jar
+        )
+
+        if(ModList.get() == null) {
+            dependenciesFromCurrentContext(wholeClasspath = true)
+            return@jvm
+        }
+
         val stdLib = ModList.get().getModFileById("hc").file.filePath.toFile().absolutePath
         System.setProperty("kotlin.java.stdlib.jar", stdLib)
 
@@ -50,13 +58,6 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
 
         files.removeIf { it.isDirectory }
         updateClasspath(files.distinct().sortedBy { it.absolutePath }.onEach(::println))
-
-        compilerOptions(
-            "-opt-in=kotlin.time.ExperimentalTime,kotlin.ExperimentalStdlibApi",
-            "-jvm-target=17",
-            "-Xadd-modules=ALL-MODULE-PATH" //Loading kotlin from shadowed jar
-        )
-
     }
 
     defaultImports(

@@ -19,9 +19,49 @@ import kotlin.script.experimental.host.createCompilationConfigurationFromTemplat
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
 import kotlin.script.experimental.jvm.impl.*
+import kotlin.script.experimental.jvm.util.isError
 import kotlin.script.experimental.jvmhost.JvmScriptCompiler
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 import kotlin.script.experimental.util.PropertiesCollection
+
+fun <R> ResultWithDiagnostics<R>.orException(): R = valueOr {
+    throw IllegalStateException(
+        it.errors().joinToString("\n"),
+        it.reports.find { it.exception != null }?.exception
+    )
+}
+
+fun ResultWithDiagnostics.Failure.errors(): List<String> = reports.map { diagnostic ->
+    buildString {
+        if (diagnostic.severity >= ScriptDiagnostic.Severity.WARNING) {
+            append('\n')
+            append(diagnostic.message)
+
+            if (diagnostic.sourcePath != null || diagnostic.location != null) {
+                append(" at [")
+                diagnostic.sourcePath?.let { append(it.substringAfterLast(File.separatorChar)) }
+                diagnostic.location?.let { path ->
+                    append(':')
+                    append(path.start.line)
+                    append(':')
+                    append(path.start.col)
+                }
+                append("]")
+            }
+            if (diagnostic.exception != null) {
+                append(": ")
+                append(diagnostic.exception)
+                ByteArrayOutputStream().use { os ->
+                    val ps = PrintStream(os)
+                    diagnostic.exception?.printStackTrace(ps)
+                    ps.flush()
+                    append("\n")
+                    append(os.toString())
+                }
+            }
+        }
+    }
+}
 
 object ScriptingCompiler {
     inline fun <reified T : Any> compileText(code: String): CompiledScript {
@@ -34,9 +74,10 @@ object ScriptingCompiler {
             val compiler = JvmScriptCompiler(hostConfiguration)
 
             compiler(code.toScriptSource(), compilationConfiguration)
-                .valueOrThrow() as KJvmCompiledScript
         }
-        return CompiledScript("code.kts", code.hashCode().toString(), compiled, null)
+        return CompiledScript("code.kts", code.hashCode().toString(), compiled.valueOrNull(), null).apply {
+            errors = if(compiled.isError()) (compiled as ResultWithDiagnostics.Failure).errors() else null
+        }
     }
 
     inline fun <reified T : Any> compileFile(script: File): CompiledScript {
@@ -60,41 +101,14 @@ object ScriptingCompiler {
             }
 
             val compiler = JvmScriptCompiler(hostConfiguration)
+            val compiled = compiler(FileScriptSource(script), compilationConfiguration)
 
             return@runBlocking CompiledScript(
                 script.name, hashcode,
-                compiler(FileScriptSource(script), compilationConfiguration)
-                    .valueOr {
-                        throw IllegalStateException(
-                            it.reports.joinToString("\n") { diagnostic ->
-                                buildString {
-                                    append(diagnostic.severity.name)
-                                    append(' ')
-                                    append(diagnostic.message)
-                                    append(" (")
-                                    diagnostic.sourcePath?.let { append(it.substringAfterLast(File.separatorChar)) }
-                                    diagnostic.location?.let { path ->
-                                        append(':')
-                                        append(path.start.line)
-                                        append(':')
-                                        append(path.start.col)
-                                    }
-                                    append(')')
-                                    append(": ")
-                                    append(diagnostic.exception)
-                                    ByteArrayOutputStream().use { os ->
-                                        val ps = PrintStream(os)
-                                        diagnostic.exception?.printStackTrace(ps)
-                                        ps.flush()
-                                        append("\n")
-                                        append(os.toString())
-                                    }
-                                }
-                            },
-                            it.reports.find { it.exception != null }?.exception
-                        )
-                    } as KJvmCompiledScript, compiledJar
-            )
+                compiled.valueOrNull(), compiledJar
+            ).apply {
+                errors = if(compiled.isError()) (compiled as ResultWithDiagnostics.Failure).errors() else null
+            }
         }
     }
 
