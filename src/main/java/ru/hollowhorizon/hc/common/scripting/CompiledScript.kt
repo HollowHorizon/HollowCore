@@ -17,7 +17,7 @@ data class CompiledScript(
     var errors: List<String>? = null
 
     init {
-        if (saveFile != null) (script as KJvmCompiledScript).saveScriptToJar(saveFile, hash)
+        if (saveFile != null && script != null) (script as KJvmCompiledScript).saveScriptToJar(saveFile, hash)
     }
 
     fun execute(body: ScriptEvaluationConfiguration.Builder.() -> Unit = {}): ResultWithDiagnostics<EvaluationResult> {
