@@ -38,8 +38,18 @@ data class AnimationLayer(
         val animation = nameToAnimationMap[animation] ?: return null
 
         if (time == 0) time = currentTick
+        val rawTime = (currentTick - time + partialTick) / 20f * speed
 
-        val currentTime = ((currentTick - time + partialTick) / 20f * speed) % animation.maxTime
+        val currentTime = when(type) {
+            PlayType.LOOPED -> rawTime % animation.maxTime
+            PlayType.LAST_FRAME -> rawTime.coerceAtMost(animation.maxTime)
+            PlayType.REVERSED -> {
+                val isReversed = (rawTime / animation.maxTime).toInt() % 2 == 1
+                if (!isReversed) rawTime % animation.maxTime
+                else (animation.maxTime - rawTime) % animation.maxTime
+            }
+            PlayType.ONCE -> rawTime
+        }
 
         return animation.compute(node, currentTime)
     }
