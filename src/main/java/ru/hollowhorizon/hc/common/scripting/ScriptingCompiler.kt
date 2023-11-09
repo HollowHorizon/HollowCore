@@ -34,7 +34,6 @@ fun <R> ResultWithDiagnostics<R>.orException(): R = valueOr {
 fun ResultWithDiagnostics.Failure.errors(): List<String> = reports.map { diagnostic ->
     buildString {
         if (diagnostic.severity >= ScriptDiagnostic.Severity.WARNING) {
-            append('\n')
             append(diagnostic.message)
 
             if (diagnostic.sourcePath != null || diagnostic.location != null) {
