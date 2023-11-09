@@ -61,7 +61,7 @@ fun ResultWithDiagnostics.Failure.errors(): List<String> = reports.map { diagnos
             }
         }
     }
-}
+}.filter { it.isNotEmpty() }
 
 object ScriptingCompiler {
     inline fun <reified T : Any> compileText(code: String): CompiledScript {
