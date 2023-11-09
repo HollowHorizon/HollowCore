@@ -79,7 +79,9 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         model.render(
             stack,
             ModelData(entity.offhandItem, entity.mainHandItem, itemInHandRenderer, entity),
-            { texture -> source.getBuffer(getRenderType(texture)) },
+            { texture ->
+                source.getBuffer(getRenderType(capability.textures[texture.path]?.rl ?: texture))
+            },
             packedLight,
             OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
         )
