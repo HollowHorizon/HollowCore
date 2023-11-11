@@ -67,9 +67,9 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
         val model = GltfManager.getOrCreate(modelPath.rl)
 
-        preRender(entity, capability, model.animationPlayer, stack)
-
         stack.pushPose()
+        
+        preRender(entity, capability, model.animationPlayer, stack)
 
         val lerpBodyRot = Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot)
         stack.mulPose(Vector3f.YP.rotationDegrees(-lerpBodyRot))
