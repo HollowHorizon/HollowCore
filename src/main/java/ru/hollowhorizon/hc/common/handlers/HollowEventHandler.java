@@ -15,6 +15,7 @@ import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
@@ -41,6 +42,7 @@ public class HollowEventHandler {
 
     @SubscribeEvent
     public void onStartTracking(PlayerEvent.StartTracking event) {
+        HollowCore.LOGGER.info("ping 1!");
         CapabilityStorage.INSTANCE.getProviders().stream()
                 .filter(element -> element.getFirst().isInstance(event.getTarget()))
                 .forEach(data -> event.getTarget()
@@ -65,7 +67,7 @@ public class HollowEventHandler {
     @SubscribeEvent
     public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         var player = (ServerPlayer) event.getEntity();
-
+        HollowCore.LOGGER.info("ping 2!");
 
         //update capabilities on clients
         for (Capability<CapabilityInstance> cap : CapabilityStorage.INSTANCE.getCapabilitiesForPlayer()) {

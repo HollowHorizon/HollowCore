@@ -1,7 +1,5 @@
 package ru.hollowhorizon.hc.common.capabilities
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.EndTag
@@ -17,6 +15,7 @@ import net.minecraftforge.common.capabilities.ICapabilityProviderImpl
 import net.minecraftforge.common.capabilities.ICapabilitySerializable
 import net.minecraftforge.common.util.LazyOptional
 import net.minecraftforge.network.PacketDistributor
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
@@ -35,6 +34,7 @@ open class CapabilityInstance :
 
 
     fun sync() {
+        HollowCore.LOGGER.info("preparing sync")
         when (provider) {
             is Entity -> {
                 val entity = provider as Entity
@@ -93,6 +93,7 @@ open class CapabilityInstance :
     }
 
     override fun serializeNBT(): Tag {
+        HollowCore.LOGGER.info("Serializing capability: {}", javaClass.simpleName)
         val nbt = CompoundTag()
         properties.forEach { (name, value) ->
             if (value == null) nbt.put(name, EndTag.INSTANCE)
@@ -112,12 +113,13 @@ open class CapabilityInstance :
                 }
             }
         }
+        HollowCore.LOGGER.info("Serializing capability finished")
         return nbt
     }
 
     override fun deserializeNBT(nbt: Tag) {
+        HollowCore.LOGGER.info("Deserializing capability: {}", javaClass.simpleName)
         properties.clear()
-
         if (nbt is CompoundTag) {
             nbt.allKeys.filter { !it.endsWith("%%class") }.forEach { name ->
                 try {
@@ -151,6 +153,7 @@ open class CapabilityInstance :
                 }
             }
         }
+        HollowCore.LOGGER.info("Deserializing capability finished")
     }
 
     fun <T : Any> syncableList(list: MutableList<T> = ArrayList()) = syncable(SyncableListImpl(list, this::sync))
@@ -158,26 +161,4 @@ open class CapabilityInstance :
     fun <T : Any> syncableList(vararg elements: T) = syncableList(elements.toMutableList())
 
     fun <K : Any, V : Any> syncableMap() = syncable(SyncableMapImpl<K, V>(HashMap()))
-}
-
-class Test : CapabilityInstance() {
-    val list by syncableList<Number>(1, 2f, 3.0)
-    val map by syncableMap<String, Test2>()
-}
-
-@Serializable
-class Test2(val data: ArrayList<String>)
-
-fun main() {
-    Int.serializer()
-    val t = Test()
-    t.map["aa"] = Test2(arrayListOf("a", "b", "c"))
-    t.list.add(2)
-    t.list.add(2f)
-    println(t.serializeNBT())
-    t.list.add(8)
-    t.deserializeNBT(t.serializeNBT())
-    t.list.add(0.0)
-    t.deserializeNBT(t.serializeNBT())
-    println(t.map)
 }

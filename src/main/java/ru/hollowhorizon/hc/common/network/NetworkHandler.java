@@ -9,6 +9,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
+import ru.hollowhorizon.hc.HollowCore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,12 +22,14 @@ public class NetworkHandler {
     public static int PACKET_INDEX = 0;
 
     public static <MSG> void sendMessageToClient(MSG messageToClient, Player player) {
+        HollowCore.LOGGER.info("Sending packet to client: {}", messageToClient);
         HollowCoreChannel.sendTo(messageToClient, ((ServerPlayer) player).connection.connection, NetworkDirection.PLAY_TO_CLIENT);
     }
 
     @OnlyIn(Dist.CLIENT)
     public static <MSG> void sendMessageToServer(MSG messageToServer) {
         if (Minecraft.getInstance().getConnection() == null) return;
+        HollowCore.LOGGER.info("Sending packet to server: {}", messageToServer);
         HollowCoreChannel.sendToServer(messageToServer);
     }
 
