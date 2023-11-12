@@ -32,6 +32,7 @@ class GltfModel(val modelPath: GltfTree.GLTFTree) {
         scene.nodes.forEach { createNodeCommands(it, commands) }
         return@flatMap commands
     }.toSet()
+    var visuals: ((LivingEntity, PoseStack, GltfTree.Node, Int) -> Unit)? = null
 
     fun createNodeCommands(
         node: GltfTree.Node,
@@ -39,27 +40,10 @@ class GltfModel(val modelPath: GltfTree.GLTFTree) {
     ) {
         val computeSkinMatrixCommands = ArrayList<(Matrix4f) -> Matrix4f>()
 
-        if ((node.name?.contains("left", ignoreCase = true) == true || node.name?.contains(
-                "right",
-                ignoreCase = true
-            ) == true) &&
-            node.name.contains("hand", ignoreCase = true) &&
-            node.name.contains("item", ignoreCase = true)
-        ) commands += cmd@{ stack: PoseStack, modelData: ModelData, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int ->
-            val isLeft = node.name.contains("left", ignoreCase = true)
-
+        commands += cmd@{ stack: PoseStack, modelData: ModelData, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int ->
             val entity = modelData.entity ?: return@cmd
 
-            val item = (if (isLeft) modelData.leftHand else modelData.rightHand) ?: return@cmd
-
-            stack.pushPose()
-
-            stack.mulPoseMatrix(node.transformationMatrix)
-            stack.mulPose(Vector3f.XP.rotationDegrees(-90.0f))
-
-            modelData.itemInHandRenderer?.renderItem(entity, item, if(isLeft) ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND else ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, isLeft, stack, Minecraft.getInstance().renderBuffers().bufferSource(), light)
-
-            stack.popPose()
+            visuals?.invoke(entity, stack, node, light)
         }
 
         if (node.skin != null) {

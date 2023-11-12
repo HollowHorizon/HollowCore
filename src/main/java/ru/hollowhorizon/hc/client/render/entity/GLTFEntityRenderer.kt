@@ -5,25 +5,32 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexFormat
 import com.mojang.math.Vector3f
 import net.minecraft.Util
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderStateShard
 import net.minecraft.client.renderer.RenderStateShard.TextureStateShard
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.RenderType.CompositeState
+import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.client.renderer.entity.EntityRendererProvider
 import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.FlyingAnimal
+import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.ModelData
 import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
+import ru.hollowhorizon.hc.client.utils.HollowLogger
+import ru.hollowhorizon.hc.client.utils.exists
 import ru.hollowhorizon.hc.client.utils.get
 import ru.hollowhorizon.hc.client.utils.rl
 
@@ -64,15 +71,22 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         val capability = entity[AnimatedEntityCapability::class]
         val modelPath = capability.model
         if (modelPath == NO_MODEL) return
+        if (!modelPath.rl.exists()) {
+            HollowCore.LOGGER.warn("Model ${modelPath.rl} does not exist!")
+            capability.model = NO_MODEL
+            return
+        }
 
         val model = GltfManager.getOrCreate(modelPath.rl)
 
         stack.pushPose()
-        
+
         preRender(entity, capability, model.animationPlayer, stack)
 
         val lerpBodyRot = Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot)
         stack.mulPose(Vector3f.YP.rotationDegrees(-lerpBodyRot))
+
+        if(model.visuals == null) model.visuals = ::drawVisuals
 
         model.update(capability, entity.tickCount, partialTick)
         model.entityUpdate(entity, capability, partialTick)
@@ -88,8 +102,37 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         stack.popPose()
     }
 
-    protected fun getRenderType(texture: ResourceLocation): RenderType = renderType.apply(texture, true)
+    protected open fun getRenderType(texture: ResourceLocation): RenderType = renderType.apply(texture, true)
 
+    protected open fun drawVisuals(entity: LivingEntity, stack: PoseStack, node: GltfTree.Node, light: Int) {
+        if ((node.name?.contains("left", ignoreCase = true) == true || node.name?.contains(
+                "right",
+                ignoreCase = true
+            ) == true) &&
+            node.name.contains("hand", ignoreCase = true) &&
+            node.name.contains("item", ignoreCase = true)
+        ) {
+            val isLeft = node.name.contains("left", ignoreCase = true)
+            val item = (if (isLeft) entity.getItemInHand(InteractionHand.OFF_HAND) else entity.getItemInHand(InteractionHand.MAIN_HAND)) ?: return
+
+            stack.pushPose()
+
+            stack.mulPoseMatrix(node.transformationMatrix)
+            stack.mulPose(Vector3f.XP.rotationDegrees(-90.0f))
+
+            itemInHandRenderer.renderItem(
+                entity,
+                item,
+                if (isLeft) ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND else ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND,
+                isLeft,
+                stack,
+                Minecraft.getInstance().renderBuffers().bufferSource(),
+                light
+            )
+
+            stack.popPose()
+        }
+    }
 
     private fun preRender(
         entity: T,

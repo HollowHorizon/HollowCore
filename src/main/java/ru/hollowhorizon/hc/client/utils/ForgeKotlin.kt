@@ -45,6 +45,10 @@ fun ResourceLocation.toIS(): InputStream {
     return HollowJavaUtils.getResource(this)
 }
 
+fun ResourceLocation.exists(): Boolean {
+    return mc.resourceManager.getResource(this).isPresent
+}
+
 val ResourceLocation.stream: InputStream
     get() = HollowJavaUtils.getResource(this)
 

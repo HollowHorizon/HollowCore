@@ -27,7 +27,7 @@ class SyncableMapImpl<K : Any, V : Any>(val map: MutableMap<K, V>, val syncMetho
 
     override fun put(key: K, value: V): V? {
         return map.put(key, value).apply {
-            syncMethod
+            syncMethod()
         }
     }
 
