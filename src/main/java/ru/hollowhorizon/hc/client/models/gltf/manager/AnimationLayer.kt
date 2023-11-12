@@ -19,6 +19,8 @@ data class AnimationLayer(
     val type: PlayType,
     val speed: Float,
     var time: Int,
+    var fadeIn: Int = 10,
+    var fadeOut: Int = 10
 ) {
     fun isEnd(
         nameToAnimationMap: Map<String, Animation>,
@@ -31,6 +33,7 @@ data class AnimationLayer(
 
     fun computeTransform(
         node: GltfTree.Node,
+        bindPose: Animation,
         nameToAnimationMap: Map<String, Animation>,
         currentTick: Int,
         partialTick: Float,

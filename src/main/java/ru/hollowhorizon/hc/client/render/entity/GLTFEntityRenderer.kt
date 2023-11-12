@@ -147,7 +147,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
     private fun updateAnimations(entity: T, capability: AnimatedEntityCapability, manager: GLTFAnimationPlayer) {
         when {
-            entity.hurtTime > 0 -> manager.playOnce(capability, AnimationType.HURT)
+            entity.hurtTime > 0 -> manager.playOnce(capability, AnimationType.HURT, true)
             entity.swinging -> manager.playOnce(capability, AnimationType.SWING)
         }
         manager.currentLoopAnimation = when {

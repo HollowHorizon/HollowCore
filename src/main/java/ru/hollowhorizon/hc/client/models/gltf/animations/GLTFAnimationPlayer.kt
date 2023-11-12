@@ -47,11 +47,11 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
                 transforms.put(it, 1.0f)
             }
             transforms += capability.layers.mapNotNull {
-                (it.computeTransform(node, nameToAnimationMap, currentTick, partialTick)
+                (it.computeTransform(node, bindPose, nameToAnimationMap, currentTick, partialTick)
                     ?: return@mapNotNull null) to it.priority
             }.toMap()
             transforms += capability.onceAnimations.mapNotNull {
-                (it.computeTransform(node, nameToAnimationMap, currentTick, partialTick)
+                (it.computeTransform(node, bindPose, nameToAnimationMap, currentTick, partialTick)
                     ?: return@mapNotNull null) to it.priority + 10f
             }.toMap()
             node.transform.set(transforms)
@@ -64,13 +64,19 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
         this.currentTick = tick
     }
 
-    fun playOnce(capability: AnimatedEntityCapability, type: AnimationType) {
-        templates[type]?.let { playOnce(capability, it) }
+    fun playOnce(capability: AnimatedEntityCapability, type: AnimationType, resetIfPresent: Boolean = false) {
+        templates[type]?.let { playOnce(capability, it, resetIfPresent) }
     }
 
-    fun playOnce(capability: AnimatedEntityCapability, name: String) {
-        if (capability.onceAnimations.any { it.animation == name }) return
+    fun playOnce(capability: AnimatedEntityCapability, name: String, resetIfPresent: Boolean = false) {
+        val anim = capability.onceAnimations.find { it.animation == name }
+        if (anim != null && resetIfPresent) {
+            anim.time = 0
+            return
+        }
+
         capability.onceAnimations.add(AnimationLayer(name, 1.0f, PlayType.ONCE, 1.0f, 0))
+
     }
 }
 
