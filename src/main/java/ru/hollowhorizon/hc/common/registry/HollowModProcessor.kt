@@ -10,6 +10,8 @@ import net.minecraftforge.registries.IForgeRegistry
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.utils.HollowCommand
+import ru.hollowhorizon.hc.api.utils.HollowConfig
+import ru.hollowhorizon.hc.client.config.HollowCoreConfig
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.common.commands.HollowCommands
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
@@ -49,6 +51,12 @@ object HollowModProcessor {
                 HollowCommands.addCommand(cont.annotation.value to Runnable {
                     method.invoke(null)
                 })
+            }
+        }
+
+        registerHandler<HollowConfig> { content  ->
+            content.whenObjectTask = { obj ->
+                HollowCoreConfig.FIELDS.computeIfAbsent(content.modId) { ArrayList() }.add(obj)
             }
         }
     }

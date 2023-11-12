@@ -98,14 +98,9 @@ public class HollowCore {
         forgeBus.addGenericListener(Entity.class, CapabilityStorage::registerProvidersEntity);
         forgeBus.addGenericListener(BlockEntity.class, CapabilityStorage::registerProvidersBlockEntity);
         forgeBus.addGenericListener(Level.class, CapabilityStorage::registerProvidersWorld);
-        modBus.addListener(this::registerReloadListeners);
         forgeBus.addListener(this::configSave);
 
         RegistryLoader.registerAll();
-    }
-
-    public void registerReloadListeners(RegisterClientReloadListenersEvent event) {
-
     }
 
     public void onResourcePackAdd(AddPackFindersEvent event) {
