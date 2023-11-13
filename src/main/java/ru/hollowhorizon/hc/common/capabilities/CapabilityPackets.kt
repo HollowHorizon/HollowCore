@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.common.capabilities
 
 import kotlinx.serialization.Serializable
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.network.NetworkDirection
@@ -33,7 +34,9 @@ class CSyncEntityCapabilityPacket : Packet<EntityCapabilityContainer>({ player, 
     val cap = entity.getCapability(CapabilityStorage.storages[container.capability] as Capability<CapabilityInstance>)
         .orElseThrow { IllegalStateException("Unknown capability: $container") }
 
-    cap.deserializeNBT(container.value)
+    if((container.value as? CompoundTag)?.isEmpty == false) {
+        cap.deserializeNBT(container.value)
+    }
 })
 
 @HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_SERVER)
