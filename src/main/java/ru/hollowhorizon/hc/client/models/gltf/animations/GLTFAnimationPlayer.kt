@@ -10,7 +10,7 @@ import ru.hollowhorizon.hc.client.models.gltf.manager.AnimationLayer
 
 
 open class GLTFAnimationPlayer(val model: GltfModel) {
-    val templates: HashMap<AnimationType, String> = AnimationType.load(model.modelPath)
+    private val templates: HashMap<AnimationType, String> = AnimationType.load(model.modelPath)
     private val nodeModels = model.modelPath.walkNodes()
     private val bindPose = model.bindPose
     val nameToAnimationMap: Map<String, Animation> = model.modelPath.animations.associate {
@@ -39,11 +39,12 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
     fun update(capability: AnimatedEntityCapability, partialTick: Float) {
         val definedLayer = capability.definedLayer
         definedLayer.update(currentLoopAnimation, currentTick, partialTick)
+        val animationOverrides = typeToAnimationMap + capability.animations.mapNotNull { it.key to (nameToAnimationMap[it.value] ?: return@mapNotNull null) }.toMap()
 
         nodeModels.forEach { node ->
             bindPose.apply(node, 0f)
             val transforms = HashMap<Transformation, Float>()
-            definedLayer.computeTransform(node, bindPose, typeToAnimationMap, currentTick, partialTick)?.let {
+            definedLayer.computeTransform(node, bindPose, animationOverrides, currentTick, partialTick)?.let {
                 transforms.put(it, 1.0f)
             }
             transforms += capability.layers.mapNotNull {
@@ -65,7 +66,8 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
     }
 
     fun playOnce(capability: AnimatedEntityCapability, type: AnimationType, resetIfPresent: Boolean = false) {
-        templates[type]?.let { playOnce(capability, it, resetIfPresent) }
+        val animationOverrides = templates + capability.animations
+        animationOverrides[type]?.let { playOnce(capability, it, resetIfPresent) }
     }
 
     fun playOnce(capability: AnimatedEntityCapability, name: String, resetIfPresent: Boolean = false) {

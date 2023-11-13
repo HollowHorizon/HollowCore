@@ -160,5 +160,5 @@ open class CapabilityInstance :
 
     fun <T : Any> syncableList(vararg elements: T) = syncableList(elements.toMutableList())
 
-    fun <K : Any, V : Any> syncableMap() = syncable(SyncableMapImpl<K, V>(HashMap()))
+    fun <K : Any, V : Any> syncableMap() = syncable(SyncableMapImpl<K, V>(HashMap(), this::sync))
 }

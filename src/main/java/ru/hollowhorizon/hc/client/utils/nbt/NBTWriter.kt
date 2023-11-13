@@ -28,7 +28,7 @@ internal fun <T> NBTFormat.writeNbt(value: T, serializer: SerializationStrategy<
             is String -> result = StringTag.valueOf(value)
         }
         return result
-    } else if(value is Enum<*>) return IntTag.valueOf(value.ordinal)
+    } else if (value is Enum<*>) return StringTag.valueOf(value.name)
 
     val encoder = NBTWriter(this) { result = it }
     encoder.encodeSerializableValue(serializer, value)
