@@ -32,7 +32,7 @@ plugins {
 apply(plugin = "org.spongepowered.mixin")
 
 group = mod_group
-version = mod_version
+version = "${minecraft_version}_$mod_version"
 project.setProperty("archivesBaseName", mod_id)
 
 java {
