@@ -29,10 +29,7 @@ import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
-import ru.hollowhorizon.hc.client.utils.HollowLogger
-import ru.hollowhorizon.hc.client.utils.exists
-import ru.hollowhorizon.hc.client.utils.get
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.client.utils.*
 
 
 open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
@@ -94,7 +91,12 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             stack,
             ModelData(entity.offhandItem, entity.mainHandItem, itemInHandRenderer, entity),
             { texture ->
-                source.getBuffer(getRenderType(capability.textures[texture.path]?.rl ?: texture))
+                val result = capability.textures[texture.path]?.let {
+                    if(it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
+                    else it.rl
+                } ?: texture
+
+                source.getBuffer(getRenderType(result))
             },
             packedLight,
             OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
