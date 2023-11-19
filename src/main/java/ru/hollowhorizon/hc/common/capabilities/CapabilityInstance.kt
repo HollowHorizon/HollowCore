@@ -34,7 +34,6 @@ open class CapabilityInstance :
 
 
     fun sync() {
-        HollowCore.LOGGER.info("preparing sync")
         when (provider) {
             is Entity -> {
                 val entity = provider as Entity
@@ -93,7 +92,6 @@ open class CapabilityInstance :
     }
 
     override fun serializeNBT(): Tag {
-        HollowCore.LOGGER.info("Serializing capability: {}", javaClass.simpleName)
         val nbt = CompoundTag()
         properties.forEach { (name, value) ->
             if (value == null) nbt.put(name, EndTag.INSTANCE)
@@ -113,12 +111,10 @@ open class CapabilityInstance :
                 }
             }
         }
-        HollowCore.LOGGER.info("Serializing capability finished")
         return nbt
     }
 
     override fun deserializeNBT(nbt: Tag) {
-        HollowCore.LOGGER.info("Deserializing capability: {}", javaClass.simpleName)
         properties.clear()
         if (nbt is CompoundTag) {
             nbt.allKeys.filter { !it.endsWith("%%class") }.forEach { name ->
@@ -153,7 +149,6 @@ open class CapabilityInstance :
                 }
             }
         }
-        HollowCore.LOGGER.info("Deserializing capability finished")
     }
 
     fun <T : Any> syncableList(list: MutableList<T> = ArrayList()) = syncable(SyncableListImpl(list, this::sync))

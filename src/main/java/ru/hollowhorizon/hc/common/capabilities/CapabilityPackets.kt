@@ -30,9 +30,9 @@ data class EntityCapabilityContainer(
 @HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_CLIENT)
 class CSyncEntityCapabilityPacket : Packet<EntityCapabilityContainer>({ player, container ->
     val entity = player.level.getEntity(container.entityId)
-        ?: throw IllegalStateException("Entity with id ${container.entityId} not found: $container")
+        ?: throw IllegalStateException("Entity with id ${container.entityId} not found: $container".apply(HollowCore.LOGGER::warn))
     val cap = entity.getCapability(CapabilityStorage.storages[container.capability] as Capability<CapabilityInstance>)
-        .orElseThrow { IllegalStateException("Unknown capability: $container") }
+        .orElseThrow { IllegalStateException("Unknown capability: $container".apply(HollowCore.LOGGER::warn)) }
 
     if((container.value as? CompoundTag)?.isEmpty == false) {
         cap.deserializeNBT(container.value)
@@ -42,9 +42,9 @@ class CSyncEntityCapabilityPacket : Packet<EntityCapabilityContainer>({ player, 
 @HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_SERVER)
 class SSyncEntityCapabilityPacket : Packet<EntityCapabilityContainer>({ player, container ->
     val entity = player.level.getEntity(container.entityId)
-        ?: throw IllegalStateException("Entity with id ${container.entityId} not found: $container")
+        ?: throw IllegalStateException("Entity with id ${container.entityId} not found: $container".apply(HollowCore.LOGGER::warn))
     val cap = entity.getCapability(CapabilityStorage.storages[container.capability] as Capability<CapabilityInstance>)
-        .orElseThrow { IllegalStateException("Unknown capability: $container") }
+        .orElseThrow { IllegalStateException("Unknown capability: $container".apply(HollowCore.LOGGER::warn)) }
 
     if (cap.consumeOnServer) {
         cap.deserializeNBT(container.value)
@@ -54,23 +54,20 @@ class SSyncEntityCapabilityPacket : Packet<EntityCapabilityContainer>({ player, 
 
 @HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_CLIENT)
 class CSyncLevelCapabilityPacket : Packet<LevelCapabilityContainer>({ player, container ->
-    HollowCore.LOGGER.info("Processing CSyncLevelCapabilityPacket")
     val level = player.level
-    HollowCore.LOGGER.info("Processing 1")
     val cap = level.getCapability(CapabilityStorage.storages[container.capability] as Capability<CapabilityInstance>)
-        .orElseThrow { IllegalStateException("Unknown capability: $container") }
-    HollowCore.LOGGER.info("Processing 2")
+        .orElseThrow { IllegalStateException("Unknown capability: $container".apply(HollowCore.LOGGER::warn)) }
     cap.deserializeNBT(container.value)
 })
 
 @HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_SERVER)
 class SSyncLevelCapabilityPacket : Packet<LevelCapabilityContainer>({ player, container ->
-    val server = player.server ?: throw IllegalStateException("Server not found")
+    val server = player.server ?: throw IllegalStateException("Server not found".apply(HollowCore.LOGGER::warn))
     val levelKey = server.levelKeys().find { it.location().equals(container.level.rl) }
-        ?: throw IllegalStateException("Unknown level: $container")
-    val level = server.getLevel(levelKey) ?: throw IllegalStateException("Level not found: $container")
+        ?: throw IllegalStateException("Unknown level: $container".apply(HollowCore.LOGGER::warn))
+    val level = server.getLevel(levelKey) ?: throw IllegalStateException("Level not found: $container".apply(HollowCore.LOGGER::warn))
     val cap = level.getCapability(CapabilityStorage.storages[container.capability] as Capability<CapabilityInstance>)
-        .orElseThrow { IllegalStateException("Unknown capability: $container") }
+        .orElseThrow { IllegalStateException("Unknown capability: $container".apply(HollowCore.LOGGER::warn)) }
 
     if (cap.consumeOnServer) {
         cap.deserializeNBT(container.value)

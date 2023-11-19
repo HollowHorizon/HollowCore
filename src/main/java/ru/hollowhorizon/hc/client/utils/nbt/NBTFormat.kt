@@ -96,27 +96,23 @@ fun DataInputStream.loadAsNBT(): Tag {
 fun InputStream.loadAsNBT() = DataInputStream(this).loadAsNBT()
 
 inline fun <reified T> NBTFormat.serialize(value: T): Tag {
-    HollowCore.LOGGER.info("internal serializing 1 ({}): {}", T::class.java.simpleName, value)
     return serialize(serializersModule.serializer(), value)
 }
 
 @Suppress("UnstableApiUsage")
 @OptIn(ExperimentalSerializationApi::class)
 fun <T : Any> NBTFormat.serializeNoInline(value: T, cl: Class<T>): Tag {
-    HollowCore.LOGGER.info("internal serializing 2 ({}): {}", cl, value)
     val typeToken = TypeToken.of(cl)
     return serialize(serializersModule.serializer(typeToken.type), value)
 }
 
 inline fun <reified T> NBTFormat.deserialize(tag: Tag): T {
-    HollowCore.LOGGER.info("internal deserializing 1 ({}): {}", T::class.java.simpleName, tag)
     return deserialize(serializersModule.serializer(), tag)
 }
 
 @Suppress("UnstableApiUsage", "UNCHECKED_CAST")
 @OptIn(ExperimentalSerializationApi::class)
 fun <T : Any> NBTFormat.deserializeNoInline(tag: Tag, cl: Class<out T>): T {
-    HollowCore.LOGGER.info("internal deserializing 2 ({}): {}", cl, tag)
     val typeToken = TypeToken.of(cl)
     return deserialize(serializersModule.serializer(typeToken.type), tag) as T
 }
