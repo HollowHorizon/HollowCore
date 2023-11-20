@@ -37,7 +37,8 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
             "-Xadd-modules=ALL-MODULE-PATH" //Loading kotlin from shadowed jar
         )
 
-        if(ModList.get() == null) {
+        //Скорее всего в этом случае этот класс был загружен через IDE, поэтому получить моды и classpath автоматически нельзя
+        if (!isProduction && FMLLoader.launcherHandlerName() == null) {
             dependenciesFromCurrentContext(wholeClasspath = true)
             return@jvm
         }
