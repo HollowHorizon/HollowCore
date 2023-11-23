@@ -133,8 +133,8 @@ data class Transformation(
 
 private fun Map<Transformation, Float>.sumComponent(component: (Transformation) -> Float): Float {
     var sum = 0f
-    this.entries.forEach { (transformation, priority) ->
-        sum += priority * component(transformation)
+    this.entries.forEach { (transformation, value) ->
+        sum += value * component(transformation)
     }
     return sum / this.values.sum()
 }
