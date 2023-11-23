@@ -49,11 +49,8 @@ open class Packet<T>(val function: Packet<T>.(Player, T) -> Unit) {
         ctx.get().packetHandled = true
 
         ctx.get().enqueueWork {
-            HollowCore.LOGGER.info("Packet <${data.javaClass.simpleName}> received (${ctx.get().direction}) (${FMLEnvironment.dist})")
-
             if (ctx.get().direction == NetworkDirection.PLAY_TO_CLIENT) function(mc.player!!, data.value.safeCast()!!)
             else function(ctx.get().sender!!, data.value.safeCast()!!)
-            HollowCore.LOGGER.info("Packet <${data.javaClass.simpleName}> processed")
         }
     }
 }
