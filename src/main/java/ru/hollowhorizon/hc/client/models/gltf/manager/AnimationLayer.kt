@@ -11,6 +11,7 @@ import ru.hollowhorizon.hc.client.models.gltf.Transformation
 import ru.hollowhorizon.hc.client.models.gltf.animations.Animation
 import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.gltf.animations.PlayType
+import kotlin.properties.Delegates
 
 @Serializable
 data class AnimationLayer(
@@ -20,15 +21,21 @@ data class AnimationLayer(
     val speed: Float,
     var time: Int,
     var fadeIn: Int = 10,
-    var fadeOut: Int = 10
+    var fadeOut: Int = 10,
 ) {
+    var markToRemove by Delegates.observable(false) { _, _, new ->
+        if(new) time = 0
+    }
+
     fun isEnd(
         nameToAnimationMap: Map<String, Animation>,
         currentTick: Int,
         partialTick: Float,
     ): Boolean {
         val animation = nameToAnimationMap[animation] ?: return true
-        return (((currentTick - time + partialTick) / 20f) >= animation.maxTime)
+        val rawTime = (currentTick - time + partialTick) / 20f
+        if(rawTime >= animation.maxTime) markToRemove = true
+        return rawTime >= animation.maxTime + fadeOut
     }
 
     fun computeTransform(
@@ -41,7 +48,25 @@ data class AnimationLayer(
         val animation = nameToAnimationMap[animation] ?: return null
 
         if (time == 0) time = currentTick
-        val rawTime = (currentTick - time + partialTick) / 20f * speed
+        var rawTime = (currentTick - time + partialTick) / 20f * speed
+
+        if(fadeIn > 0 && rawTime < fadeIn) {
+            return Transformation.lerp(
+                bindPose.compute(node, 0f)!!,
+                animation.compute(node, rawTime) ?: return null,
+                rawTime / fadeIn
+            )
+        } else if (currentTick - time == fadeIn) time = 0
+
+        if(markToRemove) {
+            if(type == PlayType.ONCE) rawTime = animation.maxTime - rawTime
+
+            return Transformation.lerp(
+                animation.compute(node, rawTime % animation.maxTime) ?: return null,
+                bindPose.compute(node, 0f)!!,
+                rawTime / fadeOut
+            )
+        }
 
         val currentTime = when(type) {
             PlayType.LOOPED -> rawTime % animation.maxTime
