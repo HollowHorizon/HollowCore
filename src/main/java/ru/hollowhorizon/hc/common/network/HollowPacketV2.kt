@@ -49,8 +49,16 @@ open class Packet<T>(val function: Packet<T>.(Player, T) -> Unit) {
         ctx.get().packetHandled = true
 
         ctx.get().enqueueWork {
-            if (ctx.get().direction == NetworkDirection.PLAY_TO_CLIENT) function(mc.player!!, data.value.safeCast()!!)
-            else function(ctx.get().sender!!, data.value.safeCast()!!)
+            try {
+                if (ctx.get().direction == NetworkDirection.PLAY_TO_CLIENT) function(
+                    mc.player!!,
+                    data.value.safeCast()!!
+                )
+                else function(ctx.get().sender!!, data.value.safeCast()!!)
+            } catch (e: Exception) {
+                //Без этого будет вылет с сервера и хер ты потом логи найдёшь...
+                HollowCore.LOGGER.error("Failed to handle packet!", e)
+            }
         }
     }
 }

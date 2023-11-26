@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -23,6 +22,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
@@ -43,7 +43,6 @@ import ru.hollowhorizon.hc.common.registry.HollowModProcessor;
 import ru.hollowhorizon.hc.common.registry.ModEntities;
 import ru.hollowhorizon.hc.common.registry.ModShaders;
 import ru.hollowhorizon.hc.common.registry.RegistryLoader;
-import ru.hollowhorizon.hc.common.scripting.ScriptingCompilerKt;
 import thedarkcolour.kotlinforforge.forge.ForgeKt;
 
 
@@ -51,7 +50,7 @@ import thedarkcolour.kotlinforforge.forge.ForgeKt;
 @Mod(HollowCore.MODID)
 public class HollowCore {
     public static final String MODID = "hc";
-    public static final Logger LOGGER = LoggerLoader.createLogger("HollowLogger");
+    public static final Logger LOGGER = LogManager.getLogger();
     @HollowConfig(value = "general/debug_mode", description = "Enables debug mode, logs, and some more info for developers.")
     public static final boolean DEBUG_MODE = true;
 
@@ -67,10 +66,7 @@ public class HollowCore {
         modBus.addListener(this::onResourcePackAdd);
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
-        //GltfModelSources.INSTANCE.addSource(new PathSource(FMLPaths.GAMEDIR.get().resolve("hollowengine")));
-
         if (FMLEnvironment.dist.isClient()) {
-            //new GltfManager();
             //клавиши
             forgeBus.register(new HollowKeyHandler());
             forgeBus.addListener(HollowKeyHandler::onKeyInput);
@@ -80,7 +76,6 @@ public class HollowCore {
 
             //модели
             modBus.addListener(GltfManager::onReload);
-            //modBus.addListener(GlTFModelManager::clientSetup);
             modBus.addListener(this::onRendererCreating);
 
             GPUMemoryManager.INSTANCE.initialize();

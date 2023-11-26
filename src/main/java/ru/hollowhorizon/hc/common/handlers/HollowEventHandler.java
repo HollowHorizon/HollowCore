@@ -42,7 +42,6 @@ public class HollowEventHandler {
 
     @SubscribeEvent
     public void onStartTracking(PlayerEvent.StartTracking event) {
-        HollowCore.LOGGER.info("ping 1!");
         CapabilityStorage.INSTANCE.getProviders().stream()
                 .filter(element -> element.getFirst().isInstance(event.getTarget()))
                 .forEach(data -> event.getTarget()
@@ -67,7 +66,6 @@ public class HollowEventHandler {
     @SubscribeEvent
     public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         var player = (ServerPlayer) event.getEntity();
-        HollowCore.LOGGER.info("ping 2!");
 
         //update capabilities on clients
         for (Capability<CapabilityInstance> cap : CapabilityStorage.INSTANCE.getCapabilitiesForPlayer()) {
