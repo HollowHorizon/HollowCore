@@ -38,10 +38,12 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
     val renderType = Util.memoize { texture: ResourceLocation, data: Boolean ->
         val state =
-            CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
+            CompositeState.builder()
+                .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
                 .setTextureState(TextureStateShard(texture, false, false))
                 .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setCullState(RenderStateShard.NO_CULL)
-                .setLightmapState(RenderStateShard.LIGHTMAP).setOverlayState(RenderStateShard.OVERLAY)
+                .setLightmapState(RenderStateShard.LIGHTMAP)
+                .setOverlayState(RenderStateShard.OVERLAY)
                 .createCompositeState(data)
         RenderType.create(
             "hc:gltf_entity", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES,
@@ -87,6 +89,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
         model.update(capability, entity.tickCount, partialTick)
         model.entityUpdate(entity, capability, partialTick)
+
         model.render(
             stack,
             ModelData(entity.offhandItem, entity.mainHandItem, itemInHandRenderer, entity),
@@ -119,7 +122,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
             stack.pushPose()
 
-            stack.mulPoseMatrix(node.transformationMatrix)
+            stack.mulPoseMatrix(node.globalMatrix)
             stack.mulPose(Vector3f.XP.rotationDegrees(-90.0f))
 
             itemInHandRenderer.renderItem(

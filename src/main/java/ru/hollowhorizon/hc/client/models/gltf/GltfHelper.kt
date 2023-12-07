@@ -8,7 +8,6 @@ import kotlin.math.abs
 
 
 var uniformFloatBuffer: FloatBuffer? = null
-val NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE = IdentityHashMap<GltfTree.Node, FloatArray>()
 
 val GltfTree.Node.canHaveHardwareSkinning: Boolean
     get() = mesh?.primitives?.any { it.attributes.containsKey(GltfAttribute.JOINTS_1) } ?: false
@@ -133,49 +132,6 @@ fun setIdentity4x4(m: FloatArray) {
     m[5] = 1.0f
     m[10] = 1.0f
     m[15] = 1.0f
-}
-
-val GltfTree.Node.localTransform: FloatArray
-    get() = this.transform.getMatrix().array
-
-fun findGlobalTransform(node: GltfTree.Node): FloatArray {
-    var nodeModel: GltfTree.Node? = node
-    var found = NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE[nodeModel]
-
-    return if (found != null) found
-    else {
-        val pathToNode = ArrayList<GltfTree.Node>()
-        pathToNode.add(node)
-        nodeModel = node.parent
-        while (nodeModel != null) {
-            found = NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE[nodeModel]
-            if (found != null) {
-                var i = pathToNode.size - 1
-                do {
-                    nodeModel = pathToNode[i]
-                    val transform: FloatArray = nodeModel.localTransform
-                    mul4x4(found!!, transform, transform)
-                    NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE[nodeModel] = transform
-                    found = transform
-                } while (--i >= 0)
-                return found!!
-            } else {
-                pathToNode.add(nodeModel)
-                nodeModel = nodeModel.parent
-            }
-        }
-        var i = pathToNode.size - 1
-        nodeModel = pathToNode[i]
-        found = nodeModel.localTransform
-        while (--i >= 0) {
-            nodeModel = pathToNode[i]
-            val transform: FloatArray = nodeModel.localTransform
-            mul4x4(found!!, transform, transform)
-            NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE[nodeModel] = transform
-            found = transform
-        }
-        found!!
-    }
 }
 
 val FloatArray.floatBuffer: FloatBuffer

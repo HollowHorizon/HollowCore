@@ -114,7 +114,7 @@ fun Item.stack(count: Int = 1, nbt: CompoundTag? = null): ItemStack {
 }
 
 @OnlyIn(Dist.CLIENT)
-fun PoseStack.use(usable: PoseStack.() -> Unit) {
+inline fun PoseStack.use(usable: PoseStack.() -> Unit) {
     this.pushPose()
     usable()
     this.popPose()

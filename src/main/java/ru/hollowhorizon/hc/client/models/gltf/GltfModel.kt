@@ -5,9 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer
 import com.mojang.math.Matrix4f
 import com.mojang.math.Vector3f
 import com.mojang.math.Vector4f
-import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ItemInHandRenderer
-import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemStack
@@ -54,7 +52,7 @@ class GltfModel(val modelPath: GltfTree.GLTFTree) {
             joints.values.forEachIndexed { i, joint ->
                 computeSkinMatrixCommands += { matrix ->
                     val inverseTransform = matrix.copy().apply { invert() }
-                    val jointMat = joint.transformationMatrix.apply { multiply(matrices[i]) }
+                    val jointMat = joint.globalMatrix.apply { multiply(matrices[i]) }
                     inverseTransform.apply { multiply(jointMat) }
                 }
             }
@@ -77,7 +75,7 @@ class GltfModel(val modelPath: GltfTree.GLTFTree) {
                         commands += { stack: PoseStack, modelData: ModelData, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int ->
                             val buffer = consumer(primitive.material)
                             val transformed = Vector4f()
-                            val mat = node.transformationMatrix
+                            val mat = node.globalMatrix
 
                             if (weights.isNotEmpty()) {
                                 val first = Vector4f(position)
@@ -148,7 +146,7 @@ class GltfModel(val modelPath: GltfTree.GLTFTree) {
         light: Int,
         overlay: Int,
     ) {
-        renderCommands.forEach { it(stack, modelData, consumer, light, overlay) }
+        modelPath.scenes.forEach { it.render(stack, consumer, light, overlay) }
     }
 }
 

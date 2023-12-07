@@ -4,7 +4,6 @@ import com.google.common.reflect.TypeToken
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.entity.player.Player
-import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.network.NetworkDirection
 import net.minecraftforge.network.NetworkEvent
 import net.minecraftforge.network.PacketDistributor
@@ -46,20 +45,18 @@ open class Packet<T>(val function: Packet<T>.(Player, T) -> Unit) {
     }
 
     fun <E> onReceive(data: Packet<E>, ctx: Supplier<NetworkEvent.Context>) {
-        ctx.get().packetHandled = true
-
         ctx.get().enqueueWork {
             try {
-                if (ctx.get().direction == NetworkDirection.PLAY_TO_CLIENT) function(
-                    mc.player!!,
-                    data.value.safeCast()!!
-                )
+                if (ctx.get().direction == NetworkDirection.PLAY_TO_CLIENT) mc.tell {
+                    function(mc.player!!, data.value.safeCast()!!)
+                }
                 else function(ctx.get().sender!!, data.value.safeCast()!!)
             } catch (e: Exception) {
                 //Без этого будет вылет с сервера и хер ты потом логи найдёшь...
                 HollowCore.LOGGER.error("Failed to handle packet!", e)
             }
         }
+        ctx.get().packetHandled = true
     }
 }
 

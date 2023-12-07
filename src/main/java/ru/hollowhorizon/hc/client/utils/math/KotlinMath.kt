@@ -13,6 +13,25 @@ val Matrix4f.array: FloatArray
         return buffer.array()
     }
 
+fun Matrix4f.assign(matrix: Matrix4f) {
+    this.m00 = matrix.m00
+    this.m01 = matrix.m01
+    this.m02 = matrix.m02
+    this.m03 = matrix.m03
+    this.m10 = matrix.m10
+    this.m11 = matrix.m11
+    this.m12 = matrix.m12
+    this.m13 = matrix.m13
+    this.m20 = matrix.m20
+    this.m21 = matrix.m21
+    this.m22 = matrix.m22
+    this.m23 = matrix.m23
+    this.m30 = matrix.m30
+    this.m31 = matrix.m31
+    this.m32 = matrix.m32
+    this.m33 = matrix.m33
+}
+
 fun Matrix4f.translationRotateScale(
     tx: Float, ty: Float, tz: Float,
     qx: Float, qy: Float, qz: Float, qw: Float,

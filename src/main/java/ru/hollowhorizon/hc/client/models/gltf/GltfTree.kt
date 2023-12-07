@@ -1,14 +1,17 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
 import com.mojang.blaze3d.platform.NativeImage
+import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.blaze3d.vertex.VertexConsumer
 import com.mojang.math.*
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
+import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.client.graphics.AttributeContext
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.toIS
 import java.io.ByteArrayInputStream
@@ -18,6 +21,7 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import java.util.*
 
 fun DataInputStream.readUInt(): Int {
     val ch1 = this.read()
@@ -270,14 +274,14 @@ object GltfTree {
         val image = file.textures[texture].source ?: return null
         val texturePath = file.images[image].uri ?: return null
 
-        // If the texture path is a resource location, no extra processing is done
         if (texturePath.contains(':')) {
             if (!ResourceLocation.isValidResourceLocation(texturePath)) {
                 if (texturePath.startsWith("data:image/png;base64,")) {
                     val decoded = folder(texturePath)
                     val dynamicTexture = DynamicTexture(NativeImage.read(decoded))
-                    val textureName = file.textures[texture].name?.substringBefore(".png")
-                        ?: "gltf_texture_${location.path.replace("/", ".")}_$texture"
+                    var textureName = file.textures[texture].name?.substringBefore(".png")
+                        ?: "" //Название изначально может быть пустым, а не только null, так что строчка ниже не просто так
+                    if (textureName.isEmpty()) textureName = "gltf_texture_${location.path.replace("/", ".")}_$texture"
                     val textureLocation = ResourceLocation(MODID, textureName)
 
                     if (!TEXTURE_MAP.contains(textureLocation)) {
@@ -383,7 +387,11 @@ object GltfTree {
 
     data class Scene(
         val nodes: List<Node>,
-    )
+    ) {
+        fun render(stack: PoseStack, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int) {
+            nodes.forEach { it.render(stack, consumer, light, overlay) }
+        }
+    }
 
     class Node(
         val index: Int,
@@ -393,32 +401,58 @@ object GltfTree {
         val skin: Skin? = null,
         val name: String? = null,
     ) {
+        fun render(stack: PoseStack, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int) {
+            stack.pushPose()
+            stack.mulPoseMatrix(localMatrix)
+
+            mesh?.render(skin, stack, consumer, light, overlay)
+            children.forEach { it.render(stack, consumer, light, overlay) }
+
+            stack.popPose()
+        }
+
         var parent: Node? = null
         val isHead: Boolean get() = name?.lowercase()?.contains("head") == true && parent?.isHead == false
-        val transformationMatrix: Matrix4f
+        val globalMatrix: Matrix4f
             get() {
-                val matrix = parent?.transformationMatrix ?: return transform.getMatrix()
-                matrix.multiply(transform.getMatrix())
-                return matrix
+                return NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.computeIfAbsent(this) { node ->
+                    val matrix = node.parent?.globalMatrix ?: return@computeIfAbsent localMatrix
+                    matrix.multiply(localMatrix)
+                    matrix
+                }
             }
 
+        val localMatrix get() = transform.getMatrix()
     }
 
     data class Skin(
         val jointsIds: List<Int>,
         val inverseBindMatrices: List<Matrix4f>,
     ) {
-        fun getInverseBindMatrix(joint: Int, inverseBindMatrix: FloatArray) {
-            val buffer = FloatBuffer.wrap(inverseBindMatrix)
-            inverseBindMatrices[joint].store(buffer)
-        }
-
         val joints = HashMap<Int, Node>(jointsIds.size)
+
+        fun finalMatrices(matrix: Node): Array<Matrix4f> {
+            return joints.values.mapIndexed { i, joint ->
+                val inverseTransform = matrix.globalMatrix.copy().apply { invert() }
+                val jointMat = joint.globalMatrix.apply { multiply(this@Skin.inverseBindMatrices[i]) }
+                inverseTransform.apply { multiply(jointMat) }
+            }.toTypedArray()
+        }
     }
 
     data class Mesh(
         val primitives: List<Primitive>,
-    )
+    ) {
+        fun render(
+            skin: Skin?,
+            stack: PoseStack,
+            consumer: (ResourceLocation) -> VertexConsumer,
+            light: Int,
+            overlay: Int,
+        ) {
+            primitives.forEach { it.render(stack, consumer, light, overlay) }
+        }
+    }
 
     data class Primitive(
         val attributes: Map<GltfAttribute, Buffer>,
@@ -426,17 +460,138 @@ object GltfTree {
         val mode: GltfMode,
         val material: ResourceLocation,
     ) {
-        fun AttributeContext.writeToVao() {
-            indices(this@Primitive.indices?.get<Int>()?.toIntArray() ?: return)
-            attributes[GltfAttribute.POSITION]?.getAsFloatArray()?.let {
-                "position"(it, AttributeContext.Type.VEC3)
+        val indicesArray = indices?.get<Int>()?.toIntArray() ?: intArrayOf()
+        var indexCount = indicesArray.size
+        val vertices = attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.run {
+            val positions = FloatArray(this.size * 3)
+            this.forEachIndexed { i, vec ->
+                positions[i * 3] = vec.x()
+                positions[i * 3 + 1] = vec.y()
+                positions[i * 3 + 2] = vec.z()
             }
-            attributes[GltfAttribute.NORMAL]?.getAsFloatArray()?.let {
-                "normal"(it, AttributeContext.Type.VEC3)
+            positions
+        } ?: floatArrayOf()
+        val normals = attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
+            val normals = FloatArray(this.size * 3)
+            this.forEachIndexed { i, vec ->
+                normals[i * 3] = vec.x()
+                normals[i * 3 + 1] = vec.y()
+                normals[i * 3 + 2] = vec.z()
             }
-            attributes[GltfAttribute.TEXCOORD_0]?.getAsIntArray()?.let {
-                "texcoord"(it, AttributeContext.Type.VEC2)
+            normals
+        } ?: floatArrayOf()
+        val texCords = attributes[GltfAttribute.TEXCOORD_0]?.get<Pair<Float, Float>>()?.run {
+            val texCords = FloatArray(this.size * 2)
+            this.forEachIndexed { i, vec ->
+                texCords[i * 2] = vec.first
+                texCords[i * 2 + 1] = vec.second
             }
+            texCords
+        } ?: floatArrayOf()
+        val joints = attributes[GltfAttribute.JOINTS_0]?.get<Vector4f>()?.run {
+            val joints = IntArray(this.size * 4)
+            this.forEachIndexed { i, vec ->
+                joints[i * 4] = vec.x().toInt()
+                joints[i * 4 + 1] = vec.y().toInt()
+                joints[i * 4 + 2] = vec.z().toInt()
+                joints[i * 4 + 3] = vec.w().toInt()
+            }
+            joints
+        } ?: intArrayOf()
+        val weights = attributes[GltfAttribute.WEIGHTS_0]?.get<Vector4f>()?.run {
+            val weights = FloatArray(this.size * 4)
+            this.forEachIndexed { i, vec ->
+                weights[i * 4] = vec.x()
+                weights[i * 4 + 1] = vec.y()
+                weights[i * 4 + 2] = vec.z()
+                weights[i * 4 + 3] = vec.w()
+            }
+            weights
+        } ?: floatArrayOf()
+        private var vertexBuffer = -1
+        private var normalBuffer = -1
+        private var texCoordsBuffer = -1
+        private var indexBuffer = -1
+        private var vao = -1
+
+        init {
+            //TODO: реализовать загрузку вершин при помощи VAO за один раз. Текущая реализация не грузит адекватно текстуры. Прична не известна
+            //initBuffers()
+        }
+
+        private fun initBuffers() {
+            vao = GL33.glGenVertexArrays()
+            GL33.glBindVertexArray(vao)
+
+            vertexBuffer = GL33.glGenBuffers()
+            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
+            GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 12, 0)
+            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, vertices, GL33.GL_STATIC_DRAW)
+
+            GL33.glEnableVertexAttribArray(1) //color
+            GL33.glVertexAttribPointer(1, 4, GL33.GL_UNSIGNED_BYTE, false, 4, 0)
+            GL33.glVertexAttrib4f(1, 1.0F, 1.0F, 1.0F, 1.0F)
+
+            texCoordsBuffer = GL33.glGenBuffers()
+            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, texCoordsBuffer)
+            GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 8, 0)
+            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
+
+//            GL33.glEnableVertexAttribArray(3) //overlay
+//            GL33.glVertexAttribPointer(3, 2, GL33.GL_SHORT, false, 4, 0)
+//            GL33.glEnableVertexAttribArray(4) //light
+//            GL33.glVertexAttribPointer(4, 2, GL33.GL_SHORT, false, 4, 0)
+//
+//            normalBuffer = GL33.glGenBuffers()
+//            GL33.glEnableVertexAttribArray(5) //normal
+//            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
+//            GL33.glVertexAttribPointer(5, 3, GL33.GL_BYTE, false, 12, 0)
+//            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
+
+            indexBuffer = GL33.glGenBuffers()
+            GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
+            GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, indicesArray, GL33.GL_STATIC_DRAW)
+            indexCount = indicesArray.size
+
+            GL33.glBindVertexArray(0)
+            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, 0)
+            GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, 0)
+        }
+
+        fun render(
+            stack: PoseStack,
+            consumer: (ResourceLocation) -> VertexConsumer,
+            light: Int,
+            overlay: Int,
+        ) {
+            consumer(material).apply {
+                indicesArray.forEach { index ->
+                    vertex(stack.last().pose(), vertices[index * 3], vertices[index * 3 + 1], vertices[index * 3 + 2])
+                    color(1.0f, 1.0f, 1.0f, 1.0f)
+                    uv(texCords[index*2], texCords[index*2+1])
+                    overlayCoords(overlay)
+                    uv2(light)
+                    normal(stack.last().normal(), normals[index * 3], normals[index * 3 + 1], normals[index * 3 + 2])
+                    endVertex()
+                }
+            }
+        }
+
+        private fun updateVertices(stack: PoseStack) {
+            val vertices = FloatArray(this.vertices.size)
+
+            var i = 0
+            while (i < this.vertices.size) {
+                val vector = Vector4f(this.vertices[i], this.vertices[i + 1], this.vertices[i + 2], 1.0f)
+                vector.transform(stack.last().pose())
+                vertices[i] = vector.x()
+                vertices[i + 1] = vector.y()
+                vertices[i + 2] = vector.z()
+                i += 3
+            }
+
+            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, this.vertexBuffer)
+            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, vertices, GL33.GL_DYNAMIC_DRAW)
         }
     }
 
@@ -482,6 +637,8 @@ object GltfTree {
         val values: List<Any>,
     )
 }
+
+val NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE = IdentityHashMap<GltfTree.Node, Matrix4f>()
 
 fun main() {
     val tree = GltfTree.parse("hc:models/entity/hilda_regular.glb".rl)
