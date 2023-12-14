@@ -388,8 +388,8 @@ object GltfTree {
     data class Scene(
         val nodes: List<Node>,
     ) {
-        fun render(stack: PoseStack, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int) {
-            nodes.forEach { it.render(stack, consumer, light, overlay) }
+        fun render(stack: PoseStack, nodeRenderer: NodeRenderer, data: ModelData, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int) {
+            nodes.forEach { it.render(stack, nodeRenderer, data, consumer, light, overlay) }
         }
     }
 
@@ -401,12 +401,17 @@ object GltfTree {
         val skin: Skin? = null,
         val name: String? = null,
     ) {
-        fun render(stack: PoseStack, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int) {
+        fun render(stack: PoseStack, nodeRenderer: NodeRenderer, data: ModelData, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int) {
             stack.pushPose()
             stack.mulPoseMatrix(localMatrix)
 
             mesh?.render(skin, stack, consumer, light, overlay)
-            children.forEach { it.render(stack, consumer, light, overlay) }
+            children.forEach { it.render(stack, nodeRenderer, data, consumer, light, overlay) }
+
+
+            data.entity?.let {
+                nodeRenderer(it, stack, this, light)
+            }
 
             stack.popPose()
         }

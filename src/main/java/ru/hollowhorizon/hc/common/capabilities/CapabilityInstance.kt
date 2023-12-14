@@ -15,7 +15,6 @@ import net.minecraftforge.common.capabilities.ICapabilityProviderImpl
 import net.minecraftforge.common.capabilities.ICapabilitySerializable
 import net.minecraftforge.common.util.LazyOptional
 import net.minecraftforge.network.PacketDistributor
-import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
@@ -33,7 +32,7 @@ open class CapabilityInstance :
     fun <T> syncable(default: T) = CapabilityProperty<CapabilityInstance, T>(default)
 
 
-    fun sync() {
+    fun sync(target: ServerPlayer? = null) {
         when (provider) {
             is Entity -> {
                 val entity = provider as Entity
@@ -52,9 +51,12 @@ open class CapabilityInstance :
                         capability.name,
                         serializeNBT()
                     ),
-                    if (!isPlayer) PacketDistributor.TRACKING_ENTITY.with { (provider as Entity) }
-                    else if (canOtherPlayersAccess) PacketDistributor.TRACKING_ENTITY_AND_SELF.with { (provider as Entity) }
-                    else PacketDistributor.PLAYER.with { entity as ServerPlayer }
+                    when {
+                        target != null -> PacketDistributor.PLAYER.with { target }
+                        !isPlayer -> PacketDistributor.TRACKING_ENTITY.with { (provider as Entity) }
+                        canOtherPlayersAccess -> PacketDistributor.TRACKING_ENTITY_AND_SELF.with { (provider as Entity) }
+                        else -> PacketDistributor.PLAYER.with { entity as ServerPlayer }
+                    }
                 )
 
             }

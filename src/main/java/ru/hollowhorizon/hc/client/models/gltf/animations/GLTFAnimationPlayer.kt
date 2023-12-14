@@ -1,12 +1,11 @@
 package ru.hollowhorizon.hc.client.models.gltf.animations
 
 import net.minecraft.world.entity.LivingEntity
-import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.gltf.GltfModel
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.Transformation
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.gltf.manager.AnimationLayer
+import ru.hollowhorizon.hc.client.models.gltf.manager.LayerMode
 
 
 open class GLTFAnimationPlayer(val model: GltfModel) {
@@ -39,46 +38,35 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
     fun update(capability: AnimatedEntityCapability, partialTick: Float) {
         val definedLayer = capability.definedLayer
         definedLayer.update(currentLoopAnimation, currentTick, partialTick)
-        val animationOverrides = typeToAnimationMap + capability.animations.mapNotNull { it.key to (nameToAnimationMap[it.value] ?: return@mapNotNull null) }.toMap()
+        val animationOverrides = typeToAnimationMap + capability.animations.mapNotNull {
+            it.key to (nameToAnimationMap[it.value] ?: return@mapNotNull null)
+        }.toMap()
 
         nodeModels.forEach { node ->
             bindPose.apply(node, 0f)
-            val transforms = HashMap<Transformation, Float>()
+            val bindPose = bindPose.compute(node, Transformation(), 0f) ?: return@forEach
+            val transform = node.transform.copy()
             definedLayer.computeTransform(node, bindPose, animationOverrides, currentTick, partialTick)?.let {
-                transforms.put(it, 1.0f)
+                transform.add(it)
             }
-            transforms += capability.layers.mapNotNull {
-                (it.computeTransform(node, bindPose, nameToAnimationMap, currentTick, partialTick)
-                    ?: return@mapNotNull null) to it.priority
-            }.toMap()
-            transforms += capability.onceAnimations.mapNotNull {
-                (it.computeTransform(node, bindPose, nameToAnimationMap, currentTick, partialTick)
-                    ?: return@mapNotNull null) to it.priority + 10f
-            }.toMap()
-            node.transform.set(transforms)
+            capability.layers.forEach {
+                val animPose = it.computeTransform(node, bindPose, nameToAnimationMap, currentTick, partialTick)
+
+                if (animPose != null) {
+                    when (it.layerMode) {
+                        LayerMode.ADD -> transform.add(animPose)
+                        LayerMode.OVERWRITE -> transform.set(bindPose.copy().apply { add(animPose) })
+                    }
+                }
+            }
+            node.transform.set(transform)
         }
 
-        capability.onceAnimations.removeIf { it.isEnd(nameToAnimationMap, currentTick, partialTick) }
+        capability.layers.removeIf { it.isEnd(nameToAnimationMap, currentTick, partialTick) }
     }
 
     fun setTick(tick: Int) {
         this.currentTick = tick
-    }
-
-    fun playOnce(capability: AnimatedEntityCapability, type: AnimationType, resetIfPresent: Boolean = false) {
-        val animationOverrides = templates + capability.animations
-        animationOverrides[type]?.let { playOnce(capability, it, resetIfPresent) }
-    }
-
-    fun playOnce(capability: AnimatedEntityCapability, name: String, resetIfPresent: Boolean = false) {
-        val anim = capability.onceAnimations.find { it.animation == name }
-        if (anim != null && resetIfPresent) {
-            anim.time = 0
-            return
-        }
-
-        capability.onceAnimations.add(AnimationLayer(name, 1.0f, PlayType.ONCE, 1.0f, 0))
-
     }
 }
 

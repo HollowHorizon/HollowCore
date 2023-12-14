@@ -1,21 +1,16 @@
 package ru.hollowhorizon.hc.common.handlers;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
@@ -46,7 +41,7 @@ public class HollowEventHandler {
                 .filter(element -> element.getFirst().isInstance(event.getTarget()))
                 .forEach(data -> event.getTarget()
                         .getCapability(data.getSecond().invoke(event.getTarget()).getCapability())
-                        .ifPresent(CapabilityInstance::sync)
+                        .ifPresent((it) -> it.sync((ServerPlayer) event.getEntity()))
                 );
     }
 
@@ -69,7 +64,7 @@ public class HollowEventHandler {
 
         //update capabilities on clients
         for (Capability<CapabilityInstance> cap : CapabilityStorage.INSTANCE.getCapabilitiesForPlayer()) {
-            player.getCapability(cap).ifPresent(CapabilityInstance::sync);
+            player.getCapability(cap).ifPresent((it) -> it.sync((ServerPlayer) event.getEntity()));
         }
     }
 }

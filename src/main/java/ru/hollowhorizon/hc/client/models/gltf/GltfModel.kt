@@ -21,6 +21,8 @@ class ModelData(
     val entity: LivingEntity?,
 )
 
+typealias NodeRenderer = (LivingEntity, PoseStack, GltfTree.Node, Int) -> Unit
+
 class GltfModel(val modelPath: GltfTree.GLTFTree) {
     val bindPose = Animation.createFromPose(modelPath.walkNodes())
     val animationPlayer = GLTFAnimationPlayer(this)
@@ -30,7 +32,7 @@ class GltfModel(val modelPath: GltfTree.GLTFTree) {
         scene.nodes.forEach { createNodeCommands(it, commands) }
         return@flatMap commands
     }.toSet()
-    var visuals: ((LivingEntity, PoseStack, GltfTree.Node, Int) -> Unit)? = null
+    var visuals: NodeRenderer = { _, _, _, _ -> }
 
     fun createNodeCommands(
         node: GltfTree.Node,
@@ -146,7 +148,7 @@ class GltfModel(val modelPath: GltfTree.GLTFTree) {
         light: Int,
         overlay: Int,
     ) {
-        modelPath.scenes.forEach { it.render(stack, consumer, light, overlay) }
+        modelPath.scenes.forEach { it.render(stack, visuals, modelData, consumer, light, overlay) }
     }
 }
 

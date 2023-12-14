@@ -26,9 +26,8 @@ import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.ModelData
 import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
-import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
-import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
+import ru.hollowhorizon.hc.client.models.gltf.animations.PlayMode
+import ru.hollowhorizon.hc.client.models.gltf.manager.*
 import ru.hollowhorizon.hc.client.utils.*
 
 
@@ -85,7 +84,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         val lerpBodyRot = Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot)
         stack.mulPose(Vector3f.YP.rotationDegrees(-lerpBodyRot))
 
-        if(model.visuals == null) model.visuals = ::drawVisuals
+        model.visuals = ::drawVisuals
 
         model.update(capability, entity.tickCount, partialTick)
         model.entityUpdate(entity, capability, partialTick)
@@ -121,8 +120,6 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             val item = (if (isLeft) entity.getItemInHand(InteractionHand.OFF_HAND) else entity.getItemInHand(InteractionHand.MAIN_HAND)) ?: return
 
             stack.pushPose()
-
-            stack.mulPoseMatrix(node.globalMatrix)
             stack.mulPose(Vector3f.XP.rotationDegrees(-90.0f))
 
             itemInHandRenderer.renderItem(
@@ -152,8 +149,28 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
     private fun updateAnimations(entity: T, capability: AnimatedEntityCapability, manager: GLTFAnimationPlayer) {
         when {
-            entity.hurtTime > 0 -> manager.playOnce(capability, AnimationType.HURT, true)
-            entity.swinging -> manager.playOnce(capability, AnimationType.SWING)
+            entity.hurtTime > 0 -> {
+                val name = manager.typeToAnimationMap[AnimationType.HURT]?.name ?: return
+                if(capability.layers.any { it.animation == name }) return
+
+                capability.layers += AnimationLayer(
+                    name,
+                    LayerMode.ADD,
+                    PlayMode.ONCE,
+                    1.0f, fadeIn = 5
+                )
+            }
+            entity.swinging -> {
+                val name = manager.typeToAnimationMap[AnimationType.SWING]?.name ?: return
+                if(capability.layers.any { it.animation == name }) return
+
+                capability.layers += AnimationLayer(
+                    name,
+                    LayerMode.ADD,
+                    PlayMode.ONCE,
+                    1.0f, fadeIn = 5
+                )
+            }
         }
         manager.currentLoopAnimation = when {
             !entity.isAlive -> AnimationType.DEATH

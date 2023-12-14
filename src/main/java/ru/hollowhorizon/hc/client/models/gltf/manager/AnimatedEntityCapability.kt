@@ -9,7 +9,6 @@ import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
 class AnimatedEntityCapability : CapabilityInstance() {
     internal val definedLayer = DefinedLayer()
     internal val headLayer = HeadLayer()
-    internal val onceAnimations = ArrayList<AnimationLayer>()
     val layers by syncableList<AnimationLayer>()
     val textures by syncableMap<String, String>()
     val animations by syncableMap<AnimationType, String>()

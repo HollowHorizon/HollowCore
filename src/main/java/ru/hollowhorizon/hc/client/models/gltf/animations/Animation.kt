@@ -10,16 +10,18 @@ import ru.hollowhorizon.hc.client.models.gltf.Transformation
 class Animation(val name: String, private val animationData: Map<GltfTree.Node, AnimationData>) {
     val maxTime = animationData.values.maxOf { it.maxTime }
 
-    fun compute(node: GltfTree.Node, currentTime: Float): Transformation? {
+    fun compute(node: GltfTree.Node, bindPose: Transformation, currentTime: Float): Transformation? {
         return animationData[node]?.let {
             val t = it.translation?.compute(currentTime)
             val r = it.rotation?.compute(currentTime)
             val s = it.scale?.compute(currentTime)
             Transformation(
-                t?.let { arr -> Vector3f(arr[0], arr[1], arr[2]) } ?: node.transform.translation,
-                r?.let { arr -> Quaternion(arr[0], arr[1], arr[2], arr[3]) } ?: node.transform.rotation,
-                s?.let { arr -> Vector3f(arr[0], arr[1], arr[2]) } ?: node.transform.scale
-            )
+                t?.let { arr -> Vector3f(arr[0], arr[1], arr[2]) },
+                r?.let { arr -> Quaternion(arr[0], arr[1], arr[2], arr[3]) },
+                s?.let { arr -> Vector3f(arr[0], arr[1], arr[2]) }
+            ).apply {
+                sub(bindPose)
+            }
         }
     }
 
@@ -78,8 +80,12 @@ enum class AnimationType {
         fun load(model: GltfTree.GLTFTree): HashMap<AnimationType, String> {
             val names = model.animations.map { it.name ?: "Unnamed" }
 
-            fun List<String>.findOr(vararg names: String) = this.find { anim -> names.any { anim.contains(it, ignoreCase = true) } }
-            fun List<String>.findAnd(vararg names: String) = this.find { anim -> names.all { anim.contains(it, ignoreCase = true) } }
+            fun List<String>.findOr(vararg names: String) =
+                this.find { anim -> names.any { anim.contains(it, ignoreCase = true) } }
+
+            fun List<String>.findAnd(vararg names: String) =
+                this.find { anim -> names.all { anim.contains(it, ignoreCase = true) } }
+
             val animations = hashMapOf<AnimationType, String>()
 
             animations[IDLE] = names.findOr("idle") ?: ""
@@ -109,8 +115,10 @@ enum class AnimationType {
     }
 }
 
+enum class AnimationState { STARTING, PLAYING, FINISHED }
+
 @Serializable
-enum class PlayType {
+enum class PlayMode {
     ONCE, //Одиночный запуск анимации
     LOOPED, //После завершения анимация начнётся с начала
     LAST_FRAME, //После завершения анимация застынет на последнем кадре
