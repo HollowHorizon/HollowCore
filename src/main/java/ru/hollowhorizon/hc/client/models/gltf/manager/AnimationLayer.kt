@@ -142,7 +142,11 @@ class HeadLayer {
         val netHeadYaw = headYaw - bodyYaw
         val headPitch = -Mth.rotLerp(partialTick, animatable.xRotO, animatable.xRot)
 
-        return Quaternion.fromXYZDegrees(Vector3f(headPitch, netHeadYaw, 0f))
+        val xRot = Vector3f.XP.rotationDegrees(headPitch)
+        val yRot = Vector3f.YP.rotationDegrees(netHeadYaw)
+        yRot.mul(xRot)
+
+        return yRot
 
     }
 }
