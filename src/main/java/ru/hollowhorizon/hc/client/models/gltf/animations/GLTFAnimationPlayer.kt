@@ -62,7 +62,7 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
             node.transform.set(transform)
         }
 
-        capability.layers.removeIf { it.isEnd(nameToAnimationMap, currentTick, partialTick) }
+        capability.layers.removeIf { it.isEnd(currentTick, partialTick) }
     }
 
     fun setTick(tick: Int) {

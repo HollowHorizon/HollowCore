@@ -76,10 +76,11 @@ data class Transformation(
         translationY *= factor
         translationZ *= factor
 
-        rotationX *= factor
-        rotationY *= factor
-        rotationZ *= factor
-        rotationW *= factor
+        val q = Quaternion.ONE.copy().lerp(rotation, factor)
+        rotationX = q?.i() ?: rotationX
+        rotationY = q?.j() ?: rotationY
+        rotationZ = q?.k() ?: rotationZ
+        rotationW = q?.r() ?: rotationW
 
         scaleX = scaleX * factor + 1f * (1f - factor)
         scaleY = scaleY * factor + 1f * (1f - factor)

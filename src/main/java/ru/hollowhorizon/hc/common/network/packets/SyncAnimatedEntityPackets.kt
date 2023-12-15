@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.common.network.packets
 
 import kotlinx.serialization.Serializable
 import net.minecraftforge.network.NetworkDirection
+import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationState
 import ru.hollowhorizon.hc.client.models.gltf.animations.PlayMode
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimationLayer
@@ -48,7 +49,9 @@ class StopAnimationPacket : Packet<StopAnimationContainer>({ player, container -
         if (entity is IAnimated) {
             val capability = entity[AnimatedEntityCapability::class]
 
-            capability.layers.removeIf { it.animation == container.name }
+            capability.layers.filter { it.animation == container.name }.forEach {
+                it.state = AnimationState.FINISHED
+            }
         }
     }
 })

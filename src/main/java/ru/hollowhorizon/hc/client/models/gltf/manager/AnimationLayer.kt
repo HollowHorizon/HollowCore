@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.client.models.gltf.manager
 
 import com.mojang.math.Quaternion
+import com.mojang.math.Vector3f
 import kotlinx.serialization.Serializable
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
@@ -23,16 +24,22 @@ data class AnimationLayer(
     var fadeIn: Int = 10,
     var fadeOut: Int = 10,
 ) {
-    val fadeInSeconds get() = fadeIn / 20f
-    val fadeOutSeconds get() = fadeOut / 20f
+    private var finishTicks = 0
+    private val fadeInSeconds get() = fadeIn / 20f
+    private val fadeOutSeconds get() = fadeOut / 20f
 
     fun isEnd(
-        nameToAnimationMap: Map<String, Animation>,
         currentTick: Int,
         partialTick: Float,
     ): Boolean {
-        val animation = nameToAnimationMap[animation] ?: return true
-        return (((currentTick - time + partialTick - fadeOut) / 20f) >= animation.maxTime) && state == AnimationState.FINISHED
+        if (state == AnimationState.FINISHED) {
+            if (finishTicks == 0) finishTicks = currentTick
+
+            val currentTime = (currentTick - finishTicks + partialTick) / 20f
+
+            return currentTime >= fadeOutSeconds
+        }
+        return false
     }
 
     fun computeTransform(
@@ -62,25 +69,25 @@ data class AnimationLayer(
             }
         }
 
-        return animation.compute(node, bindPose, currentTime)
-//        return when (state) {
-//            AnimationState.STARTING -> {
-//                if (rawTime > fadeInSeconds) {
-//                    state = AnimationState.PLAYING
-//                }
-//                Transformation.lerp(
-//                    null,
-//                    animation.compute(node, bindPose, currentTime),
-//                    (currentTime / fadeInSeconds).coerceAtMost(1.0f)
-//                )
-//            }
-//            AnimationState.PLAYING -> animation.compute(node, bindPose, currentTime)
-//            AnimationState.FINISHED -> Transformation.lerp(
-//                animation.compute(node, bindPose, animation.maxTime),
-//                null,
-//                (rawTime % fadeOutSeconds) / fadeOutSeconds
-//            )
-//        }
+        return when (state) {
+            AnimationState.STARTING -> {
+                if (rawTime > fadeInSeconds) {
+                    state = AnimationState.PLAYING
+                }
+                Transformation.lerp(
+                    null,
+                    animation.compute(node, bindPose, currentTime),
+                    (currentTime / fadeInSeconds).coerceAtMost(1.0f)
+                )
+            }
+
+            AnimationState.PLAYING -> animation.compute(node, bindPose, currentTime)
+            AnimationState.FINISHED -> Transformation.lerp(
+                animation.compute(node, bindPose, animation.maxTime),
+                null,
+                (rawTime % fadeOutSeconds) / fadeOutSeconds
+            )
+        }
     }
 }
 
@@ -133,7 +140,7 @@ class HeadLayer {
         val netHeadYaw = headYaw - bodyYaw
         val headPitch = -Mth.rotLerp(partialTick, animatable.xRotO, animatable.xRot)
 
-        return Quaternion(headPitch, netHeadYaw, 0f, true)
+        return Quaternion.fromXYZDegrees(Vector3f(headPitch, netHeadYaw, 0f))
 
     }
 }
