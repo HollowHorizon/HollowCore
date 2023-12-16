@@ -17,7 +17,7 @@ object GPUMemoryManager {
     private val vaoMap = ConcurrentHashMap<WeakReference<VAO?>, Int>()
 
     fun initialize() {
-        Minecraft.getInstance().execute(ClearingRunnable(this))
+        //Minecraft.getInstance().execute(ClearingRunnable(this))
     }
 
     fun createVAO(): VAO {
