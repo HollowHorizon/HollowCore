@@ -83,6 +83,7 @@ data class AnimationLayer(
 
             AnimationState.PLAYING -> animation.compute(node, bindPose, currentTime)
             AnimationState.FINISHED -> {
+                if (finishTicks == 0) finishTicks = currentTick
                 Transformation.lerp(
                     animation.compute(node, bindPose, currentTime),
                     null,
