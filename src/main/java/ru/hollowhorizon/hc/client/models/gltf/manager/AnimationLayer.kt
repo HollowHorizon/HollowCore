@@ -33,6 +33,8 @@ data class AnimationLayer(
         partialTick: Float,
     ): Boolean {
         if (state == AnimationState.FINISHED) {
+            if (finishTicks == 0) finishTicks = currentTick
+
             val currentTime = (currentTick - finishTicks + partialTick) / 20f
 
             return currentTime >= fadeOutSeconds
@@ -81,10 +83,8 @@ data class AnimationLayer(
 
             AnimationState.PLAYING -> animation.compute(node, bindPose, currentTime)
             AnimationState.FINISHED -> {
-                if (finishTicks == 0) finishTicks = currentTick
-
                 Transformation.lerp(
-                    animation.compute(node, bindPose, animation.maxTime),
+                    animation.compute(node, bindPose, currentTime),
                     null,
                     (currentTick - finishTicks + partialTick) / 20f
                 )
