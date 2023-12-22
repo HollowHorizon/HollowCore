@@ -137,7 +137,7 @@ public class HollowCore {
     }
 
     private void configSave(ServerStoppedEvent event) {
-        HollowCoreConfig.save();
+        //HollowCoreConfig.save();
     }
 
     //『Post-Init』
