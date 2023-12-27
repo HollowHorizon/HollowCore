@@ -76,8 +76,8 @@ data class AnimationLayer(
                 }
                 Transformation.lerp(
                     null,
-                    animation.compute(node, bindPose, currentTime),
-                    (currentTime / fadeInSeconds).coerceAtMost(1.0f)
+                    animation.compute(node, bindPose, rawTime),
+                    (rawTime / fadeInSeconds).coerceAtMost(1.0f)
                 )
             }
 
@@ -87,7 +87,7 @@ data class AnimationLayer(
                 Transformation.lerp(
                     animation.compute(node, bindPose, currentTime),
                     null,
-                    (currentTick - finishTicks + partialTick) / 20f
+                    (currentTick - finishTicks + partialTick) / 20f / fadeOutSeconds
                 )
             }
         }
