@@ -15,6 +15,7 @@ import net.minecraftforge.common.capabilities.ICapabilityProviderImpl
 import net.minecraftforge.common.capabilities.ICapabilitySerializable
 import net.minecraftforge.common.util.LazyOptional
 import net.minecraftforge.network.PacketDistributor
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
@@ -33,6 +34,11 @@ open class CapabilityInstance :
 
 
     fun sync(target: ServerPlayer? = null) {
+        val nbt = serializeNBT()
+        if((nbt as? CompoundTag)?.isEmpty == true) return
+
+        HollowCore.LOGGER.info("syncing {}: {}", (provider as? Entity)?.level?.isClientSide ?: "Unknown", serializeNBT())
+
         when (provider) {
             is Entity -> {
                 val entity = provider as Entity

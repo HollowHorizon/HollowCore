@@ -8,6 +8,7 @@ import com.mojang.blaze3d.vertex.VertexFormat
 import com.mojang.math.Vector3d
 import com.mojang.math.Vector3f
 import net.minecraft.client.renderer.GameRenderer
+import net.minecraft.util.Mth
 import ru.hollowhorizon.hc.client.render.OpenGLUtils
 import java.util.*
 import kotlin.math.abs
@@ -115,19 +116,13 @@ class Spline(private val xx: DoubleArray, private val yy: DoubleArray) {
     }
 }
 
-class Spline3D(points: List<Vector3d>, rotation: List<Vector3f>) {
+class Spline3D(points: List<Vector3d>, val rotations: List<Vector3f>) {
     private lateinit var t: DoubleArray
     var splineX: Spline? = null
         private set
     var splineY: Spline? = null
         private set
     var splineZ: Spline? = null
-        private set
-    var splineXRot: Spline? = null
-        private set
-    var splineYRot: Spline? = null
-        private set
-    var splineZRot: Spline? = null
         private set
 
     var length = 0.0
@@ -138,11 +133,6 @@ class Spline3D(points: List<Vector3d>, rotation: List<Vector3f>) {
         var y = points.map { it.y }.toDoubleArray()
         var z = points.map { it.z }.toDoubleArray()
         initPositions(x, y, z)
-
-        x = rotation.map { it.x().toDouble() }.toDoubleArray()
-        y = rotation.map { it.y().toDouble() }.toDoubleArray()
-        z = rotation.map { it.z().toDouble() }.toDoubleArray()
-        initRotations(x, y, z)
     }
 
     private fun initPositions(x: DoubleArray, y: DoubleArray, z: DoubleArray) {
@@ -172,59 +162,21 @@ class Spline3D(points: List<Vector3d>, rotation: List<Vector3f>) {
         splineZ = Spline(t, z)
     }
 
-    private fun initRotations(x: DoubleArray, y: DoubleArray, z: DoubleArray) {
-        require(!(x.size != y.size || x.size != z.size || y.size != z.size)) { "Arrays must have the same length." }
-        require(x.size >= 2) { "Spline edges must have at least two points." }
-        t = DoubleArray(x.size)
-        t[0] = 0.0
-
-        for (i in 1 until t.size) {
-            x[i] = modifyAngle(x[i - 1], x[i])
-            y[i] = modifyAngle(y[i - 1], y[i])
-            z[i] = modifyAngle(z[i - 1], z[i])
-        }
-
-        for (i in 1 until t.size) {
-            val lx = x[i] - x[i - 1]
-            val ly = y[i] - y[i - 1]
-            val lz = z[i] - z[i - 1]
-
-            if (0.0 == lx) t[i] = abs(lz)
-            else if (0.0 == lz) t[i] = abs(lx)
-            else t[i] = sqrt(lx * lx + ly * ly + lz * lz)
-
-            length += t[i]
-            t[i] += t[i - 1]
-        }
-        for (i in 1 until t.size - 1) {
-            t[i] = t[i] / length
-        }
-        t[t.size - 1] = 1.0
-        splineXRot = Spline(t, x)
-        splineYRot = Spline(t, y)
-        splineZRot = Spline(t, z)
-    }
-
-    private fun modifyAngle(currentAngle: Double, targetAngle: Double): Double {
-        return currentAngle + wrapDegrees(targetAngle - currentAngle)
-    }
-
-    private fun wrapDegrees(pValue: Double): Double {
-        var f = pValue % 360.0
-        if (f >= 180.0) f -= 360.0
-        if (f < -180.0) f += 360.0
-        return f
-    }
-
     fun getPoint(t: Double): Vector3d {
         return Vector3d(splineX!!.getValue(t), splineY!!.getValue(t), splineZ!!.getValue(t))
     }
 
     fun getRotation(t: Double): Vector3f {
+        val index = ((rotations.size - 1) * t).toInt()
+        val current = rotations[index]
+        val next = if(index == rotations.size - 1) current else rotations[index + 1]
+
+        val percent = ((rotations.size - 1) * t.toFloat()) % 1.0f
+
         return Vector3f(
-            splineXRot!!.getValue(t).toFloat(),
-            splineYRot!!.getValue(t).toFloat(),
-            splineZRot!!.getValue(t).toFloat()
+            Mth.rotLerp(percent, current.x(), next.x()),
+            Mth.rotLerp(percent, current.y(), next.y()),
+            Mth.rotLerp(percent, current.z(), next.z()),
         )
     }
 
