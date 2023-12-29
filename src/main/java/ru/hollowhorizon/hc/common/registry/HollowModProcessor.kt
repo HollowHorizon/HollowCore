@@ -101,8 +101,6 @@ object HollowModProcessor {
         }
 
         if (FMLEnvironment.dist.isClient) processSounds(modId)
-
-        Registries.registerAll()
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -173,32 +171,6 @@ private fun Field.isStatic(): Boolean {
 
 private fun Method.isStatic(): Boolean {
     return Modifier.isStatic(this.modifiers)
-}
-
-object Registries {
-    private val REGISTRIES: HashMap<IForgeRegistry<*>, HashMap<String, DeferredRegister<*>>> = hashMapOf()
-
-    @Suppress("UNCHECKED_CAST")
-    fun <B> getRegistry(registryType: IForgeRegistry<B>, modId: String): DeferredRegister<B> {
-        val registriesFor = REGISTRIES.computeIfAbsent(registryType) { hashMapOf() }
-
-        val registry = registriesFor.computeIfAbsent(modId) {
-            DeferredRegister.create(registryType, modId)
-        }
-
-        return registry as DeferredRegister<B>
-    }
-
-    @JvmStatic
-    fun registerAll() {
-        REGISTRIES.values.forEach { registries ->
-            registries.values.forEach { registry ->
-                registry.register(MOD_CONTEXT.getKEventBus())
-            }
-        }
-
-        REGISTRIES.clear()
-    }
 }
 
 class AnnotationContainer<T : Any>(
