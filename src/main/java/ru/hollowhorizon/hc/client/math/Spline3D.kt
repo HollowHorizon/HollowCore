@@ -7,7 +7,6 @@ import com.mojang.blaze3d.vertex.Tesselator
 import com.mojang.blaze3d.vertex.VertexFormat
 import com.mojang.math.Vector3d
 import com.mojang.math.Vector3f
-import kotlinx.serialization.Serializable
 import net.minecraft.client.renderer.GameRenderer
 import ru.hollowhorizon.hc.client.render.OpenGLUtils
 import java.util.*
@@ -180,6 +179,12 @@ class Spline3D(points: List<Vector3d>, rotation: List<Vector3f>) {
         t[0] = 0.0
 
         for (i in 1 until t.size) {
+            x[i] = modifyAngle(x[i - 1], x[i])
+            y[i] = modifyAngle(y[i - 1], y[i])
+            z[i] = modifyAngle(z[i - 1], z[i])
+        }
+
+        for (i in 1 until t.size) {
             val lx = x[i] - x[i - 1]
             val ly = y[i] - y[i - 1]
             val lz = z[i] - z[i - 1]
@@ -200,12 +205,27 @@ class Spline3D(points: List<Vector3d>, rotation: List<Vector3f>) {
         splineZRot = Spline(t, z)
     }
 
+    private fun modifyAngle(currentAngle: Double, targetAngle: Double): Double {
+        return currentAngle + wrapDegrees(targetAngle - currentAngle)
+    }
+
+    private fun wrapDegrees(pValue: Double): Double {
+        var f = pValue % 360.0
+        if (f >= 180.0) f -= 360.0
+        if (f < -180.0) f += 360.0
+        return f
+    }
+
     fun getPoint(t: Double): Vector3d {
         return Vector3d(splineX!!.getValue(t), splineY!!.getValue(t), splineZ!!.getValue(t))
     }
 
     fun getRotation(t: Double): Vector3f {
-        return Vector3f(splineXRot!!.getValue(t).toFloat(), splineYRot!!.getValue(t).toFloat(), splineZRot!!.getValue(t).toFloat())
+        return Vector3f(
+            splineXRot!!.getValue(t).toFloat(),
+            splineYRot!!.getValue(t).toFloat(),
+            splineZRot!!.getValue(t).toFloat()
+        )
     }
 
     fun checkValues(): Boolean {
