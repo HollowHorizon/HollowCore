@@ -40,8 +40,9 @@ open class Packet<T>(val function: Packet<T>.(Player, T) -> Unit) {
     @Suppress("UNCHECKED_CAST")
     open fun <E> decode(buf: FriendlyByteBuf): Packet<E> {
         val data = NBTFormat.deserializeNoInline(buf.readNbt()!!.get("data")!!, type.rawType)
-        this.value = data.safeCast()
-        return this as Packet<E>
+        val packet = this::class.java.getConstructor().newInstance() as Packet<E>
+        packet.value = data.safeCast()
+        return packet
     }
 
     fun <E> onReceive(data: Packet<E>, ctx: Supplier<NetworkEvent.Context>) {
