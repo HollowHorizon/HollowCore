@@ -13,6 +13,8 @@ import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
 
 import static ru.hollowhorizon.hc.HollowCore.MODID;
 
+import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.toSTC;
+
 public class VolumeWidget extends HollowWidget {
     public static final ResourceLocation VOLUME_SLIDER = new ResourceLocation(MODID, "textures/gui/icons/volume_slider.png");
     private final ResourceLocation VOLUME_ICON = new ResourceLocation(MODID, "textures/gui/icons/volume.png");
@@ -23,7 +25,7 @@ public class VolumeWidget extends HollowWidget {
     private boolean isMouseDragged = false;
 
     public VolumeWidget(int x, int y, int width, int height) {
-        super(x, y, width, height, Component.literal(""));
+        super(x, y, width, height, toSTC(""));
     }
 
     @Override
