@@ -19,7 +19,6 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
-import ru.hollowhorizon.hc.common.network.send
 
 @Suppress("API_STATUS_INTERNAL")
 open class CapabilityInstance :
@@ -33,32 +32,18 @@ open class CapabilityInstance :
     fun <T> syncable(default: T) = CapabilityProperty<CapabilityInstance, T>(default)
 
 
-    fun sync(target: ServerPlayer? = null) {
+    fun sync() {
         val nbt = serializeNBT()
-        if((nbt as? CompoundTag)?.isEmpty == true) return
-
-        HollowCore.LOGGER.info("syncing {}: {}", (provider as? Entity)?.level?.isClientSide ?: "Unknown", serializeNBT())
+        if ((nbt as? CompoundTag)?.isEmpty == true) return
 
         when (provider) {
             is Entity -> {
                 val entity = provider as Entity
                 val isPlayer = entity is Player
                 if (entity.level.isClientSide) {
-                    if (consumeOnServer) SSyncEntityCapabilityPacket().send(
-                        EntityCapabilityContainer(
-                            entity.id,
-                            capability.name,
-                            serializeNBT()
-                        )
-                    )
-                } else CSyncEntityCapabilityPacket().send(
-                    EntityCapabilityContainer(
-                        entity.id,
-                        capability.name,
-                        serializeNBT()
-                    ),
+                    if (consumeOnServer) SSyncEntityCapabilityPacket(entity.id, capability.name, serializeNBT()).send()
+                } else CSyncEntityCapabilityPacket(entity.id, capability.name, serializeNBT()).send(
                     when {
-                        target != null -> PacketDistributor.PLAYER.with { target }
                         !isPlayer -> PacketDistributor.TRACKING_ENTITY.with { (provider as Entity) }
                         canOtherPlayersAccess -> PacketDistributor.TRACKING_ENTITY_AND_SELF.with { (provider as Entity) }
                         else -> PacketDistributor.PLAYER.with { entity as ServerPlayer }
@@ -80,17 +65,15 @@ open class CapabilityInstance :
             is Level -> {
                 val level = provider as Level
                 if (level.isClientSide) {
-                    if (consumeOnServer) SSyncLevelCapabilityPacket().send(
-                        LevelCapabilityContainer(
-                            level.dimension().location().toString(),
-                            capability.name,
-                            serializeNBT()
-                        )
-                    )
-                } else CSyncLevelCapabilityPacket().send(
-                    LevelCapabilityContainer(level.dimension().location().toString(), capability.name, serializeNBT()),
-                    PacketDistributor.DIMENSION.with { level.dimension() }
-                )
+                    if (consumeOnServer) SSyncLevelCapabilityPacket(
+                        level.dimension().location().toString(),
+                        capability.name,
+                        serializeNBT()
+                    ).send()
+                } else CSyncLevelCapabilityPacket(
+                    capability.name,
+                    serializeNBT()
+                ).send(PacketDistributor.DIMENSION.with { level.dimension() })
             }
         }
     }

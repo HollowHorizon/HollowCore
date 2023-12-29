@@ -3,75 +3,98 @@ package ru.hollowhorizon.hc.common.capabilities
 import kotlinx.serialization.Serializable
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
+import net.minecraft.world.entity.player.Player
 import net.minecraftforge.common.capabilities.Capability
-import net.minecraftforge.network.NetworkDirection
 import net.minecraftforge.network.PacketDistributor
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.nbt.ForTag
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
-import ru.hollowhorizon.hc.common.network.Packet
-import ru.hollowhorizon.hc.common.network.send
+import ru.hollowhorizon.hc.common.network.HollowPacketV3
 
+@HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
 @Serializable
-data class LevelCapabilityContainer(
-    val level: String,
-    val capability: String,
-    val value: @Serializable(ForTag::class) Tag,
-)
-
-@Serializable
-data class EntityCapabilityContainer(
+class CSyncEntityCapabilityPacket(
     val entityId: Int,
     val capability: String,
     val value: @Serializable(ForTag::class) Tag,
-)
+) : HollowPacketV3<CSyncEntityCapabilityPacket> {
+    override fun handle(player: Player, data: CSyncEntityCapabilityPacket) {
+        val entity = player.level.getEntity(data.entityId)
+            ?: throw IllegalStateException("Entity with id ${data.entityId} not found: $data".apply(HollowCore.LOGGER::warn))
+        val cap = entity.getCapability(CapabilityStorage.storages[data.capability] as Capability<CapabilityInstance>)
+            .orElseThrow { IllegalStateException("Unknown capability: $data".apply(HollowCore.LOGGER::warn)) }
 
-@HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_CLIENT)
-class CSyncEntityCapabilityPacket : Packet<EntityCapabilityContainer>({ player, container ->
-    val entity = player.level.getEntity(container.entityId)
-        ?: throw IllegalStateException("Entity with id ${container.entityId} not found: $container".apply(HollowCore.LOGGER::warn))
-    val cap = entity.getCapability(CapabilityStorage.storages[container.capability] as Capability<CapabilityInstance>)
-        .orElseThrow { IllegalStateException("Unknown capability: $container".apply(HollowCore.LOGGER::warn)) }
-
-    if((container.value as? CompoundTag)?.isEmpty == false) {
-        cap.deserializeNBT(container.value)
+        if ((data.value as? CompoundTag)?.isEmpty == false) {
+            cap.deserializeNBT(data.value)
+        }
     }
-})
+}
 
-@HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_SERVER)
-class SSyncEntityCapabilityPacket : Packet<EntityCapabilityContainer>({ player, container ->
-    val entity = player.level.getEntity(container.entityId)
-        ?: throw IllegalStateException("Entity with id ${container.entityId} not found: $container".apply(HollowCore.LOGGER::warn))
-    val cap = entity.getCapability(CapabilityStorage.storages[container.capability] as Capability<CapabilityInstance>)
-        .orElseThrow { IllegalStateException("Unknown capability: $container".apply(HollowCore.LOGGER::warn)) }
+@HollowPacketV2(HollowPacketV2.Direction.TO_SERVER)
+@Serializable
+class SSyncEntityCapabilityPacket(
+    val entityId: Int,
+    val capability: String,
+    val value: @Serializable(ForTag::class) Tag,
+) : HollowPacketV3<SSyncEntityCapabilityPacket> {
+    override fun handle(player: Player, data: SSyncEntityCapabilityPacket) {
+        val entity = player.level.getEntity(data.entityId)
+            ?: throw IllegalStateException("Entity with id ${data.entityId} not found: $data".apply(HollowCore.LOGGER::warn))
+        val cap = entity.getCapability(CapabilityStorage.storages[data.capability] as Capability<CapabilityInstance>)
+            .orElseThrow { IllegalStateException("Unknown capability: $data".apply(HollowCore.LOGGER::warn)) }
 
-    if (cap.consumeOnServer) {
-        cap.deserializeNBT(container.value)
-        CSyncEntityCapabilityPacket().send(container, PacketDistributor.TRACKING_ENTITY.with { entity })
+        if (cap.consumeOnServer) {
+            cap.deserializeNBT(data.value)
+            CSyncEntityCapabilityPacket(
+                data.entityId,
+                data.capability,
+                data.value
+            ).send(PacketDistributor.TRACKING_ENTITY.with { entity })
+        }
     }
-})
 
-@HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_CLIENT)
-class CSyncLevelCapabilityPacket : Packet<LevelCapabilityContainer>({ player, container ->
-    val level = player.level
-    val cap = level.getCapability(CapabilityStorage.storages[container.capability] as Capability<CapabilityInstance>)
-        .orElseThrow { IllegalStateException("Unknown capability: $container".apply(HollowCore.LOGGER::warn)) }
-    cap.deserializeNBT(container.value)
-})
+}
 
-@HollowPacketV2(toTarget = NetworkDirection.PLAY_TO_SERVER)
-class SSyncLevelCapabilityPacket : Packet<LevelCapabilityContainer>({ player, container ->
-    val server = player.server ?: throw IllegalStateException("Server not found".apply(HollowCore.LOGGER::warn))
-    val levelKey = server.levelKeys().find { it.location().equals(container.level.rl) }
-        ?: throw IllegalStateException("Unknown level: $container".apply(HollowCore.LOGGER::warn))
-    val level = server.getLevel(levelKey) ?: throw IllegalStateException("Level not found: $container".apply(HollowCore.LOGGER::warn))
-    val cap = level.getCapability(CapabilityStorage.storages[container.capability] as Capability<CapabilityInstance>)
-        .orElseThrow { IllegalStateException("Unknown capability: $container".apply(HollowCore.LOGGER::warn)) }
-
-    if (cap.consumeOnServer) {
-        cap.deserializeNBT(container.value)
-        CSyncLevelCapabilityPacket().send(container, PacketDistributor.DIMENSION.with { player.level.dimension() })
+@HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
+@Serializable
+class CSyncLevelCapabilityPacket(
+    val capability: String,
+    val value: @Serializable(ForTag::class) Tag,
+) : HollowPacketV3<CSyncLevelCapabilityPacket> {
+    override fun handle(player: Player, data: CSyncLevelCapabilityPacket) {
+        val level = player.level
+        val cap = level.getCapability(CapabilityStorage.storages[data.capability] as Capability<CapabilityInstance>)
+            .orElseThrow { IllegalStateException("Unknown capability: $data".apply(HollowCore.LOGGER::warn)) }
+        cap.deserializeNBT(data.value)
     }
-})
+
+}
+
+@HollowPacketV2(HollowPacketV2.Direction.TO_SERVER)
+@Serializable
+class SSyncLevelCapabilityPacket(
+    val level: String,
+    val capability: String,
+    val value: @Serializable(ForTag::class) Tag,
+) : HollowPacketV3<SSyncLevelCapabilityPacket> {
+    override fun handle(player: Player, data: SSyncLevelCapabilityPacket) {
+        val server = player.server ?: throw IllegalStateException("Server not found".apply(HollowCore.LOGGER::warn))
+        val levelKey = server.levelKeys().find { it.location().equals(data.level.rl) }
+            ?: throw IllegalStateException("Unknown level: $data".apply(HollowCore.LOGGER::warn))
+        val level = server.getLevel(levelKey)
+            ?: throw IllegalStateException("Level not found: $data".apply(HollowCore.LOGGER::warn))
+        val cap = level.getCapability(CapabilityStorage.storages[data.capability] as Capability<CapabilityInstance>)
+            .orElseThrow { IllegalStateException("Unknown capability: $data".apply(HollowCore.LOGGER::warn)) }
+
+        if (cap.consumeOnServer) {
+            cap.deserializeNBT(data.value)
+            CSyncLevelCapabilityPacket(
+                data.capability,
+                data.value
+            ).send(PacketDistributor.DIMENSION.with { player.level.dimension() })
+        }
+    }
+
+}
 

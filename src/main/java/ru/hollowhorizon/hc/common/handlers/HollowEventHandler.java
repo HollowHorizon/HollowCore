@@ -41,7 +41,7 @@ public class HollowEventHandler {
                 .filter(element -> element.getFirst().isInstance(event.getTarget()))
                 .forEach(data -> event.getTarget()
                         .getCapability(data.getSecond().invoke(event.getTarget()).getCapability())
-                        .ifPresent((it) -> it.sync((ServerPlayer) event.getEntity()))
+                        .ifPresent(CapabilityInstance::sync)
                 );
     }
 
@@ -64,7 +64,7 @@ public class HollowEventHandler {
 
         //update capabilities on clients
         for (Capability<CapabilityInstance> cap : CapabilityStorage.INSTANCE.getCapabilitiesForPlayer()) {
-            player.getCapability(cap).ifPresent((it) -> it.sync((ServerPlayer) event.getEntity()));
+            player.getCapability(cap).ifPresent(CapabilityInstance::sync);
         }
     }
 }

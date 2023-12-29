@@ -18,9 +18,12 @@ import java.util.function.Supplier
 
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class HollowPacketV2(val toTarget: NetworkDirection = NetworkDirection.PLAY_TO_CLIENT)
+annotation class HollowPacketV2(val toTarget: Direction = Direction.ANY) {
+    enum class Direction { TO_CLIENT, TO_SERVER, ANY }
+}
 
 @Suppress("UnstableApiUsage")
+@Deprecated("Use HollowPacketV3 instead", replaceWith = ReplaceWith("HollowPacketV3", "ru.hollowhorizon.hc.common.network.HollowPacketV3"))
 open class Packet<T>(val function: Packet<T>.(Player, T) -> Unit) {
     var direction: Optional<NetworkDirection> = Optional.empty()
     var value: T? = null
@@ -48,9 +51,7 @@ open class Packet<T>(val function: Packet<T>.(Player, T) -> Unit) {
     fun <E> onReceive(data: Packet<E>, ctx: Supplier<NetworkEvent.Context>) {
         ctx.get().enqueueWork {
             try {
-                if (ctx.get().direction == NetworkDirection.PLAY_TO_CLIENT) mc.tell {
-                    function(mc.player!!, data.value.safeCast()!!)
-                }
+                if (ctx.get().direction == NetworkDirection.PLAY_TO_CLIENT) function(mc.player!!, data.value.safeCast()!!)
                 else function(ctx.get().sender!!, data.value.safeCast()!!)
             } catch (e: Exception) {
                 //Без этого будет вылет с сервера и хер ты потом логи найдёшь...

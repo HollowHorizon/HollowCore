@@ -14,9 +14,7 @@ import ru.hollowhorizon.hc.api.utils.HollowConfig
 import ru.hollowhorizon.hc.client.config.HollowCoreConfig
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.common.commands.HollowCommands
-import ru.hollowhorizon.hc.common.network.HollowPacketV2
-import ru.hollowhorizon.hc.common.network.HollowPacketV2Loader
-import ru.hollowhorizon.hc.common.network.Packet
+import ru.hollowhorizon.hc.common.network.*
 import ru.hollowhorizon.hc.core.AsmReflectionMethodGenerator
 import ru.hollowhorizon.hc.core.ReflectionMethod
 import thedarkcolour.kotlinforforge.forge.MOD_CONTEXT
@@ -36,11 +34,8 @@ object HollowModProcessor {
         isInitialized = true
         registerHandler<HollowPacketV2> { cont ->
             cont.whenClassTask = { clazz ->
-                HollowCore.LOGGER.info("Loading packet: ${clazz.simpleName}")
-
-                val packet = clazz.getConstructor().newInstance() as Packet<*>
-
-                HollowPacketV2Loader.register(packet, cont.annotation.toTarget)
+                if(HollowPacketV3::class.java in clazz.interfaces) clazz.register()
+                else HollowCore.LOGGER.warn("Unsupported packet: ${clazz.simpleName}")
             }
         }
 
