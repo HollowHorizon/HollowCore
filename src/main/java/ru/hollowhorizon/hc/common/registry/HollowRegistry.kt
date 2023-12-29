@@ -102,7 +102,7 @@ class RegistryHolder<T>(private val config: ObjectConfig, val supplier: () -> T,
                 if (config.autoModel) HollowPack.genBlockData.add(ResourceLocation(modId, config.name))
 
                 if (target.isAssignableFrom(IBlockProperties::class.java)) {
-                    Registries.getRegistry(ForgeRegistries.ITEMS, modId).register(config.name) {
+                    RegistryLoader.getRegistry(ForgeRegistries.ITEMS, modId).register(config.name) {
                         val data = this.get() as Block
                         BlockItem(data, (data as IBlockProperties).properties)
                     }

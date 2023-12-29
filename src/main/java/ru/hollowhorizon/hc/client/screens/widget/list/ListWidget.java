@@ -14,6 +14,8 @@ import ru.hollowhorizon.hc.client.utils.ScissorUtil;
 
 import java.util.List;
 
+import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.toSTC;
+
 public class ListWidget extends HollowWidget {
     private final List<AbstractWidget> listWidgets;
     protected boolean autoSize = false;
@@ -27,7 +29,7 @@ public class ListWidget extends HollowWidget {
     }
 
     public ListWidget(List<AbstractWidget> widgets, int x, int y, int width, int height) {
-        super(x, y, width, height, Component.literal("LIST_WIDGET"));
+        super(x, y, width, height, toSTC("LIST_WIDGET"));
 
         this.listWidgets = widgets;
 

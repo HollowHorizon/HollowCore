@@ -3,6 +3,8 @@ package ru.hollowhorizon.hc.client.screens.widget;
 
 import net.minecraft.network.chat.Component;
 
+import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.toSTC;
+
 public class WidgetBox extends HollowWidget {
     private final int sizeX;
     private final int sizeY;
@@ -12,7 +14,7 @@ public class WidgetBox extends HollowWidget {
     private final int boxSizeY;
 
     public WidgetBox(int x, int y, int width, int height, int sizeX, int sizeY, int boarderX, int boarderY) {
-        super(x, y, width, height, Component.literal("WIDGET_BOX"));
+        super(x, y, width, height, toSTC("WIDGET_BOX"));
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.boarderX = boarderX;

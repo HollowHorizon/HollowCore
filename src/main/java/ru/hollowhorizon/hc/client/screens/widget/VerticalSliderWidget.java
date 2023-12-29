@@ -8,6 +8,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
+import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.toSTC;
+
 public class VerticalSliderWidget extends HollowWidget implements IOriginBlackList {
     private final ResourceLocation texture;
     private int maxHeight;
@@ -17,7 +19,7 @@ public class VerticalSliderWidget extends HollowWidget implements IOriginBlackLi
     };
 
     public VerticalSliderWidget(int x, int y, int w, int h, ResourceLocation texture) {
-        super(x, y, w, h, Component.literal(""));
+        super(x, y, w, h, toSTC(""));
         this.texture = texture;
 
         if (w > h)

@@ -14,6 +14,7 @@ import java.math.RoundingMode;
 import java.util.function.Consumer;
 
 import static ru.hollowhorizon.hc.HollowCore.MODID;
+import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.toSTC;
 
 public class SliderWidget extends HollowWidget {
     private static final ResourceLocation SLIDER_BASE = new ResourceLocation(MODID, "textures/gui/buttons/slider_base.png");
@@ -29,7 +30,7 @@ public class SliderWidget extends HollowWidget {
     private float multiplier = 1.0F;
 
     public SliderWidget(int x, int y, int width, int height) {
-        super(x, y, width, height, Component.literal(""));
+        super(x, y, width, height, toSTC(""));
         this.x = x;
         this.y = y;
     }
