@@ -14,6 +14,7 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.toIS
+import ru.hollowhorizon.hc.client.utils.use
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.io.EOFException
@@ -22,6 +23,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.util.*
+import kotlin.collections.ArrayList
 
 fun DataInputStream.readUInt(): Int {
     val ch1 = this.read()
@@ -388,7 +390,14 @@ object GltfTree {
     data class Scene(
         val nodes: List<Node>,
     ) {
-        fun render(stack: PoseStack, nodeRenderer: NodeRenderer, data: ModelData, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int) {
+        fun render(
+            stack: PoseStack,
+            nodeRenderer: NodeRenderer,
+            data: ModelData,
+            consumer: (ResourceLocation) -> VertexConsumer,
+            light: Int,
+            overlay: Int
+        ) {
             nodes.forEach { it.render(stack, nodeRenderer, data, consumer, light, overlay) }
         }
     }
@@ -401,19 +410,33 @@ object GltfTree {
         val skin: Skin? = null,
         val name: String? = null,
     ) {
-        fun render(stack: PoseStack, nodeRenderer: NodeRenderer, data: ModelData, consumer: (ResourceLocation) -> VertexConsumer, light: Int, overlay: Int) {
-            stack.pushPose()
-            stack.mulPoseMatrix(localMatrix)
+        fun render(
+            stack: PoseStack,
+            nodeRenderer: NodeRenderer,
+            data: ModelData,
+            consumer: (ResourceLocation) -> VertexConsumer,
+            light: Int,
+            overlay: Int
+        ) {
+            stack.use {
+                mulPoseMatrix(localMatrix)
 
-            mesh?.render(skin, stack, consumer, light, overlay)
-            children.forEach { it.render(stack, nodeRenderer, data, consumer, light, overlay) }
+                mesh?.render(this@Node, stack, consumer, light, overlay)
+                children.forEach { it.render(stack, nodeRenderer, data, consumer, light, overlay) }
 
 
-            data.entity?.let {
-                nodeRenderer(it, stack, this, light)
+                data.entity?.let {
+                    nodeRenderer(it, stack, this@Node, light)
+                }
             }
+        }
 
-            stack.popPose()
+        fun skinningMatrix(jointId: Int, matrix: Matrix4f): Matrix4f {
+            val skin = skin ?: return matrix
+
+            val inverseTransform = matrix.copy().apply { invert() }
+            val jointMat = skin.joints[jointId]?.globalMatrix?.apply { multiply(skin.inverseBindMatrices[skin.jointsIds.indexOf(jointId)]) } ?: return matrix
+            return inverseTransform.apply { multiply(jointMat) }
         }
 
         var parent: Node? = null
@@ -449,13 +472,13 @@ object GltfTree {
         val primitives: List<Primitive>,
     ) {
         fun render(
-            skin: Skin?,
+            node: Node,
             stack: PoseStack,
             consumer: (ResourceLocation) -> VertexConsumer,
             light: Int,
             overlay: Int,
         ) {
-            primitives.forEach { it.render(stack, consumer, light, overlay) }
+            primitives.forEach { it.render(stack, node, consumer, light, overlay) }
         }
     }
 
@@ -565,6 +588,7 @@ object GltfTree {
 
         fun render(
             stack: PoseStack,
+            node: Node,
             consumer: (ResourceLocation) -> VertexConsumer,
             light: Int,
             overlay: Int,
@@ -573,7 +597,7 @@ object GltfTree {
                 indicesArray.forEach { index ->
                     vertex(stack.last().pose(), vertices[index * 3], vertices[index * 3 + 1], vertices[index * 3 + 2])
                     color(1.0f, 1.0f, 1.0f, 1.0f)
-                    uv(texCords[index*2], texCords[index*2+1])
+                    uv(texCords[index * 2], texCords[index * 2 + 1])
                     overlayCoords(overlay)
                     uv2(light)
                     normal(stack.last().normal(), normals[index * 3], normals[index * 3 + 1], normals[index * 3 + 2])

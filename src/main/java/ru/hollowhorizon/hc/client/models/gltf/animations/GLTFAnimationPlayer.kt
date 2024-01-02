@@ -9,13 +9,13 @@ import ru.hollowhorizon.hc.client.models.gltf.manager.LayerMode
 
 
 open class GLTFAnimationPlayer(val model: GltfModel) {
-    private val templates: HashMap<AnimationType, String> = AnimationType.load(model.modelPath)
-    private val nodeModels = model.modelPath.walkNodes()
+    private val templates: HashMap<AnimationType, String> = AnimationType.load(model.modelTree)
+    private val nodeModels = model.modelTree.walkNodes()
     private val bindPose = model.bindPose
-    val nameToAnimationMap: Map<String, Animation> = model.modelPath.animations.associate {
+    val nameToAnimationMap: Map<String, Animation> = model.modelTree.animations.associate {
         val name = it.name ?: "Unnamed"
         name to AnimationLoader.createAnimation(
-            model.modelPath,
+            model.modelTree,
             name
         )!!
     }

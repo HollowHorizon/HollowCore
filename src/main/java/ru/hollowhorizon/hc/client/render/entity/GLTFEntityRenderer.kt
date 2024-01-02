@@ -69,11 +69,6 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         val capability = entity[AnimatedEntityCapability::class]
         val modelPath = capability.model
         if (modelPath == NO_MODEL) return
-        if (!modelPath.rl.exists()) {
-            HollowCore.LOGGER.warn("Model ${modelPath.rl} does not exist!")
-            capability.model = NO_MODEL
-            return
-        }
 
         val model = GltfManager.getOrCreate(modelPath.rl)
 
