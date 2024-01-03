@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.client.models.gltf
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.math.Matrix4f
+import com.mojang.math.Vector4f
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ShaderInstance
 import org.lwjgl.opengl.*
@@ -26,7 +27,7 @@ inline fun drawWithShader(
     pShaderInstance.FOG_END?.set(RenderSystem.getShaderFogEnd())
     pShaderInstance.FOG_END?.upload()
 
-    pShaderInstance.FOG_COLOR?.set(RenderSystem.getShaderFogColor())
+    pShaderInstance.FOG_COLOR?.set(Vector4f(1.0f, 1.0f, 1.0f, 1.0f))
     pShaderInstance.FOG_COLOR?.upload()
 
     pShaderInstance.FOG_SHAPE?.set(RenderSystem.getShaderFogShape().index)
@@ -35,8 +36,11 @@ inline fun drawWithShader(
     pShaderInstance.COLOR_MODULATOR?.set(1.0F, 1.0F, 1.0F, 1.0F)
     pShaderInstance.COLOR_MODULATOR?.upload()
 
-    GL33.glActiveTexture(GL33.GL_TEXTURE2) //Лайтмап
-    GL11.glBindTexture(GL11.GL_TEXTURE_2D, GltfManager.lightTexture.id)
+    GL33.glUniform1i(GL33.glGetUniformLocation(pShaderInstance.id, "Sampler0"), 0)
+    GL33.glUniform1i(GL33.glGetUniformLocation(pShaderInstance.id, "Sampler1"), 1)
+    GL33.glUniform1i(GL33.glGetUniformLocation(pShaderInstance.id, "Sampler2"), 2)
+
+    RenderSystem.setupShaderLights(pShaderInstance)
 
     body()
 

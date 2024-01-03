@@ -12,9 +12,11 @@ import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.toIS
 import ru.hollowhorizon.hc.client.utils.use
@@ -604,6 +606,8 @@ object GltfTree {
             val type = consumer(material)
             type.setupRenderState()
 
+            GL33.glBindTexture(GL33.GL_TEXTURE_2D, RenderSystem.getShaderTexture(0))
+
             //Подключение VAO и IBO
             GL33.glBindVertexArray(vao)
             GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
@@ -612,25 +616,18 @@ object GltfTree {
             GL33.glEnableVertexAttribArray(2) // Текстурные координаты
             GL33.glEnableVertexAttribArray(5) // Нормали
 
-            GL33.glActiveTexture(GL33.GL_TEXTURE1) //Оверлей
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(1))
-
-            GL33.glActiveTexture(GL33.GL_TEXTURE0) //Текстуры модели
-            GL33.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(0))
-
-            //Отрисовка
+            //Матрица
             shader.MODEL_VIEW_MATRIX?.set(stack.last().pose())
             shader.MODEL_VIEW_MATRIX?.upload()
 
+            //Нормали
             shader.getUniform("NormalMat")?.let {
                 it.set(stack.last().normal())
                 it.upload()
             }
 
+            //Отрисовка
             GL33.glDrawElements(GL33.GL_TRIANGLES, indexCount, GL33.GL_UNSIGNED_INT, 0L)
-
-            GL33.glActiveTexture(GL33.GL_TEXTURE2)
-
 
             //Отключение параметров выше
             GL33.glDisableVertexAttribArray(0)
