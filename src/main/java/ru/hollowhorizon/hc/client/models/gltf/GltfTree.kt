@@ -517,42 +517,7 @@ object GltfTree {
         val mode: GltfMode,
         val material: ResourceLocation,
     ) {
-        private val indicesArray = indices?.get<Int>()?.run {
-            val buffer = BufferUtils.createIntBuffer(this.size)
-            for (n in this) buffer.put(n)
-            buffer.flip()
-            buffer
-        }
         private val indexCount = indices?.get<Int>()?.size ?: 0
-        private val vertices = attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.run {
-            val positions = BufferUtils.createFloatBuffer(this.size * 3)
-            for (n in this) positions.put(n.x()).put(n.y()).put(n.z())
-            positions.flip()
-            positions
-        }
-        private val normals = attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
-            val normals = BufferUtils.createFloatBuffer(this.size * 3)
-            for (n in this) normals.put(n.x()).put(n.y()).put(n.z())
-            normals.flip()
-            normals
-        }
-        private val texCords = attributes[GltfAttribute.TEXCOORD_0]?.get<Pair<Float, Float>>()?.run {
-            val texCords = BufferUtils.createFloatBuffer(this.size * 2)
-            for (t in this) texCords.put(t.first).put(t.second)
-            texCords.flip()
-            texCords
-        }
-        private val joints = attributes[GltfAttribute.JOINTS_0]?.get<Vector4f>()?.run {
-            val joints = BufferUtils.createIntBuffer(this.size * 4)
-            for (n in this) joints.put(n.x().toInt()).put(n.y().toInt()).put(n.z().toInt()).put(n.w().toInt())
-            joints.flip()
-        }
-        private val weights = attributes[GltfAttribute.WEIGHTS_0]?.get<Vector4f>()?.run {
-            val weights = BufferUtils.createFloatBuffer(this.size * 4)
-            for (n in this) weights.put(n.x()).put(n.y()).put(n.z()).put(n.w())
-            weights.flip()
-            weights
-        }
         private var vertexBuffer = -1
         private var normalBuffer = -1
         private var texCoordsBuffer = -1
@@ -571,32 +536,57 @@ object GltfTree {
             vao = GL33.glGenVertexArrays()
             GL33.glBindVertexArray(vao)
 
-            vertices?.let {
+            attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.run {
+                val positions = BufferUtils.createFloatBuffer(this.size * 3)
+                for (n in this) positions.put(n.x()).put(n.y()).put(n.z())
+                positions.flip()
+
                 vertexBuffer = GL33.glGenBuffers()
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
-                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, it, GL33.GL_STATIC_DRAW)
+                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, positions, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0)
             }
+            attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
+                val normals = BufferUtils.createFloatBuffer(this.size * 3)
+                for (n in this) normals.put(n.x()).put(n.y()).put(n.z())
+                normals.flip()
 
-            texCords?.let {
+                normalBuffer = GL33.glGenBuffers()
+                GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
+                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
+                GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
+            }
+            attributes[GltfAttribute.TEXCOORD_0]?.get<Pair<Float, Float>>()?.run {
+                val texCords = BufferUtils.createFloatBuffer(this.size * 2)
+                for (t in this) texCords.put(t.first).put(t.second)
+                texCords.flip()
+
                 texCoordsBuffer = GL33.glGenBuffers()
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, texCoordsBuffer)
-                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, it, GL33.GL_STATIC_DRAW)
+                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 0, 0)
             }
 
+            indices?.get<Int>()?.run {
+                val buffer = BufferUtils.createIntBuffer(this.size)
+                for (n in this) buffer.put(n)
+                buffer.flip()
 
-            normals?.let {
-                normalBuffer = GL33.glGenBuffers()
-                GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
-                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, it, GL33.GL_STATIC_DRAW)
-                GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
-            }
-
-            indicesArray?.let {
                 indexBuffer = GL33.glGenBuffers()
                 GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
-                GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, it, GL33.GL_STATIC_DRAW)
+                GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, buffer, GL33.GL_STATIC_DRAW)
+            }
+
+            val joints = attributes[GltfAttribute.JOINTS_0]?.get<Vector4f>()?.run {
+                val joints = BufferUtils.createIntBuffer(this.size * 4)
+                for (n in this) joints.put(n.x().toInt()).put(n.y().toInt()).put(n.z().toInt()).put(n.w().toInt())
+                joints.flip()
+            }
+            val weights = attributes[GltfAttribute.WEIGHTS_0]?.get<Vector4f>()?.run {
+                val weights = BufferUtils.createFloatBuffer(this.size * 4)
+                for (n in this) weights.put(n.x()).put(n.y()).put(n.z()).put(n.w())
+                weights.flip()
+                weights
             }
 
             GL33.glBindVertexArray(currentVAO)
