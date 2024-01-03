@@ -8,8 +8,6 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemStack
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.client.models.gltf.animations.Animation
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
@@ -55,7 +53,7 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         GL33.glVertexAttribI2i(4, light and '\uffff'.code, light shr 16 and '\uffff'.code) // Освещение
 
         drawWithShader(GameRenderer.getRendertypeEntityTranslucentShader()!!) {
-            modelTree.scenes.forEach { it.render(stack, visuals, modelData, consumer, light, overlay) }
+            modelTree.scenes.forEach { it.render(stack, visuals, modelData, consumer, light) }
         }
 
         GL33.glBindVertexArray(currentVAO)

@@ -15,7 +15,6 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.toIS
 import ru.hollowhorizon.hc.client.utils.use
@@ -51,7 +50,7 @@ object GltfTree {
         val bufferViews = parseBufferViews(file, buffers)
         val accessors = parseAccessors(file, bufferViews)
         val textures = mutableSetOf<ResourceLocation>()
-        val meshes = parseMeshes(file, accessors, location, textures, folder)
+        val meshes = parseMeshes(file, accessors, bufferViews, location, textures, folder)
         val skins = parseSkins(file, accessors)
         val scenes = parseScenes(file, meshes, skins)
         connectNodes(skins, scenes)
@@ -245,8 +244,12 @@ object GltfTree {
     }
 
     private fun parseMeshes(
-        file: GltfFile, accessors: List<Buffer>,
-        location: ResourceLocation, textures: MutableSet<ResourceLocation>, folder: (String) -> InputStream,
+        file: GltfFile,
+        accessors: List<Buffer>,
+        bufferViews: List<ByteArray>,
+        location: ResourceLocation,
+        textures: MutableSet<ResourceLocation>,
+        folder: (String) -> InputStream,
     ): List<Mesh> {
         return file.meshes.map { mesh ->
             val primitives = mesh.primitives.map { prim ->
@@ -259,7 +262,7 @@ object GltfTree {
                 val mode = GltfMode.fromId(prim.mode)
 
                 val material =
-                    getMaterial(file, prim.material, location, folder) ?: TextureManager.INTENTIONAL_MISSING_TEXTURE
+                    getMaterial(file, prim.material, bufferViews, location, folder) ?: TextureManager.INTENTIONAL_MISSING_TEXTURE
                 textures += material
 
                 Primitive(attr, indices, mode, material)
@@ -272,6 +275,7 @@ object GltfTree {
     private fun getMaterial(
         file: GltfFile,
         mat: Int?,
+        bufferViews: List<ByteArray>,
         location: ResourceLocation,
         folder: (String) -> InputStream,
     ): ResourceLocation? {
@@ -279,6 +283,24 @@ object GltfTree {
         val material = file.materials[mat]
         val texture = material.pbrMetallicRoughness?.baseColorTexture?.index ?: return null
         val image = file.textures[texture].source ?: return null
+        file.images[image].bufferView?.let { index ->
+            val data = bufferViews[index]
+            val stream = ByteArrayInputStream(data)
+
+            val dynamicTexture = DynamicTexture(NativeImage.read(stream))
+            var textureName = file.textures[texture].name?.substringBefore(".png")
+                ?: "" //Название изначально может быть пустым, а не только null, так что строчка ниже не просто так
+            if (textureName.isEmpty()) textureName = "gltf_texture_${location.path.replace("/", ".")}_$texture"
+            val textureLocation = ResourceLocation(MODID, textureName)
+
+            if (!TEXTURE_MAP.contains(textureLocation)) {
+                TEXTURE_MAP[textureLocation] = dynamicTexture
+                Minecraft.getInstance().textureManager.register(textureLocation, dynamicTexture)
+            }
+
+            return textureLocation
+        }
+
         val texturePath = file.images[image].uri ?: return null
 
         if (texturePath.contains(':')) {
@@ -400,10 +422,9 @@ object GltfTree {
             nodeRenderer: NodeRenderer,
             data: ModelData,
             consumer: (ResourceLocation) -> RenderType,
-            light: Int,
-            overlay: Int
+            light: Int
         ) {
-            nodes.forEach { it.render(stack, nodeRenderer, data, consumer, light, overlay) }
+            nodes.forEach { it.render(stack, nodeRenderer, data, consumer, light) }
         }
     }
 
@@ -420,14 +441,13 @@ object GltfTree {
             nodeRenderer: NodeRenderer,
             data: ModelData,
             consumer: (ResourceLocation) -> RenderType,
-            light: Int,
-            overlay: Int
+            light: Int
         ) {
             stack.use {
                 mulPoseMatrix(localMatrix)
 
-                mesh?.render(this@Node, stack, consumer, light, overlay)
-                children.forEach { it.render(stack, nodeRenderer, data, consumer, light, overlay) }
+                mesh?.render(this@Node, stack, consumer)
+                children.forEach { it.render(stack, nodeRenderer, data, consumer, light) }
 
 
                 data.entity?.let {
@@ -484,11 +504,9 @@ object GltfTree {
             node: Node,
             stack: PoseStack,
             consumer: (ResourceLocation) -> RenderType,
-            light: Int,
-            overlay: Int,
         ) {
             primitives.forEach {
-                it.renderForVanilla(stack, node, consumer, light, overlay)
+                it.renderForVanilla(stack, node, consumer)
             }
         }
     }
@@ -499,54 +517,42 @@ object GltfTree {
         val mode: GltfMode,
         val material: ResourceLocation,
     ) {
-        private val indicesArray = indices?.get<Int>()?.toIntArray() ?: intArrayOf()
-        private var indexCount = indicesArray.size
+        private val indicesArray = indices?.get<Int>()?.run {
+            val buffer = BufferUtils.createIntBuffer(this.size)
+            for (n in this) buffer.put(n)
+            buffer.flip()
+            buffer
+        }
+        private val indexCount = indices?.get<Int>()?.size ?: 0
         private val vertices = attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.run {
-            val positions = FloatArray(this.size * 3)
-            this.forEachIndexed { i, vec ->
-                positions[i * 3] = vec.x()
-                positions[i * 3 + 1] = vec.y()
-                positions[i * 3 + 2] = vec.z()
-            }
+            val positions = BufferUtils.createFloatBuffer(this.size * 3)
+            for (n in this) positions.put(n.x()).put(n.y()).put(n.z())
+            positions.flip()
             positions
-        } ?: floatArrayOf()
+        }
         private val normals = attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
-            val normals = FloatArray(this.size * 3)
-            this.forEachIndexed { i, vec ->
-                normals[i * 3] = vec.x()
-                normals[i * 3 + 1] = vec.y()
-                normals[i * 3 + 2] = vec.z()
-            }
+            val normals = BufferUtils.createFloatBuffer(this.size * 3)
+            for (n in this) normals.put(n.x()).put(n.y()).put(n.z())
+            normals.flip()
             normals
-        } ?: floatArrayOf()
+        }
         private val texCords = attributes[GltfAttribute.TEXCOORD_0]?.get<Pair<Float, Float>>()?.run {
-            val texCords = FloatArray(this.size * 2)
-            this.forEachIndexed { i, vec ->
-                texCords[i * 2] = vec.first
-                texCords[i * 2 + 1] = vec.second
-            }
+            val texCords = BufferUtils.createFloatBuffer(this.size * 2)
+            for (t in this) texCords.put(t.first).put(t.second)
+            texCords.flip()
             texCords
-        } ?: floatArrayOf()
+        }
         private val joints = attributes[GltfAttribute.JOINTS_0]?.get<Vector4f>()?.run {
-            val joints = IntArray(this.size * 4)
-            this.forEachIndexed { i, vec ->
-                joints[i * 4] = vec.x().toInt()
-                joints[i * 4 + 1] = vec.y().toInt()
-                joints[i * 4 + 2] = vec.z().toInt()
-                joints[i * 4 + 3] = vec.w().toInt()
-            }
-            joints
-        } ?: intArrayOf()
+            val joints = BufferUtils.createIntBuffer(this.size * 4)
+            for (n in this) joints.put(n.x().toInt()).put(n.y().toInt()).put(n.z().toInt()).put(n.w().toInt())
+            joints.flip()
+        }
         private val weights = attributes[GltfAttribute.WEIGHTS_0]?.get<Vector4f>()?.run {
-            val weights = FloatArray(this.size * 4)
-            this.forEachIndexed { i, vec ->
-                weights[i * 4] = vec.x()
-                weights[i * 4 + 1] = vec.y()
-                weights[i * 4 + 2] = vec.z()
-                weights[i * 4 + 3] = vec.w()
-            }
+            val weights = BufferUtils.createFloatBuffer(this.size * 4)
+            for (n in this) weights.put(n.x()).put(n.y()).put(n.z()).put(n.w())
+            weights.flip()
             weights
-        } ?: floatArrayOf()
+        }
         private var vertexBuffer = -1
         private var normalBuffer = -1
         private var texCoordsBuffer = -1
@@ -565,26 +571,33 @@ object GltfTree {
             vao = GL33.glGenVertexArrays()
             GL33.glBindVertexArray(vao)
 
-            vertexBuffer = GL33.glGenBuffers()
-            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
-            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, vertices, GL33.GL_STATIC_DRAW)
-            GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0)
+            vertices?.let {
+                vertexBuffer = GL33.glGenBuffers()
+                GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
+                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, it, GL33.GL_STATIC_DRAW)
+                GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0)
+            }
 
-            texCoordsBuffer = GL33.glGenBuffers()
-            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, texCoordsBuffer)
-            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
-            GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 0, 0)
+            texCords?.let {
+                texCoordsBuffer = GL33.glGenBuffers()
+                GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, texCoordsBuffer)
+                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, it, GL33.GL_STATIC_DRAW)
+                GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 0, 0)
+            }
 
-            normalBuffer = GL33.glGenBuffers()
-            GL33.glEnableVertexAttribArray(5) //normal
-            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
-            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
-            GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
 
-            indexBuffer = GL33.glGenBuffers()
-            GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
-            GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, putIntBuffer(indicesArray), GL33.GL_STATIC_DRAW)
-            indexCount = indicesArray.size
+            normals?.let {
+                normalBuffer = GL33.glGenBuffers()
+                GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
+                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, it, GL33.GL_STATIC_DRAW)
+                GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
+            }
+
+            indicesArray?.let {
+                indexBuffer = GL33.glGenBuffers()
+                GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
+                GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, it, GL33.GL_STATIC_DRAW)
+            }
 
             GL33.glBindVertexArray(currentVAO)
             GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, currentArrayBuffer)
@@ -595,8 +608,6 @@ object GltfTree {
             stack: PoseStack,
             node: Node,
             consumer: (ResourceLocation) -> RenderType,
-            light: Int,
-            overlay: Int,
         ) {
             val shader = GameRenderer.getRendertypeEntityTranslucentShader() ?: return
             //Всякие настройки смешивания, материалы и т.п.
