@@ -607,6 +607,9 @@ object GltfTree {
             type.setupRenderState()
 
             GL33.glBindTexture(GL33.GL_TEXTURE_2D, RenderSystem.getShaderTexture(0))
+            RenderSystem.enableBlend()
+            RenderSystem.defaultBlendFunc()
+            GL11.glEnable(GL11.GL_CULL_FACE)
 
             //Подключение VAO и IBO
             GL33.glBindVertexArray(vao)
