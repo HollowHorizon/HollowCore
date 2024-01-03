@@ -54,22 +54,9 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         GL33.glVertexAttribI2i(3, overlay and '\uffff'.code, overlay shr 16 and '\uffff'.code) // Оверлей при ударе
         GL33.glVertexAttribI2i(4, light and '\uffff'.code, light shr 16 and '\uffff'.code) // Освещение
 
-//        GL13.glActiveTexture(GL13.GL_TEXTURE2)
-//        val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-//
-//        GL13.glActiveTexture(GL13.GL_TEXTURE1)
-//        val currentTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-//
-//        GL13.glActiveTexture(GL13.GL_TEXTURE0)
-//        val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-
-
         drawWithShader(GameRenderer.getRendertypeEntityTranslucentShader()!!) {
             modelTree.scenes.forEach { it.render(stack, visuals, modelData, consumer, light, overlay) }
         }
-
-
-
 
         GL33.glBindVertexArray(currentVAO)
         GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)

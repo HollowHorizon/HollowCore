@@ -8,6 +8,7 @@ import net.minecraft.world.entity.ai.goal.RandomStrollGoal
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.Level
+import ru.hollowhorizon.hc.client.models.gltf.Transform
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
 import ru.hollowhorizon.hc.client.utils.get
@@ -16,7 +17,10 @@ import ru.hollowhorizon.hc.client.utils.get
 class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(type, world), IAnimated {
 
     init {
-        this[AnimatedEntityCapability::class].model = "hc:models/entity/player_model.gltf"
+        this[AnimatedEntityCapability::class].model = "hc:models/entity/hilda_regular.glb"
+        this[AnimatedEntityCapability::class].transform = Transform(
+            sX = 0.01f, sY = 0.01f, sZ = 0.01f
+        )
         this.setItemInHand(InteractionHand.MAIN_HAND, ItemStack(Items.NETHERITE_HOE))
         this.setItemInHand(InteractionHand.OFF_HAND, ItemStack(Items.TNT))
     }

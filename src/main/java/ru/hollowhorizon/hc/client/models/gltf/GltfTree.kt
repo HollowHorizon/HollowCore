@@ -15,6 +15,7 @@ import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.toIS
 import ru.hollowhorizon.hc.client.utils.use
@@ -487,7 +488,7 @@ object GltfTree {
             overlay: Int,
         ) {
             primitives.forEach {
-                it.renderForVanilla(stack, node, consumer)
+                it.renderForVanilla(stack, node, consumer, light, overlay)
             }
         }
     }
@@ -553,7 +554,6 @@ object GltfTree {
         private var vao = -1
 
         init {
-            //TODO: реализовать загрузку вершин при помощи VAO за один раз. Текущая реализация не грузит адекватно текстуры. Прична не известна
             initBuffers()
         }
 
@@ -595,6 +595,8 @@ object GltfTree {
             stack: PoseStack,
             node: Node,
             consumer: (ResourceLocation) -> RenderType,
+            light: Int,
+            overlay: Int,
         ) {
             val shader = GameRenderer.getRendertypeEntityTranslucentShader() ?: return
             //Всякие настройки смешивания, материалы и т.п.
@@ -609,16 +611,24 @@ object GltfTree {
             GL33.glEnableVertexAttribArray(2) // Текстурные координаты
             GL33.glEnableVertexAttribArray(5) // Нормали
 
-            val tex = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-            GL33.glBindTexture(GL33.GL_TEXTURE_2D, RenderSystem.getShaderTexture(0))
+            GL33.glActiveTexture(GL33.GL_TEXTURE1) //Оверлей
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(1))
+
+            GL33.glActiveTexture(GL33.GL_TEXTURE0) //Текстуры модели
+            GL33.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(0))
 
             //Отрисовка
             shader.MODEL_VIEW_MATRIX?.set(stack.last().pose())
             shader.MODEL_VIEW_MATRIX?.upload()
 
+            shader.getUniform("NormalMat")?.let {
+                it.set(stack.last().normal())
+                it.upload()
+            }
+
             GL33.glDrawElements(GL33.GL_TRIANGLES, indexCount, GL33.GL_UNSIGNED_INT, 0L)
 
-            GL33.glBindTexture(GL33.GL_TEXTURE_2D, tex)
+            GL33.glActiveTexture(GL33.GL_TEXTURE2)
 
 
             //Отключение параметров выше
