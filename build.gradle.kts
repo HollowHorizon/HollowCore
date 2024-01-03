@@ -168,6 +168,10 @@ val shadowJar = tasks.named<ShadowJar>("shadowJar") {
         "META-INF/*.RSA", "META-INF/*.SF", "META-INF/versions/**"
     )
 
+    dependencies {
+        exclude(dependency("net.java.dev.jna:jna"))
+    }
+
     relocate("org.jetbrains.kotlin.fir.analysis.native", "org.jetbrains.kotlin.fir.analysis.notnative")
     relocate(
         "org.jetbrains.kotlin.fir.analysis.diagnostics.native",
