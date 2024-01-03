@@ -57,7 +57,7 @@ configure<UserDevExtension> {
                 "forge.logging.console.level" to "debug"
             )
         )
-        jvmArg("-XX:+AllowEnhancedClassRedefinition")
+        //jvmArg("-XX:+AllowEnhancedClassRedefinition")
         arg("-mixin.config=$mod_id.mixins.json")
         mods.create(mod_id) {
             source(the<JavaPluginExtension>().sourceSets.getByName("main"))
@@ -77,6 +77,7 @@ configure<UserDevExtension> {
 repositories {
     mavenCentral()
     maven { url = uri("https://jitpack.io") }
+    maven { url = uri("https://cursemaven.com") }
     maven { url = uri("https://thedarkcolour.github.io/KotlinForForge/") }
     flatDir { dir("libs") }
 }
@@ -100,6 +101,8 @@ dependencies {
 
     implementation("thedarkcolour:kotlinforforge:3.12.0")
     shadow("gnu.trove:trove:1.0.2")
+    implementation(fg.deobf("curse.maven:embeddium-908741:4984830"))
+    implementation(fg.deobf("curse.maven:oculus-581495:4763262"))
 
     val withoutKotlinStd: ExternalModuleDependency.() -> Unit = {
         exclude("gnu.trove", "trove")
@@ -164,10 +167,6 @@ val shadowJar = tasks.named<ShadowJar>("shadowJar") {
         "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**",
         "META-INF/*.RSA", "META-INF/*.SF", "META-INF/versions/**"
     )
-
-    dependencies {
-        exclude(dependency("net.java.dev.jna:jna"))
-    }
 
     relocate("org.jetbrains.kotlin.fir.analysis.native", "org.jetbrains.kotlin.fir.analysis.notnative")
     relocate(

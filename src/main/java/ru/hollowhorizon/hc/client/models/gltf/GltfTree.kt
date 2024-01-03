@@ -3,12 +3,15 @@ package ru.hollowhorizon.hc.client.models.gltf
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.VertexConsumer
 import com.mojang.math.*
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GameRenderer
+import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
+import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
@@ -22,8 +25,9 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import java.nio.IntBuffer
 import java.util.*
-import kotlin.collections.ArrayList
+
 
 fun DataInputStream.readUInt(): Int {
     val ch1 = this.read()
@@ -394,7 +398,7 @@ object GltfTree {
             stack: PoseStack,
             nodeRenderer: NodeRenderer,
             data: ModelData,
-            consumer: (ResourceLocation) -> VertexConsumer,
+            consumer: (ResourceLocation) -> RenderType,
             light: Int,
             overlay: Int
         ) {
@@ -414,7 +418,7 @@ object GltfTree {
             stack: PoseStack,
             nodeRenderer: NodeRenderer,
             data: ModelData,
-            consumer: (ResourceLocation) -> VertexConsumer,
+            consumer: (ResourceLocation) -> RenderType,
             light: Int,
             overlay: Int
         ) {
@@ -435,7 +439,11 @@ object GltfTree {
             val skin = skin ?: return matrix
 
             val inverseTransform = matrix.copy().apply { invert() }
-            val jointMat = skin.joints[jointId]?.globalMatrix?.apply { multiply(skin.inverseBindMatrices[skin.jointsIds.indexOf(jointId)]) } ?: return matrix
+            val jointMat = skin.joints[jointId]?.globalMatrix?.apply {
+                multiply(
+                    skin.inverseBindMatrices[skin.jointsIds.indexOf(jointId)]
+                )
+            } ?: return matrix
             return inverseTransform.apply { multiply(jointMat) }
         }
 
@@ -474,11 +482,13 @@ object GltfTree {
         fun render(
             node: Node,
             stack: PoseStack,
-            consumer: (ResourceLocation) -> VertexConsumer,
+            consumer: (ResourceLocation) -> RenderType,
             light: Int,
             overlay: Int,
         ) {
-            primitives.forEach { it.render(stack, node, consumer, light, overlay) }
+            primitives.forEach {
+                it.renderForVanilla(stack, node, consumer)
+            }
         }
     }
 
@@ -488,9 +498,9 @@ object GltfTree {
         val mode: GltfMode,
         val material: ResourceLocation,
     ) {
-        val indicesArray = indices?.get<Int>()?.toIntArray() ?: intArrayOf()
-        var indexCount = indicesArray.size
-        val vertices = attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.run {
+        private val indicesArray = indices?.get<Int>()?.toIntArray() ?: intArrayOf()
+        private var indexCount = indicesArray.size
+        private val vertices = attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.run {
             val positions = FloatArray(this.size * 3)
             this.forEachIndexed { i, vec ->
                 positions[i * 3] = vec.x()
@@ -499,7 +509,7 @@ object GltfTree {
             }
             positions
         } ?: floatArrayOf()
-        val normals = attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
+        private val normals = attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
             val normals = FloatArray(this.size * 3)
             this.forEachIndexed { i, vec ->
                 normals[i * 3] = vec.x()
@@ -508,7 +518,7 @@ object GltfTree {
             }
             normals
         } ?: floatArrayOf()
-        val texCords = attributes[GltfAttribute.TEXCOORD_0]?.get<Pair<Float, Float>>()?.run {
+        private val texCords = attributes[GltfAttribute.TEXCOORD_0]?.get<Pair<Float, Float>>()?.run {
             val texCords = FloatArray(this.size * 2)
             this.forEachIndexed { i, vec ->
                 texCords[i * 2] = vec.first
@@ -516,7 +526,7 @@ object GltfTree {
             }
             texCords
         } ?: floatArrayOf()
-        val joints = attributes[GltfAttribute.JOINTS_0]?.get<Vector4f>()?.run {
+        private val joints = attributes[GltfAttribute.JOINTS_0]?.get<Vector4f>()?.run {
             val joints = IntArray(this.size * 4)
             this.forEachIndexed { i, vec ->
                 joints[i * 4] = vec.x().toInt()
@@ -526,7 +536,7 @@ object GltfTree {
             }
             joints
         } ?: intArrayOf()
-        val weights = attributes[GltfAttribute.WEIGHTS_0]?.get<Vector4f>()?.run {
+        private val weights = attributes[GltfAttribute.WEIGHTS_0]?.get<Vector4f>()?.run {
             val weights = FloatArray(this.size * 4)
             this.forEachIndexed { i, vec ->
                 weights[i * 4] = vec.x()
@@ -544,83 +554,80 @@ object GltfTree {
 
         init {
             //TODO: реализовать загрузку вершин при помощи VAO за один раз. Текущая реализация не грузит адекватно текстуры. Прична не известна
-            //initBuffers()
+            initBuffers()
         }
 
         private fun initBuffers() {
+            val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
+            val currentArrayBuffer = GL33.glGetInteger(GL33.GL_ARRAY_BUFFER_BINDING)
+            val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
+
             vao = GL33.glGenVertexArrays()
             GL33.glBindVertexArray(vao)
 
             vertexBuffer = GL33.glGenBuffers()
             GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
-            GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 12, 0)
             GL33.glBufferData(GL33.GL_ARRAY_BUFFER, vertices, GL33.GL_STATIC_DRAW)
-
-            GL33.glEnableVertexAttribArray(1) //color
-            GL33.glVertexAttribPointer(1, 4, GL33.GL_UNSIGNED_BYTE, false, 4, 0)
-            GL33.glVertexAttrib4f(1, 1.0F, 1.0F, 1.0F, 1.0F)
+            GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0)
 
             texCoordsBuffer = GL33.glGenBuffers()
             GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, texCoordsBuffer)
-            GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 8, 0)
             GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
+            GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 0, 0)
 
-//            GL33.glEnableVertexAttribArray(3) //overlay
-//            GL33.glVertexAttribPointer(3, 2, GL33.GL_SHORT, false, 4, 0)
-//            GL33.glEnableVertexAttribArray(4) //light
-//            GL33.glVertexAttribPointer(4, 2, GL33.GL_SHORT, false, 4, 0)
-//
-//            normalBuffer = GL33.glGenBuffers()
-//            GL33.glEnableVertexAttribArray(5) //normal
-//            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
-//            GL33.glVertexAttribPointer(5, 3, GL33.GL_BYTE, false, 12, 0)
-//            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
+            normalBuffer = GL33.glGenBuffers()
+            GL33.glEnableVertexAttribArray(5) //normal
+            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
+            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
+            GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
 
             indexBuffer = GL33.glGenBuffers()
             GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
-            GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, indicesArray, GL33.GL_STATIC_DRAW)
+            GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, putIntBuffer(indicesArray), GL33.GL_STATIC_DRAW)
             indexCount = indicesArray.size
 
-            GL33.glBindVertexArray(0)
-            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, 0)
-            GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, 0)
+            GL33.glBindVertexArray(currentVAO)
+            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, currentArrayBuffer)
+            GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
         }
 
-        fun render(
+        fun renderForVanilla(
             stack: PoseStack,
             node: Node,
-            consumer: (ResourceLocation) -> VertexConsumer,
-            light: Int,
-            overlay: Int,
+            consumer: (ResourceLocation) -> RenderType,
         ) {
-            consumer(material).apply {
-                indicesArray.forEach { index ->
-                    vertex(stack.last().pose(), vertices[index * 3], vertices[index * 3 + 1], vertices[index * 3 + 2])
-                    color(1.0f, 1.0f, 1.0f, 1.0f)
-                    uv(texCords[index * 2], texCords[index * 2 + 1])
-                    overlayCoords(overlay)
-                    uv2(light)
-                    normal(stack.last().normal(), normals[index * 3], normals[index * 3 + 1], normals[index * 3 + 2])
-                    endVertex()
-                }
-            }
-        }
+            val shader = GameRenderer.getRendertypeEntityTranslucentShader() ?: return
+            //Всякие настройки смешивания, материалы и т.п.
+            val type = consumer(material)
+            type.setupRenderState()
 
-        private fun updateVertices(stack: PoseStack) {
-            val vertices = FloatArray(this.vertices.size)
+            //Подключение VAO и IBO
+            GL33.glBindVertexArray(vao)
+            GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
 
-            var i = 0
-            while (i < this.vertices.size) {
-                val vector = Vector4f(this.vertices[i], this.vertices[i + 1], this.vertices[i + 2], 1.0f)
-                vector.transform(stack.last().pose())
-                vertices[i] = vector.x()
-                vertices[i + 1] = vector.y()
-                vertices[i + 2] = vector.z()
-                i += 3
-            }
+            GL33.glEnableVertexAttribArray(0) // Вершины
+            GL33.glEnableVertexAttribArray(2) // Текстурные координаты
+            GL33.glEnableVertexAttribArray(5) // Нормали
 
-            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, this.vertexBuffer)
-            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, vertices, GL33.GL_DYNAMIC_DRAW)
+            val tex = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
+            GL33.glBindTexture(GL33.GL_TEXTURE_2D, RenderSystem.getShaderTexture(0))
+
+            //Отрисовка
+            shader.MODEL_VIEW_MATRIX?.set(stack.last().pose())
+            shader.MODEL_VIEW_MATRIX?.upload()
+
+            GL33.glDrawElements(GL33.GL_TRIANGLES, indexCount, GL33.GL_UNSIGNED_INT, 0L)
+
+            GL33.glBindTexture(GL33.GL_TEXTURE_2D, tex)
+
+
+            //Отключение параметров выше
+            GL33.glDisableVertexAttribArray(0)
+            GL33.glDisableVertexAttribArray(2)
+            GL33.glDisableVertexAttribArray(5)
+
+            // Очистка настроек
+            type.clearRenderState()
         }
     }
 
@@ -673,4 +680,18 @@ fun main() {
     val tree = GltfTree.parse("hc:models/entity/hilda_regular.glb".rl)
 
     println(tree)
+}
+
+fun putFloatBuffer(value: FloatArray): FloatBuffer {
+    val buffer = BufferUtils.createFloatBuffer(value.size)
+    buffer.put(value)
+    buffer.flip()
+    return buffer
+}
+
+fun putIntBuffer(value: IntArray): IntBuffer {
+    val buffer = BufferUtils.createIntBuffer(value.size)
+    buffer.put(value)
+    buffer.flip()
+    return buffer
 }

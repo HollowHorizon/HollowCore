@@ -21,7 +21,6 @@ import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.FlyingAnimal
-import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.ModelData
 import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
@@ -93,7 +92,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                     else it.rl
                 } ?: texture
 
-                source.getBuffer(getRenderType(result))
+                getRenderType(result)
             },
             packedLight,
             OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)

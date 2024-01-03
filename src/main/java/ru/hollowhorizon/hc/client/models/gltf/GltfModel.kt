@@ -1,14 +1,16 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.VertexConsumer
-import com.mojang.math.Matrix4f
-import com.mojang.math.Vector3f
 import com.mojang.math.Vector4f
+import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.ItemInHandRenderer
+import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemStack
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL13
+import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.client.models.gltf.animations.Animation
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
@@ -40,11 +42,38 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
     fun render(
         stack: PoseStack,
         modelData: ModelData,
-        consumer: (ResourceLocation) -> VertexConsumer,
+        consumer: (ResourceLocation) -> RenderType,
         light: Int,
         overlay: Int,
     ) {
-        modelTree.scenes.forEach { it.render(stack, visuals, modelData, consumer, light, overlay) }
+        //Получение текущих VAO и IBO
+        val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
+        val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
+
+        GL33.glVertexAttrib4f(1, 1.0F, 1.0F, 1.0F, 1.0F) // Цвет
+        GL33.glVertexAttribI2i(3, overlay and '\uffff'.code, overlay shr 16 and '\uffff'.code) // Оверлей при ударе
+        GL33.glVertexAttribI2i(4, light and '\uffff'.code, light shr 16 and '\uffff'.code) // Освещение
+
+//        GL13.glActiveTexture(GL13.GL_TEXTURE2)
+//        val currentTexture2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
+//
+//        GL13.glActiveTexture(GL13.GL_TEXTURE1)
+//        val currentTexture1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
+//
+//        GL13.glActiveTexture(GL13.GL_TEXTURE0)
+//        val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
+
+
+        drawWithShader(GameRenderer.getRendertypeEntityTranslucentShader()!!) {
+            modelTree.scenes.forEach { it.render(stack, visuals, modelData, consumer, light, overlay) }
+        }
+
+
+
+
+        GL33.glBindVertexArray(currentVAO)
+        GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
+
         NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.clear()
     }
 }
