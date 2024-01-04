@@ -620,7 +620,7 @@ object GltfTree {
             GL33.glEnableVertexAttribArray(5) // Нормали
 
             //Матрица
-            shader.MODEL_VIEW_MATRIX?.set(stack.last().pose())
+            shader.MODEL_VIEW_MATRIX?.set(RenderSystem.getModelViewMatrix().copy().apply { multiply(stack.last().pose()) })
             shader.MODEL_VIEW_MATRIX?.upload()
 
             //Нормали
