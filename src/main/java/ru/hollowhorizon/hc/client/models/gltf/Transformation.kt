@@ -126,8 +126,6 @@ data class Transformation(
             scaleY = transformation.scaleY
             scaleZ = transformation.scaleZ
         }
-        matrix.setIdentity()
-        matrix.multiply(transformation.matrix)
     }
 
     fun set(transformationMap: Map<Transformation, Float>) {
@@ -162,7 +160,8 @@ data class Transformation(
     )
 
     fun getMatrix(): Matrix4f {
-        val m = matrix.copy()
+        val m = Matrix4f()
+        m.setIdentity()
 
         val t = Matrix4f.createTranslateMatrix(translationX, translationY, translationZ)
         val r = Matrix4f(Quaternion(rotationX, rotationY, rotationZ, rotationW))
@@ -171,6 +170,7 @@ data class Transformation(
         m.multiply(t)
         m.multiply(r)
         m.multiply(s)
+        m.multiply(matrix)
 
         return m
     }

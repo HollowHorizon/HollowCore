@@ -81,7 +81,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         model.visuals = ::drawVisuals
 
         model.update(capability, entity.tickCount, partialTick)
-        model.entityUpdate(entity, capability, partialTick)
+        //model.entityUpdate(entity, capability, partialTick)
 
         model.render(
             stack,

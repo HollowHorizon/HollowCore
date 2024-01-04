@@ -17,9 +17,9 @@ import ru.hollowhorizon.hc.client.utils.get
 class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(type, world), IAnimated {
 
     init {
-        this[AnimatedEntityCapability::class].model = "hc:models/entity/player_model.gltf"//"hc:models/entity/hilda_regular.glb"
+        this[AnimatedEntityCapability::class].model = "hc:models/entity/hilda_regular.glb"
         this[AnimatedEntityCapability::class].transform = Transform(
-            sX = 0.01f, sY = 0.01f, sZ = 0.01f
+           // sX = 0.01f, sY = 0.01f, sZ = 0.01f
         )
         this.setItemInHand(InteractionHand.MAIN_HAND, ItemStack(Items.NETHERITE_HOE))
         this.setItemInHand(InteractionHand.OFF_HAND, ItemStack(Items.TNT))

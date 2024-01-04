@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.client.models.gltf.animations
 
+import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
 import com.mojang.math.Vector4f
 import net.minecraft.util.Mth
@@ -133,7 +134,7 @@ object AnimationLoader {
                 outputData.map { (it as Vector3f).array() }.toTypedArray()
             )
 
-            AnimationTarget.ROTATION -> Interpolator.Linear(
+            AnimationTarget.ROTATION -> Interpolator.SphericalLinear(
                 keys,
                 outputData.map { (it as Vector4f).array() }.toTypedArray()
             )
@@ -206,37 +207,16 @@ abstract class Interpolator<T>(val keys: FloatArray, val values: Array<T>) {
                 val ay = previousPoint[1]
                 val az = previousPoint[2]
                 val aw = previousPoint[3]
-                var bx = nextPoint[0]
-                var by = nextPoint[1]
-                var bz = nextPoint[2]
-                var bw = nextPoint[3]
-
-                var dot = ax * bx + ay * by + az * bz + aw * bw
-                if (dot < 0) {
-                    bx = -bx
-                    by = -by
-                    bz = -bz
-                    bw = -bw
-                    dot = -dot
-                }
-                val epsilon = 1e-6f
-                val s0: Float
-                val s1: Float
-                if (1.0 - dot > epsilon) {
-                    val omega = acos(dot)
-                    val invSinOmega = 1.0f / Mth.sin(omega)
-                    s0 = Mth.sin((1.0f - alpha) * omega) * invSinOmega
-                    s1 = Mth.sin(alpha * omega) * invSinOmega
-                } else {
-                    s0 = 1.0f - alpha
-                    s1 = alpha
-                }
+                val bx = nextPoint[0]
+                val by = nextPoint[1]
+                val bz = nextPoint[2]
+                val bw = nextPoint[3]
 
                 return floatArrayOf(
-                    s0 * ax + s1 * bx,
-                    s0 * ay + s1 * by,
-                    s0 * az + s1 * bz,
-                    s0 * aw + s1 * bw
+                    Mth.rotLerp(alpha, ax, bx),
+                    Mth.rotLerp(alpha, ay, by),
+                    Mth.rotLerp(alpha, az, bz),
+                    Mth.rotLerp(alpha, aw, bw)
                 )
             }
         }

@@ -16,12 +16,10 @@ class Animation(val name: String, private val animationData: Map<GltfTree.Node, 
             val r = it.rotation?.compute(currentTime)
             val s = it.scale?.compute(currentTime)
             Transformation(
-                t?.let { arr -> Vector3f(arr[0], arr[1], arr[2]) },
-                r?.let { arr -> Quaternion(arr[0], arr[1], arr[2], arr[3]) },
-                s?.let { arr -> Vector3f(arr[0], arr[1], arr[2]) }
-            ).apply {
-                sub(bindPose)
-            }
+                t?.let { arr -> Vector3f(arr[0], arr[1], arr[2]) } ?: bindPose.translation,
+                r?.let { arr -> Quaternion(arr[0], arr[1], arr[2], arr[3]) } ?: bindPose.rotation,
+                s?.let { arr -> Vector3f(arr[0], arr[1], arr[2]) } ?: bindPose.scale
+            )
         }
     }
 

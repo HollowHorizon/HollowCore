@@ -51,7 +51,7 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         light: Int,
         overlay: Int,
     ) {
-        //transformSkinning(stack)
+        transformSkinning(stack)
 
         //Получение текущих VAO и IBO
         val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)

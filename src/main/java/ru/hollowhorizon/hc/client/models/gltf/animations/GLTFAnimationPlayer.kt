@@ -46,8 +46,8 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
             bindPose.apply(node, 0f)
             val bindPose = bindPose.compute(node, Transformation(), 0f) ?: return@forEach
             val transform = node.transform.copy()
-            definedLayer.computeTransform(node, bindPose, animationOverrides, currentTick, partialTick)?.let {
-                transform.add(it)
+            definedLayer.computeTransform(node, bindPose, animationOverrides, currentTick, partialTick)?.let { animPose ->
+                transform.set(animPose)
             }
             capability.layers.forEach {
                 val animPose = it.computeTransform(node, bindPose, nameToAnimationMap, currentTick, partialTick)

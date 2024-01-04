@@ -437,7 +437,7 @@ object GltfTree {
         val children: List<Node>,
         val transform: Transformation,
         val mesh: Mesh? = null,
-        private val skin: Skin? = null,
+        val skin: Skin? = null,
         val name: String? = null,
     ) {
         fun render(
@@ -448,7 +448,7 @@ object GltfTree {
             light: Int,
         ) {
             stack.use {
-                mulPoseMatrix(localMatrix)
+                //mulPoseMatrix(localMatrix)
 
                 mesh?.render(this@Node, stack, consumer)
                 children.forEach { it.render(stack, nodeRenderer, data, consumer, light) }
@@ -466,22 +466,6 @@ object GltfTree {
 
         }
 
-        fun skinningMatrices(matrix: Matrix4f): List<Matrix4f> {
-            val list = ArrayList<Matrix4f>()
-            val skin = skin ?: return list
-
-            skin.joints.entries.parallelStream().map { (id, node) ->
-                val inverseTransform = matrix.copy().apply { invert() }
-
-                val jointMat = node.globalMatrix.apply {
-                    multiply(skin.inverseBindMatrices[id])
-                }
-
-                inverseTransform.apply { multiply(jointMat) }
-            }
-
-            return list
-        }
 
         var parent: Node? = null
         val isHead: Boolean get() = name?.lowercase()?.contains("head") == true && parent?.isHead == false
@@ -501,12 +485,16 @@ object GltfTree {
     ) {
         val joints = HashMap<Int, Node>(jointsIds.size)
 
-        fun finalMatrices(matrix: Node): Array<Matrix4f> {
-            return joints.values.mapIndexed { i, joint ->
-                val inverseTransform = matrix.globalMatrix.copy().apply { invert() }
-                val jointMat = joint.globalMatrix.apply { multiply(this@Skin.inverseBindMatrices[i]) }
-                inverseTransform.apply { multiply(jointMat) }
-            }.toTypedArray()
+        fun finalMatrices(node: Node): Array<Matrix4f> {
+            val jointMatrices = Array(jointsIds.size) { Matrix4f().apply { setIdentity() } }
+            val inverseTransform = node.globalMatrix
+            inverseTransform.invertMatrix()
+
+            for (i in jointsIds.indices) {
+                jointMatrices[i] = joints[i]!!.globalMatrix.apply { multiply(inverseBindMatrices[i]) }
+                jointMatrices[i] = inverseTransform.copy().apply { multiply(jointMatrices[i]) }
+            }
+            return jointMatrices
         }
     }
 
@@ -683,7 +671,7 @@ object GltfTree {
 
             jointMatrixBuffer = GL15.glGenBuffers()
             GL15.glBindBuffer(GL31.GL_TEXTURE_BUFFER, jointMatrixBuffer)
-            GL15.glBufferData(GL31.GL_TEXTURE_BUFFER, jointCount * 4L, GL15.GL_STATIC_DRAW)
+            GL15.glBufferData(GL31.GL_TEXTURE_BUFFER, jointCount * 64L, GL15.GL_STATIC_DRAW)
             glTexture = GL11.glGenTextures()
             GL11.glBindTexture(GL31.GL_TEXTURE_BUFFER, glTexture)
             GL31.glTexBuffer(GL31.GL_TEXTURE_BUFFER, GL30.GL_RGBA32F, jointMatrixBuffer)
@@ -752,25 +740,26 @@ object GltfTree {
         }
 
         private fun computeMatrices(node: Node, stack: PoseStack): FloatBuffer {
-            val matrices = node.skinningMatrices(node.globalMatrix)
+            val matrices = node.skin!!.finalMatrices(node)
 
             val buffer = BufferUtils.createFloatBuffer(matrices.size * 16)
             for (m in matrices) {
+                // Угадайте сколько часов у меня ушло, чтобы угадать, в каком порядке я должен передавать эти значения :(
                 buffer.put(m.m00)
-                buffer.put(m.m01)
-                buffer.put(m.m02)
-                buffer.put(m.m03)
                 buffer.put(m.m10)
-                buffer.put(m.m11)
-                buffer.put(m.m12)
-                buffer.put(m.m13)
                 buffer.put(m.m20)
-                buffer.put(m.m21)
-                buffer.put(m.m22)
-                buffer.put(m.m23)
                 buffer.put(m.m30)
+                buffer.put(m.m01)
+                buffer.put(m.m11)
+                buffer.put(m.m21)
                 buffer.put(m.m31)
+                buffer.put(m.m02)
+                buffer.put(m.m12)
+                buffer.put(m.m22)
                 buffer.put(m.m32)
+                buffer.put(m.m03)
+                buffer.put(m.m13)
+                buffer.put(m.m23)
                 buffer.put(m.m33)
             }
             buffer.flip()
