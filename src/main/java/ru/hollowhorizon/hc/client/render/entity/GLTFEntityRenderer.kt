@@ -165,9 +165,19 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                     1.0f, fadeIn = 5
                 )
             }
+            !entity.isAlive -> {
+                val name = manager.typeToAnimationMap[AnimationType.DEATH]?.name ?: return
+                if(capability.layers.any { it.animation == name }) return
+
+                capability.layers += AnimationLayer(
+                    name,
+                    LayerMode.ADD,
+                    PlayMode.ONCE,
+                    1.0f, fadeIn = 5
+                )
+            }
         }
         manager.currentLoopAnimation = when {
-            !entity.isAlive -> AnimationType.DEATH
             entity is FlyingAnimal && entity.isFlying -> AnimationType.FLY
             entity.isSleeping -> AnimationType.SLEEP
             entity.vehicle != null -> AnimationType.SIT
