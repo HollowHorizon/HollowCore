@@ -27,6 +27,7 @@ object GltfManager {
         createSkinningProgramGL33()
 
         event.registerReloadListener(ResourceManagerReloadListener {
+            models.values.forEach { it.destroy() }
             models.clear()
         })
     }

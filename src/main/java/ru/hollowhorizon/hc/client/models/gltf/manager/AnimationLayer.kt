@@ -132,6 +132,7 @@ class DefinedLayer {
 class HeadLayer {
     fun computeRotation(
         animatable: LivingEntity,
+        switchHeadRot: Boolean,
         partialTick: Float,
     ): Quaternion {
 
@@ -140,8 +141,17 @@ class HeadLayer {
         val netHeadYaw = headYaw - bodyYaw
         val headPitch = -Mth.rotLerp(partialTick, animatable.xRotO, animatable.xRot)
 
-        val xRot = Vector3f.XP.rotationDegrees(headPitch)
-        val yRot = Vector3f.YP.rotationDegrees(netHeadYaw)
+        val xRot: Quaternion
+        val yRot: Quaternion
+
+        if(switchHeadRot) {
+            xRot = Vector3f.YP.rotationDegrees(headPitch)
+            yRot = Vector3f.XP.rotationDegrees(netHeadYaw)
+        } else {
+            xRot = Vector3f.XP.rotationDegrees(headPitch)
+            yRot = Vector3f.YP.rotationDegrees(netHeadYaw)
+        }
+
         yRot.mul(xRot)
 
         return yRot

@@ -14,4 +14,5 @@ class AnimatedEntityCapability : CapabilityInstance() {
     val animations by syncableMap<AnimationType, String>()
     var model by syncable("%NO_MODEL%")
     var transform by syncable(Transform())
+    var switchHeadRot by syncable(false)
 }

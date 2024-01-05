@@ -13,6 +13,8 @@ inline fun drawWithShader(
     pShaderInstance: ShaderInstance,
     body: () -> Unit
 ) {
+    RenderSystem.setupShaderLights(pShaderInstance)
+
     pShaderInstance.apply()
 
     pShaderInstance.PROJECTION_MATRIX?.set(RenderSystem.getProjectionMatrix())
@@ -39,8 +41,6 @@ inline fun drawWithShader(
     GL33.glUniform1i(GL33.glGetUniformLocation(pShaderInstance.id, "Sampler0"), 0)
     GL33.glUniform1i(GL33.glGetUniformLocation(pShaderInstance.id, "Sampler1"), 1)
     GL33.glUniform1i(GL33.glGetUniformLocation(pShaderInstance.id, "Sampler2"), 2)
-
-    RenderSystem.setupShaderLights(pShaderInstance)
 
     body()
 

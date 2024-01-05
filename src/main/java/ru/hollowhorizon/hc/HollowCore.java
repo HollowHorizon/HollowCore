@@ -26,7 +26,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.hollowhorizon.hc.api.registy.HollowMod;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
-import ru.hollowhorizon.hc.client.config.HollowCoreConfig;
 import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager;
@@ -77,10 +76,9 @@ public class HollowCore {
             //модели
             modBus.addListener(GltfManager::onReload);
             modBus.addListener(this::onRendererCreating);
+            modBus.register(ModShaders.INSTANCE);
 
             GPUMemoryManager.INSTANCE.initialize();
-
-            forgeBus.addListener(ModShaders::init);
         }
         new HollowEventHandler().init();
         DelayHandler.init();

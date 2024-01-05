@@ -19,6 +19,8 @@ import ru.hollowhorizon.hc.client.models.gltf.animations.Animation
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
+import ru.hollowhorizon.hc.client.utils.areShadersEnabled
+import ru.hollowhorizon.hc.common.registry.ModShaders
 
 
 class ModelData(
@@ -51,6 +53,8 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         light: Int,
         overlay: Int,
     ) {
+        CURRENT_NORMAL = stack.last().normal()
+
         transformSkinning(stack)
 
         //Получение текущих VAO и IBO
@@ -74,7 +78,7 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         GL13.glActiveTexture(GL13.GL_TEXTURE0) //Текстуры модели
         val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
 
-        drawWithShader(GameRenderer.getRendertypeEntityTranslucentShader()!!) {
+        drawWithShader(if(areShadersEnabled) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!) {
             modelTree.scenes.forEach { it.render(stack, visuals, modelData, consumer, light) }
         }
 
@@ -85,7 +89,9 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         GL13.glActiveTexture(GL13.GL_TEXTURE0) //Возврат Исходных текстур
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture0)
 
-        if (ModList.get().isLoaded("oculus") && IrisApi.getInstance().config.areShadersEnabled()) GL33.glActiveTexture(GL33.GL_TEXTURE2)
+        if (areShadersEnabled) GL33.glActiveTexture(
+            GL33.GL_TEXTURE2
+        )
 
         GL33.glBindVertexArray(currentVAO)
         GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
@@ -99,6 +105,10 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         modelTree.scenes.forEach { it.transformSkinning(stack) }
         GL33.glBindBuffer(GL33.GL_TEXTURE_BUFFER, 0)
         GL33.glDisable(GL33.GL_RASTERIZER_DISCARD)
+    }
+
+    fun destroy() {
+        modelTree.walkNodes().mapNotNull { it.mesh }.flatMap { it.primitives }.forEach(GltfTree.Primitive::destroy)
     }
 }
 

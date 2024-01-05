@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.client.utils
 
 import com.mojang.blaze3d.vertex.PoseStack
+import net.irisshaders.iris.api.v0.IrisApi
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiComponent.blit
@@ -14,6 +15,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.common.capabilities.ICapabilityProviderImpl
+import net.minecraftforge.fml.ModList
 import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.fml.loading.FMLLoader
 import net.minecraftforge.fml.util.thread.SidedThreadGroups
@@ -33,6 +35,10 @@ val isLogicalClient get() = Thread.currentThread().threadGroup != SidedThreadGro
 val isLogicalServer get() = !isLogicalClient
 val isPhysicalClient get() = FMLEnvironment.dist.isClient
 val isPhysicalServer get() = !isPhysicalClient
+
+val hasShaders = ModList.get().isLoaded("oculus") || ModList.get().isLoaded("optifine")
+
+val areShadersEnabled = hasShaders && IrisApi.getInstance().config.areShadersEnabled()
 
 operator fun <T : CapabilityInstance> ICapabilityProviderImpl<*>.get(capability: KClass<T>): T =
     getCapability(CapabilityStorage.getCapability(capability.java))

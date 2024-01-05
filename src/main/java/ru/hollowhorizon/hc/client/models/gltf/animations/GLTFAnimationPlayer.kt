@@ -24,8 +24,9 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
     val head by lazy { nodeModels.filter(GltfTree.Node::isHead) }
 
     fun updateEntity(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
+        val switchRot = capability.switchHeadRot
         head.forEach {
-            val newRot = capability.headLayer.computeRotation(entity, partialTick)
+            val newRot = capability.headLayer.computeRotation(entity, switchRot, partialTick)
             it.transform.setRotation(newRot)
         }
     }
@@ -40,13 +41,15 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
             it.key to (nameToAnimationMap[it.value] ?: return@mapNotNull null)
         }.toMap()
 
-        nodeModels.forEach { node ->
+        val layers = capability.layers
+
+        nodeModels.parallelStream().forEach { node ->
             node.clearTransform()
             val transform = node.transform.copy()
             definedLayer.computeTransform(node, animationOverrides, currentTick, partialTick)?.let { animPose ->
                 transform.set(node.fromLocal(animPose))
             }
-            capability.layers.forEach {
+            layers.forEach {
                 val animPose = it.computeTransform(node, nameToAnimationMap, currentTick, partialTick)
 
                 if (animPose != null) {

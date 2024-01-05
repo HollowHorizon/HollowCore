@@ -14,9 +14,11 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.client.utils.areShadersEnabled
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.toIS
 import ru.hollowhorizon.hc.client.utils.use
+import ru.hollowhorizon.hc.common.registry.ModShaders
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.io.EOFException
@@ -696,7 +698,7 @@ object GltfTree {
             node: Node,
             consumer: (ResourceLocation) -> RenderType,
         ) {
-            val shader = GameRenderer.getRendertypeEntityTranslucentShader() ?: return
+            val shader = if(areShadersEnabled) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!
             //Всякие настройки смешивания, материалы и т.п.
             val type = consumer(material)
             type.setupRenderState()
@@ -717,6 +719,10 @@ object GltfTree {
             //Матрица
             shader.MODEL_VIEW_MATRIX?.set(RenderSystem.getModelViewMatrix().copy().apply { multiply(stack.last().pose()) })
             shader.MODEL_VIEW_MATRIX?.upload()
+
+            val normal = Matrix3f(node.globalMatrix)
+            val currentNormal = CURRENT_NORMAL.copy()
+            currentNormal.mul(normal)
 
             //Нормали
             shader.getUniform("NormalMat")?.let {
@@ -858,3 +864,5 @@ fun putIntBuffer(value: IntArray): IntBuffer {
     buffer.flip()
     return buffer
 }
+
+var CURRENT_NORMAL = Matrix3f()
