@@ -28,6 +28,7 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 import java.util.*
+import java.util.stream.Collectors
 
 
 fun DataInputStream.readUInt(): Int {
@@ -504,9 +505,11 @@ object GltfTree {
         val isHead: Boolean get() = name?.lowercase()?.contains("head") == true && parent?.isHead == false
         val globalMatrix: Matrix4f
             get() {
-                val matrix = parent?.globalMatrix ?: return localMatrix
-                matrix.multiply(localMatrix)
-                return matrix
+                return NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.computeIfAbsent(this) { node ->
+                    val matrix = node.parent?.globalMatrix?.copy() ?: return@computeIfAbsent node.localMatrix
+                    matrix.multiply(node.localMatrix)
+                    return@computeIfAbsent matrix
+                }
             }
 
         val localMatrix get() = transform.getMatrix()
@@ -519,15 +522,12 @@ object GltfTree {
         val joints = HashMap<Int, Node>(jointsIds.size)
 
         fun finalMatrices(node: Node): Array<Matrix4f> {
-            val jointMatrices = Array(jointsIds.size) { Matrix4f().apply { setIdentity() } }
-            val inverseTransform = node.globalMatrix
+            val inverseTransform = node.globalMatrix.copy()
             inverseTransform.invertMatrix()
-
-            for (i in jointsIds.indices) {
-                jointMatrices[i] = joints[i]!!.globalMatrix.apply { multiply(inverseBindMatrices[i]) }
-                jointMatrices[i] = inverseTransform.copy().apply { multiply(jointMatrices[i]) }
-            }
-            return jointMatrices
+            return joints.entries.parallelStream().map { (i, m) ->
+                val mat = m.globalMatrix.copy().apply { multiply(inverseBindMatrices[i]) }
+                return@map inverseTransform.copy().apply { multiply(mat) }
+            }.collect(Collectors.toList()).toTypedArray()
         }
     }
 
