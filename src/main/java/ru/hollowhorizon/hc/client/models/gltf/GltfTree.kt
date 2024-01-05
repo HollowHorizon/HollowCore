@@ -708,6 +708,10 @@ object GltfTree {
             glTexture = GL11.glGenTextures()
             GL11.glBindTexture(GL31.GL_TEXTURE_BUFFER, glTexture)
             GL31.glTexBuffer(GL31.GL_TEXTURE_BUFFER, GL30.GL_RGBA32F, jointMatrixBuffer)
+            GL11.glBindTexture(GL31.GL_TEXTURE_BUFFER, 0)
+
+            GL15.glBindBuffer(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 0)
+            GL15.glBindBuffer(GL31.GL_TEXTURE_BUFFER, 0)
         }
 
         fun renderForVanilla(
@@ -722,6 +726,7 @@ object GltfTree {
             type.setupRenderState()
 
             GL33.glBindTexture(GL33.GL_TEXTURE_2D, RenderSystem.getShaderTexture(0))
+
             RenderSystem.enableBlend()
             RenderSystem.defaultBlendFunc()
             GL11.glEnable(GL11.GL_CULL_FACE)
@@ -762,6 +767,9 @@ object GltfTree {
         }
 
         fun transformSkinning(node: Node, stack: PoseStack) {
+            val texBind = GL33.glGetInteger(GL33.GL_ACTIVE_TEXTURE)
+
+            GL13.glActiveTexture(GL13.GL_TEXTURE0)
             GL33.glBindBuffer(GL33.GL_TEXTURE_BUFFER, jointMatrixBuffer)
             GL33.glBufferSubData(GL33.GL_TEXTURE_BUFFER, 0, computeMatrices(node, stack))
 
@@ -775,7 +783,9 @@ object GltfTree {
             for (i in 0..3) GL33.glEnableVertexAttribArray(i)
             GL11.glDrawArrays(GL11.GL_POINTS, 0, positionsCount)
             for (i in 0..3) GL33.glDisableVertexAttribArray(i)
+            GL30.glBindVertexArray(0)
             GL30.glEndTransformFeedback()
+            GL13.glActiveTexture(texBind)
         }
 
         private fun computeMatrices(node: Node, stack: PoseStack): FloatBuffer {

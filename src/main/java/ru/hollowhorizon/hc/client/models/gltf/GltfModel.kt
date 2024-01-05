@@ -56,7 +56,9 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         val texBind = GL33.glGetInteger(GL33.GL_ACTIVE_TEXTURE)
         CURRENT_NORMAL = stack.last().normal()
 
+        val p = GL11.glGetInteger(GL33.GL_CURRENT_PROGRAM)
         transformSkinning(stack)
+        GL33.glUseProgram(p)
 
         //Получение текущих VAO и IBO
         val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
