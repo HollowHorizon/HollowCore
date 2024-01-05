@@ -51,6 +51,8 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         light: Int,
         overlay: Int,
     ) {
+        transformSkinning(stack)
+
         //Получение текущих VAO и IBO
         val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
         val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
@@ -89,6 +91,14 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
 
         NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.clear()
+    }
+
+    private fun transformSkinning(stack: PoseStack) {
+        GL33.glUseProgram(GltfManager.glProgramSkinning)
+        GL33.glEnable(GL33.GL_RASTERIZER_DISCARD)
+        modelTree.scenes.forEach { it.transformSkinning(stack) }
+        GL33.glBindBuffer(GL33.GL_TEXTURE_BUFFER, 0)
+        GL33.glDisable(GL33.GL_RASTERIZER_DISCARD)
     }
 }
 

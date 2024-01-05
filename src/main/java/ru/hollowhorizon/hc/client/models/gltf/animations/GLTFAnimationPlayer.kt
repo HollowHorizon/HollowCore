@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.client.models.gltf.animations
 import net.minecraft.world.entity.LivingEntity
 import ru.hollowhorizon.hc.client.models.gltf.GltfModel
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
-import ru.hollowhorizon.hc.client.models.gltf.Transformation
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.LayerMode
 
@@ -11,7 +10,6 @@ import ru.hollowhorizon.hc.client.models.gltf.manager.LayerMode
 open class GLTFAnimationPlayer(val model: GltfModel) {
     private val templates: HashMap<AnimationType, String> = AnimationType.load(model.modelTree)
     private val nodeModels = model.modelTree.walkNodes()
-    private val bindPose = model.bindPose
     val nameToAnimationMap: Map<String, Animation> = model.modelTree.animations.associate {
         val name = it.name ?: "Unnamed"
         name to AnimationLoader.createAnimation(
@@ -28,7 +26,7 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
     fun updateEntity(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
         head.forEach {
             val newRot = capability.headLayer.computeRotation(entity, partialTick)
-            it.transform.setRotation(floatArrayOf(newRot.i(), newRot.j(), newRot.k(), newRot.r()))
+            it.transform.setRotation(newRot)
         }
     }
 
@@ -43,19 +41,18 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
         }.toMap()
 
         nodeModels.forEach { node ->
-            bindPose.apply(node, 0f)
-            val bindPose = bindPose.compute(node, Transformation(), 0f) ?: return@forEach
+            node.clearTransform()
             val transform = node.transform.copy()
-            definedLayer.computeTransform(node, bindPose, animationOverrides, currentTick, partialTick)?.let {
-                transform.add(it)
+            definedLayer.computeTransform(node, animationOverrides, currentTick, partialTick)?.let { animPose ->
+                transform.set(node.fromLocal(animPose))
             }
             capability.layers.forEach {
-                val animPose = it.computeTransform(node, bindPose, nameToAnimationMap, currentTick, partialTick)
+                val animPose = it.computeTransform(node, nameToAnimationMap, currentTick, partialTick)
 
                 if (animPose != null) {
                     when (it.layerMode) {
                         LayerMode.ADD -> transform.add(animPose)
-                        LayerMode.OVERWRITE -> transform.set(bindPose.copy().apply { add(animPose) })
+                        LayerMode.OVERWRITE -> transform.set(node.fromLocal(animPose))
                     }
                 }
             }
@@ -67,22 +64,5 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
 
     fun setTick(tick: Int) {
         this.currentTick = tick
-    }
-}
-
-fun List<Pair<Float, FloatArray?>>.sumWithPriority(prioritySum: Float): FloatArray? {
-    if (this.isEmpty()) return null
-    if (this.size == 1) return this.first().second
-
-    val result = FloatArray(this.firstNotNullOfOrNull { it.second }?.size ?: return null)
-
-    this.forEach { entry ->
-        val array = entry.second ?: return@forEach
-
-        for (i in array.indices) result[i] += array[i] * entry.first //value * priority
-    }
-
-    return result.apply {
-        for (i in this.indices) this[i] /= prioritySum
     }
 }

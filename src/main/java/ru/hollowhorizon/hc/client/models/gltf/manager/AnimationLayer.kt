@@ -44,7 +44,6 @@ data class AnimationLayer(
 
     fun computeTransform(
         node: GltfTree.Node,
-        bindPose: Transformation,
         nameToAnimationMap: Map<String, Animation>,
         currentTick: Int,
         partialTick: Float,
@@ -76,16 +75,16 @@ data class AnimationLayer(
                 }
                 Transformation.lerp(
                     null,
-                    animation.compute(node, bindPose, rawTime),
+                    animation.compute(node, rawTime),
                     (rawTime / fadeInSeconds).coerceAtMost(1.0f)
                 )
             }
 
-            AnimationState.PLAYING -> animation.compute(node, bindPose, currentTime)
+            AnimationState.PLAYING -> animation.compute(node, currentTime)
             AnimationState.FINISHED -> {
                 if (finishTicks == 0) finishTicks = currentTick
                 Transformation.lerp(
-                    animation.compute(node, bindPose, currentTime),
+                    animation.compute(node, currentTime),
                     null,
                     (currentTick - finishTicks + partialTick) / 20f / fadeOutSeconds
                 )
@@ -95,11 +94,10 @@ data class AnimationLayer(
 }
 
 class DefinedLayer {
-    var currentAnimation = AnimationType.IDLE
-    var currentStartTime = 0
-    var lastAnimation = AnimationType.IDLE
-    var lastStartTime = 0
-    var priority = 0f
+    private var currentAnimation = AnimationType.IDLE
+    private var lastAnimation = AnimationType.IDLE
+    private var currentStartTime = 0
+    private var priority = 0f
 
     fun update(animationType: AnimationType, currentTick: Int, partialTick: Float) {
         priority = ((currentTick - currentStartTime + partialTick) / 10f).coerceAtMost(1f)
@@ -109,24 +107,23 @@ class DefinedLayer {
 
         //грубо говоря, как песочные часы, если перевернуть до полного перехода, то приоритет будет обратно пропорционален
         priority = 1f - priority
-        lastStartTime = currentStartTime
         currentStartTime = currentTick
     }
 
     fun computeTransform(
         node: GltfTree.Node,
-        bindPose: Transformation,
         animationCache: Map<AnimationType, Animation>,
         currentTick: Int,
         partialTick: Float,
     ): Transformation? {
         val f = animationCache[currentAnimation]
         val s = animationCache[lastAnimation]
-        val firstTime = (currentTick - lastStartTime + partialTick) / 20 % (f?.maxTime ?: 0f)
-        val secondTime = (currentTick - currentStartTime + partialTick) / 20 % (s?.maxTime ?: 0f)
+        val firstTime = (currentTick + partialTick) / 20 % (f?.maxTime ?: 0f)
+        val secondTime = (currentTick + partialTick) / 20 % (s?.maxTime ?: 0f)
+        //return f?.compute(node, firstTime)
         return Transformation.lerp(
-            s?.compute(node, bindPose, secondTime),
-            f?.compute(node, bindPose, firstTime),
+            s?.compute(node, secondTime),
+            f?.compute(node, firstTime),
             priority
         )
     }

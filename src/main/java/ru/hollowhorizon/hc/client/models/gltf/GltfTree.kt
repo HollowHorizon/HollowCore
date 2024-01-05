@@ -11,12 +11,9 @@ import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL13
-import org.lwjgl.opengl.GL33
+import org.lwjgl.opengl.*
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.toIS
 import ru.hollowhorizon.hc.client.utils.use
@@ -264,7 +261,8 @@ object GltfTree {
                 val mode = GltfMode.fromId(prim.mode)
 
                 val material =
-                    getMaterial(file, prim.material, bufferViews, location, folder) ?: TextureManager.INTENTIONAL_MISSING_TEXTURE
+                    getMaterial(file, prim.material, bufferViews, location, folder)
+                        ?: TextureManager.INTENTIONAL_MISSING_TEXTURE
                 textures += material
 
                 Primitive(attr, indices, mode, material)
@@ -424,9 +422,13 @@ object GltfTree {
             nodeRenderer: NodeRenderer,
             data: ModelData,
             consumer: (ResourceLocation) -> RenderType,
-            light: Int
+            light: Int,
         ) {
             nodes.forEach { it.render(stack, nodeRenderer, data, consumer, light) }
+        }
+
+        fun transformSkinning(stack: PoseStack) {
+            nodes.forEach { it.transformSkinning(stack) }
         }
     }
 
@@ -438,12 +440,14 @@ object GltfTree {
         val skin: Skin? = null,
         val name: String? = null,
     ) {
+        val baseTransform = transform.copy()
+
         fun render(
             stack: PoseStack,
             nodeRenderer: NodeRenderer,
             data: ModelData,
             consumer: (ResourceLocation) -> RenderType,
-            light: Int
+            light: Int,
         ) {
             stack.use {
                 mulPoseMatrix(localMatrix)
@@ -458,27 +462,32 @@ object GltfTree {
             }
         }
 
-        fun skinningMatrix(jointId: Int, matrix: Matrix4f): Matrix4f {
-            val skin = skin ?: return matrix
+        fun transformSkinning(stack: PoseStack) {
+            mesh?.transformSkinning(this@Node, stack)
+            children.forEach { it.transformSkinning(stack) }
 
-            val inverseTransform = matrix.copy().apply { invert() }
-            val jointMat = skin.joints[jointId]?.globalMatrix?.apply {
-                multiply(
-                    skin.inverseBindMatrices[skin.jointsIds.indexOf(jointId)]
-                )
-            } ?: return matrix
-            return inverseTransform.apply { multiply(jointMat) }
         }
+
+        fun clearTransform() = transform.set(baseTransform)
+
+        private lateinit var localCheck: Transformation
+
+        fun toLocal(transform: Transformation): Transformation {
+            return baseTransform.copy().apply { sub(transform) }
+        }
+
+        fun fromLocal(transform: Transformation): Transformation {
+            return baseTransform.copy().apply { add(transform) }
+        }
+
 
         var parent: Node? = null
         val isHead: Boolean get() = name?.lowercase()?.contains("head") == true && parent?.isHead == false
         val globalMatrix: Matrix4f
             get() {
-                return NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.computeIfAbsent(this) { node ->
-                    val matrix = node.parent?.globalMatrix ?: return@computeIfAbsent localMatrix
-                    matrix.multiply(localMatrix)
-                    matrix
-                }
+                val matrix = parent?.globalMatrix ?: return localMatrix
+                matrix.multiply(localMatrix)
+                return matrix
             }
 
         val localMatrix get() = transform.getMatrix()
@@ -490,12 +499,16 @@ object GltfTree {
     ) {
         val joints = HashMap<Int, Node>(jointsIds.size)
 
-        fun finalMatrices(matrix: Node): Array<Matrix4f> {
-            return joints.values.mapIndexed { i, joint ->
-                val inverseTransform = matrix.globalMatrix.copy().apply { invert() }
-                val jointMat = joint.globalMatrix.apply { multiply(this@Skin.inverseBindMatrices[i]) }
-                inverseTransform.apply { multiply(jointMat) }
-            }.toTypedArray()
+        fun finalMatrices(node: Node): Array<Matrix4f> {
+            val jointMatrices = Array(jointsIds.size) { Matrix4f().apply { setIdentity() } }
+            val inverseTransform = node.globalMatrix
+            inverseTransform.invertMatrix()
+
+            for (i in jointsIds.indices) {
+                jointMatrices[i] = joints[i]!!.globalMatrix.apply { multiply(inverseBindMatrices[i]) }
+                jointMatrices[i] = inverseTransform.copy().apply { multiply(jointMatrices[i]) }
+            }
+            return jointMatrices
         }
     }
 
@@ -511,6 +524,10 @@ object GltfTree {
                 it.renderForVanilla(stack, node, consumer)
             }
         }
+
+        fun transformSkinning(node: Node, stack: PoseStack) {
+            primitives.filter { it.hasSkinning }.forEach { it.transformSkinning(node, stack) }
+        }
     }
 
     data class Primitive(
@@ -519,45 +536,73 @@ object GltfTree {
         val mode: GltfMode,
         val material: ResourceLocation,
     ) {
+        val hasSkinning = attributes[GltfAttribute.JOINTS_0] != null && attributes[GltfAttribute.WEIGHTS_0] != null
         private val indexCount = indices?.get<Int>()?.size ?: 0
+        private val positionsCount = (attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.size ?: 0) * 3
+        private val jointCount = (attributes[GltfAttribute.JOINTS_0]?.get<Vector4f>()?.size ?: 0) * 4
+
+        private var vao = -1
+        private var skinningVao = -1
+
         private var vertexBuffer = -1
         private var normalBuffer = -1
         private var texCoordsBuffer = -1
         private var indexBuffer = -1
-        private var vao = -1
+
+        private var glTexture = -1
+        private var jointBuffer = -1
+        private var weightsBuffer = -1
+        private var skinVertexBuffer = -1
+        private var skinNormalBuffer = -1
+        private var jointMatrixBuffer = -1
 
         init {
-            initBuffers()
-        }
-
-        private fun initBuffers() {
             val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
             val currentArrayBuffer = GL33.glGetInteger(GL33.GL_ARRAY_BUFFER_BINDING)
             val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
 
+            if (hasSkinning) initTransformFeedback()
+            initBuffers()
+
+            GL33.glBindVertexArray(currentVAO)
+            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, currentArrayBuffer)
+            GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
+        }
+
+        private fun initBuffers() {
+
             vao = GL33.glGenVertexArrays()
             GL33.glBindVertexArray(vao)
 
-            attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.run {
-                val positions = BufferUtils.createFloatBuffer(this.size * 3)
-                for (n in this) positions.put(n.x()).put(n.y()).put(n.z())
-                positions.flip()
+            if (skinningVao == -1) {
+                attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.run {
+                    val positions = BufferUtils.createFloatBuffer(this.size * 3)
+                    for (n in this) positions.put(n.x()).put(n.y()).put(n.z())
+                    positions.flip()
 
-                vertexBuffer = GL33.glGenBuffers()
+                    vertexBuffer = GL33.glGenBuffers()
+                    GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
+                    GL33.glBufferData(GL33.GL_ARRAY_BUFFER, positions, GL33.GL_STATIC_DRAW)
+                    GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0)
+                }
+                attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
+                    val normals = BufferUtils.createFloatBuffer(this.size * 3)
+                    for (n in this) normals.put(n.x()).put(n.y()).put(n.z())
+                    normals.flip()
+
+                    normalBuffer = GL33.glGenBuffers()
+                    GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
+                    GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
+                    GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
+                }
+            } else {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
-                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, positions, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0)
-            }
-            attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
-                val normals = BufferUtils.createFloatBuffer(this.size * 3)
-                for (n in this) normals.put(n.x()).put(n.y()).put(n.z())
-                normals.flip()
 
-                normalBuffer = GL33.glGenBuffers()
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
-                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
             }
+
             attributes[GltfAttribute.TEXCOORD_0]?.get<Pair<Float, Float>>()?.run {
                 val texCords = BufferUtils.createFloatBuffer(this.size * 2)
                 for (t in this) texCords.put(t.first).put(t.second)
@@ -578,22 +623,72 @@ object GltfTree {
                 GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
                 GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, buffer, GL33.GL_STATIC_DRAW)
             }
+        }
 
-            val joints = attributes[GltfAttribute.JOINTS_0]?.get<Vector4f>()?.run {
+        private fun initTransformFeedback() {
+            skinningVao = GL30.glGenVertexArrays()
+            GL30.glBindVertexArray(skinningVao)
+
+            var posSize = -1L
+            var norSize = -1L
+
+            attributes[GltfAttribute.JOINTS_0]?.get<Vector4f>()?.run {
                 val joints = BufferUtils.createIntBuffer(this.size * 4)
                 for (n in this) joints.put(n.x().toInt()).put(n.y().toInt()).put(n.z().toInt()).put(n.w().toInt())
                 joints.flip()
+
+                jointBuffer = GL33.glGenBuffers()
+                GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, jointBuffer)
+                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, joints, GL33.GL_STATIC_DRAW)
+                GL33.glVertexAttribPointer(0, 4, GL33.GL_INT, false, 0, 0)
             }
-            val weights = attributes[GltfAttribute.WEIGHTS_0]?.get<Vector4f>()?.run {
+            attributes[GltfAttribute.WEIGHTS_0]?.get<Vector4f>()?.run {
                 val weights = BufferUtils.createFloatBuffer(this.size * 4)
                 for (n in this) weights.put(n.x()).put(n.y()).put(n.z()).put(n.w())
                 weights.flip()
-                weights
+
+                weightsBuffer = GL33.glGenBuffers()
+                GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, weightsBuffer)
+                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, weights, GL33.GL_STATIC_DRAW)
+                GL33.glVertexAttribPointer(1, 4, GL33.GL_FLOAT, false, 0, 0)
+            }
+            attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.run {
+                posSize = this.size * 12L //bytes size
+                val positions = BufferUtils.createFloatBuffer(this.size * 3)
+                for (n in this) positions.put(n.x()).put(n.y()).put(n.z())
+                positions.flip()
+
+                skinVertexBuffer = GL33.glGenBuffers()
+                GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, skinVertexBuffer)
+                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, positions, GL33.GL_STATIC_DRAW)
+                GL33.glVertexAttribPointer(2, 3, GL33.GL_FLOAT, false, 0, 0)
+            }
+            attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
+                norSize = this.size * 12L //bytes size
+                val normals = BufferUtils.createFloatBuffer(this.size * 3)
+                for (n in this) normals.put(n.x()).put(n.y()).put(n.z())
+                normals.flip()
+
+                skinNormalBuffer = GL33.glGenBuffers()
+                GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, skinNormalBuffer)
+                GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
+                GL33.glVertexAttribPointer(3, 3, GL33.GL_FLOAT, false, 0, 0)
             }
 
-            GL33.glBindVertexArray(currentVAO)
-            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, currentArrayBuffer)
-            GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
+            vertexBuffer = GL33.glGenBuffers()
+            GL33.glBindBuffer(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, vertexBuffer)
+            GL15.glBufferData(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, posSize, GL33.GL_STATIC_DRAW)
+
+            normalBuffer = GL33.glGenBuffers()
+            GL33.glBindBuffer(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, normalBuffer)
+            GL15.glBufferData(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, norSize, GL33.GL_STATIC_DRAW)
+
+            jointMatrixBuffer = GL15.glGenBuffers()
+            GL15.glBindBuffer(GL31.GL_TEXTURE_BUFFER, jointMatrixBuffer)
+            GL15.glBufferData(GL31.GL_TEXTURE_BUFFER, jointCount * 64L, GL15.GL_STATIC_DRAW)
+            glTexture = GL11.glGenTextures()
+            GL11.glBindTexture(GL31.GL_TEXTURE_BUFFER, glTexture)
+            GL31.glTexBuffer(GL31.GL_TEXTURE_BUFFER, GL30.GL_RGBA32F, jointMatrixBuffer)
         }
 
         fun renderForVanilla(
@@ -639,6 +734,63 @@ object GltfTree {
 
             // Очистка настроек
             type.clearRenderState()
+        }
+
+        fun transformSkinning(node: Node, stack: PoseStack) {
+            GL33.glBindBuffer(GL33.GL_TEXTURE_BUFFER, jointMatrixBuffer)
+            GL33.glBufferSubData(GL33.GL_TEXTURE_BUFFER, 0, computeMatrices(node, stack))
+
+            GL33.glBindTexture(GL33.GL_TEXTURE_BUFFER, glTexture)
+
+            GL30.glBindBufferBase(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 0, vertexBuffer)
+            GL30.glBindBufferBase(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 1, normalBuffer)
+
+            GL30.glBeginTransformFeedback(GL11.GL_POINTS)
+            GL30.glBindVertexArray(skinningVao)
+            for (i in 0..3) GL33.glEnableVertexAttribArray(i)
+            GL11.glDrawArrays(GL11.GL_POINTS, 0, positionsCount)
+            for (i in 0..3) GL33.glDisableVertexAttribArray(i)
+            GL30.glEndTransformFeedback()
+        }
+
+        private fun computeMatrices(node: Node, stack: PoseStack): FloatBuffer {
+            val matrices = node.skin!!.finalMatrices(node)
+
+            val buffer = BufferUtils.createFloatBuffer(matrices.size * 16)
+            for (m in matrices) {
+                // Угадайте сколько часов у меня ушло, чтобы угадать, в каком порядке я должен передавать эти значения :(
+                buffer.put(m.m00)
+                buffer.put(m.m10)
+                buffer.put(m.m20)
+                buffer.put(m.m30)
+                buffer.put(m.m01)
+                buffer.put(m.m11)
+                buffer.put(m.m21)
+                buffer.put(m.m31)
+                buffer.put(m.m02)
+                buffer.put(m.m12)
+                buffer.put(m.m22)
+                buffer.put(m.m32)
+                buffer.put(m.m03)
+                buffer.put(m.m13)
+                buffer.put(m.m23)
+                buffer.put(m.m33)
+            }
+            buffer.flip()
+            return buffer
+        }
+
+        fun destroy() {
+            GL30.glDeleteVertexArrays(vao)
+            GL30.glDeleteVertexArrays(skinningVao)
+
+            GL30.glDeleteBuffers(indexBuffer)
+            GL30.glDeleteBuffers(vertexBuffer)
+            GL30.glDeleteBuffers(texCoordsBuffer)
+            GL30.glDeleteBuffers(normalBuffer)
+
+            GL30.glDeleteBuffers(skinVertexBuffer)
+            GL30.glDeleteBuffers(skinNormalBuffer)
         }
     }
 
