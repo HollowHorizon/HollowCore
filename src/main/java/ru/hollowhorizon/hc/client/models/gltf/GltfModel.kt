@@ -53,6 +53,7 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         light: Int,
         overlay: Int,
     ) {
+        val texBind = GL33.glGetInteger(GL33.GL_ACTIVE_TEXTURE)
         CURRENT_NORMAL = stack.last().normal()
 
         transformSkinning(stack)
@@ -88,10 +89,7 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture1)
         GL13.glActiveTexture(GL13.GL_TEXTURE0) //Возврат Исходных текстур
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture0)
-
-        if (areShadersEnabled) GL33.glActiveTexture(
-            GL33.GL_TEXTURE2
-        )
+        GL13.glActiveTexture(texBind)
 
         GL33.glBindVertexArray(currentVAO)
         GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
