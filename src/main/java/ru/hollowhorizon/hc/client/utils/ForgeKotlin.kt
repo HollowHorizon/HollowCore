@@ -38,7 +38,7 @@ val isPhysicalServer get() = !isPhysicalClient
 
 val hasShaders = ModList.get().isLoaded("oculus") || ModList.get().isLoaded("optifine")
 
-val areShadersEnabled = hasShaders && IrisApi.getInstance().config.areShadersEnabled()
+val areShadersEnabled get() = hasShaders && IrisApi.getInstance().config.areShadersEnabled()
 
 operator fun <T : CapabilityInstance> ICapabilityProviderImpl<*>.get(capability: KClass<T>): T =
     getCapability(CapabilityStorage.getCapability(capability.java))

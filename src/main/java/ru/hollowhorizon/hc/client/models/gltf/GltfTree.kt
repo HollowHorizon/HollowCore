@@ -191,10 +191,7 @@ object GltfTree {
             GltfType.VEC3 -> List(count) { Vector3f(b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat()) }
             GltfType.VEC4 -> List(count) {
                 Vector4f(
-                    b.next(t).toFloat(),
-                    b.next(t).toFloat(),
-                    b.next(t).toFloat(),
-                    b.next(t).toFloat()
+                    b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat()
                 )
             }
 
@@ -204,9 +201,15 @@ object GltfTree {
                     load(
                         FloatBuffer.wrap(
                             floatArrayOf(
-                                b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(),
-                                b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(),
-                                b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat()
+                                b.next(t).toFloat(),
+                                b.next(t).toFloat(),
+                                b.next(t).toFloat(),
+                                b.next(t).toFloat(),
+                                b.next(t).toFloat(),
+                                b.next(t).toFloat(),
+                                b.next(t).toFloat(),
+                                b.next(t).toFloat(),
+                                b.next(t).toFloat()
                             )
                         )
                     )
@@ -217,10 +220,22 @@ object GltfTree {
             GltfType.MAT4 -> List(count) {
                 Matrix4f(
                     floatArrayOf(
-                        b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(),
-                        b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(),
-                        b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(),
-                        b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat(), b.next(t).toFloat()
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat(),
+                        b.next(t).toFloat()
                     )
                 ).apply(Matrix4f::transpose)
             }
@@ -262,9 +277,8 @@ object GltfTree {
                 val indices = prim.indices?.let { accessors[it] }
                 val mode = GltfMode.fromId(prim.mode)
 
-                val material =
-                    getMaterial(file, prim.material, bufferViews, location, folder)
-                        ?: TextureManager.INTENTIONAL_MISSING_TEXTURE
+                val material = getMaterial(file, prim.material, bufferViews, location, folder)
+                    ?: TextureManager.INTENTIONAL_MISSING_TEXTURE
                 textures += material
 
                 Primitive(attr, indices, mode, material)
@@ -283,7 +297,10 @@ object GltfTree {
     ): ResourceLocation? {
         if (mat == null) return null
         val material = file.materials[mat]
-        val texture = material.pbrMetallicRoughness?.baseColorTexture?.index ?: return null
+
+        val texture = material.pbrMetallicRoughness?.baseColorTexture?.index
+            ?: return if (material.name != null) "$MODID:textures/models/${material.name}.png".lowercase().rl
+            else null
         val image = file.textures[texture].source ?: return null
         file.images[image].bufferView?.let { index ->
             val data = bufferViews[index]
@@ -698,7 +715,8 @@ object GltfTree {
             node: Node,
             consumer: (ResourceLocation) -> RenderType,
         ) {
-            val shader = if(areShadersEnabled) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!
+            val shader =
+                if (areShadersEnabled) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!
             //Всякие настройки смешивания, материалы и т.п.
             val type = consumer(material)
             type.setupRenderState()
@@ -717,7 +735,8 @@ object GltfTree {
             GL33.glEnableVertexAttribArray(5) // Нормали
 
             //Матрица
-            shader.MODEL_VIEW_MATRIX?.set(RenderSystem.getModelViewMatrix().copy().apply { multiply(stack.last().pose()) })
+            shader.MODEL_VIEW_MATRIX?.set(RenderSystem.getModelViewMatrix().copy()
+                .apply { multiply(stack.last().pose()) })
             shader.MODEL_VIEW_MATRIX?.upload()
 
             val normal = Matrix3f(node.globalMatrix)

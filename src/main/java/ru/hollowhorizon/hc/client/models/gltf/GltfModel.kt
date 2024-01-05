@@ -78,7 +78,7 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         GL13.glActiveTexture(GL13.GL_TEXTURE0) //Текстуры модели
         val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
 
-        drawWithShader(if(areShadersEnabled) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!) {
+        drawWithShader(if(!areShadersEnabled) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!) {
             modelTree.scenes.forEach { it.render(stack, visuals, modelData, consumer, light) }
         }
 
