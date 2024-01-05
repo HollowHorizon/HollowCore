@@ -6,28 +6,20 @@ import com.mojang.math.Vector4f
 import kotlinx.serialization.Serializable
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.Transformation
+import ru.hollowhorizon.hc.client.models.gltf.animations.interpolations.Interpolator
+import ru.hollowhorizon.hc.client.models.gltf.animations.interpolations.QuatStep
+import ru.hollowhorizon.hc.client.models.gltf.animations.interpolations.Vec3Step
 
 class Animation(val name: String, private val animationData: Map<GltfTree.Node, AnimationData>) {
     val maxTime = animationData.values.maxOf { it.maxTime }
 
-    fun compute(node: GltfTree.Node, bindPose: Transformation, currentTime: Float): Transformation? {
+    fun compute(node: GltfTree.Node, currentTime: Float): Transformation? {
         return animationData[node]?.let {
             val t = it.translation?.compute(currentTime)
             val r = it.rotation?.compute(currentTime)
             val s = it.scale?.compute(currentTime)
-            Transformation(
-                t?.let { arr -> Vector3f(arr[0], arr[1], arr[2]) } ?: bindPose.translation,
-                r?.let { arr -> Quaternion(arr[0], arr[1], arr[2], arr[3]) } ?: bindPose.rotation,
-                s?.let { arr -> Vector3f(arr[0], arr[1], arr[2]) } ?: bindPose.scale
-            )
-        }
-    }
 
-    fun apply(node: GltfTree.Node, time: Float) {
-        animationData[node]?.let { anim ->
-            node.transform.setTranslation(anim.translation?.compute(time))
-            node.transform.setRotation(anim.rotation?.compute(time))
-            node.transform.setScale(anim.scale?.compute(time))
+            node.toLocal(Transformation(t, r, s))
         }
     }
 
@@ -39,17 +31,17 @@ class Animation(val name: String, private val animationData: Map<GltfTree.Node, 
 
                 return@associate node to AnimationData(
                     node,
-                    Interpolator.Step(
+                    Vec3Step(
                         floatArrayOf(0f),
-                        arrayOf(node.transform.translation.array())
+                        arrayOf(node.transform.translation)
                     ),
-                    Interpolator.Step(
+                    QuatStep(
                         floatArrayOf(0f),
-                        arrayOf(node.transform.rotation.array())
+                        arrayOf(node.transform.rotation)
                     ),
-                    Interpolator.Step(
+                    Vec3Step(
                         floatArrayOf(0f),
-                        arrayOf(node.transform.scale.array())
+                        arrayOf(node.transform.scale)
                     ),
                 )
             })
@@ -128,9 +120,9 @@ enum class PlayMode {
 
 class AnimationData(
     val node: GltfTree.Node,
-    val translation: Interpolator<*>?,
-    val rotation: Interpolator<*>?,
-    val scale: Interpolator<*>?,
+    val translation: Interpolator<Vector3f>?,
+    val rotation: Interpolator<Quaternion>?,
+    val scale: Interpolator<Vector3f>?,
 ) {
     val maxTime = maxOf(
         translation?.maxTime ?: 0f,

@@ -46,8 +46,8 @@ internal class Matrix4Deserializer : JsonDeserializer<Matrix4f> {
 
 object GltfDefinition {
     private val GSON = GsonBuilder()
-        .registerTypeAdapter(Vector4f::class.java, Vector4Deserializer())
         .registerTypeAdapter(Vector3f::class.java, Vector3Deserializer())
+        .registerTypeAdapter(Vector4f::class.java, Vector4Deserializer())
         .registerTypeAdapter(Quaternion::class.java, QuaternionDeserializer())
         .registerTypeAdapter(Matrix4f::class.java, Matrix4Deserializer())
         .create()

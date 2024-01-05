@@ -440,6 +440,8 @@ object GltfTree {
         val skin: Skin? = null,
         val name: String? = null,
     ) {
+        val baseTransform = transform.copy()
+
         fun render(
             stack: PoseStack,
             nodeRenderer: NodeRenderer,
@@ -448,7 +450,7 @@ object GltfTree {
             light: Int,
         ) {
             stack.use {
-                //mulPoseMatrix(localMatrix)
+                mulPoseMatrix(localMatrix)
 
                 mesh?.render(this@Node, stack, consumer)
                 children.forEach { it.render(stack, nodeRenderer, data, consumer, light) }
@@ -464,6 +466,18 @@ object GltfTree {
             mesh?.transformSkinning(this@Node, stack)
             children.forEach { it.transformSkinning(stack) }
 
+        }
+
+        fun clearTransform() = transform.set(baseTransform)
+
+        private lateinit var localCheck: Transformation
+
+        fun toLocal(transform: Transformation): Transformation {
+            return baseTransform.copy().apply { sub(transform) }
+        }
+
+        fun fromLocal(transform: Transformation): Transformation {
+            return baseTransform.copy().apply { add(transform) }
         }
 
 
