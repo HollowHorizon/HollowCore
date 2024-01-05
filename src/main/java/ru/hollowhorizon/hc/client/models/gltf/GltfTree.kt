@@ -716,7 +716,7 @@ object GltfTree {
             consumer: (ResourceLocation) -> RenderType,
         ) {
             val shader =
-                if (areShadersEnabled) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!
+                if (!areShadersEnabled) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!
             //Всякие настройки смешивания, материалы и т.п.
             val type = consumer(material)
             type.setupRenderState()
