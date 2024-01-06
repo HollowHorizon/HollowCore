@@ -1,15 +1,18 @@
 package ru.hollowhorizon.hc.common.network;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
-import ru.hollowhorizon.hc.HollowCore;
+import ru.hollowhorizon.hc.common.network.packets.SpawnParticlesPacket;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +26,10 @@ public class NetworkHandler {
 
     public static <MSG> void sendMessageToClient(MSG messageToClient, Player player) {
         HollowCoreChannel.sendTo(messageToClient, ((ServerPlayer) player).connection.connection, NetworkDirection.PLAY_TO_CLIENT);
+    }
+
+    public static <MSG> void sendMessageToClientTrackingChunk(MSG msg, Level level, BlockPos pos) {
+        HollowCoreChannel.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(pos)), msg);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -40,5 +47,7 @@ public class NetworkHandler {
         }
 
         PACKET_TASKS.forEach(Runnable::run);
+
+        HollowCoreChannel.registerMessage(PACKET_INDEX++, SpawnParticlesPacket.class, SpawnParticlesPacket::write, SpawnParticlesPacket::read, SpawnParticlesPacket::handle);
     }
 }

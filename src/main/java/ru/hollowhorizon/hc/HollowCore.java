@@ -38,10 +38,7 @@ import ru.hollowhorizon.hc.common.handlers.DelayHandler;
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
-import ru.hollowhorizon.hc.common.registry.HollowModProcessor;
-import ru.hollowhorizon.hc.common.registry.ModEntities;
-import ru.hollowhorizon.hc.common.registry.ModShaders;
-import ru.hollowhorizon.hc.common.registry.RegistryLoader;
+import ru.hollowhorizon.hc.common.registry.*;
 import thedarkcolour.kotlinforforge.forge.ForgeKt;
 
 
@@ -77,6 +74,7 @@ public class HollowCore {
             modBus.addListener(GltfManager::onReload);
             modBus.addListener(this::onRendererCreating);
             modBus.register(ModShaders.INSTANCE);
+            modBus.addListener(ModParticles::onRegisterParticles);
 
             GPUMemoryManager.INSTANCE.initialize();
         }
