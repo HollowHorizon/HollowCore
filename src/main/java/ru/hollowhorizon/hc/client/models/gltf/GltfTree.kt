@@ -42,6 +42,21 @@ fun DataInputStream.readUInt(): Int {
     }
 }
 
+fun ByteBuffer.readUInt(): Int {
+    return ((getInt().toLong() and 0xffffffffL).toInt())
+}
+
+fun ByteBuffer.readUByte(): Int {
+    return (get().toInt() and 0xff)
+}
+
+fun ByteBuffer.readUShort(): Int {
+    return getShort().toInt() and 0xffff
+}
+
+class Vec4i(val x: Int, val y: Int, val z: Int, val w: Int)
+
+
 object GltfTree {
     val TEXTURE_MAP = HashMap<ResourceLocation, DynamicTexture>()
 
@@ -245,9 +260,11 @@ object GltfTree {
     @Suppress("NOTHING_TO_INLINE")
     private inline fun ByteBuffer.next(type: GltfComponentType): Number {
         return when (type) {
-            GltfComponentType.BYTE, GltfComponentType.UNSIGNED_BYTE -> get()
-            GltfComponentType.SHORT, GltfComponentType.UNSIGNED_SHORT -> short
-            GltfComponentType.UNSIGNED_INT -> int
+            GltfComponentType.BYTE -> get()
+            GltfComponentType.UNSIGNED_BYTE -> readUByte()
+            GltfComponentType.SHORT -> short
+            GltfComponentType.UNSIGNED_SHORT -> readUShort()
+            GltfComponentType.UNSIGNED_INT -> readUInt()
             GltfComponentType.FLOAT -> float
         }
     }
@@ -370,7 +387,14 @@ object GltfTree {
 
     private fun parseNode(file: GltfFile, nodeIndex: Int, node: GltfNode, meshes: List<Mesh>, skins: List<Skin>): Node {
         val children = node.children.map { parseNode(file, it, file.nodes[it], meshes, skins) }
-        val mesh = node.mesh?.let { meshes[it] }
+        val mesh = node.mesh?.let {
+            meshes[it].apply {
+                if (node.skin != null) {
+                    this.primitives.forEach { p -> p.jointCount = skins[node.skin].jointsIds.size }
+                }
+                this.primitives.forEach(Primitive::init)
+            }
+        }
         val skin = node.skin?.let { skins[it] }
 
         val transform = Transformation(
@@ -489,7 +513,6 @@ object GltfTree {
 
         fun clearTransform() = transform.set(baseTransform)
 
-        private lateinit var localCheck: Transformation
 
         fun toLocal(transform: Transformation): Transformation {
             return baseTransform.copy().apply { sub(transform) }
@@ -558,7 +581,7 @@ object GltfTree {
         val hasSkinning = attributes[GltfAttribute.JOINTS_0] != null && attributes[GltfAttribute.WEIGHTS_0] != null
         private val indexCount = indices?.get<Int>()?.size ?: 0
         private val positionsCount = (attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.size ?: 0) * 3
-        private val jointCount = (attributes[GltfAttribute.JOINTS_0]?.get<Vector4f>()?.size ?: 0) * 4
+        var jointCount = 0
 
         private var vao = -1
         private var skinningVao = -1
@@ -575,7 +598,7 @@ object GltfTree {
         private var skinNormalBuffer = -1
         private var jointMatrixBuffer = -1
 
-        init {
+        fun init() {
             val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
             val currentArrayBuffer = GL33.glGetInteger(GL33.GL_ARRAY_BUFFER_BINDING)
             val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
@@ -653,7 +676,11 @@ object GltfTree {
 
             attributes[GltfAttribute.JOINTS_0]?.get<Vector4f>()?.run {
                 val joints = BufferUtils.createIntBuffer(this.size * 4)
-                for (n in this) joints.put(n.x().toInt()).put(n.y().toInt()).put(n.z().toInt()).put(n.w().toInt())
+                for (n in this) joints
+                    .put(n.x().toInt())
+                    .put(n.y().toInt())
+                    .put(n.z().toInt())
+                    .put(n.w().toInt())
                 joints.flip()
 
                 jointBuffer = GL33.glGenBuffers()
