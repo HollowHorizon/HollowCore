@@ -132,7 +132,7 @@ class AnimationData(
 }
 
 enum class AnimationTarget {
-    TRANSLATION, ROTATION, SCALE;
+    TRANSLATION, ROTATION, SCALE, WEIGHTS;
 
     val numComponents: Int
         get() = if (this == ROTATION) 4 else 3
