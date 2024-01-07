@@ -497,11 +497,23 @@ object GltfTree {
 
                 mesh?.render(this@Node, stack, consumer)
                 children.forEach { it.render(stack, nodeRenderer, data, consumer, light) }
+            }
+        }
 
+        fun renderDecorations(
+            stack: PoseStack,
+            nodeRenderer: NodeRenderer,
+            data: ModelData,
+            light: Int
+        ) {
+            stack.use {
+                mulPoseMatrix(localMatrix)
 
                 data.entity?.let {
                     nodeRenderer(it, stack, this@Node, light)
                 }
+
+                children.forEach { it.renderDecorations(stack, nodeRenderer, data, light) }
             }
         }
 

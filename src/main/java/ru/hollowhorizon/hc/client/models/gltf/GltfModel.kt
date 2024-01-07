@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.client.models.gltf
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Vector4f
-import net.irisshaders.iris.api.v0.IrisApi
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.ItemInHandRenderer
@@ -11,7 +10,6 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemStack
-import net.minecraftforge.fml.ModList
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL33
@@ -53,6 +51,12 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         light: Int,
         overlay: Int,
     ) {
+        modelTree.scenes.forEach {
+            it.nodes.forEach { node ->
+                node.renderDecorations(stack, visuals, modelData, light)
+            }
+        }
+
         val texBind = GL33.glGetInteger(GL33.GL_ACTIVE_TEXTURE)
         CURRENT_NORMAL = stack.last().normal()
 
@@ -81,7 +85,7 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         GL13.glActiveTexture(GL13.GL_TEXTURE0) //Текстуры модели
         val currentTexture0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
 
-        drawWithShader(if(!areShadersEnabled) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!) {
+        drawWithShader(if (!areShadersEnabled) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!) {
             modelTree.scenes.forEach { it.render(stack, visuals, modelData, consumer, light) }
         }
 
