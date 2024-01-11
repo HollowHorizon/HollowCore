@@ -7,6 +7,7 @@ import net.minecraftforge.common.util.INBTSerializable
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
+import java.util.function.Predicate
 
 
 class SyncableListImpl<T : Any>(val list: MutableList<T>, private val updateMethod: () -> Unit = {}) :
@@ -28,6 +29,14 @@ class SyncableListImpl<T : Any>(val list: MutableList<T>, private val updateMeth
         val addedAny = list.addAll(index, elements)
         if (addedAny) updateMethod()
         return addedAny
+    }
+
+    fun addNoUpdate(index: Int, element: T) {
+        list.add(index, element)
+    }
+
+    fun addNoUpdate(element: T) {
+        list.add(element)
     }
 
     override fun add(index: Int, element: T) {
@@ -69,10 +78,32 @@ class SyncableListImpl<T : Any>(val list: MutableList<T>, private val updateMeth
         }
     }
 
+    fun removeAtNoUpdate(index: Int) {
+        list.removeAt(index)
+    }
+
+    fun removeIfNoUpdate(filter: Predicate<T>): Boolean {
+        val each = Itr(list.iterator())
+        var removed = false
+
+        while (each.hasNext()) {
+            if (filter.test(each.next())) {
+                each.removeNoUpdate()
+                removed = true
+            }
+        }
+
+        return removed
+    }
+
     override fun set(index: Int, element: T): T {
         return list.set(index, element).apply {
             updateMethod()
         }
+    }
+
+    fun setNoUpdate(index: Int, element: T) {
+        list.set(index, element)
     }
 
     override fun retainAll(elements: Collection<T>): Boolean {
@@ -93,6 +124,10 @@ class SyncableListImpl<T : Any>(val list: MutableList<T>, private val updateMeth
         return changedAny
     }
 
+    fun removeNoUpdate(element: T) {
+        list.remove(element)
+    }
+
     override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> {
         return list.subList(fromIndex, toIndex)
     }
@@ -107,6 +142,10 @@ class SyncableListImpl<T : Any>(val list: MutableList<T>, private val updateMeth
         override fun remove() {
             internalIterator.remove()
             updateMethod()
+        }
+
+        fun removeNoUpdate() {
+            internalIterator.remove()
         }
     }
 
