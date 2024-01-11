@@ -10,6 +10,7 @@ import com.mojang.math.Vector3f
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.util.Mth
 import ru.hollowhorizon.hc.client.render.OpenGLUtils
+import ru.hollowhorizon.hc.client.utils.math.Interpolation
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.pow
@@ -171,7 +172,7 @@ class Spline3D(points: List<Vector3d>, val rotations: List<Vector3f>) {
         val current = rotations[index]
         val next = if(index == rotations.size - 1) current else rotations[index + 1]
 
-        val percent = ((rotations.size - 1) * t.toFloat()) % 1.0f
+        val percent = Interpolation.CUBIC_IN_OUT.function(((rotations.size - 1) * t.toFloat()) % 1.0f)
 
         return Vector3f(
             Mth.rotLerp(percent, current.x(), next.x()),
