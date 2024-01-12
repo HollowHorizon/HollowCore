@@ -55,7 +55,10 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
                 if (animPose != null) {
                     when (it.layerMode) {
                         LayerMode.ADD -> transform.add(animPose)
-                        LayerMode.OVERWRITE -> transform.set(node.fromLocal(animPose))
+                        LayerMode.OVERWRITE -> {
+                            node.clearTransform() 
+                            transform.set(node.fromLocal(animPose))
+                        }
                     }
                 }
             }
