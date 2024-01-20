@@ -50,6 +50,8 @@ class BoxWidget(
         verticalSlider?.onValueChange { value ->
             originY = offsetY + (maxHeight * value).toInt()
         }
+
+        checkSliders()
     }
 
     override fun renderButton(stack: PoseStack, mouseX: Int, mouseY: Int, ticks: Float) {
