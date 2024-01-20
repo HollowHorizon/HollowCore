@@ -3,12 +3,17 @@ package ru.hollowhorizon.hc.client.models.gltf.manager
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.AbstractTexture
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent
+import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL12
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 import ru.hollowhorizon.hc.client.models.gltf.GltfModel
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 
 object GltfManager {
@@ -23,6 +28,54 @@ object GltfManager {
     @JvmStatic
     fun onReload(event: RegisterClientReloadListenersEvent) {
         lightTexture = Minecraft.getInstance().getTextureManager().getTexture(ResourceLocation("dynamic/light_map_1"))
+
+        val currentTexture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
+
+        val defaultColorMap = GL11.glGenTextures()
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, defaultColorMap)
+        GL11.glTexImage2D(
+            GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, 2, 2, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, create(
+                byteArrayOf(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+            )
+        )
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0)
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0)
+
+        Minecraft.getInstance().textureManager.register(ResourceLocation("hc:default_color_map"), object : AbstractTexture() {
+            init {
+                id = defaultColorMap
+            }
+
+            override fun load(p0: ResourceManager) {}
+        })
+
+        val defaultNormalMap = GL11.glGenTextures()
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, defaultNormalMap)
+        GL11.glTexImage2D(
+            GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA, 2, 2, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, create(
+                byteArrayOf(-128, -128, -1, -1, -128, -128, -1, -1, -128, -128, -1, -1, -128, -128, -1, -1)
+            )
+        )
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0)
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0)
+
+        Minecraft.getInstance().textureManager.register(ResourceLocation("hc:default_normal_map"), object : AbstractTexture() {
+            init {
+                id = defaultNormalMap
+            }
+
+            override fun load(p0: ResourceManager) {}
+        })
+
+        Minecraft.getInstance().textureManager.register(ResourceLocation("hc:default_specular_map"), object : AbstractTexture() {
+            init {
+                id = 0
+            }
+
+            override fun load(p0: ResourceManager) {}
+        })
+
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture)
 
         createSkinningProgramGL33()
 
@@ -89,4 +142,16 @@ object GltfManager {
         )
         GL20.glLinkProgram(glProgramSkinning)
     }
+}
+
+fun create(data: ByteArray): ByteBuffer {
+    return create(data, 0, data.size)
+}
+
+fun create(data: ByteArray?, offset: Int, length: Int): ByteBuffer {
+    val byteBuffer = ByteBuffer.allocateDirect(length)
+    byteBuffer.order(ByteOrder.LITTLE_ENDIAN)
+    byteBuffer.put(data, offset, length)
+    byteBuffer.position(0)
+    return byteBuffer
 }

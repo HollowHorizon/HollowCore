@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.texture.DynamicTexture
-import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
@@ -65,7 +64,7 @@ object GltfTree {
         val buffers = parseBuffers(file, folder)
         val bufferViews = parseBufferViews(file, buffers)
         val accessors = parseAccessors(file, bufferViews)
-        val textures = mutableSetOf<ResourceLocation>()
+        val textures = mutableSetOf<Material>()
         val meshes = parseMeshes(file, accessors, bufferViews, location, textures, folder)
         val skins = parseSkins(file, accessors)
         val scenes = parseScenes(file, meshes, skins)
@@ -281,13 +280,13 @@ object GltfTree {
         accessors: List<Buffer>,
         bufferViews: List<ByteArray>,
         location: ResourceLocation,
-        textures: MutableSet<ResourceLocation>,
+        textures: MutableSet<Material>,
         folder: (String) -> InputStream,
     ): List<Mesh> {
         return file.meshes.map { mesh ->
             val primitives = mesh.primitives.map { prim ->
-
-                val attr = prim.attributes.map { (k, v) ->
+                val attributes = GltfAttribute.values().map { it.name }
+                val attr = prim.attributes.filter { it.key in attributes }.map { (k, v) ->
                     Pair(GltfAttribute.valueOf(k), accessors[v])
                 }.toMap()
 
@@ -295,7 +294,6 @@ object GltfTree {
                 val mode = GltfMode.fromId(prim.mode)
 
                 val material = getMaterial(file, prim.material, bufferViews, location, folder)
-                    ?: TextureManager.INTENTIONAL_MISSING_TEXTURE
                 textures += material
 
                 Primitive(attr, indices, mode, material)
@@ -311,23 +309,60 @@ object GltfTree {
         bufferViews: List<ByteArray>,
         location: ResourceLocation,
         folder: (String) -> InputStream,
-    ): ResourceLocation? {
-        if (mat == null) return null
+    ): Material {
+        if (mat == null) return Material()
         val material = file.materials[mat]
 
-        val texture = material.pbrMetallicRoughness?.baseColorTexture?.index
-            ?: return if (material.name != null) "$MODID:textures/models/${material.name}.png".lowercase().rl
-            else null
-        val image = file.textures[texture].source ?: return null
-        file.images[image].bufferView?.let { index ->
-            val data = bufferViews[index]
+        val color = material.pbrMetallicRoughness?.baseColorFactor ?: Vector4f(1.0f, 1.0f, 1.0f, 1.0f)
+
+        val textureId = material.pbrMetallicRoughness?.baseColorTexture?.index ?: -1
+
+        if (textureId == -1)
+            return if (material.name != null) Material(
+                color, ResourceLocation(MODID, "textures/models/${material.name}.png".lowercase()), doubleSided = material.doubleSided
+            )
+            else Material(color, doubleSided = material.doubleSided)
+
+        val texture = getTexture(file, bufferViews, location, folder, textureId) ?: ResourceLocation("hc:default_color_map")
+        var normalTexture = ResourceLocation("hc:default_normal_map")
+        material.normalTexture?.index?.let {
+            getTexture(file, bufferViews, location, folder, it)?.let { texture ->
+                normalTexture = texture
+            }
+        }
+        var occlusionTexture = ResourceLocation("hc:default_normal_map")
+        material.occlusionTexture?.index?.let {
+            getTexture(file, bufferViews, location, folder, it)?.let { texture ->
+                occlusionTexture = texture
+            }
+        }
+
+
+        return Material(color, texture, normalTexture, occlusionTexture, material.doubleSided)
+    }
+
+    fun getTexture(
+        file: GltfFile,
+        bufferViews: List<ByteArray>,
+        model: ResourceLocation,
+        folder: (String) -> InputStream,
+        index: Int,
+    ): ResourceLocation? {
+        val texture = file.textures[index]
+        val generatedTextureName = "gltf_texture_${model.path.replace("/", ".")}_$index"
+        val image = texture.source ?: return null
+
+        file.images[image].bufferView?.let { bufferId ->
+            val data = bufferViews[bufferId]
             val stream = ByteArrayInputStream(data)
 
             val dynamicTexture = DynamicTexture(NativeImage.read(stream))
-            var textureName = file.textures[texture].name?.substringBefore(".png")
-                ?: "" //Название изначально может быть пустым, а не только null, так что строчка ниже не просто так
-            if (textureName.isEmpty()) textureName = "gltf_texture_${location.path.replace("/", ".")}_$texture"
-            val textureLocation = ResourceLocation(MODID, textureName)
+
+            //Название изначально может быть пустым, а не только null, так что строчка ниже не просто так
+            var textureName = texture.name?.substringBefore(".png") ?: ""
+            if (textureName.isEmpty()) textureName = generatedTextureName
+
+            val textureLocation = ResourceLocation(MODID, textureName.lowercase())
 
             if (!TEXTURE_MAP.contains(textureLocation)) {
                 TEXTURE_MAP[textureLocation] = dynamicTexture
@@ -344,10 +379,10 @@ object GltfTree {
                 if (texturePath.startsWith("data:image/png;base64,")) {
                     val decoded = folder(texturePath)
                     val dynamicTexture = DynamicTexture(NativeImage.read(decoded))
-                    var textureName = file.textures[texture].name?.substringBefore(".png")
+                    var textureName = texture.name?.substringBefore(".png")
                         ?: "" //Название изначально может быть пустым, а не только null, так что строчка ниже не просто так
-                    if (textureName.isEmpty()) textureName = "gltf_texture_${location.path.replace("/", ".")}_$texture"
-                    val textureLocation = ResourceLocation(MODID, textureName)
+                    if (textureName.isEmpty()) textureName = "gltf_texture_${model.path.replace("/", ".")}_$index"
+                    val textureLocation = ResourceLocation(MODID, textureName.lowercase())
 
                     if (!TEXTURE_MAP.contains(textureLocation)) {
                         TEXTURE_MAP[textureLocation] = dynamicTexture
@@ -356,13 +391,13 @@ object GltfTree {
 
                     return textureLocation
                 }
-                return ResourceLocation("base64:value")
+                return null
             }
 
             return ResourceLocation(texturePath)
         }
 
-        val relativeModelPath = location.path.substringAfter("models/")
+        val relativeModelPath = model.path.substringAfter("models/")
         val localPath = relativeModelPath.substringBeforeLast('/', "")
 
         val finalPath = buildString {
@@ -373,7 +408,7 @@ object GltfTree {
             append(texturePath.substringBeforeLast('.'))
         }
 
-        return ResourceLocation(location.namespace, finalPath)
+        return ResourceLocation(model.namespace, finalPath.lowercase())
     }
 
     private fun parseScenes(file: GltfFile, meshes: List<Mesh>, skins: List<Skin>): List<Scene> {
@@ -439,7 +474,7 @@ object GltfTree {
         val scene: Int,
         val scenes: List<Scene>,
         val animations: List<Animation>,
-        val textures: Set<ResourceLocation>,
+        val materials: Set<Material>,
         val extra: Any?,
     ) {
         fun walkNodes(): List<Node> {
@@ -456,6 +491,14 @@ object GltfTree {
             return walkNodes().find { it.index == index }
         }
     }
+
+    data class Material(
+        val color: Vector4f = Vector4f(1f, 1f, 1f, 1f),
+        val texture: ResourceLocation = ResourceLocation("hc:default_color_map"),
+        val normalTexture: ResourceLocation = ResourceLocation("hc:default_normal_map"),
+        val specularTexture: ResourceLocation = ResourceLocation("hc:default_specular_map"),
+        val doubleSided: Boolean = false,
+    )
 
     data class Scene(
         val nodes: List<Node>,
@@ -504,7 +547,7 @@ object GltfTree {
             stack: PoseStack,
             nodeRenderer: NodeRenderer,
             data: ModelData,
-            light: Int
+            light: Int,
         ) {
             stack.use {
                 mulPoseMatrix(localMatrix)
@@ -575,7 +618,7 @@ object GltfTree {
             consumer: (ResourceLocation) -> RenderType,
         ) {
             primitives.forEach {
-                it.renderForVanilla(stack, node, consumer)
+                it.render(stack, node, consumer)
             }
         }
 
@@ -588,9 +631,10 @@ object GltfTree {
         val attributes: Map<GltfAttribute, Buffer>,
         val indices: Buffer? = null,
         val mode: GltfMode,
-        val material: ResourceLocation,
+        val material: Material,
     ) {
         val hasSkinning = attributes[GltfAttribute.JOINTS_0] != null && attributes[GltfAttribute.WEIGHTS_0] != null
+        val hasMidTexCoords = attributes[GltfAttribute.TEXCOORD_1] != null
         private val indexCount = indices?.get<Int>()?.size ?: 0
         private val positionsCount = (attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.size ?: 0) * 3
         var jointCount = 0
@@ -601,6 +645,7 @@ object GltfTree {
         private var vertexBuffer = -1
         private var normalBuffer = -1
         private var texCoordsBuffer = -1
+        private var midCoordsBuffer = -1
         private var indexBuffer = -1
 
         private var glTexture = -1
@@ -666,6 +711,19 @@ object GltfTree {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, texCoordsBuffer)
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 0, 0)
+            }
+
+            if (hasMidTexCoords) {
+                attributes[GltfAttribute.TEXCOORD_1]?.get<Pair<Float, Float>>()?.run {
+                    val texCords = BufferUtils.createFloatBuffer(this.size * 2)
+                    for (t in this) texCords.put(t.first).put(t.second)
+                    texCords.flip()
+
+                    midCoordsBuffer = GL33.glGenBuffers()
+                    GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, midCoordsBuffer)
+                    GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
+                    GL33.glVertexAttribPointer(12, 2, GL33.GL_FLOAT, false, 0, 0)
+                }
             }
 
             indices?.get<Int>()?.run {
@@ -753,22 +811,35 @@ object GltfTree {
             GL15.glBindBuffer(GL31.GL_TEXTURE_BUFFER, 0)
         }
 
-        fun renderForVanilla(
+        fun render(
             stack: PoseStack,
             node: Node,
             consumer: (ResourceLocation) -> RenderType,
         ) {
+            val hasShaders = areShadersEnabled
             val shader =
-                if (!areShadersEnabled) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!
+                if (!hasShaders) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!
             //Всякие настройки смешивания, материалы и т.п.
-            val type = consumer(material)
+            val type = consumer(material.texture)
             type.setupRenderState()
 
+            //pbr, отражения и т.п.
+//            if(hasShaders) {
+//                RenderSystem.setShaderTexture(1, material.normalTexture)
+//                RenderSystem.setShaderTexture(3, material.specularTexture)
+//
+//                GL13.glActiveTexture(GL13.GL_TEXTURE1)
+//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(1))
+//                GL13.glActiveTexture(GL13.GL_TEXTURE3)
+//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(3))
+//            }
+
+            GL13.glActiveTexture(GL13.GL_TEXTURE0)
             GL33.glBindTexture(GL33.GL_TEXTURE_2D, RenderSystem.getShaderTexture(0))
 
             RenderSystem.enableBlend()
             RenderSystem.defaultBlendFunc()
-            GL11.glEnable(GL11.GL_CULL_FACE)
+            if(material.doubleSided) GL11.glEnable(GL11.GL_CULL_FACE)
 
             //Подключение VAO и IBO
             GL33.glBindVertexArray(vao)
@@ -777,6 +848,7 @@ object GltfTree {
             GL33.glEnableVertexAttribArray(0) // Вершины
             GL33.glEnableVertexAttribArray(2) // Текстурные координаты
             GL33.glEnableVertexAttribArray(5) // Нормали
+            if (hasMidTexCoords) GL20.glEnableVertexAttribArray(12) //координаты для глубины (pbr)
 
             //Матрица
             shader.MODEL_VIEW_MATRIX?.set(RenderSystem.getModelViewMatrix().copy()
@@ -800,6 +872,7 @@ object GltfTree {
             GL33.glDisableVertexAttribArray(0)
             GL33.glDisableVertexAttribArray(2)
             GL33.glDisableVertexAttribArray(5)
+            if (hasMidTexCoords) GL20.glDisableVertexAttribArray(12)
 
             // Очистка настроек
             type.clearRenderState()
@@ -862,6 +935,7 @@ object GltfTree {
             GL30.glDeleteBuffers(vertexBuffer)
             GL30.glDeleteBuffers(texCoordsBuffer)
             GL30.glDeleteBuffers(normalBuffer)
+            GL30.glDeleteBuffers(midCoordsBuffer)
 
             GL30.glDeleteBuffers(skinVertexBuffer)
             GL30.glDeleteBuffers(skinNormalBuffer)
