@@ -1,15 +1,25 @@
 package ru.hollowhorizon.hc.client.models.gltf.animations
 
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.world.entity.animal.Pig
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.entity.vehicle.Boat
+import net.minecraft.world.entity.vehicle.Minecart
+import net.minecraft.world.phys.Vec3
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.gltf.GltfModel
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.LayerMode
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 
 open class GLTFAnimationPlayer(val model: GltfModel) {
     private val templates: HashMap<AnimationType, String> = AnimationType.load(model.modelTree)
     private val nodeModels = model.modelTree.walkNodes()
+    private var currentSpeed = 1f
     val nameToAnimationMap: Map<String, Animation> = model.modelTree.animations.associate {
         val name = it.name ?: "Unnamed"
         name to AnimationLoader.createAnimation(
@@ -25,6 +35,8 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
 
     fun updateEntity(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
         val switchRot = capability.switchHeadRot
+        currentSpeed = entity.attributes.getValue(Attributes.MOVEMENT_SPEED).toFloat() / 0.2f
+        if(entity.isShiftKeyDown) currentSpeed *= 0.6f
         head.forEach {
             val newRot = capability.headLayer.computeRotation(entity, switchRot, partialTick)
             it.transform.setRotation(newRot)
@@ -36,7 +48,7 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
      */
     fun update(capability: AnimatedEntityCapability, partialTick: Float) {
         val definedLayer = capability.definedLayer
-        definedLayer.update(currentLoopAnimation, currentTick, partialTick)
+        definedLayer.update(currentLoopAnimation, currentSpeed, currentTick, partialTick)
         val animationOverrides = typeToAnimationMap + capability.animations.mapNotNull {
             it.key to (nameToAnimationMap[it.value] ?: return@mapNotNull null)
         }.toMap()
@@ -46,9 +58,10 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
         nodeModels.parallelStream().forEach { node ->
             node.clearTransform()
             val transform = node.transform.copy()
-            definedLayer.computeTransform(node, animationOverrides, currentTick, partialTick)?.let { animPose ->
-                transform.set(node.fromLocal(animPose))
-            }
+            definedLayer.computeTransform(node, animationOverrides, currentSpeed, currentTick, partialTick)
+                ?.let { animPose ->
+                    transform.set(node.fromLocal(animPose))
+                }
             layers.forEach {
                 val animPose = it.computeTransform(node, nameToAnimationMap, currentTick, partialTick)
 
@@ -56,7 +69,7 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
                     when (it.layerMode) {
                         LayerMode.ADD -> transform.add(animPose)
                         LayerMode.OVERWRITE -> {
-                            node.clearTransform() 
+                            node.clearTransform()
                             transform.set(node.fromLocal(animPose))
                         }
                     }

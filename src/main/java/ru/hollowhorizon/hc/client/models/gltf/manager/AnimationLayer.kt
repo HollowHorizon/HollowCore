@@ -99,8 +99,8 @@ class DefinedLayer {
     private var currentStartTime = 0
     private var priority = 0f
 
-    fun update(animationType: AnimationType, currentTick: Int, partialTick: Float) {
-        priority = ((currentTick - currentStartTime + partialTick) / 10f).coerceAtMost(1f)
+    fun update(animationType: AnimationType, currentSpeed: Float, currentTick: Int, partialTick: Float) {
+        priority = ((currentTick - currentStartTime + partialTick) / 10f * currentSpeed).coerceAtMost(1f)
         if (animationType == currentAnimation) return
         lastAnimation = currentAnimation
         currentAnimation = animationType
@@ -113,14 +113,20 @@ class DefinedLayer {
     fun computeTransform(
         node: GltfTree.Node,
         animationCache: Map<AnimationType, Animation>,
+        currentSpeed: Float,
         currentTick: Int,
         partialTick: Float,
     ): Transformation? {
         val f = animationCache[currentAnimation]
         val s = animationCache[lastAnimation]
-        val firstTime = (currentTick + partialTick) / 20 % (f?.maxTime ?: 0f)
-        val secondTime = (currentTick + partialTick) / 20 % (s?.maxTime ?: 0f)
-        //return f?.compute(node, firstTime)
+
+        val speed = if(currentAnimation.hasSpeed) currentSpeed else 1.0f
+
+        val time = (currentTick + partialTick) / 20 * speed
+
+        val firstTime = time % (f?.maxTime ?: 0f)
+        val secondTime = time % (s?.maxTime ?: 0f)
+
         return Transformation.lerp(
             s?.compute(node, secondTime),
             f?.compute(node, firstTime),

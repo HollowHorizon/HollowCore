@@ -65,6 +65,8 @@ enum class AnimationType {
     IDLE, IDLE_SNEAKED, WALK, WALK_SNEAKED, HURT,
     RUN, SWIM, FALL, FLY, SIT, SLEEP, SWING, DEATH;
 
+    val hasSpeed get() = this == RUN || this == WALK || this == WALK_SNEAKED
+
     companion object {
         @JvmStatic
         fun load(model: GltfTree.GLTFTree): HashMap<AnimationType, String> {
