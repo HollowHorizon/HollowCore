@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.spongepowered.asm.gradle.plugins.MixinExtension
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 val minecraft_version: String by project
 val forge_version: String by project
@@ -13,6 +14,10 @@ val mod_group: String by project
 val mod_version: String by project
 val mappings_version: String by project
 val mod_author: String by project
+
+val userConfig = Properties()
+val cfg = rootProject.file("user.properties")
+if (cfg.exists()) userConfig.load(cfg.inputStream())
 
 buildscript {
     dependencies {
@@ -125,7 +130,7 @@ dependencies {
     shadow("com.esotericsoftware:kryo:5.4.0")
 }
 
-if (System.getProperty("user.name").equals("user")) {
+if (System.getProperty("user.name").equals(userConfig.getProperty("user"))) {
     tasks.getByName("shadowJar").finalizedBy("copyJar")
 }
 
