@@ -17,6 +17,7 @@ import ru.hollowhorizon.hc.client.models.gltf.animations.Animation
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.gltf.manager.SubModel
 import ru.hollowhorizon.hc.client.utils.areShadersEnabled
 import ru.hollowhorizon.hc.common.registry.ModShaders
 
@@ -31,7 +32,7 @@ class ModelData(
 typealias NodeRenderer = (LivingEntity, PoseStack, GltfTree.Node, Int) -> Unit
 
 class GltfModel(val modelTree: GltfTree.GLTFTree) {
-    val bindPose = Animation.createFromPose(modelTree.walkNodes())
+    val nodes = modelTree.walkNodes().associateBy { (it.name ?: "Unnamed") }
     val animationPlayer = GLTFAnimationPlayer(this)
     var visuals: NodeRenderer = { _, _, _, _ -> }
 

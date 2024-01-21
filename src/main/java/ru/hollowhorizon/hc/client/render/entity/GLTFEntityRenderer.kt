@@ -27,12 +27,17 @@ import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.animations.PlayMode
 import ru.hollowhorizon.hc.client.models.gltf.manager.*
-import ru.hollowhorizon.hc.client.utils.*
+import ru.hollowhorizon.hc.client.utils.SkinDownloader
+import ru.hollowhorizon.hc.client.utils.get
+import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.client.utils.use
 
 
 open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimated {
-    val itemInHandRenderer = manager.itemInHandRenderer
+    val itemInHandRenderer = manager.itemInHandRenderer.apply {
+        GltfEntityUtil.itemRenderer = this
+    }
 
     val renderType = Util.memoize { texture: ResourceLocation, data: Boolean ->
         val state =
@@ -88,7 +93,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             ModelData(entity.offhandItem, entity.mainHandItem, itemInHandRenderer, entity),
             { texture ->
                 val result = capability.textures[texture.path]?.let {
-                    if(it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
+                    if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
                     else it.rl
                 } ?: texture
 
@@ -97,6 +102,16 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             packedLight,
             OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
         )
+
+        capability.subModels.forEach { (node, child) ->
+            model.nodes[node]?.let {
+                stack.use {
+                    stack.mulPoseMatrix(it.globalMatrix)
+                    GltfEntityUtil.render(entity, child, entity.tickCount, partialTick, stack, packedLight)
+                }
+            }
+        }
+
         stack.popPose()
     }
 
@@ -111,7 +126,9 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             node.name.contains("item", ignoreCase = true)
         ) {
             val isLeft = node.name.contains("left", ignoreCase = true)
-            val item = (if (isLeft) entity.getItemInHand(InteractionHand.OFF_HAND) else entity.getItemInHand(InteractionHand.MAIN_HAND)) ?: return
+            val item =
+                (if (isLeft) entity.getItemInHand(InteractionHand.OFF_HAND) else entity.getItemInHand(InteractionHand.MAIN_HAND))
+                    ?: return
 
             stack.pushPose()
             stack.mulPose(Vector3f.XP.rotationDegrees(-90.0f))
@@ -145,7 +162,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         when {
             entity.hurtTime > 0 -> {
                 val name = manager.typeToAnimationMap[AnimationType.HURT]?.name ?: return
-                if(capability.layers.any { it.animation == name }) {
+                if (capability.layers.any { it.animation == name }) {
                     capability.layers.filter { it.animation == name }.forEach { it.time = 0 }
                     return
                 }
@@ -157,9 +174,10 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                     1.0f, fadeIn = 5
                 )
             }
+
             entity.swinging -> {
                 val name = manager.typeToAnimationMap[AnimationType.SWING]?.name ?: return
-                if(capability.layers.any { it.animation == name }) {
+                if (capability.layers.any { it.animation == name }) {
                     capability.layers.filter { it.animation == name }.forEach { it.time = 0 }
                     return
                 }
@@ -171,9 +189,10 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                     1.0f, fadeIn = 5
                 )
             }
+
             !entity.isAlive -> {
                 val name = manager.typeToAnimationMap[AnimationType.DEATH]?.name ?: return
-                if(capability.layers.any { it.animation == name }) return
+                if (capability.layers.any { it.animation == name }) return
 
                 capability.layers += AnimationLayer(
                     name,

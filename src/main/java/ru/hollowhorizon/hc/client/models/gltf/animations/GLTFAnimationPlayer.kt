@@ -18,7 +18,7 @@ import kotlin.math.sqrt
 
 open class GLTFAnimationPlayer(val model: GltfModel) {
     private val templates: HashMap<AnimationType, String> = AnimationType.load(model.modelTree)
-    private val nodeModels = model.modelTree.walkNodes()
+    val nodeModels = model.modelTree.walkNodes()
     private var currentSpeed = 1f
     val nameToAnimationMap: Map<String, Animation> = model.modelTree.animations.associate {
         val name = it.name ?: "Unnamed"
