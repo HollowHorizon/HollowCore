@@ -33,7 +33,7 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: Component
         }
 
         widgets.forEach { widget ->
-            if (!widget.visible) return
+            if (!widget.visible) return@forEach
 
             renderWidget(widget, stack, mouseX, mouseY, ticks)
         }

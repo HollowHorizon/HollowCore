@@ -36,7 +36,7 @@ val isLogicalServer get() = !isLogicalClient
 val isPhysicalClient get() = FMLEnvironment.dist.isClient
 val isPhysicalServer get() = !isPhysicalClient
 
-val hasShaders = ModList.get().isLoaded("oculus") || ModList.get().isLoaded("optifine")
+val hasShaders get() = ModList.get().isLoaded("oculus") || ModList.get().isLoaded("optifine")
 
 val areShadersEnabled get() = hasShaders && IrisApi.getInstance().config.areShadersEnabled()
 

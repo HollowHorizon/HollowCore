@@ -55,8 +55,6 @@ class BoxWidget(
     }
 
     override fun renderButton(stack: PoseStack, mouseX: Int, mouseY: Int, ticks: Float) {
-        checkSliders()
-
         renderer(stack, x, y, width, height)
 
         super.renderButton(stack, mouseX, mouseY, ticks)
@@ -210,6 +208,8 @@ class WidgetBuilder(
         return ScreenPos(this.value + another.value, prev.width(), prev.height(), prev.padding)
     }
 
+    fun lineBreak() = +LineBreak()
+
     operator fun <T : AbstractWidget> T.unaryPlus(): T {
         widgets.add(this)
         val align = prev.alignElements
@@ -223,15 +223,17 @@ class WidgetBuilder(
                 var maxHeight = 0
 
                 widgets.forEach { widget ->
-                    if (currentRowWidth + widget.width > width()) {
+                    if (currentRowWidth + widget.width > width() || widget is LineBreak) {
                         sizedWidgets.add(currentRow)
                         maxHeight += (currentRow.maxOfOrNull { it.height } ?: 0) + prev.spacing.height.value
                         currentRow = arrayListOf()
                         currentRowWidth = 0
                     }
 
-                    currentRow.add(widget)
-                    currentRowWidth += widget.width + prev.spacing.width.value
+                    if(widget !is LineBreak) {
+                        currentRow.add(widget)
+                        currentRowWidth += widget.width + prev.spacing.width.value
+                    }
                 }
 
                 if (currentRow.isNotEmpty()) {
@@ -261,15 +263,14 @@ class WidgetBuilder(
             }
 
             PlacementType.VERTICAL -> {
-                val freeWidth =
-                    width() - widgets.maxOf { it.width } - prev.spacing.width.value
                 val freeHeight =
                     height() - widgets.sumOf { it.height + prev.spacing.height.value } + prev.spacing.height.value
 
                 var yDelta = (y() + freeHeight * align.factorY()).toInt()
 
                 widgets.forEach { widget ->
-                    widget.x = (x() + (width() - freeWidth) * align.factorX() - widget.width * align.factorX()).toInt()
+
+                    widget.x = (x() + width() * align.factorX() - widget.width * align.factorX()).toInt()
                     widget.y = yDelta
 
                     yDelta += widget.height + prev.spacing.height.value
@@ -279,15 +280,13 @@ class WidgetBuilder(
             PlacementType.HORIZONTAL -> {
                 val freeWidth =
                     width() - widgets.sumOf { it.width + prev.spacing.width.value } + prev.spacing.width.value
-                val freeHeight =
-                    height() - widgets.maxOf { it.height } - prev.spacing.height.value
 
                 var xDelta = (x() + freeWidth * align.factorX()).toInt()
 
                 widgets.forEach { widget ->
                     widget.x = xDelta
                     widget.y =
-                        (y() + (height() - freeHeight) * align.factorY() - widget.height * align.factorY()).toInt()
+                        (y() + height() * align.factorY() - widget.height * align.factorY()).toInt()
 
                     xDelta += widget.width + prev.spacing.width.value
                 }
