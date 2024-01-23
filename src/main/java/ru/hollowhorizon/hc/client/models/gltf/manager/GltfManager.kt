@@ -12,6 +12,7 @@ import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 import ru.hollowhorizon.hc.client.models.gltf.GltfModel
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
+import ru.hollowhorizon.hc.client.textures.GIF_TEXTURES
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -41,13 +42,15 @@ object GltfManager {
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0)
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0)
 
-        Minecraft.getInstance().textureManager.register(ResourceLocation("hc:default_color_map"), object : AbstractTexture() {
-            init {
-                id = defaultColorMap
-            }
+        Minecraft.getInstance().textureManager.register(
+            ResourceLocation("hc:default_color_map"),
+            object : AbstractTexture() {
+                init {
+                    id = defaultColorMap
+                }
 
-            override fun load(p0: ResourceManager) {}
-        })
+                override fun load(p0: ResourceManager) {}
+            })
 
         val defaultNormalMap = GL11.glGenTextures()
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, defaultNormalMap)
@@ -59,21 +62,25 @@ object GltfManager {
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_BASE_LEVEL, 0)
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL12.GL_TEXTURE_MAX_LEVEL, 0)
 
-        Minecraft.getInstance().textureManager.register(ResourceLocation("hc:default_normal_map"), object : AbstractTexture() {
-            init {
-                id = defaultNormalMap
-            }
+        Minecraft.getInstance().textureManager.register(
+            ResourceLocation("hc:default_normal_map"),
+            object : AbstractTexture() {
+                init {
+                    id = defaultNormalMap
+                }
 
-            override fun load(p0: ResourceManager) {}
-        })
+                override fun load(p0: ResourceManager) {}
+            })
 
-        Minecraft.getInstance().textureManager.register(ResourceLocation("hc:default_specular_map"), object : AbstractTexture() {
-            init {
-                id = 0
-            }
+        Minecraft.getInstance().textureManager.register(
+            ResourceLocation("hc:default_specular_map"),
+            object : AbstractTexture() {
+                init {
+                    id = 0
+                }
 
-            override fun load(p0: ResourceManager) {}
-        })
+                override fun load(p0: ResourceManager) {}
+            })
 
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, currentTexture)
 
@@ -82,6 +89,8 @@ object GltfManager {
         event.registerReloadListener(ResourceManagerReloadListener {
             models.values.forEach { it.destroy() }
             models.clear()
+            GIF_TEXTURES.forEach { it.value.releaseId() }
+            GIF_TEXTURES.clear()
         })
     }
 

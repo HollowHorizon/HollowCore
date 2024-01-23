@@ -1,0 +1,114 @@
+package ru.hollowhorizon.hc.client.textures
+
+import com.mojang.blaze3d.platform.GlStateManager
+import com.mojang.blaze3d.platform.NativeImage
+import com.mojang.blaze3d.platform.TextureUtil
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.texture.SimpleTexture
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.packs.resources.ResourceManager
+import org.apache.commons.io.IOUtils
+import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.handlers.ClientTickHandler
+import java.io.*
+import java.util.*
+import javax.imageio.ImageIO
+import javax.imageio.ImageReadParam
+
+@JvmField
+val GIF_TEXTURES = HashMap<ResourceLocation, GifTexture>()
+
+class GifTexture(location: ResourceLocation) : SimpleTexture(location) {
+    val frames = HashMap<Int, NativeImage>()
+    var keys: IntArray = IntArray(1) { 0 }
+    var fullTime = 1
+
+    val Int.animIndex: Int
+        get() {
+            val index = Arrays.binarySearch(keys, this)
+
+            return if (index >= 0) index
+            else 0.coerceAtLeast(-index - 2)
+        }
+
+    override fun getId(): Int {
+        val id = super.getId()
+        val time = (ClientTickHandler.ticks + Minecraft.getInstance().partialTick).toInt() % fullTime
+
+        val frame = frames[keys[time.animIndex]]
+
+        GlStateManager._bindTexture(id)
+        frame?.upload(0, 0, 0, false)
+
+        return id
+    }
+
+    override fun load(pResourceManager: ResourceManager) {
+        try {
+            val data: ByteArray = IOUtils.toByteArray(pResourceManager.getResource(location).get().open())
+            val type = readType(ByteArrayInputStream(data))
+            if (type.equals("gif", ignoreCase = true)) {
+                    val gifDecoder = GifDecoder()
+                    val status = gifDecoder.read(BufferedInputStream(ByteArrayInputStream(data)))
+                    if (status == 0) {
+                        keys = IntArray(gifDecoder.frameCount)
+                        keys[0] = 0
+
+                        var stream = ByteArrayOutputStream()
+                        ImageIO.write(gifDecoder.getFrame(0), "png", stream)
+                        stream.flush()
+                        this.frames[0] = NativeImage.read(ByteArrayInputStream(stream.toByteArray()))
+
+
+                        for (i in 1 until gifDecoder.frameCount) {
+                            stream = ByteArrayOutputStream()
+                            ImageIO.write(gifDecoder.getFrame(i), "png", stream)
+                            stream.flush()
+                            val time = gifDecoder.getDelay(i) / 50 //перевод в тики
+                            keys[i] = keys[i - 1] + time
+                            this.frames[keys[i]] = NativeImage.read(ByteArrayInputStream(stream.toByteArray()))
+
+                            stream.close()
+                        }
+                        fullTime = frames.keys.last()
+
+                        TextureUtil.prepareImage(super.getId(), frames[0]!!.width, frames[0]!!.height)
+                    }
+            }
+
+            //nativeimage = NativeImage.read(ByteArrayInputStream(data))
+        } catch (var5: IOException) {
+            HollowCore.LOGGER.warn("Error while loading the texture", var5)
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun readType(input: InputStream): String {
+        input.mark(0)
+        val stream = ImageIO.createImageInputStream(input)
+        val imageReaders = ImageIO.getImageReaders(stream)
+        if (!imageReaders.hasNext()) {
+            return ""
+        } else {
+            val reader = imageReaders.next()
+            if (reader.formatName.equals("gif", ignoreCase = true)) {
+                return "gif"
+            } else {
+                val param: ImageReadParam = reader.defaultReadParam
+                reader.setInput(stream, true, true)
+
+                try {
+                    reader.read(0, param)
+                } catch (var9: IOException) {
+                    HollowCore.LOGGER.error("Failed to parse input format", var9)
+                } finally {
+                    reader.dispose()
+                    stream.close()
+                }
+
+                input.reset()
+                return reader.formatName
+            }
+        }
+    }
+}

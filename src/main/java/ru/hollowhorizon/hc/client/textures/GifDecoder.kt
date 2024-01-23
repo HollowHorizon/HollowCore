@@ -1,3 +1,5 @@
+package ru.hollowhorizon.hc.client.textures
+
 import java.awt.AlphaComposite
 import java.awt.Color
 import java.awt.Dimension
@@ -74,7 +76,7 @@ open class GifDecoder {
      * Gets the number of frames read from file.
      * @return frame count
      */
-    private var frameCount: Int = 0
+    var frameCount: Int = 0
 
     class GifFrame(var image: BufferedImage, var delay: Int)
 
@@ -193,7 +195,7 @@ open class GifDecoder {
      *
      * @return BufferedImage representation of frame, or null if n is invalid.
      */
-    private fun getFrame(n: Int): BufferedImage? {
+    internal fun getFrame(n: Int): BufferedImage? {
         var im: BufferedImage? = null
         if ((n >= 0) && (n < frameCount)) {
             im = frames!![n].image
