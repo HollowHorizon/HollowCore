@@ -14,13 +14,14 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import ru.hollowhorizon.hc.common.network.packets.SpawnParticlesPacket;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class NetworkHandler {
     public static final String MESSAGE_PROTOCOL_VERSION = "1.0";
     public static final ResourceLocation HOLLOW_CORE_CHANNEL = new ResourceLocation("hc", "hollow_core_channel");
-    public static final List<Runnable> PACKET_TASKS = new ArrayList<>();
+    public static final Map<String, List<Runnable>> PACKETS = new HashMap<>();
     public static SimpleChannel HollowCoreChannel;
     public static int PACKET_INDEX = 0;
 
@@ -46,7 +47,10 @@ public class NetworkHandler {
             );
         }
 
-        PACKET_TASKS.forEach(Runnable::run);
+        //без сортировки он может это сделать в любом порядке тем самым поломав сетевую игру
+        PACKETS.keySet().stream().sorted().forEach(it ->
+                PACKETS.get(it).forEach(Runnable::run)
+        );
 
         HollowCoreChannel.registerMessage(PACKET_INDEX++, SpawnParticlesPacket.class, SpawnParticlesPacket::write, SpawnParticlesPacket::read, SpawnParticlesPacket::handle);
     }

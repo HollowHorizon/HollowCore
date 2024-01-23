@@ -34,6 +34,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 open class HollowRegistry {
+    companion object {
+        var currentModId = "hc"
+    }
     //Avoid fake NotNulls parameters like BlockEntityType.Builder::build
     fun <T> promise(): T = null as T
 
@@ -59,8 +62,8 @@ data class ObjectConfig(
 )
 
 @Suppress("UNCHECKED_CAST")
-class RegistryHolder<T>(private val config: ObjectConfig, val supplier: () -> T, val target: Class<T>) {
-    val modId = ModLoadingContext.get().activeContainer.modId
+class RegistryHolder<T>(private val config: ObjectConfig, supplier: () -> T, val target: Class<T>) {
+    val modId = HollowRegistry.currentModId
 
     val registry: DeferredRegister<T> = with(target) {
         when {

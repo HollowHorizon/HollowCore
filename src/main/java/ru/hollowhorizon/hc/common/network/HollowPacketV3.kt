@@ -6,8 +6,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraftforge.network.NetworkDirection
 import net.minecraftforge.network.NetworkEvent
 import net.minecraftforge.network.PacketDistributor
-import org.jetbrains.kotlin.utils.addToStdlib.cast
-import ru.hollowhorizon.hc.client.utils.HollowJavaUtils
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.JavaHacks
 import ru.hollowhorizon.hc.client.utils.mc
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
@@ -27,10 +26,12 @@ interface HollowPacketV3<T> {
     }
 }
 
-fun <T> Class<T>.register() = JavaHacks.registerPacket(this)
+fun <T> Class<T>.register(modId: String) = JavaHacks.registerPacket(this, modId)
 
-fun <T : HollowPacketV3<T>> registerPacket(packetClass: Class<T>) {
-    NetworkHandler.PACKET_TASKS.add {
+fun <T : HollowPacketV3<T>> registerPacket(packetClass: Class<T>, modId: String) {
+    val packets = NetworkHandler.PACKETS.computeIfAbsent(modId) { ArrayList() }
+    packets.add {
+        HollowCore.LOGGER.info("Creating packet {} with id: {}", packetClass.simpleName, NetworkHandler.PACKET_INDEX)
         NetworkHandler.HollowCoreChannel.registerMessage(
             NetworkHandler.PACKET_INDEX++,
             packetClass,

@@ -54,7 +54,6 @@ public class HollowCore {
         HollowModProcessor.initMod();
         LOGGER.info("Starting HollowCore...");
 
-
         IEventBus modBus = ForgeKt.getMOD_CONTEXT().getKEventBus();
         modBus.addListener(this::setup);
         modBus.addListener(this::loadEnd);

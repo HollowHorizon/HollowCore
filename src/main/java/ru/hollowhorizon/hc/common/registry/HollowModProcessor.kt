@@ -2,11 +2,9 @@ package ru.hollowhorizon.hc.common.registry
 
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
-import net.minecraftforge.fml.ModLoadingContext
+import net.minecraftforge.fml.ModList
 import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.forgespi.language.ModFileScanData
-import net.minecraftforge.registries.DeferredRegister
-import net.minecraftforge.registries.IForgeRegistry
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.utils.HollowCommand
@@ -17,11 +15,11 @@ import ru.hollowhorizon.hc.common.commands.HollowCommands
 import ru.hollowhorizon.hc.common.network.*
 import ru.hollowhorizon.hc.core.AsmReflectionMethodGenerator
 import ru.hollowhorizon.hc.core.ReflectionMethod
-import thedarkcolour.kotlinforforge.forge.MOD_CONTEXT
 import java.lang.annotation.ElementType
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import kotlin.jvm.optionals.getOrNull
 
 
 object HollowModProcessor {
@@ -34,7 +32,7 @@ object HollowModProcessor {
         isInitialized = true
         registerHandler<HollowPacketV2> { cont ->
             cont.whenClassTask = { clazz ->
-                if(HollowPacketV3::class.java in clazz.interfaces) clazz.register()
+                if(HollowPacketV3::class.java in clazz.interfaces) clazz.register(cont.modId)
                 else HollowCore.LOGGER.warn("Unsupported packet: ${clazz.simpleName}")
             }
         }
@@ -60,9 +58,10 @@ object HollowModProcessor {
     fun initMod() {
         init()
 
-        val container = ModLoadingContext.get().activeContainer
-
-        run(container.modId, container.modInfo.owningFile.file.scanResult)
+        ModList.get().mods
+            .filter { it.dependencies.any { dep -> dep.modId == HollowCore.MODID } || it.modId == HollowCore.MODID }
+            .mapNotNull { ModList.get().getModContainerById(it.modId).getOrNull() }
+            .forEach { run(it.modId, it.modInfo.owningFile.file.scanResult) }
     }
 
     @Synchronized
@@ -72,7 +71,8 @@ object HollowModProcessor {
         scanResults.classes.stream().filter { it.parent == Type.getType(HollowRegistry::class.java) }.forEach {
             HollowCore.LOGGER.info("Trying to load registerer class: {}", it.clazz)
             //Load kotlin class
-            Class.forName(it.clazz.className).getDeclaredField("INSTANCE").get(null)
+            HollowRegistry.currentModId = modId
+            Class.forName(it.clazz.className).getDeclaredField("INSTANCE").get(null) as HollowRegistry
         }
         scanResults.annotations.stream().filter { it.annotationType in ANNOTATIONS.keys }.forEach { data ->
             val type = data.annotationType
