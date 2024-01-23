@@ -17,7 +17,7 @@ import static ru.hollowhorizon.hc.client.textures.GifTextureKt.GIF_TEXTURES;
 @Mixin(TextureManager.class)
 public class TextureManagerMixin {
 
-    @Shadow @Final private ResourceManager resourceManager;
+    @Shadow(aliases = "f_118471_") @Final private ResourceManager resourceManager;
 
     @Inject(method = "getTexture(Lnet/minecraft/resources/ResourceLocation;)Lnet/minecraft/client/renderer/texture/AbstractTexture;", at = @At("HEAD"), cancellable = true)
     public void getTexture(ResourceLocation pPath, CallbackInfoReturnable<AbstractTexture> cir) {
