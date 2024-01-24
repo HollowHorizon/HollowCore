@@ -105,34 +105,15 @@ dependencies {
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
 
     implementation("thedarkcolour:kotlinforforge:3.12.0")
-    shadow("gnu.trove:trove:1.0.2")
     implementation(fg.deobf("curse.maven:embeddium-908741:4984830"))
     implementation(fg.deobf("curse.maven:oculus-581495:4763262"))
     implementation(fg.deobf("curse.maven:spark-361579:4505309"))
-
-    val withoutKotlinStd: ExternalModuleDependency.() -> Unit = {
-        exclude("gnu.trove", "trove")
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib")
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib-common")
-        exclude("org.jetbrains.kotlin", "kotlin-reflect")
-        exclude("org.jetbrains.kotlin", "kotlinx-coroutines-core")
-        exclude("org.jetbrains.kotlin", "kotlinx-coroutines-core-jvm")
-        exclude("org.jetbrains.kotlin", "kotlinx-coroutines-jdk8")
-        exclude("org.jetbrains.kotlin", "kotlinx-serialization-core")
-        exclude("org.jetbrains.kotlin", "kotlinx-serialization-json")
-    }
-    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm:1.8.21", withoutKotlinStd)
-    shadow("org.jetbrains.kotlin:kotlin-scripting-jvm-host:1.8.21", withoutKotlinStd)
-    shadow("org.jetbrains.kotlin:kotlin-script-runtime:1.8.21", withoutKotlinStd)
-    shadow("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.8.21", withoutKotlinStd)
-    shadow("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:1.8.21", withoutKotlinStd)
-    shadow("org.jetbrains:annotations:23.0.0")
 
     shadow("com.esotericsoftware:kryo:5.4.0")
 }
 
 if (System.getProperty("user.name").equals(userConfig.getProperty("user"))) {
-    tasks.getByName("shadowJar").finalizedBy("copyJar")
+    tasks.getByName("build").finalizedBy("copyJar")
 }
 
 fun Jar.createManifest() = manifest {
@@ -155,7 +136,7 @@ configure<MixinExtension> {
 }
 
 val jar = tasks.named<Jar>("jar") {
-    archiveClassifier.set("lite")
+    archiveClassifier.set("")
     exclude(
         "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**",
         "META-INF/*.RSA", "META-INF/*.SF", "META-INF/versions/**"
@@ -164,49 +145,37 @@ val jar = tasks.named<Jar>("jar") {
     finalizedBy("reobfJar")
 }
 
-val shadowJar = tasks.named<ShadowJar>("shadowJar") {
-    archiveClassifier.set("")
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    configurations = listOf(library, shadeKotlin)
+//val shadowJar = tasks.named<ShadowJar>("shadowJar") {
+//    archiveClassifier.set("")
+//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//    configurations = listOf(library, shadeKotlin)
+//
+//    exclude(
+//        "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**",
+//        "META-INF/*.RSA", "META-INF/*.SF", "META-INF/versions/**"
+//    )
+//
+//    dependencies {
+//        exclude(dependency("net.java.dev.jna:jna"))
+//    }
+//
+//    exclude("**/module-info.class")
+//
+//    createManifest()
+//
+//    finalizedBy("reobfShadowJar")
+//}
 
-    exclude(
-        "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**",
-        "META-INF/*.RSA", "META-INF/*.SF", "META-INF/versions/**"
-    )
-
-    dependencies {
-        exclude(dependency("net.java.dev.jna:jna"))
-    }
-
-    relocate("org.jetbrains.kotlin.fir.analysis.native", "org.jetbrains.kotlin.fir.analysis.notnative")
-    relocate(
-        "org.jetbrains.kotlin.fir.analysis.diagnostics.native",
-        "org.jetbrains.kotlin.fir.analysis.diagnostics.notnative"
-    )
-
-    val packages = listOf(
-        "gnu.trove"
-    )
-
-    packages.forEach { relocate(it, "ru.hollowhorizon.repack.$it") }
-
-    exclude("**/module-info.class")
-
-    createManifest()
-
-    finalizedBy("reobfShadowJar")
-}
-
-(extensions["reobf"] as NamedDomainObjectContainer<*>).create("shadowJar")
-tasks.getByName("build").dependsOn("shadowJar")
-
-tasks {
-    whenTaskAdded {
-        if (name == "prepareRuns") dependsOn(shadowJar)
-    }
-}
+//(extensions["reobf"] as NamedDomainObjectContainer<*>).create("shadowJar")
+//tasks.getByName("build").dependsOn("shadowJar")
+//
+//tasks {
+//    whenTaskAdded {
+//        if (name == "prepareRuns") dependsOn(shadowJar)
+//    }
+//}
 
 val copyJar by tasks.registering(Copy::class) {
-    from(shadowJar.flatMap(Jar::getArchiveFile).get().asFile)
+    from(jar.flatMap(Jar::getArchiveFile).get().asFile)
     into("../HollowEngine/hc")
 }

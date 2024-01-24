@@ -13,10 +13,7 @@
     "ForgeRegistryMixin",
     "ListTagAccessor",
     "PrimaryLevelDataMixin",
-    "StructureBlockMixin",
-    "kotlin.BinaryJavaClassMixin",
-    "kotlin.JvmCompilationUtilMixin",
-    "kotlin.KotlinCoreEnvironmentMixin"
+    "StructureBlockMixin"
   ],
   "client": [
     "ScreenAccessor",

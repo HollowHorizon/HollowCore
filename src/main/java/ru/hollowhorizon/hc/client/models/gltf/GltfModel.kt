@@ -64,8 +64,8 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         transformSkinning(stack)
 
         //Получение текущих VAO и IBO
-        //val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
-        //val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
+        val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
+        val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
 
         GL33.glVertexAttrib4f(1, 1.0F, 1.0F, 1.0F, 1.0F) // Цвет
         GL33.glVertexAttribI2i(3, overlay and '\uffff'.code, overlay shr 16 and '\uffff'.code) // Оверлей при ударе
@@ -87,8 +87,8 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         GlStateManager._bindTexture(texture)
         GlStateManager._activeTexture(activeTexture)
 
-        GL33.glBindVertexArray(0)
-        GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, 0)
+        GL33.glBindVertexArray(currentVAO)
+        GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
         GL33.glUseProgram(0)
 
         NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.clear()
