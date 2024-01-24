@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
+import org.lwjgl.system.MemoryUtil
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.client.utils.areShadersEnabled
@@ -598,16 +599,17 @@ object GltfTree {
     ) {
         val joints = HashMap<Int, Node>(jointsIds.size)
 
+        private val skin = Array(jointsIds.size) { Matrix4f().apply { setIdentity() } }
+
         fun finalMatrices(node: Node): Array<Matrix4f> {
-            val jointMatrices = Array(jointsIds.size) { Matrix4f().apply { setIdentity() } }
             val inverseTransform = node.globalMatrix
             inverseTransform.invertMatrix()
 
             for (i in jointsIds.indices) {
-                jointMatrices[i] = joints[i]!!.globalMatrix.apply { multiply(inverseBindMatrices[i]) }
-                jointMatrices[i] = inverseTransform.copy().apply { multiply(jointMatrices[i]) }
+                skin[i] = joints[i]!!.globalMatrix.apply { multiply(inverseBindMatrices[i]) }
+                skin[i] = inverseTransform.copy().apply { multiply(skin[i]) }
             }
-            return jointMatrices
+            return skin
         }
     }
 
@@ -685,6 +687,7 @@ object GltfTree {
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, positions, GL33.GL_STATIC_DRAW)
                     GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0)
+                    MemoryUtil.memFree(positions)
                 }
                 attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
                     val normals = BufferUtils.createFloatBuffer(this.size * 3)
@@ -695,6 +698,7 @@ object GltfTree {
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
                     GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
+                    MemoryUtil.memFree(normals)
                 }
             } else {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
@@ -713,6 +717,7 @@ object GltfTree {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, texCoordsBuffer)
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 0, 0)
+                MemoryUtil.memFree(texCords)
             }
 
             if (hasMidTexCoords) {
@@ -725,6 +730,7 @@ object GltfTree {
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, midCoordsBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
                     GL33.glVertexAttribPointer(12, 2, GL33.GL_FLOAT, false, 0, 0)
+                    MemoryUtil.memFree(texCords)
                 }
             }
 
@@ -736,6 +742,7 @@ object GltfTree {
                 indexBuffer = GL33.glGenBuffers()
                 GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
                 GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, buffer, GL33.GL_STATIC_DRAW)
+                MemoryUtil.memFree(buffer)
             }
         }
 
@@ -759,6 +766,7 @@ object GltfTree {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, jointBuffer)
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, joints, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(0, 4, GL33.GL_INT, false, 0, 0)
+                MemoryUtil.memFree(joints)
             }
             attributes[GltfAttribute.WEIGHTS_0]?.get<Vector4f>()?.run {
                 val weights = BufferUtils.createFloatBuffer(this.size * 4)
@@ -769,6 +777,7 @@ object GltfTree {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, weightsBuffer)
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, weights, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(1, 4, GL33.GL_FLOAT, false, 0, 0)
+                MemoryUtil.memFree(weights)
             }
             attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.run {
                 posSize = this.size * 12L //bytes size
@@ -780,6 +789,7 @@ object GltfTree {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, skinVertexBuffer)
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, positions, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(2, 3, GL33.GL_FLOAT, false, 0, 0)
+                MemoryUtil.memFree(positions)
             }
             attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
                 norSize = this.size * 12L //bytes size
@@ -791,6 +801,7 @@ object GltfTree {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, skinNormalBuffer)
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(3, 3, GL33.GL_FLOAT, false, 0, 0)
+                MemoryUtil.memFree(normals)
             }
 
             vertexBuffer = GL33.glGenBuffers()
