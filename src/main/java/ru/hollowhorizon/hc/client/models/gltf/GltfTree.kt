@@ -507,7 +507,7 @@ object GltfTree {
             stack: PoseStack,
             nodeRenderer: NodeRenderer,
             data: ModelData,
-            consumer: (ResourceLocation) -> RenderType,
+            consumer: (ResourceLocation) -> Int,
             light: Int,
         ) {
             nodes.forEach { it.render(stack, nodeRenderer, data, consumer, light) }
@@ -532,7 +532,7 @@ object GltfTree {
             stack: PoseStack,
             nodeRenderer: NodeRenderer,
             data: ModelData,
-            consumer: (ResourceLocation) -> RenderType,
+            consumer: (ResourceLocation) -> Int,
             light: Int,
         ) {
             stack.use {
@@ -580,6 +580,8 @@ object GltfTree {
 
         var parent: Node? = null
         val isHead: Boolean get() = name?.lowercase()?.contains("head") == true && parent?.isHead == false
+
+        //TODO: оптимизируй как-нибудь, чтобы не с нуля вычислять и желательно без рекурсии
         val globalMatrix: Matrix4f
             get() {
                 val matrix = parent?.globalMatrix ?: return localMatrix
@@ -615,7 +617,7 @@ object GltfTree {
         fun render(
             node: Node,
             stack: PoseStack,
-            consumer: (ResourceLocation) -> RenderType,
+            consumer: (ResourceLocation) -> Int,
         ) {
             primitives.forEach {
                 it.render(stack, node, consumer)
@@ -814,14 +816,15 @@ object GltfTree {
         fun render(
             stack: PoseStack,
             node: Node,
-            consumer: (ResourceLocation) -> RenderType,
+            consumer: (ResourceLocation) -> Int,
         ) {
             val hasShaders = areShadersEnabled
             val shader =
                 if (!hasShaders) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!
             //Всякие настройки смешивания, материалы и т.п.
-            val type = consumer(material.texture)
-            type.setupRenderState()
+            val texture = consumer(material.texture)
+
+            //TODO: Возможно лучше будет самому включать нужные параметры, чем возиться с этим
 
             //pbr, отражения и т.п.
 //            if(hasShaders) {
@@ -835,7 +838,7 @@ object GltfTree {
 //            }
 
             GL13.glActiveTexture(GL13.GL_TEXTURE0)
-            GL33.glBindTexture(GL33.GL_TEXTURE_2D, RenderSystem.getShaderTexture(0))
+            GL33.glBindTexture(GL33.GL_TEXTURE_2D, texture)
 
             RenderSystem.enableBlend()
             RenderSystem.defaultBlendFunc()
@@ -855,10 +858,6 @@ object GltfTree {
                 .apply { multiply(stack.last().pose()) })
             shader.MODEL_VIEW_MATRIX?.upload()
 
-            val normal = Matrix3f(node.globalMatrix)
-            val currentNormal = CURRENT_NORMAL.copy()
-            currentNormal.mul(normal)
-
             //Нормали
             shader.getUniform("NormalMat")?.let {
                 it.set(stack.last().normal())
@@ -873,9 +872,6 @@ object GltfTree {
             GL33.glDisableVertexAttribArray(2)
             GL33.glDisableVertexAttribArray(5)
             if (hasMidTexCoords) GL20.glDisableVertexAttribArray(12)
-
-            // Очистка настроек
-            type.clearRenderState()
         }
 
         fun transformSkinning(node: Node, stack: PoseStack) {

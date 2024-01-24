@@ -1,5 +1,8 @@
 package ru.hollowhorizon.hc.client.models.gltf.animations
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.ai.attributes.Attributes
 import net.minecraft.world.entity.animal.Pig
@@ -50,13 +53,14 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
     fun update(capability: AnimatedEntityCapability, partialTick: Float) {
         val definedLayer = capability.definedLayer
         definedLayer.update(currentLoopAnimation, currentSpeed, currentTick, partialTick)
+
+        //TODO: Вот так складывать Map'ы каждый кадр не хорошо, возможно стоит сделать какое-нибудь кеширование?
         val animationOverrides = typeToAnimationMap + capability.animations.mapNotNull {
             it.key to (nameToAnimationMap[it.value] ?: return@mapNotNull null)
         }.toMap()
 
         val layers = capability.layers
-
-        nodeModels.parallelStream().forEach { node ->
+        nodeModels.forEach { node ->
             node.clearTransform()
             val transform = node.transform.copy()
             definedLayer.computeTransform(node, animationOverrides, currentSpeed, currentTick, partialTick)
@@ -79,7 +83,7 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
             node.transform.set(transform)
         }
 
-        capability.layers.removeIf { it.isEnd(currentTick, partialTick) }
+        layers.removeIf { it.isEnd(currentTick, partialTick) }
     }
 
     fun setTick(tick: Int) {

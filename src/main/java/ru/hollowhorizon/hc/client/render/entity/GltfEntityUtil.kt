@@ -25,6 +25,7 @@ import ru.hollowhorizon.hc.client.models.gltf.animations.PlayMode
 import ru.hollowhorizon.hc.client.models.gltf.animations.SubModelPlayer
 import ru.hollowhorizon.hc.client.models.gltf.manager.*
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
+import ru.hollowhorizon.hc.client.utils.memoize
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.use
 
@@ -67,14 +68,14 @@ object GltfEntityUtil {
         realModel.render(
             stack,
             ModelData(null, null, itemRenderer, null),
-            { texture ->
+            { texture: ResourceLocation ->
                 val result = model.textures[texture.path]?.let {
                     if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
                     else it.rl
                 } ?: texture
 
-                renderType.apply(result, true)
-            },
+                Minecraft.getInstance().textureManager.getTexture(result).id
+            }.memoize(),
             packedLight, OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
         )
 

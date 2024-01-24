@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.common.capabilities
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.EndTag
@@ -23,7 +24,7 @@ import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 @Suppress("API_STATUS_INTERNAL")
 open class CapabilityInstance :
     ICapabilitySerializable<Tag> {
-    val properties = hashMapOf<String, Any?>()
+    val properties = Object2ObjectOpenHashMap<String, Any?>()
     open val consumeOnServer: Boolean = false
     open val canOtherPlayersAccess: Boolean = true
     lateinit var provider: ICapabilityProviderImpl<*> //Будет инициализированно инжектом
@@ -33,9 +34,6 @@ open class CapabilityInstance :
 
 
     fun sync() {
-        val nbt = serializeNBT()
-        if ((nbt as? CompoundTag)?.isEmpty == true) return
-
         when (provider) {
             is Entity -> {
                 val entity = provider as Entity

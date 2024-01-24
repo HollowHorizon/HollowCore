@@ -35,7 +35,11 @@ fun <T> callHook(list: MutableList<ModFileScanData>, getMethod: (String, Boolean
     for (annotation in annotations) {
 
         HollowCore.LOGGER.debug(Logging.CAPABILITIES, "Attempting to automatically register: {}", annotation)
-        val result = getMethod(annotation.clazz.internalName, true)
+        val result = getMethod(
+            annotation.clazz.internalName
+                .replace("/", ".")
+                .replace("$", "."), true
+        )
 
         val targets: List<Type> =
             (annotation.annotationData["value"] as ArrayList<Type>)

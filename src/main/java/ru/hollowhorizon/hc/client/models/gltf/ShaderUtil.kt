@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ShaderInstance
 import org.lwjgl.opengl.*
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
+import ru.hollowhorizon.hc.mixin.ShaderInstanceAccessor
 
 
 inline fun drawWithShader(
@@ -14,7 +15,7 @@ inline fun drawWithShader(
     body: () -> Unit
 ) {
     RenderSystem.setupShaderLights(pShaderInstance)
-
+    //TODO: Не стоит использовать стандарные apply и clear, они бонусом тебе ещё кучу ненужных фич включают
     pShaderInstance.apply()
 
     pShaderInstance.PROJECTION_MATRIX?.set(RenderSystem.getProjectionMatrix())
@@ -38,9 +39,12 @@ inline fun drawWithShader(
     pShaderInstance.COLOR_MODULATOR?.set(1.0F, 1.0F, 1.0F, 1.0F)
     pShaderInstance.COLOR_MODULATOR?.upload()
 
-    GL33.glUniform1i(GL33.glGetUniformLocation(pShaderInstance.id, "Sampler0"), 0)
-    GL33.glUniform1i(GL33.glGetUniformLocation(pShaderInstance.id, "Sampler1"), 1)
-    GL33.glUniform1i(GL33.glGetUniformLocation(pShaderInstance.id, "Sampler2"), 2)
+    GL33.glEnable(GL33.GL_DEPTH_TEST)
+
+    val accessor = pShaderInstance as ShaderInstanceAccessor
+    accessor.samplerLocations().forEachIndexed { texture, index ->
+        GL33.glUniform1i(index, texture)
+    }
 
     body()
 

@@ -27,10 +27,7 @@ import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.animations.PlayMode
 import ru.hollowhorizon.hc.client.models.gltf.manager.*
-import ru.hollowhorizon.hc.client.utils.SkinDownloader
-import ru.hollowhorizon.hc.client.utils.get
-import ru.hollowhorizon.hc.client.utils.rl
-import ru.hollowhorizon.hc.client.utils.use
+import ru.hollowhorizon.hc.client.utils.*
 
 
 open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
@@ -91,14 +88,14 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         model.render(
             stack,
             ModelData(entity.offhandItem, entity.mainHandItem, itemInHandRenderer, entity),
-            { texture ->
+            { texture: ResourceLocation ->
                 val result = capability.textures[texture.path]?.let {
                     if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
                     else it.rl
                 } ?: texture
 
-                getRenderType(result)
-            },
+                Minecraft.getInstance().textureManager.getTexture(result).id
+            }.memoize(),
             packedLight,
             OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
         )

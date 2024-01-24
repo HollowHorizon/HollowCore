@@ -108,6 +108,7 @@ dependencies {
     shadow("gnu.trove:trove:1.0.2")
     implementation(fg.deobf("curse.maven:embeddium-908741:4984830"))
     implementation(fg.deobf("curse.maven:oculus-581495:4763262"))
+    implementation(fg.deobf("curse.maven:spark-361579:4505309"))
 
     val withoutKotlinStd: ExternalModuleDependency.() -> Unit = {
         exclude("gnu.trove", "trove")

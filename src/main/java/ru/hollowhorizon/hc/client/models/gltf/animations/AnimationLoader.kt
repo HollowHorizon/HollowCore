@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.client.models.gltf.animations
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
 import com.mojang.math.Vector4f
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import ru.hollowhorizon.hc.client.models.gltf.GltfInterpolation
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.animations.interpolations.*
@@ -34,7 +35,7 @@ object AnimationLoader {
         }
 
         val data = animData.groupBy { it.second.node }
-        val result = HashMap<GltfTree.Node, AnimationData>()
+        val result = Object2ObjectOpenHashMap<GltfTree.Node, AnimationData>()
 
         data.forEach { (key, values) ->
             result[key] = AnimationData(

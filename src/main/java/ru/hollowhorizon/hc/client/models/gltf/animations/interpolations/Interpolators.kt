@@ -2,10 +2,9 @@ package ru.hollowhorizon.hc.client.models.gltf.animations.interpolations
 
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
+import net.minecraft.util.Mth
 import kotlin.math.abs
-import kotlin.math.atan2
 import kotlin.math.sin
-import kotlin.math.sqrt
 
 class Vec3Step(keys: FloatArray, values: Array<Vector3f>) : Interpolator<Vector3f>(keys, values) {
     override fun compute(time: Float): Vector3f = values[time.animIndex]
@@ -61,8 +60,8 @@ fun Quaternion.sphericalLerp(target: Quaternion, alpha: Float) {
     var scale1: Float
     if (1.0f - absCosom > 1E-6f) {
         val sinSqr = 1.0f - absCosom * absCosom
-        val sinom: Float = 1.0f / sqrt(sinSqr)
-        val omega = atan2(sinSqr * sinom, absCosom)
+        val sinom = Mth.fastInvSqrt(sinSqr)
+        val omega = Mth.atan2((sinSqr * sinom).toDouble(), absCosom.toDouble()).toFloat()
         scale0 = (sin((1.0f - alpha) * omega) * sinom)
         scale1 = (sin(alpha * omega) * sinom)
     } else {

@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.client.utils
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import org.lwjgl.BufferUtils
 import java.nio.FloatBuffer
 import kotlin.math.abs
@@ -28,7 +29,7 @@ object KernelUtil {
 }
 
 fun <A, B> ((A) -> B).memoize(): (A) -> B {
-    val cache: MutableMap<A, B> = HashMap()
+    val cache: MutableMap<A, B> = Object2ObjectOpenHashMap()
     return {
         cache.getOrPut(it) { this(it) }
     }

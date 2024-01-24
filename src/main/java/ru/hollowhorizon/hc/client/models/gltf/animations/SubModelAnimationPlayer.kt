@@ -21,7 +21,7 @@ object SubModelPlayer {
     fun update(model: GltfModel, capability: SubModel, currentTick: Int, partialTick: Float) {
         val layers = capability.layers
 
-        model.animationPlayer.nodeModels.parallelStream().forEach { node ->
+        model.animationPlayer.nodeModels.forEach { node ->
             node.clearTransform()
             val transform = node.transform.copy()
             layers.forEach {
@@ -40,6 +40,6 @@ object SubModelPlayer {
             node.transform.set(transform)
         }
 
-        capability.layers.removeIf { it.isEnd(currentTick, partialTick) }
+        layers.removeIf { it.isEnd(currentTick, partialTick) }
     }
 }

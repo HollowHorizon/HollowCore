@@ -25,28 +25,6 @@ class Animation(val name: String, private val animationData: Map<GltfTree.Node, 
 
     override fun toString() = name
 
-    companion object {
-        fun createFromPose(model: List<GltfTree.Node>): Animation {
-            return Animation("%BIND_POSE%", model.associate { node ->
-
-                return@associate node to AnimationData(
-                    node,
-                    Vec3Step(
-                        floatArrayOf(0f),
-                        arrayOf(node.transform.translation)
-                    ),
-                    QuatStep(
-                        floatArrayOf(0f),
-                        arrayOf(node.transform.rotation)
-                    ),
-                    Vec3Step(
-                        floatArrayOf(0f),
-                        arrayOf(node.transform.scale)
-                    ),
-                )
-            })
-        }
-    }
 }
 
 fun Vector3f.array(): FloatArray {
