@@ -94,8 +94,8 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                     else it.rl
                 } ?: texture
 
-                Minecraft.getInstance().textureManager.getTexture(result).id
-            }.memoize(),
+                renderType.apply(result, true)
+            },
             packedLight,
             OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
         )

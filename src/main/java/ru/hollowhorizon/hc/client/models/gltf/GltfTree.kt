@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
-import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
@@ -12,7 +11,6 @@ import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
-import org.lwjgl.system.MemoryUtil
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.client.utils.areShadersEnabled
@@ -509,7 +507,7 @@ object GltfTree {
             stack: PoseStack,
             nodeRenderer: NodeRenderer,
             data: ModelData,
-            consumer: (ResourceLocation) -> Int,
+            consumer: (ResourceLocation) -> RenderType.CompositeRenderType,
             light: Int,
         ) {
             nodes.forEach { it.render(stack, nodeRenderer, data, consumer, light) }
@@ -534,7 +532,7 @@ object GltfTree {
             stack: PoseStack,
             nodeRenderer: NodeRenderer,
             data: ModelData,
-            consumer: (ResourceLocation) -> Int,
+            consumer: (ResourceLocation) -> RenderType.CompositeRenderType,
             light: Int,
         ) {
             stack.use {
@@ -620,7 +618,7 @@ object GltfTree {
         fun render(
             node: Node,
             stack: PoseStack,
-            consumer: (ResourceLocation) -> Int,
+            consumer: (ResourceLocation) -> RenderType.CompositeRenderType,
         ) {
             primitives.forEach {
                 it.render(stack, node, consumer)
@@ -828,30 +826,31 @@ object GltfTree {
         fun render(
             stack: PoseStack,
             node: Node,
-            consumer: (ResourceLocation) -> Int,
+            consumer: (ResourceLocation) -> RenderType.CompositeRenderType,
         ) {
             val hasShaders = areShadersEnabled
             val shader =
                 if (!hasShaders) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!
             //Всякие настройки смешивания, материалы и т.п.
-            val texture = consumer(material.texture)
+            val type = consumer(material.texture)
+            type.setupRenderState()
 
             //pbr, отражения и т.п.
 //            if(hasShaders) {
-//                RenderSystem.setShaderTexture(2, material.normalTexture)
+//                RenderSystem.setShaderTexture(1, material.normalTexture)
 //                RenderSystem.setShaderTexture(3, material.specularTexture)
 //
-//                GL13.glActiveTexture(GL13.GL_TEXTURE2)
-//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(2))
+//                GL13.glActiveTexture(GL13.GL_TEXTURE1)
+//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(1))
 //                GL13.glActiveTexture(GL13.GL_TEXTURE3)
 //                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(3))
 //            }
 
             GL13.glActiveTexture(GL13.GL_TEXTURE0)
-            GL33.glBindTexture(GL33.GL_TEXTURE_2D, texture)
+            GL33.glBindTexture(GL33.GL_TEXTURE_2D, RenderSystem.getShaderTexture(0))
 
-            GL33.glEnable(GL33.GL_BLEND)
-            GL33.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+            RenderSystem.enableBlend()
+            RenderSystem.defaultBlendFunc()
             if(material.doubleSided) GL11.glEnable(GL11.GL_CULL_FACE)
 
             //Подключение VAO и IBO
@@ -861,12 +860,16 @@ object GltfTree {
             GL33.glEnableVertexAttribArray(0) // Вершины
             GL33.glEnableVertexAttribArray(2) // Текстурные координаты
             GL33.glEnableVertexAttribArray(5) // Нормали
-            if (hasMidTexCoords) GL20.glEnableVertexAttribArray(8) //координаты для глубины (pbr)
+            if (hasMidTexCoords) GL20.glEnableVertexAttribArray(12) //координаты для глубины (pbr)
 
             //Матрица
             shader.MODEL_VIEW_MATRIX?.set(RenderSystem.getModelViewMatrix().copy()
                 .apply { multiply(stack.last().pose()) })
             shader.MODEL_VIEW_MATRIX?.upload()
+
+            val normal = Matrix3f(node.globalMatrix)
+            val currentNormal = CURRENT_NORMAL.copy()
+            currentNormal.mul(normal)
 
             //Нормали
             shader.getUniform("NormalMat")?.let {
@@ -881,7 +884,10 @@ object GltfTree {
             GL33.glDisableVertexAttribArray(0)
             GL33.glDisableVertexAttribArray(2)
             GL33.glDisableVertexAttribArray(5)
-            if (hasMidTexCoords) GL20.glDisableVertexAttribArray(8)
+            if (hasMidTexCoords) GL20.glDisableVertexAttribArray(12)
+
+            // Очистка настроек
+            type.clearRenderState()
         }
 
         fun transformSkinning(node: Node, stack: PoseStack) {

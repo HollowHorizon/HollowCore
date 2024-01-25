@@ -40,7 +40,6 @@ inline fun drawWithShader(
     pShaderInstance.COLOR_MODULATOR?.upload()
 
     GL33.glEnable(GL33.GL_DEPTH_TEST)
-    GL33.glEnable(GL33.GL_DEPTH)
 
     val accessor = pShaderInstance as ShaderInstanceAccessor
     accessor.samplerLocations().forEachIndexed { texture, index ->
