@@ -19,11 +19,11 @@ import javax.imageio.ImageReadParam
 val GIF_TEXTURES = HashMap<ResourceLocation, GifTexture>()
 
 class GifTexture(location: ResourceLocation) : SimpleTexture(location) {
-    val frames = HashMap<Int, NativeImage>()
-    var keys: IntArray = IntArray(1) { 0 }
-    var fullTime = 1
+    val frames = HashMap<Float, NativeImage>()
+    var keys: FloatArray = FloatArray(1) { 0f }
+    var fullTime = 1f
 
-    val Int.animIndex: Int
+    val Float.animIndex: Int
         get() {
             val index = Arrays.binarySearch(keys, this)
 
@@ -33,7 +33,7 @@ class GifTexture(location: ResourceLocation) : SimpleTexture(location) {
 
     override fun getId(): Int {
         val id = super.getId()
-        val time = (ClientTickHandler.ticks + Minecraft.getInstance().partialTick).toInt() % fullTime
+        val time = ClientTickHandler.ticks + Minecraft.getInstance().partialTick % fullTime
 
         val frame = frames[keys[time.animIndex]]
 
@@ -51,20 +51,20 @@ class GifTexture(location: ResourceLocation) : SimpleTexture(location) {
                     val gifDecoder = GifDecoder()
                     val status = gifDecoder.read(BufferedInputStream(ByteArrayInputStream(data)))
                     if (status == 0) {
-                        keys = IntArray(gifDecoder.frameCount)
-                        keys[0] = 0
+                        keys = FloatArray(gifDecoder.frameCount)
+                        keys[0] = 0f
 
                         var stream = ByteArrayOutputStream()
                         ImageIO.write(gifDecoder.getFrame(0), "png", stream)
                         stream.flush()
-                        this.frames[0] = NativeImage.read(ByteArrayInputStream(stream.toByteArray()))
+                        this.frames[0f] = NativeImage.read(ByteArrayInputStream(stream.toByteArray()))
 
 
                         for (i in 1 until gifDecoder.frameCount) {
                             stream = ByteArrayOutputStream()
                             ImageIO.write(gifDecoder.getFrame(i), "png", stream)
                             stream.flush()
-                            val time = gifDecoder.getDelay(i) / 50 //перевод в тики
+                            val time = gifDecoder.getDelay(i) / 50f //перевод в тики
                             keys[i] = keys[i - 1] + time
                             this.frames[keys[i]] = NativeImage.read(ByteArrayInputStream(stream.toByteArray()))
 
@@ -72,7 +72,7 @@ class GifTexture(location: ResourceLocation) : SimpleTexture(location) {
                         }
                         fullTime = frames.keys.last()
 
-                        TextureUtil.prepareImage(super.getId(), frames[0]!!.width, frames[0]!!.height)
+                        TextureUtil.prepareImage(super.getId(), frames[0f]!!.width, frames[0f]!!.height)
                     }
             }
 
