@@ -837,15 +837,15 @@ object GltfTree {
             val texture = consumer(material.texture)
 
             //pbr, отражения и т.п.
-            if(hasShaders) {
-                RenderSystem.setShaderTexture(2, material.normalTexture)
-                RenderSystem.setShaderTexture(3, material.specularTexture)
-
-                GL13.glActiveTexture(GL13.GL_TEXTURE2)
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(2))
-                GL13.glActiveTexture(GL13.GL_TEXTURE3)
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(3))
-            }
+//            if(hasShaders) {
+//                RenderSystem.setShaderTexture(2, material.normalTexture)
+//                RenderSystem.setShaderTexture(3, material.specularTexture)
+//
+//                GL13.glActiveTexture(GL13.GL_TEXTURE2)
+//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(2))
+//                GL13.glActiveTexture(GL13.GL_TEXTURE3)
+//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(3))
+//            }
 
             GL13.glActiveTexture(GL13.GL_TEXTURE0)
             GL33.glBindTexture(GL33.GL_TEXTURE_2D, texture)
