@@ -47,7 +47,7 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
     fun render(
         stack: PoseStack,
         modelData: ModelData,
-        consumer: (ResourceLocation) -> RenderType.CompositeRenderType,
+        consumer: (ResourceLocation) -> RenderType,
         light: Int,
         overlay: Int,
     ) {

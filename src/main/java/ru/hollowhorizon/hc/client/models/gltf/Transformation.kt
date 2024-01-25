@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.client.models.gltf
 import com.mojang.math.Matrix4f
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
-import repack.joml.Quaternionf
 import ru.hollowhorizon.hc.client.models.gltf.animations.interpolations.sphericalLerp
 import kotlin.math.abs
 

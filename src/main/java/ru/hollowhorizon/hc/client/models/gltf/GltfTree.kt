@@ -507,7 +507,7 @@ object GltfTree {
             stack: PoseStack,
             nodeRenderer: NodeRenderer,
             data: ModelData,
-            consumer: (ResourceLocation) -> RenderType.CompositeRenderType,
+            consumer: (ResourceLocation) -> RenderType,
             light: Int,
         ) {
             nodes.forEach { it.render(stack, nodeRenderer, data, consumer, light) }
@@ -532,7 +532,7 @@ object GltfTree {
             stack: PoseStack,
             nodeRenderer: NodeRenderer,
             data: ModelData,
-            consumer: (ResourceLocation) -> RenderType.CompositeRenderType,
+            consumer: (ResourceLocation) -> RenderType,
             light: Int,
         ) {
             stack.use {
@@ -618,7 +618,7 @@ object GltfTree {
         fun render(
             node: Node,
             stack: PoseStack,
-            consumer: (ResourceLocation) -> RenderType.CompositeRenderType,
+            consumer: (ResourceLocation) -> RenderType,
         ) {
             primitives.forEach {
                 it.render(stack, node, consumer)
@@ -826,7 +826,7 @@ object GltfTree {
         fun render(
             stack: PoseStack,
             node: Node,
-            consumer: (ResourceLocation) -> RenderType.CompositeRenderType,
+            consumer: (ResourceLocation) -> RenderType,
         ) {
             val hasShaders = areShadersEnabled
             val shader =
