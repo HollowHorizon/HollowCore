@@ -7,6 +7,7 @@ import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.api.distmarker.Dist;
@@ -122,7 +123,7 @@ public class HollowCore {
     }
 
     private void onAttribute(EntityAttributeCreationEvent event) {
-        event.put(ModEntities.INSTANCE.getTEST_ENTITY().get(), TestEntity.createMobAttributes().build());
+        event.put(ModEntities.INSTANCE.getTEST_ENTITY().get(), TestEntity.createMobAttributes().add(Attributes.MOVEMENT_SPEED, 0.2f).build());
         //event.put(ModEntities.TEST_ENTITY_V2, TestEntity.createMobAttributes().build());
     }
 

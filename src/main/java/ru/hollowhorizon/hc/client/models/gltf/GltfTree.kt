@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
+import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
@@ -687,7 +688,7 @@ object GltfTree {
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, positions, GL33.GL_STATIC_DRAW)
                     GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0)
-                    MemoryUtil.memFree(positions)
+                    
                 }
                 attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
                     val normals = BufferUtils.createFloatBuffer(this.size * 3)
@@ -698,7 +699,7 @@ object GltfTree {
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
                     GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
-                    MemoryUtil.memFree(normals)
+                    
                 }
             } else {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
@@ -717,7 +718,7 @@ object GltfTree {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, texCoordsBuffer)
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 0, 0)
-                MemoryUtil.memFree(texCords)
+                
             }
 
             if (hasMidTexCoords) {
@@ -730,7 +731,7 @@ object GltfTree {
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, midCoordsBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
                     GL33.glVertexAttribPointer(12, 2, GL33.GL_FLOAT, false, 0, 0)
-                    MemoryUtil.memFree(texCords)
+                    
                 }
             }
 
@@ -742,7 +743,7 @@ object GltfTree {
                 indexBuffer = GL33.glGenBuffers()
                 GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
                 GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, buffer, GL33.GL_STATIC_DRAW)
-                MemoryUtil.memFree(buffer)
+                
             }
         }
 
@@ -766,7 +767,7 @@ object GltfTree {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, jointBuffer)
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, joints, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(0, 4, GL33.GL_INT, false, 0, 0)
-                MemoryUtil.memFree(joints)
+                
             }
             attributes[GltfAttribute.WEIGHTS_0]?.get<Vector4f>()?.run {
                 val weights = BufferUtils.createFloatBuffer(this.size * 4)
@@ -777,7 +778,7 @@ object GltfTree {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, weightsBuffer)
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, weights, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(1, 4, GL33.GL_FLOAT, false, 0, 0)
-                MemoryUtil.memFree(weights)
+                
             }
             attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.run {
                 posSize = this.size * 12L //bytes size
@@ -789,7 +790,7 @@ object GltfTree {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, skinVertexBuffer)
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, positions, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(2, 3, GL33.GL_FLOAT, false, 0, 0)
-                MemoryUtil.memFree(positions)
+                
             }
             attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
                 norSize = this.size * 12L //bytes size
@@ -801,7 +802,7 @@ object GltfTree {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, skinNormalBuffer)
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(3, 3, GL33.GL_FLOAT, false, 0, 0)
-                MemoryUtil.memFree(normals)
+                
             }
 
             vertexBuffer = GL33.glGenBuffers()
@@ -835,24 +836,22 @@ object GltfTree {
             //Всякие настройки смешивания, материалы и т.п.
             val texture = consumer(material.texture)
 
-            //TODO: Возможно лучше будет самому включать нужные параметры, чем возиться с этим
-
             //pbr, отражения и т.п.
-//            if(hasShaders) {
-//                RenderSystem.setShaderTexture(1, material.normalTexture)
-//                RenderSystem.setShaderTexture(3, material.specularTexture)
-//
-//                GL13.glActiveTexture(GL13.GL_TEXTURE1)
-//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(1))
-//                GL13.glActiveTexture(GL13.GL_TEXTURE3)
-//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(3))
-//            }
+            if(hasShaders) {
+                RenderSystem.setShaderTexture(2, material.normalTexture)
+                RenderSystem.setShaderTexture(3, material.specularTexture)
+
+                GL13.glActiveTexture(GL13.GL_TEXTURE2)
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(2))
+                GL13.glActiveTexture(GL13.GL_TEXTURE3)
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(3))
+            }
 
             GL13.glActiveTexture(GL13.GL_TEXTURE0)
             GL33.glBindTexture(GL33.GL_TEXTURE_2D, texture)
 
-            RenderSystem.enableBlend()
-            RenderSystem.defaultBlendFunc()
+            GL33.glEnable(GL33.GL_BLEND)
+            GL33.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
             if(material.doubleSided) GL11.glEnable(GL11.GL_CULL_FACE)
 
             //Подключение VAO и IBO
@@ -862,7 +861,7 @@ object GltfTree {
             GL33.glEnableVertexAttribArray(0) // Вершины
             GL33.glEnableVertexAttribArray(2) // Текстурные координаты
             GL33.glEnableVertexAttribArray(5) // Нормали
-            if (hasMidTexCoords) GL20.glEnableVertexAttribArray(12) //координаты для глубины (pbr)
+            if (hasMidTexCoords) GL20.glEnableVertexAttribArray(8) //координаты для глубины (pbr)
 
             //Матрица
             shader.MODEL_VIEW_MATRIX?.set(RenderSystem.getModelViewMatrix().copy()
@@ -882,7 +881,7 @@ object GltfTree {
             GL33.glDisableVertexAttribArray(0)
             GL33.glDisableVertexAttribArray(2)
             GL33.glDisableVertexAttribArray(5)
-            if (hasMidTexCoords) GL20.glDisableVertexAttribArray(12)
+            if (hasMidTexCoords) GL20.glDisableVertexAttribArray(8)
         }
 
         fun transformSkinning(node: Node, stack: PoseStack) {
