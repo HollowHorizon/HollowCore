@@ -31,13 +31,13 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
             for (widget in widgets) {
                 if (widget.y + widget.height > max) max = widget.y + widget.height
             }
-            return max - min - this.height
+            return max - min - this.height - this.y
         }
     val maxWidth: Int
         get() {
-            val min = widgets.minOfOrNull { it.x } ?: this.y
+            val min = widgets.minOfOrNull { it.x } ?: this.x
             val max = widgets.maxOfOrNull { it.x + it.width } ?: min
-            return max - min - this.width
+            return max - min - this.width - this.x
         }
 
 

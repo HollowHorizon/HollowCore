@@ -3,10 +3,12 @@ package ru.hollowhorizon.hc.client.models.gltf
 import com.mojang.math.Matrix4f
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import ru.hollowhorizon.hc.client.models.gltf.animations.interpolations.sphericalLerp
 import kotlin.math.abs
 
-
+@Serializable
 data class Transformation(
     var translationX: Float,
     var translationY: Float,
@@ -21,6 +23,7 @@ data class Transformation(
     var hasTranslation: Boolean = true,
     var hasRotation: Boolean = true,
     var hasScale: Boolean = true,
+    @Transient
     private val matrix: Matrix4f = Matrix4f().apply(Matrix4f::setIdentity),
 ) {
 
@@ -28,7 +31,7 @@ data class Transformation(
     val rotation: Quaternion get() = Quaternion(rotationX, rotationY, rotationZ, rotationW)
     val scale: Vector3f get() = Vector3f(scaleX, scaleY, scaleZ)
 
-    fun add(transform: Transformation) {
+    fun add(transform: Transformation, simpleRot: Boolean = false) {
         if (transform.hasTranslation) {
             translationX += transform.translationX
             translationY += transform.translationY
@@ -38,7 +41,9 @@ data class Transformation(
         if (transform.hasRotation) {
             val res = rotation
             //Рубрика: угадай сколько часов потребовалось чтобы понять, что нужно использовать этот метод
-            res.mulLeft(transform.rotation)
+            if(!simpleRot) res.mulLeft(transform.rotation)
+            else res.mul(transform.rotation)
+
             rotationX = res.i()
             rotationY = res.j()
             rotationZ = res.k()
@@ -113,6 +118,18 @@ data class Transformation(
         translationX = array.x()
         translationY = array.y()
         translationZ = array.z()
+    }
+
+    fun addRotation(array: Quaternion) {
+
+        val res = rotation
+        //Рубрика: угадай сколько часов потребовалось чтобы понять, что нужно использовать этот метод
+        res.mulLeft(array)
+        rotationX = res.i()
+        rotationY = res.j()
+        rotationZ = res.k()
+        rotationW = res.r()
+
     }
 
     fun setRotation(array: Quaternion?) {
@@ -200,21 +217,21 @@ data class Transformation(
 
     override fun equals(other: Any?): Boolean {
         if (other is Transformation) {
-            if(hasTranslation) {
-                if(translationX != other.translationX) return false
-                if(translationY != other.translationY) return false
-                if(translationZ != other.translationZ) return false
+            if (hasTranslation) {
+                if (translationX != other.translationX) return false
+                if (translationY != other.translationY) return false
+                if (translationZ != other.translationZ) return false
             }
-            if(hasRotation) {
-                if(abs(rotationY - other.rotationY) > 0.1) return false
-                if(abs(rotationZ - other.rotationZ) > 0.1) return false
-                if(abs(rotationX - other.rotationX) > 0.1) return false
-                if(abs(rotationW - other.rotationW) > 0.1) return false
+            if (hasRotation) {
+                if (abs(rotationY - other.rotationY) > 0.1) return false
+                if (abs(rotationZ - other.rotationZ) > 0.1) return false
+                if (abs(rotationX - other.rotationX) > 0.1) return false
+                if (abs(rotationW - other.rotationW) > 0.1) return false
             }
-            if(hasScale) {
-                if(scaleX != other.scaleX) return false
-                if(scaleY != other.scaleY) return false
-                if(scaleZ != other.scaleZ) return false
+            if (hasScale) {
+                if (scaleX != other.scaleX) return false
+                if (scaleY != other.scaleY) return false
+                if (scaleZ != other.scaleZ) return false
             }
             return true
         } else return super.equals(other)

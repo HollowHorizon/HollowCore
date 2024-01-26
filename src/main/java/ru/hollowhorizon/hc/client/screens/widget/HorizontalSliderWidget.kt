@@ -84,7 +84,7 @@ class HorizontalSliderWidget(x: Int, y: Int, width: Int, height: Int, private va
     var scroll: Float
         get() = (xWidth - x - 10) / (maxWidth + 0f)
         set(modifier) {
-            xWidth = clamp(y + (maxWidth * modifier).toInt() + 10)
+            xWidth = clamp(x + (maxWidth * modifier).toInt() + 10)
             consumer.invoke(scroll)
         }
 

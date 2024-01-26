@@ -529,6 +529,9 @@ object GltfTree {
         val name: String? = null,
     ) {
         val baseTransform = transform.copy()
+        var isHovered = false
+
+        fun isAllHovered(): Boolean = isHovered || parent?.isAllHovered() == true
 
         fun render(
             stack: PoseStack,
@@ -836,6 +839,14 @@ object GltfTree {
             //Всякие настройки смешивания, материалы и т.п.
             val texture = consumer(material.texture)
 
+            if (!node.isAllHovered()) GL33.glVertexAttrib4f(
+                1,
+                material.color.x(),
+                material.color.y(),
+                material.color.z(),
+                material.color.w()
+            )
+            else GL33.glVertexAttrib4f(1, 0f, 0.45f, 1f, 1f)
             //pbr, отражения и т.п.
 //            if(hasShaders) {
 //                RenderSystem.setShaderTexture(2, material.normalTexture)

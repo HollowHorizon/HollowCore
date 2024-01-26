@@ -113,7 +113,7 @@ public class HollowScreen extends Screen implements ILayoutConsumer {
     public boolean mouseReleased(double p_231048_1_, double p_231048_3_, int p_231048_5_) {
         boolean value = false;
         for (GuiEventListener widget : this.children()) {
-            value = value || widget.mouseReleased(p_231048_1_, p_231048_3_, p_231048_5_);
+            value = widget.mouseReleased(p_231048_1_, p_231048_3_, p_231048_5_) || value;
         }
         return value;
     }

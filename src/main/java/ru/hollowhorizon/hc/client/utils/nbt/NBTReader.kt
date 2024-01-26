@@ -102,7 +102,7 @@ private sealed class AbstractNBTReader(val format: NBTFormat, open val map: Tag)
     ): T {
         val value = getValue(tag)
         return if (value is NumericTag) value.getter()
-        else value.cast<NumericTag>().asString.stringGetter()
+        else value.asString.stringGetter()
     }
 }
 

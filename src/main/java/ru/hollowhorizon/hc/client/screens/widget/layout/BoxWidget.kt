@@ -51,6 +51,7 @@ class BoxWidget(
             originY = offsetY + (maxHeight * value).toInt()
         }
 
+        canMove = false
         checkSliders()
     }
 
@@ -79,8 +80,10 @@ class BoxWidget(
     }
 
     private fun checkSliders() {
-        val outOfBoundsY = this.widgets.any { it.y + it.height > this.y + this.height || it.y < this.y }
-        val outOfBoundsX = this.widgets.any { it.x + it.width > this.x + this.width || it.x < this.x }
+        val widgets = this.widgets.filter { it !is LineBreak }
+
+        val outOfBoundsY = widgets.any { it.y + it.height > this.y + this.height || it.y < this.y }
+        val outOfBoundsX = widgets.any { it.x + it.width > this.x + this.width || it.x < this.x }
 
         verticalSlider?.visible = outOfBoundsY
         verticalSlider?.active = outOfBoundsY
@@ -88,22 +91,23 @@ class BoxWidget(
         horizontalSlider?.visible = outOfBoundsX
         horizontalSlider?.active = outOfBoundsX
 
-        canMove = outOfBoundsX || outOfBoundsY
+        //canMove = outOfBoundsX || outOfBoundsY
 
-        if (maxWidth == 0 && maxHeight > 0) this.verticalSlider?.height = this.height
-        if (maxHeight == 0 && maxWidth > 0) this.horizontalSlider?.width = this.width
+        if (maxWidth <= 0 && maxHeight > 0) this.verticalSlider?.height = this.height
+        if (maxHeight <= 0 && maxWidth > 0) this.horizontalSlider?.width = this.width
     }
 
     override fun mouseScrolled(mouseX: Double, mouseY: Double, scroll: Double): Boolean {
         if (isHovered(mouseX, mouseY)) {
-            val scrollVal = -scroll.toFloat() / 10f
+            val scrollVal = -scroll.toFloat() / 100f
             if (maxHeight > 0) {
                 if (this.verticalSlider != null) {
                     this.verticalSlider!!.scroll += scrollVal
                 }
             }
             if (maxWidth > 0) {
-                if (this.horizontalSlider != null && Screen.hasShiftDown()) {
+                val flag = if(maxHeight == 0) true else (Screen.hasShiftDown() || Screen.hasControlDown())
+                if (this.horizontalSlider != null && flag) {
                     this.horizontalSlider!!.scroll += scrollVal
                 }
             }
@@ -247,18 +251,18 @@ class WidgetBuilder(
 
                 sizedWidgets.forEach { rowWidgets ->
                     val freeWidth =
-                        width() - rowWidgets.sumOf { it.width + prev.spacing.width.value } + prev.spacing.width.value
+                        width() - rowWidgets.filter { it !is LineBreak }.sumOf { it.width + prev.spacing.width.value } + prev.spacing.width.value
 
                     var xDelta = (x() + freeWidth * align.factorX()).toInt()
 
-                    rowWidgets.forEach { widget ->
+                    rowWidgets.filter { it !is LineBreak }.forEach { widget ->
                         widget.x = xDelta
                         widget.y = yDelta
 
                         xDelta += widget.width + prev.spacing.width.value
                     }
 
-                    yDelta += (rowWidgets.maxOfOrNull { it.height } ?: 0) + prev.spacing.height.value
+                    yDelta += (rowWidgets.filter { it !is LineBreak }.maxOfOrNull { it.height } ?: 0) + prev.spacing.height.value
                 }
             }
 

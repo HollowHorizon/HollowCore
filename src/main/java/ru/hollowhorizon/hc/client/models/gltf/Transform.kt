@@ -22,5 +22,39 @@ data class Transform(
             return matrix
         }
 
+    companion object {
+        fun create(builder: Builder.() -> Unit) = Builder().apply(builder).build()
 
+        class Builder {
+            var tX: Float = 0f
+            var tY: Float = 0f
+            var tZ: Float = 0f
+            var rX: Float = 0f
+            var rY: Float = 0f
+            var rZ: Float = 0f
+            var sX: Float = 1.0f
+            var sY: Float = 1.0f
+            var sZ: Float = 1.0f
+
+            fun translate(x: Float, y: Float, z: Float) {
+                tX = x
+                tY = y
+                tZ = z
+            }
+
+            fun scale(x: Float, y: Float, z: Float) {
+                sX = x
+                sY = y
+                sZ = z
+            }
+
+            fun rotate(x: Float, y: Float, z: Float) {
+                rX = x
+                rY = y
+                rZ = z
+            }
+
+            fun build() = Transform(tX, tY, tZ, rX, rY, rZ, sX, sY, sZ)
+        }
+    }
 }
