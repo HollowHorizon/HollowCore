@@ -1,7 +1,10 @@
 package ru.hollowhorizon.hc.common.handlers;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.locale.Language;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -10,11 +13,13 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.lwjgl.glfw.GLFW;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
+import ru.hollowhorizon.hc.client.screens.EntityNodePickerScreen;
 import ru.hollowhorizon.hc.client.screens.UIScreen;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
@@ -30,13 +35,22 @@ public class HollowEventHandler {
 
     //@SubscribeEvent
     @OnlyIn(Dist.CLIENT)
-    public void onBlockClick(PlayerInteractEvent.RightClickBlock event) {
-        BlockPos pos = event.getPos();
-        Block block = event.getLevel().getBlockState(pos).getBlock();
-        if (block.equals(Blocks.BEACON)) {
-            event.setCanceled(true);
-            //Minecraft.getInstance().setScreen(new HTMLScreen());
+    public void onKey(ScreenEvent.KeyPressed event) {
+        if (event.getKeyCode() == GLFW.GLFW_KEY_V) {
+            Minecraft.getInstance().setScreen(new EntityNodePickerScreen());
         }
+    }
+
+    @SubscribeEvent
+    @OnlyIn(Dist.CLIENT)
+    public void onTooltip(ItemTooltipEvent event) {
+        final var desc = event.getItemStack().getItem().getDescriptionId() + ".hc_desc";
+        final var shift_desc = event.getItemStack().getItem().getDescriptionId() + ".hc_shift_desc";
+        final var lang = Language.getInstance();
+
+        if(lang.has(desc)) event.getToolTip().add(Component.translatable(desc));
+
+        if(Screen.hasShiftDown() && lang.has(shift_desc)) event.getToolTip().add(Component.translatable(desc));
     }
 
     @SubscribeEvent
