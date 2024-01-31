@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.client.models.gltf.manager
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.serialization.Serializable
 import net.minecraft.nbt.Tag
+import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.Transform
@@ -14,7 +15,7 @@ import ru.hollowhorizon.hc.client.utils.nbt.serialize
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
 
-@HollowCapabilityV2(IAnimated::class)
+@HollowCapabilityV2(IAnimated::class, Player::class)
 class AnimatedEntityCapability : CapabilityInstance() {
     internal val definedLayer = DefinedLayer()
     internal val headLayer = HeadLayer()

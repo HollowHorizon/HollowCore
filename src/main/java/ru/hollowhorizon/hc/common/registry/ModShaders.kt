@@ -9,6 +9,7 @@ import ru.hollowhorizon.hc.HollowCore.MODID
 
 object ModShaders {
     lateinit var GLTF_ENTITY: ShaderInstance
+    lateinit var GLTF_ENTITY_COLOR_PICK: ShaderInstance
 
     @SubscribeEvent
     fun onShaderRegistry(event: RegisterShadersEvent) {
@@ -18,5 +19,12 @@ object ModShaders {
             DefaultVertexFormat.NEW_ENTITY
         )
         event.registerShader(GLTF_ENTITY) {}
+
+        GLTF_ENTITY_COLOR_PICK = ShaderInstance(
+            event.resourceManager,
+            ResourceLocation(MODID, "gltf_entity_color_pick"),
+            DefaultVertexFormat.NEW_ENTITY
+        )
+        event.registerShader(GLTF_ENTITY_COLOR_PICK) {}
     }
 }

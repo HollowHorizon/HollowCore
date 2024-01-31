@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.ItemInHandRenderer
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.Pose
 import net.minecraft.world.item.ItemStack
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13
@@ -100,6 +101,16 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         modelTree.scenes.forEach { it.transformSkinning(stack) }
         GL33.glBindBuffer(GL33.GL_TEXTURE_BUFFER, 0)
         GL33.glDisable(GL33.GL_RASTERIZER_DISCARD)
+    }
+
+    fun pickColor(stack: PoseStack, mouseX: Double, mouseY: Double) {
+        transformSkinning(stack)
+
+        ModShaders.GLTF_ENTITY_COLOR_PICK.apply()
+        GL33.glEnable(GL33.GL_RASTERIZER_DISCARD)
+        modelTree.scenes.forEach { it.pickColor(stack, mouseX, mouseY) }
+        GL33.glDisable(GL33.GL_RASTERIZER_DISCARD)
+        ModShaders.GLTF_ENTITY_COLOR_PICK.clear()
     }
 
     fun destroy() {

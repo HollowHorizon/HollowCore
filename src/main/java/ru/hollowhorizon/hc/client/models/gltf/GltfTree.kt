@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
+import com.mojang.blaze3d.platform.GlConst.GL_RGBA
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
@@ -8,6 +9,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
+import net.minecraftforge.fml.ModList
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
 import ru.hollowhorizon.hc.HollowCore
@@ -518,6 +520,10 @@ object GltfTree {
         fun transformSkinning(stack: PoseStack) {
             nodes.forEach { it.transformSkinning(stack) }
         }
+
+        fun pickColor(stack: PoseStack, mouseX: Double, mouseY: Double) {
+            nodes.forEach { it.pickColor(stack, mouseX, mouseY) }
+        }
     }
 
     class Node(
@@ -540,6 +546,12 @@ object GltfTree {
             consumer: (ResourceLocation) -> Int,
             light: Int,
         ) {
+            if (hasFirstPersonModel && dev.tr7zw.firstperson.api.FirstPersonAPI.isRenderingPlayer() &&
+                name?.contains("head", ignoreCase = true) == true
+            ) {
+                return
+            }
+
             stack.use {
                 mulPoseMatrix(localMatrix)
 
@@ -582,6 +594,16 @@ object GltfTree {
             return baseTransform.copy().apply { add(transform) }
         }
 
+        fun pickColor(stack: PoseStack, mouseX: Double, mouseY: Double) {
+            stack.use {
+                mulPoseMatrix(localMatrix)
+
+                mesh?.pickColor(this@Node, stack, mouseX, mouseY)
+
+                children.forEach { it.pickColor(stack, mouseX, mouseY) }
+            }
+        }
+
 
         var parent: Node? = null
         val isHead: Boolean get() = name?.lowercase()?.contains("head") == true && parent?.isHead == false
@@ -597,7 +619,7 @@ object GltfTree {
         val localMatrix get() = transform.getMatrix()
     }
 
-    data class Skin(
+    class Skin(
         val jointsIds: List<Int>,
         val inverseBindMatrices: List<Matrix4f>,
     ) {
@@ -632,6 +654,12 @@ object GltfTree {
 
         fun transformSkinning(node: Node, stack: PoseStack) {
             primitives.filter { it.hasSkinning }.forEach { it.transformSkinning(node, stack) }
+        }
+
+        fun pickColor(node: Node, stack: PoseStack, mouseX: Double, mouseY: Double) {
+            primitives.forEach {
+                it.pickColor(node, stack, mouseX, mouseY)
+            }
         }
     }
 
@@ -957,6 +985,78 @@ object GltfTree {
             GL30.glDeleteBuffers(skinVertexBuffer)
             GL30.glDeleteBuffers(skinNormalBuffer)
         }
+
+        fun pickColor(node: Node, stack: PoseStack, mouseX: Double, mouseY: Double) {
+            val shader = ModShaders.GLTF_ENTITY_COLOR_PICK
+            //Всякие настройки смешивания, материалы и т.п.
+
+            HollowCore.LOGGER.warn("input: {} {}", node.index, node.index / 1000f)
+            GL33.glVertexAttrib4f(1, node.index.toFloat(), 1f, 1f, 1.0f)
+            //pbr, отражения и т.п.
+//            if(hasShaders) {
+//                RenderSystem.setShaderTexture(2, material.normalTexture)
+//                RenderSystem.setShaderTexture(3, material.specularTexture)
+//
+//                GL13.glActiveTexture(GL13.GL_TEXTURE2)
+//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(2))
+//                GL13.glActiveTexture(GL13.GL_TEXTURE3)
+//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(3))
+//            }
+
+            GL13.glActiveTexture(GL13.GL_TEXTURE0)
+
+            GL33.glEnable(GL33.GL_BLEND)
+            GL33.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+            if (material.doubleSided) GL11.glEnable(GL11.GL_CULL_FACE)
+
+            //Подключение VAO и IBO
+            GL33.glBindVertexArray(vao)
+            GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
+
+            GL33.glEnableVertexAttribArray(0) // Вершины
+            GL33.glEnableVertexAttribArray(2) // Текстурные координаты
+            GL33.glEnableVertexAttribArray(5) // Нормали
+            if (hasMidTexCoords) GL20.glEnableVertexAttribArray(8) //координаты для глубины (pbr)
+
+            //Матрица
+            shader.MODEL_VIEW_MATRIX?.set(
+                RenderSystem.getModelViewMatrix().copy().apply { multiply(stack.last().pose()) })
+            shader.MODEL_VIEW_MATRIX?.upload()
+
+            //Нормали
+            shader.getUniform("NormalMat")?.let {
+                it.set(stack.last().normal())
+                it.upload()
+            }
+
+            //Отрисовка
+            GL33.glDrawElements(GL33.GL_TRIANGLES, indexCount, GL33.GL_UNSIGNED_INT, 0L)
+
+            //Отключение параметров выше
+            GL33.glDisableVertexAttribArray(0)
+            GL33.glDisableVertexAttribArray(2)
+            GL33.glDisableVertexAttribArray(5)
+            if (hasMidTexCoords) GL20.glDisableVertexAttribArray(8)
+
+            val colorBuffer = BufferUtils.createByteBuffer(4) // RGBA
+            GL30.glReadPixels(
+                mouseX.toInt(),
+                mouseY.toInt(),
+                Minecraft.getInstance().window.guiScaledWidth,
+                Minecraft.getInstance().window.guiScaledHeight,
+                GL_RGBA,
+                GL33.GL_UNSIGNED_BYTE,
+                colorBuffer
+            )
+
+            HollowCore.LOGGER.warn(
+                "{} {} {} {}",
+                colorBuffer[0],
+                colorBuffer[1],
+                colorBuffer[2],
+                colorBuffer[3]
+            )
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -1025,3 +1125,5 @@ fun putIntBuffer(value: IntArray): IntBuffer {
 }
 
 var CURRENT_NORMAL = Matrix3f()
+
+val hasFirstPersonModel = ModList.get().isLoaded("firstperson")
