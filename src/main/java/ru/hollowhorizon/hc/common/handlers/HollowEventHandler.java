@@ -2,25 +2,21 @@ package ru.hollowhorizon.hc.common.handlers;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.BlockPos;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.lwjgl.glfw.GLFW;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.screens.EntityNodePickerScreen;
-import ru.hollowhorizon.hc.client.screens.UIScreen;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
 
@@ -48,9 +44,9 @@ public class HollowEventHandler {
         final var shift_desc = event.getItemStack().getItem().getDescriptionId() + ".hc_shift_desc";
         final var lang = Language.getInstance();
 
-        if(lang.has(desc)) event.getToolTip().add(Component.translatable(desc));
+        if (lang.has(desc)) event.getToolTip().add(Component.translatable(desc));
 
-        if(Screen.hasShiftDown() && lang.has(shift_desc)) event.getToolTip().add(Component.translatable(desc));
+        if (Screen.hasShiftDown() && lang.has(shift_desc)) event.getToolTip().add(Component.translatable(desc));
     }
 
     @SubscribeEvent
@@ -66,12 +62,12 @@ public class HollowEventHandler {
     @SubscribeEvent
     public void onPlayerClone(PlayerEvent.Clone event) {
         if (event.isWasDeath()) {
-
             for (Capability<?> cap : CapabilityStorage.INSTANCE.getCapabilitiesForPlayer()) {
-                CapabilityInstance origCap = (CapabilityInstance) event.getOriginal().getCapability(cap).orElse(null);
-                CapabilityInstance newCap = (CapabilityInstance) event.getEntity().getCapability(cap).orElse(null);
+                LazyOptional<?> origCap = event.getOriginal().getCapability(cap);
+                if (!origCap.isPresent()) continue;
+                CapabilityInstance newCap = (CapabilityInstance) event.getEntity().getCapability(cap).orElseThrow(() -> new IllegalStateException("Capability not present!"));
 
-                newCap.deserializeNBT(origCap.serializeNBT());
+                newCap.deserializeNBT(((CapabilityInstance) origCap.orElse(null)).serializeNBT());
             }
         }
     }
