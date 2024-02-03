@@ -15,13 +15,13 @@ It is designed to be a lightweight, easy to use, and powerful library for more e
 [[dependencies.hc]]
 modId = "forge"
 mandatory = true
-versionRange = "[43.2.6,44.0.0)"
+versionRange = "[40.2.10,)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.hc]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.19,1.19.3)"
+versionRange = "[1.18,1.19)"
 ordering = "NONE"
 side = "BOTH"
 [[dependencies.hc]]

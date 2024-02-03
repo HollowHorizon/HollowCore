@@ -394,7 +394,7 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: Component
             RenderSystem.disableTexture()
             RenderSystem.enableBlend()
             RenderSystem.defaultBlendFunc()
-            BufferUploader.drawWithShader(bufferbuilder.end())
+            BufferUploader.end(bufferbuilder)
             RenderSystem.disableBlend()
             RenderSystem.enableTexture()
             val source = MultiBufferSource.immediate(Tesselator.getInstance().builder)

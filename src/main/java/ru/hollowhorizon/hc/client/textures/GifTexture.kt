@@ -33,7 +33,7 @@ class GifTexture(location: ResourceLocation) : SimpleTexture(location) {
 
     override fun getId(): Int {
         val id = super.getId()
-        val time = ClientTickHandler.ticks + Minecraft.getInstance().partialTick % fullTime
+        val time = ClientTickHandler.ticks + Minecraft.getInstance().deltaFrameTime % fullTime
 
         val frame = frames[keys[time.animIndex]]
 
@@ -45,7 +45,7 @@ class GifTexture(location: ResourceLocation) : SimpleTexture(location) {
 
     override fun load(pResourceManager: ResourceManager) {
         try {
-            val data: ByteArray = IOUtils.toByteArray(pResourceManager.getResource(location).get().open())
+            val data: ByteArray = IOUtils.toByteArray(pResourceManager.getResource(location).inputStream)
             val type = readType(ByteArrayInputStream(data))
             if (type.equals("gif", ignoreCase = true)) {
                     val gifDecoder = GifDecoder()

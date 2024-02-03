@@ -13,7 +13,7 @@ object HollowJavaUtils {
     @OnlyIn(Dist.CLIENT)
     fun getResource(location: ResourceLocation): InputStream {
         return try {
-            Minecraft.getInstance().resourceManager.getResource(location).orElseThrow().open()
+            Minecraft.getInstance().resourceManager.getResource(location).inputStream
         } catch (e: Exception) {
             Thread.currentThread().contextClassLoader.getResourceAsStream("assets/" + location.namespace + "/" + location.path)
                 ?: throw FileNotFoundException("Resource $location not found!")
@@ -21,7 +21,7 @@ object HollowJavaUtils {
     }
 
     fun hasResource(location: ResourceLocation): Boolean {
-        return Minecraft.getInstance().resourceManager.getResource(location).isPresent
+        return Minecraft.getInstance().resourceManager.hasResource(location)
     }
 
 

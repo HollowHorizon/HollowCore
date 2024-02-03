@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.GameData;
 import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraftforge.registries.IForgeRegistryEntry;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -20,7 +21,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 @Mixin(value = ForgeRegistry.class, remap = false)
-public abstract class ForgeRegistryMixin<V> implements IForgeRegistry<V>, IReloadableForgeRegistry<V> {
+public abstract class ForgeRegistryMixin<V extends IForgeRegistryEntry<V>> implements IForgeRegistry<V>, IReloadableForgeRegistry<V> {
 
     @Unique
     @Final
@@ -53,8 +54,6 @@ public abstract class ForgeRegistryMixin<V> implements IForgeRegistry<V>, IReloa
     @Shadow
     public abstract V getValue(int id);
 
-    @Shadow
-    abstract int add(int id, ResourceLocation key, V value);
 
     @Shadow
     public abstract void freeze();
@@ -62,10 +61,12 @@ public abstract class ForgeRegistryMixin<V> implements IForgeRegistry<V>, IReloa
     @Shadow
     public abstract ResourceLocation getRegistryName();
 
+    @Shadow abstract int add(int id, V value, String owner);
+
     @Override
     public V registerEntry(ResourceLocation location, V registryEntry) {
         if (registryEntry != null) hollowcore$removeEntry(location);
-        V newEntry = getValue(add(-1, location, registryEntry));
+        V newEntry = getValue(add(-1, registryEntry, location.toString()));
         if (newEntry == registryEntry) {
             if (this.created == null) {
                 this.created = new ObjectOpenHashSet<>();

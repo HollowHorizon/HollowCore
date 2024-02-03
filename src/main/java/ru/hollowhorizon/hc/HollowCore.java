@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.repository.Pack;
@@ -31,6 +32,7 @@ import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager;
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer;
+import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
@@ -100,11 +102,11 @@ public class HollowCore {
             adder.accept(
                     creator.create(
                             pack.getName(),
-                            Component.literal(pack.getName()),
+                            ForgeKotlinKt.getMcText(pack.getName()),
                             true,
                             () -> pack,
                             new PackMetadataSection(
-                                    Component.translatable("fml.resources.modresources", 1),
+                                    new TranslatableComponent("fml.resources.modresources", 1),
                                     PackType.CLIENT_RESOURCES.getVersion(SharedConstants.getCurrentVersion())
                             ),
                             Pack.Position.TOP,

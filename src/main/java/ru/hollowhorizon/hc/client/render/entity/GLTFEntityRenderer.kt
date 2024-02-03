@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.VertexFormat
 import com.mojang.math.Vector3f
 import net.minecraft.Util
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.ItemInHandRenderer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.RenderStateShard
 import net.minecraft.client.renderer.RenderStateShard.TextureStateShard
@@ -32,7 +33,7 @@ import ru.hollowhorizon.hc.client.utils.*
 
 open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimated {
-    val itemInHandRenderer = manager.itemInHandRenderer.apply {
+    val itemInHandRenderer = Minecraft.getInstance().itemInHandRenderer.apply {
         GltfEntityUtil.itemRenderer = this
     }
 

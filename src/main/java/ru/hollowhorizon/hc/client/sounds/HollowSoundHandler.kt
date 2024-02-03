@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.client.sounds
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.resources.Resource
 import net.minecraft.server.packs.resources.ResourceManager
 import ru.hollowhorizon.hc.HollowCore
@@ -11,14 +12,13 @@ object HollowSoundHandler {
     val MODS = hashSetOf<String>()
 
     @JvmStatic
-    fun createJson(manager: ResourceManager, modId: String): Resource.IoSupplier<InputStream> {
+    fun createJson(manager: ResourceManager, modId: String): InputStream {
         val soundsJson = JsonObject()
 
         manager.listResources("sounds") {
-            it.namespace == modId && it.path.endsWith(".ogg")
-        }.map {
-            it.key
+            true //по какой-то причине фильтр на 1.18.2 работает криво, поэтому проверка ниже
         }.forEach { location ->
+            if(location.namespace != modId || !location.path.endsWith(".ogg")) return@forEach
             val soundName = location.path.substringAfter("sounds/").substringBeforeLast(".")
             soundsJson.add(soundName, JsonObject().apply {
                 addProperty("category", "master")
@@ -33,6 +33,6 @@ object HollowSoundHandler {
         }
 
         HollowCore.LOGGER.info("Creating sounds.json for $modId: $soundsJson")
-        return Resource.IoSupplier { soundsJson.toString().byteInputStream() }
+        return soundsJson.toString().byteInputStream()
     }
 }

@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import ru.hollowhorizon.hc.client.screens.util.Alignment;
 import ru.hollowhorizon.hc.client.screens.widget.HollowWidget;
 import ru.hollowhorizon.hc.client.screens.widget.layout.ILayoutConsumer;
+import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.mixin.ScreenAccessor;
 
 public class HollowScreen extends Screen implements ILayoutConsumer {
@@ -23,7 +24,7 @@ public class HollowScreen extends Screen implements ILayoutConsumer {
     }
 
     public HollowScreen() {
-        this(Component.literal(""));
+        this(ForgeKotlinKt.getMcText(""));
     }
 
     @Override

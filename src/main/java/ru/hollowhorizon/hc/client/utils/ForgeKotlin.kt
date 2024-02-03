@@ -9,6 +9,8 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.renderer.texture.AbstractTexture
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.TextComponent
+import net.minecraft.network.chat.TranslatableComponent
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
@@ -52,25 +54,25 @@ fun ResourceLocation.toIS(): InputStream {
 }
 
 fun ResourceLocation.exists(): Boolean {
-    return mc.resourceManager.getResource(this).isPresent
+    return mc.resourceManager.hasResource(this)
 }
 
 val ResourceLocation.stream: InputStream
     get() = HollowJavaUtils.getResource(this)
 
 fun String.toSTC(): Component {
-    return Component.literal(this)
+    return TextComponent(this)
 }
 
 val String.mcText: Component
-    get() = Component.literal(this)
+    get() = TextComponent(this)
 
 fun String.toTTC(): Component {
-    return Component.translatable(this)
+    return TranslatableComponent(this)
 }
 
 val String.mcTranslate: Component
-    get() = Component.translatable(this)
+    get() = TranslatableComponent(this)
 
 @OnlyIn(Dist.CLIENT)
 fun Screen.open() {
@@ -111,7 +113,7 @@ fun Int.toRGBA(): RGBA {
 
 data class RGBA(val r: Float, val g: Float, val b: Float, val a: Float)
 
-fun <V> ResourceLocation.valueFrom(registry: IForgeRegistry<V>): V {
+fun <V: IForgeRegistry<V>> ResourceLocation.valueFrom(registry: V): V {
     return registry.getValue(this) ?: throw IllegalArgumentException("Value $this not found in registry $registry")
 }
 

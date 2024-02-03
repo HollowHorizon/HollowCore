@@ -32,9 +32,9 @@ class TrueTypeFont(private var font: Font, var scale: Float = 1.0f) {
     }
 
     constructor(resource: ResourceLocation, fontSize: Int, scale: Float) : this(with(Minecraft.getInstance()) {
-        val r: Resource = Minecraft.getInstance().resourceManager.getResource(resource).orElseThrow()
+        val r: Resource = Minecraft.getInstance().resourceManager.getResource(resource)
 
-        val stream: InputStream = r.open()
+        val stream: InputStream = r.inputStream
         val environment = GraphicsEnvironment.getLocalGraphicsEnvironment()
         val font = Font.createFont(0, stream)
         stream.close()

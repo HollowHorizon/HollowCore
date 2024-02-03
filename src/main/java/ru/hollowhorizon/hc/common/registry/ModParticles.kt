@@ -1,7 +1,8 @@
 package ru.hollowhorizon.hc.common.registry
 
+import net.minecraft.client.Minecraft
 import net.minecraft.client.particle.SpriteSet
-import net.minecraftforge.client.event.RegisterParticleProvidersEvent
+import net.minecraftforge.client.event.ParticleFactoryRegisterEvent
 import net.minecraftforge.registries.RegistryObject
 import ru.hollowhorizon.hc.client.render.particles.HollowParticleType
 
@@ -12,11 +13,12 @@ object ModParticles : HollowRegistry() {
     private val GENERATED_LIST = ArrayList<RegistryObject<HollowParticleType>>()
 
     @JvmStatic
-    fun onRegisterParticles(event: RegisterParticleProvidersEvent) {
-        event.register(CIRCLE.get()) { set: SpriteSet -> HollowParticleType.Factory(set) }
-        event.register(STAR.get()) { set: SpriteSet -> HollowParticleType.Factory(set) }
+    fun onRegisterParticles(event: ParticleFactoryRegisterEvent) {
+        val engine = Minecraft.getInstance().particleEngine
+        engine.register(CIRCLE.get()) { set: SpriteSet -> HollowParticleType.Factory(set) }
+        engine.register(STAR.get()) { set: SpriteSet -> HollowParticleType.Factory(set) }
         GENERATED_LIST.forEach {
-            event.register(it.get()) { set: SpriteSet -> HollowParticleType.Factory(set) }
+            engine.register(it.get()) { set: SpriteSet -> HollowParticleType.Factory(set) }
         }
     }
 

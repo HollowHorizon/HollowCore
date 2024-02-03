@@ -4,7 +4,6 @@ import com.mojang.math.Vector3d
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.core.particles.ParticleType
-import net.minecraft.util.RandomSource
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.Vec3
@@ -15,6 +14,7 @@ import ru.hollowhorizon.hc.client.utils.math.Interpolation
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.network.NetworkHandler
 import ru.hollowhorizon.hc.common.network.packets.SpawnParticlesPacket
+import java.util.Random
 import java.util.function.Supplier
 import kotlin.math.cos
 import kotlin.math.sin
@@ -398,7 +398,7 @@ open class HollowParticleBuilder protected constructor(val level: Level, val typ
     }
 
     companion object {
-        private val RANDOM = RandomSource.create()
+        private val RANDOM = Random()
         fun create(level: Level, type: ParticleType<*>, builder: HollowParticleBuilder.() -> Unit = {}): HollowParticleBuilder {
             return HollowParticleBuilder(level, type).apply(builder)
         }

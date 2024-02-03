@@ -5,10 +5,11 @@ import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.client.utils.mcText
 
 
 class SwitchWidget(x: Int, y: Int, w: Int, h: Int, val onChange: (Boolean) -> Unit) :
-    HollowWidget(x, y, w, h, Component.empty()) {
+    HollowWidget(x, y, w, h, "".mcText) {
     var value: Boolean = false
     private var processAnim = false
     private var processCounter = 0

@@ -23,6 +23,7 @@ import net.minecraftforge.fml.ModLoadingContext
 import net.minecraftforge.registries.DeferredRegister
 import net.minecraftforge.registries.ForgeRegistries
 import net.minecraftforge.registries.IForgeRegistry
+import net.minecraftforge.registries.IForgeRegistryEntry
 import net.minecraftforge.registries.RegistryObject
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.render.entity.RenderFactoryBuilder
@@ -70,12 +71,12 @@ class RegistryHolder<T>(private val config: ObjectConfig, supplier: () -> T, val
             Block::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(ForgeRegistries.BLOCKS, modId)
             Item::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(ForgeRegistries.ITEMS, modId)
             EntityType::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(
-                ForgeRegistries.ENTITY_TYPES,
+                ForgeRegistries.ENTITIES,
                 modId
             )
 
             BlockEntityType::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(
-                ForgeRegistries.BLOCK_ENTITY_TYPES,
+                ForgeRegistries.BLOCK_ENTITIES,
                 modId
             )
 
@@ -90,7 +91,7 @@ class RegistryHolder<T>(private val config: ObjectConfig, supplier: () -> T, val
                 modId
             )
 
-            MenuType::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(ForgeRegistries.MENU_TYPES, modId)
+            MenuType::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(ForgeRegistries.CONTAINERS, modId)
             ParticleType::class.java.isAssignableFrom(this) -> RegistryLoader.getRegistry(
                 ForgeRegistries.PARTICLE_TYPES,
                 modId
@@ -151,7 +152,7 @@ object RegistryLoader {
     private val REGISTRIES: HashMap<IForgeRegistry<*>, HashMap<String, DeferredRegister<*>>> = hashMapOf()
 
     @Suppress("UNCHECKED_CAST")
-    fun <B> getRegistry(registryType: IForgeRegistry<B>, modId: String): DeferredRegister<B> {
+    fun <B: IForgeRegistryEntry<B>> getRegistry(registryType: IForgeRegistry<B>, modId: String): DeferredRegister<B> {
 
         val registriesFor = REGISTRIES.computeIfAbsent(registryType) { hashMapOf() }
 

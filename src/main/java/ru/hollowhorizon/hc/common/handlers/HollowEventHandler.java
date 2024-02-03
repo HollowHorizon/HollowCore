@@ -17,6 +17,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.lwjgl.glfw.GLFW;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.screens.EntityNodePickerScreen;
+import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
 
@@ -31,7 +32,7 @@ public class HollowEventHandler {
 
     //@SubscribeEvent
     @OnlyIn(Dist.CLIENT)
-    public void onKey(ScreenEvent.KeyPressed event) {
+    public void onKey(ScreenEvent.KeyboardKeyPressedEvent event) {
         if (event.getKeyCode() == GLFW.GLFW_KEY_V) {
             Minecraft.getInstance().setScreen(new EntityNodePickerScreen());
         }
@@ -44,9 +45,9 @@ public class HollowEventHandler {
         final var shift_desc = event.getItemStack().getItem().getDescriptionId() + ".hc_shift_desc";
         final var lang = Language.getInstance();
 
-        if (lang.has(desc)) event.getToolTip().add(Component.translatable(desc));
+        if (lang.has(desc)) event.getToolTip().add(ForgeKotlinKt.getMcTranslate(desc));
 
-        if (Screen.hasShiftDown() && lang.has(shift_desc)) event.getToolTip().add(Component.translatable(desc));
+        if (Screen.hasShiftDown() && lang.has(shift_desc)) event.getToolTip().add(ForgeKotlinKt.getMcTranslate(desc));
     }
 
     @SubscribeEvent
