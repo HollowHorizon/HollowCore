@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
 import com.mojang.blaze3d.platform.GlConst.GL_RGBA
+import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
@@ -889,10 +890,7 @@ object GltfTree {
             GL13.glActiveTexture(GL13.GL_TEXTURE0)
             GL33.glBindTexture(GL33.GL_TEXTURE_2D, texture)
 
-            GL33.glEnable(GL33.GL_BLEND)
-            GL33.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-            if (material.doubleSided) GL11.glEnable(GL11.GL_CULL_FACE)
-
+            if (material.doubleSided) RenderSystem.disableCull()
             //Подключение VAO и IBO
             GL33.glBindVertexArray(vao)
             GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)

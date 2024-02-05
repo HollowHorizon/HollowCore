@@ -21,24 +21,15 @@ object SkinDownloader {
             Minecraft.getInstance().textureManager.getTexture(textureLocation, MissingTextureAtlasSprite.getTexture())
 
         if (original == MissingTextureAtlasSprite.getTexture()) {
-            var url = "https://api.mojang.com/users/profiles/minecraft/$skin"
+            var url = "https://skins.danielraybone.com/v1/profile/$skin"
             var connection = URL(url).openConnection()
             val text = connection.getInputStream().bufferedReader().readText()
-            val uuid = JsonParser.parseString(text).asJsonObject.get("id").asString
-            url = "https://sessionserver.mojang.com/session/minecraft/profile/$uuid"
-            connection = URL(url).openConnection()
-            val text2 = connection.getInputStream().bufferedReader().readText()
-            val json = JsonParser.parseString(text2).asJsonObject.getAsJsonArray("properties").map { it.asJsonObject }
-                .first { it.get("name").asString == "textures" }
-                .get("value").asString
-            val textureJson = Base64.getDecoder().decode(json)
-            val textureUrl = JsonParser.parseString(String(textureJson)).asJsonObject.getAsJsonObject("textures")
-                .getAsJsonObject("SKIN").get("url").asString
-            val texture = URL(textureUrl).openConnection().getInputStream().readBytes()
+            val base64 = JsonParser.parseString(text).asJsonObject["assets"].asJsonObject["skin"].asJsonObject["base64"].asString
+            val textureJson = Base64.getDecoder().decode(base64)
 
             Minecraft.getInstance().textureManager.register(
                 textureLocation, DynamicTexture(
-                    NativeImage.read(texture.inputStream())
+                    NativeImage.read(textureJson.inputStream())
                 )
             )
             if (hasHollowEngine) {
@@ -46,7 +37,7 @@ object SkinDownloader {
                     .resolve("hollowengine/assets/hollowengine/textures/skins/${skin.lowercase()}.png").toFile()
                     .apply {
                         parentFile?.mkdirs()
-                    }.writeBytes(texture)
+                    }.writeBytes(textureJson)
             }
         }
         return textureLocation
