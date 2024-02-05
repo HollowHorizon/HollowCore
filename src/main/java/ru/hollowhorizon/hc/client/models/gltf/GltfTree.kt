@@ -15,10 +15,7 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.client.utils.areShadersEnabled
-import ru.hollowhorizon.hc.client.utils.rl
-import ru.hollowhorizon.hc.client.utils.toIS
-import ru.hollowhorizon.hc.client.utils.use
+import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.registry.ModShaders
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
@@ -95,7 +92,9 @@ object GltfTree {
         }
     }
 
-    fun parse(location: ResourceLocation): GLTFTree {
+    fun parse(resource: ResourceLocation): GLTFTree {
+        val location = if(!resource.exists()) "hc:models/error.gltf".rl else resource
+
         val file = if (location.path.endsWith(".glb")) {
             val bytes = location.toIS().readBytes()
             val dataStream = DataInputStream(ByteArrayInputStream(bytes))
