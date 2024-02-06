@@ -1,6 +1,9 @@
 package ru.hollowhorizon.hc.client.screens.widget.layout
 
 import com.mojang.blaze3d.vertex.PoseStack
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.screens.Screen
@@ -379,7 +382,6 @@ fun ILayoutConsumer.box(builder: BoxBuilder.() -> Unit): BoxWidget {
     }
     if (box.maxHeight > 0) box.offsetY = (-box.maxHeight * boxBuilder.align.factorY()).toInt()
     if (box.maxWidth > 0) box.offsetX = (-box.maxWidth * boxBuilder.align.factorX()).toInt()
-    HollowCore.LOGGER.info("Box originY: ${box.originY}")
     this.addLayoutWidget(box)
     return box
 }
