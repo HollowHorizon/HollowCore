@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.common.handlers;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
@@ -13,12 +14,20 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.lwjgl.glfw.GLFW;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.screens.EntityNodePickerScreen;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
+import ru.hollowhorizon.hc.common.registry.ModMenus;
+import ru.hollowhorizon.hc.common.ui.HollowMenu;
+import ru.hollowhorizon.hc.common.ui.HollowMenuKt;
+import ru.hollowhorizon.hc.common.ui.HollowMenuScreen;
+import thedarkcolour.kotlinforforge.forge.ForgeKt;
 
 public class HollowEventHandler {
     @HollowConfig("enable_blur")
@@ -26,6 +35,9 @@ public class HollowEventHandler {
 
     public void init() {
         MinecraftForge.EVENT_BUS.register(this);
+        if(FMLEnvironment.dist.isClient()) {
+            ForgeKt.getMOD_CONTEXT().getKEventBus().addListener(this::onClientInit);
+        }
     }
 
 
@@ -35,6 +47,11 @@ public class HollowEventHandler {
         if (event.getKeyCode() == GLFW.GLFW_KEY_V) {
             Minecraft.getInstance().setScreen(new EntityNodePickerScreen());
         }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public void onClientInit(FMLClientSetupEvent event) {
+        HollowMenuKt.register(event);
     }
 
     @SubscribeEvent
@@ -80,5 +97,7 @@ public class HollowEventHandler {
         for (Capability<CapabilityInstance> cap : CapabilityStorage.INSTANCE.getCapabilitiesForPlayer()) {
             player.getCapability(cap).ifPresent(CapabilityInstance::sync);
         }
+
+        HollowMenuKt.open(HollowMenu::new, player);
     }
 }
