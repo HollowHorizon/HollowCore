@@ -106,10 +106,11 @@ dependencies {
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
 
     implementation("thedarkcolour:kotlinforforge:3.12.0")
-    compileOnly(fg.deobf("curse.maven:embeddium-908741:4984830"))
-    compileOnly(fg.deobf("curse.maven:oculus-581495:4763262"))
+    implementation(fg.deobf("curse.maven:embeddium-908741:4984830"))
+    implementation(fg.deobf("curse.maven:oculus-581495:4763262"))
     implementation(fg.deobf("curse.maven:spark-361579:4505309"))
-    implementation(fg.deobf("curse.maven:firstperson:2.3.2"))
+    implementation(fg.deobf("curse.maven:carry-on-274259:4882496"))
+    compileOnly(fg.deobf("curse.maven:firstperson:2.3.2"))
     
     shadow("com.esotericsoftware:kryo:5.4.0")
 }

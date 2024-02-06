@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
+import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.math.Matrix4f
 import com.mojang.math.Vector4f
@@ -39,7 +40,11 @@ inline fun drawWithShader(
     pShaderInstance.COLOR_MODULATOR?.set(1.0F, 1.0F, 1.0F, 1.0F)
     pShaderInstance.COLOR_MODULATOR?.upload()
 
-    GL33.glEnable(GL33.GL_DEPTH_TEST)
+    RenderSystem.enableDepthTest()
+    RenderSystem.enableBlend()
+    RenderSystem.depthFunc(515)
+    RenderSystem.defaultBlendFunc()
+    RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA)
 
     val accessor = pShaderInstance as ShaderInstanceAccessor
     accessor.samplerLocations().forEachIndexed { texture, index ->
