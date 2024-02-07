@@ -8,13 +8,15 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.modules.*
 import net.minecraft.nbt.*
+import net.minecraftforge.common.MinecraftForge
+import net.minecraftforge.eventbus.api.Event
 import ru.hollowhorizon.hc.HollowCore
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 
-internal val TagModule = SerializersModule {
+internal val TagModule get() = SerializersModule {
     polymorphic(Tag::class) {
         subclass(ByteTag::class, ForByteNBT)
         subclass(ShortTag::class, ForShortNBT)
@@ -34,7 +36,6 @@ internal val TagModule = SerializersModule {
     contextual(ForResourceLocation)
     contextual(ForSoundEvent)
 }
-
 
 val MAPPINGS_SERIALIZER by lazy { NBTFormat() }
 
