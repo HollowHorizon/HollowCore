@@ -1,30 +1,16 @@
 package ru.hollowhorizon.hc.client.screens
 
-import ru.hollowhorizon.hc.client.screens.widget.ComboWidget
-import ru.hollowhorizon.hc.client.screens.widget.SwitchWidget
-import ru.hollowhorizon.hc.client.screens.widget.layout.box
-import ru.hollowhorizon.hc.client.utils.mcText
+import com.mojang.blaze3d.vertex.PoseStack
 import ru.hollowhorizon.hc.client.utils.toSTC
+import ru.hollowhorizon.hc.common.ui.Widget
 
 
-class UIScreen : HollowScreen("".toSTC()) {
-    override fun init() {
-        super.init()
+class UIScreen(val gui: Widget) : HollowScreen("".toSTC()) {
+    override fun render(pPoseStack: PoseStack, pMouseX: Int, pMouseY: Int, pPartialTick: Float) {
+        gui.render(pPoseStack, 0, 0, width, height, width, height, pMouseX, pMouseY, pPartialTick)
+    }
 
-        box {
-            size = 90.pc x 90.pc
-
-            renderer = { stack, x, y, w, h ->
-                fillGradient(stack, x, y, x + w, y + h, 0x4287F5FF, 0x224C8FFF)
-            }
-
-            elements {
-                +ComboWidget(
-                    "вариантЫ:".mcText,
-                    Array(10) { SwitchWidget(0, 0, 20.pc.w().value, 20) { } }.toList(),
-                    0, 0, 25.pc.w().value, 20
-                )
-            }
-        }
+    override fun mouseClicked(pMouseX: Double, pMouseY: Double, pButton: Int): Boolean {
+        return gui.buttonPressed(0, 0, width, height, width, height, pMouseX.toInt(), pMouseY.toInt())
     }
 }

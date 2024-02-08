@@ -1,11 +1,11 @@
 package ru.hollowhorizon.hc.common.handlers;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ScreenEvent;
@@ -14,7 +14,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
@@ -23,10 +23,8 @@ import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.screens.EntityNodePickerScreen;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
-import ru.hollowhorizon.hc.common.registry.ModMenus;
-import ru.hollowhorizon.hc.common.ui.HollowMenu;
 import ru.hollowhorizon.hc.common.ui.HollowMenuKt;
-import ru.hollowhorizon.hc.common.ui.HollowMenuScreen;
+import ru.hollowhorizon.hc.common.ui.WidgetKt;
 import thedarkcolour.kotlinforforge.forge.ForgeKt;
 
 public class HollowEventHandler {
@@ -35,7 +33,7 @@ public class HollowEventHandler {
 
     public void init() {
         MinecraftForge.EVENT_BUS.register(this);
-        if(FMLEnvironment.dist.isClient()) {
+        if (FMLEnvironment.dist.isClient()) {
             ForgeKt.getMOD_CONTEXT().getKEventBus().addListener(this::onClientInit);
         }
     }
@@ -46,6 +44,14 @@ public class HollowEventHandler {
     public void onKey(ScreenEvent.KeyPressed event) {
         if (event.getKeyCode() == GLFW.GLFW_KEY_V) {
             Minecraft.getInstance().setScreen(new EntityNodePickerScreen());
+        }
+    }
+
+    @SubscribeEvent
+    public void onBlockClick(PlayerInteractEvent.RightClickBlock event) {
+        if (event.getLevel().getBlockState(event.getHitVec().getBlockPos()).getBlock().equals(Blocks.BEACON)) {
+            WidgetKt.main();
+            event.setCanceled(true);
         }
     }
 
@@ -97,7 +103,5 @@ public class HollowEventHandler {
         for (Capability<CapabilityInstance> cap : CapabilityStorage.INSTANCE.getCapabilitiesForPlayer()) {
             player.getCapability(cap).ifPresent(CapabilityInstance::sync);
         }
-
-        HollowMenuKt.open(HollowMenu::new, player);
     }
 }

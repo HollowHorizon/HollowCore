@@ -12,12 +12,18 @@ import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
+import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.*
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.monster.Zombie
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.phys.Vec3
+import net.minecraftforge.common.util.FakePlayer
+import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.registries.ForgeRegistries
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.rl
@@ -435,6 +441,77 @@ object ForVector3d : KSerializer<Vector3d> {
     }
 }
 
+object ForVec3 : KSerializer<Vec3> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Vector3d") {
+        element("x", Double.serializer().descriptor)
+        element("y", Double.serializer().descriptor)
+        element("z", Double.serializer().descriptor)
+    }
+
+
+    private const val XIndex = 0
+    private const val YIndex = 1
+    private const val ZIndex = 2
+
+    override fun serialize(encoder: Encoder, value: Vec3) {
+        val compositeOutput = encoder.beginStructure(descriptor)
+        compositeOutput.encodeDoubleElement(descriptor, XIndex, value.x)
+        compositeOutput.encodeDoubleElement(descriptor, YIndex, value.y)
+        compositeOutput.encodeDoubleElement(descriptor, ZIndex, value.z)
+        compositeOutput.endStructure(descriptor)
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun deserialize(decoder: Decoder): Vec3 {
+        val dec: CompositeDecoder = decoder.beginStructure(descriptor)
+
+        var x = 0.0
+        var y = 0.0
+        var z = 0.0
+        var xExists = false
+        var yExists = false
+        var zExists = false
+        if (dec.decodeSequentially()) {
+            x = dec.decodeDoubleElement(descriptor, XIndex)
+            y = dec.decodeDoubleElement(descriptor, YIndex)
+            z = dec.decodeDoubleElement(descriptor, ZIndex)
+            xExists = true
+            yExists = true
+            zExists = true
+        } else {
+            loop@ while (true) {
+                when (val i = dec.decodeElementIndex(descriptor)) {
+                    CompositeDecoder.DECODE_DONE -> break@loop
+                    XIndex -> {
+                        x = dec.decodeDoubleElement(descriptor, i)
+                        xExists = true
+                    }
+
+                    YIndex -> {
+                        y = dec.decodeDoubleElement(descriptor, i)
+                        yExists = true
+                    }
+
+                    ZIndex -> {
+                        z = dec.decodeDoubleElement(descriptor, i)
+                        zExists = true
+                    }
+
+                    else -> throw SerializationException("Unknown index $i")
+                }
+            }
+        }
+
+
+        dec.endStructure(descriptor)
+        if (!xExists) x = missingField("x", "Vec3d") { 0.0 }
+        if (!yExists) y = missingField("y", "Vec3d") { 0.0 }
+        if (!zExists) z = missingField("z", "Vec3d") { 0.0 }
+
+        return Vec3(x, y, z)
+    }
+}
+
 
 object ForVector3f : KSerializer<Vector3f> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Vector3f") {
@@ -509,3 +586,16 @@ object ForVector3f : KSerializer<Vector3f> {
 @OptIn(ExperimentalSerializationApi::class)
 internal open class PublicisedListLikeDescriptorImpl(elementDesc: SerialDescriptor, override val serialName: String) :
     PublicisedListLikeDescriptor(elementDesc)
+
+object ForEntity: KSerializer<Entity> {
+    override val descriptor = PrimitiveSerialDescriptor("entityId", PrimitiveKind.INT)
+
+    override fun deserialize(decoder: Decoder): Entity {
+        return Minecraft.getInstance().level?.getEntity(decoder.decodeInt()) ?: Zombie(Minecraft.getInstance().level!!)
+    }
+
+    override fun serialize(encoder: Encoder, entity: Entity) {
+        encoder.encodeInt(entity.id)
+    }
+
+}

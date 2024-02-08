@@ -6,6 +6,9 @@ import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.*
+import net.coderbot.iris.texture.pbr.PBRTextureManager
+import net.coderbot.iris.texture.pbr.loader.PBRTextureLoader
+import net.coderbot.iris.texture.pbr.loader.PBRTextureLoaderRegistry
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.texture.DynamicTexture
@@ -15,6 +18,7 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.registry.ModShaders
 import java.io.ByteArrayInputStream
@@ -334,8 +338,8 @@ object GltfTree {
                 normalTexture = texture
             }
         }
-        var occlusionTexture = ResourceLocation("hc:default_normal_map")
-        material.occlusionTexture?.index?.let {
+        var occlusionTexture = ResourceLocation("hc:default_specular_map")
+        material.pbrMetallicRoughness?.metallicRoughnessTexture?.index?.let {
             getTexture(file, bufferViews, location, folder, it)?.let { texture ->
                 occlusionTexture = texture
             }
@@ -409,10 +413,10 @@ object GltfTree {
                 append(localPath)
                 append("/")
             }
-            append(texturePath.substringBeforeLast('.'))
+            append(texturePath)
         }
 
-        return ResourceLocation(model.namespace, finalPath.lowercase())
+        return ResourceLocation(model.namespace, "models/" + finalPath.lowercase())
     }
 
     private fun parseScenes(file: GltfFile, meshes: List<Mesh>, skins: List<Skin>): List<Scene> {
@@ -867,6 +871,7 @@ object GltfTree {
             //Всякие настройки смешивания, материалы и т.п.
             val texture = consumer(material.texture)
 
+
             if (!node.isAllHovered()) GL33.glVertexAttrib4f(
                 1,
                 material.color.x(),
@@ -875,16 +880,6 @@ object GltfTree {
                 material.color.w()
             )
             else GL33.glVertexAttrib4f(1, 0f, 0.45f, 1f, 1f)
-            //pbr, отражения и т.п.
-//            if(hasShaders) {
-//                RenderSystem.setShaderTexture(2, material.normalTexture)
-//                RenderSystem.setShaderTexture(3, material.specularTexture)
-//
-//                GL13.glActiveTexture(GL13.GL_TEXTURE2)
-//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(2))
-//                GL13.glActiveTexture(GL13.GL_TEXTURE3)
-//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(3))
-//            }
 
             GL13.glActiveTexture(GL13.GL_TEXTURE0)
             GL33.glBindTexture(GL33.GL_TEXTURE_2D, texture)
