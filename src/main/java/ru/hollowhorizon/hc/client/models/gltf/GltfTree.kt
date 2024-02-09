@@ -1,7 +1,6 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
 import com.mojang.blaze3d.platform.GlConst.GL_RGBA
-import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
@@ -10,6 +9,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.entity.EquipmentSlot
 import net.minecraftforge.fml.ModList
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
@@ -93,7 +93,7 @@ object GltfTree {
     }
 
     fun parse(resource: ResourceLocation): GLTFTree {
-        val location = if(!resource.exists()) "hc:models/error.gltf".rl else resource
+        val location = if (!resource.exists()) "hc:models/error.gltf".rl else resource
 
         val file = if (location.path.endsWith(".glb")) {
             val bytes = location.toIS().readBytes()
@@ -539,6 +539,12 @@ object GltfTree {
 
         fun isAllHovered(): Boolean = isHovered || parent?.isAllHovered() == true
 
+        val isArmor = name?.contains("armor", ignoreCase = true) == true
+        val isHelmet = isArmor && name?.contains("helmet", ignoreCase = true) == true
+        val isChestplate = isArmor && name?.contains("chestplate", ignoreCase = true) == true
+        val isLeggings = isArmor && name?.contains("leggings", ignoreCase = true) == true
+        val isBoots = isArmor && name?.contains("boots", ignoreCase = true) == true
+
         fun render(
             stack: PoseStack,
             nodeRenderer: NodeRenderer,
@@ -546,6 +552,39 @@ object GltfTree {
             consumer: (ResourceLocation) -> Int,
             light: Int,
         ) {
+            var consumer = consumer
+            val entity = data.entity
+            if (isArmor) {
+                if (entity == null) return
+                when {
+                    !entity.getItemBySlot(EquipmentSlot.HEAD).isEmpty && isHelmet -> {
+                        val armorItem = entity.getItemBySlot(EquipmentSlot.HEAD)
+                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.HEAD)
+                        consumer = { texture.toTexture().id }
+                    }
+
+                    !entity.getItemBySlot(EquipmentSlot.CHEST).isEmpty && isChestplate -> {
+                        val armorItem = entity.getItemBySlot(EquipmentSlot.CHEST)
+                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.CHEST)
+                        consumer = { texture.toTexture().id }
+                    }
+
+                    !entity.getItemBySlot(EquipmentSlot.LEGS).isEmpty && isLeggings -> {
+                        val armorItem = entity.getItemBySlot(EquipmentSlot.LEGS)
+                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.LEGS)
+                        consumer = { texture.toTexture().id }
+                    }
+
+                    !entity.getItemBySlot(EquipmentSlot.FEET).isEmpty && isBoots -> {
+                        val armorItem = entity.getItemBySlot(EquipmentSlot.FEET)
+                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.FEET)
+                        consumer = { texture.toTexture().id }
+                    }
+
+                    else -> return
+                }
+            }
+
             if (hasFirstPersonModel && dev.tr7zw.firstperson.api.FirstPersonAPI.isRenderingPlayer() &&
                 name?.contains("head", ignoreCase = true) == true
             ) {
