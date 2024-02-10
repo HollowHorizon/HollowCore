@@ -110,6 +110,9 @@ dependencies {
     implementation(fg.deobf("curse.maven:oculus-581495:4763262"))
     implementation(fg.deobf("curse.maven:spark-361579:4505309"))
     implementation(fg.deobf("curse.maven:carry-on-274259:4882496"))
+    implementation(fg.deobf("curse.maven:ftb-teams-forge-404468:4611938"))
+    implementation(fg.deobf("curse.maven:ftb-library-forge-404465:4661834"))
+    implementation(fg.deobf("curse.maven:architectury-api-419699:4555749"))
     compileOnly(fg.deobf("curse.maven:firstperson:2.3.2"))
     
     shadow("com.esotericsoftware:kryo:5.4.0")

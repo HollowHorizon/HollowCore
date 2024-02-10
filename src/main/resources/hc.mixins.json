@@ -13,7 +13,8 @@
     "ForgeRegistryMixin",
     "ListTagAccessor",
     "PrimaryLevelDataMixin",
-    "StructureBlockMixin"
+    "StructureBlockMixin",
+    "ftbteams.AbstractTeamMixin"
   ],
   "client": [
     "ScreenAccessor",

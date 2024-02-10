@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.client.utils
 
 import com.mojang.blaze3d.vertex.PoseStack
+import dev.ftb.mods.ftbteams.data.Team
 import net.irisshaders.iris.api.v0.IrisApi
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
@@ -14,7 +15,7 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
-import net.minecraftforge.common.capabilities.ICapabilityProviderImpl
+import net.minecraftforge.common.capabilities.ICapabilityProvider
 import net.minecraftforge.fml.ModList
 import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.fml.loading.FMLLoader
@@ -40,9 +41,11 @@ val hasShaders get() = ModList.get().isLoaded("oculus") || ModList.get().isLoade
 
 val areShadersEnabled get() = hasShaders && IrisApi.getInstance().config.areShadersEnabled()
 
-operator fun <T : CapabilityInstance> ICapabilityProviderImpl<*>.get(capability: KClass<T>): T =
+operator fun <T : CapabilityInstance> ICapabilityProvider.get(capability: KClass<T>): T =
     getCapability(CapabilityStorage.getCapability(capability.java))
         .orElseThrow { IllegalStateException("Capability ${capability.simpleName} not found!") }
+
+fun <T : CapabilityInstance> Team.capability(capability: KClass<T>) = (this as ICapabilityProvider)[capability]
 
 val String.rl get() = ResourceLocation(this)
 
@@ -88,7 +91,15 @@ fun AbstractTexture.render(stack: PoseStack, x: Int, y: Int, width: Int, height:
 
 @OnlyIn(Dist.CLIENT)
 @JvmOverloads
-fun Font.drawScaled(stack: PoseStack, anchor: Anchor = Anchor.CENTER, text: Component, x: Int, y: Int, color: Int, scale: Float) {
+fun Font.drawScaled(
+    stack: PoseStack,
+    anchor: Anchor = Anchor.CENTER,
+    text: Component,
+    x: Int,
+    y: Int,
+    color: Int,
+    scale: Float,
+) {
     stack.pushPose()
     stack.translate((x).toDouble(), (y).toDouble(), 0.0)
     stack.scale(scale, scale, 0F)

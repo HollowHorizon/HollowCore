@@ -36,21 +36,6 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         GltfEntityUtil.itemRenderer = this
     }
 
-    val renderType = Util.memoize { texture: ResourceLocation, data: Boolean ->
-        val state =
-            CompositeState.builder()
-                .setShaderState(RenderStateShard.RENDERTYPE_ENTITY_TRANSLUCENT_SHADER)
-                .setTextureState(TextureStateShard(texture, false, false))
-                .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setCullState(RenderStateShard.NO_CULL)
-                .setLightmapState(RenderStateShard.LIGHTMAP)
-                .setOverlayState(RenderStateShard.OVERLAY)
-                .createCompositeState(data)
-        RenderType.create(
-            "hc:gltf_entity", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.TRIANGLES,
-            256, true, true, state
-        )
-    }
-
     override fun getTextureLocation(entity: T): ResourceLocation {
         //return "hc:textures/entity/vuzz.png".rl
         return TextureManager.INTENTIONAL_MISSING_TEXTURE
@@ -111,8 +96,6 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
         stack.popPose()
     }
-
-    protected open fun getRenderType(texture: ResourceLocation): RenderType = renderType.apply(texture, true)
 
     protected open fun drawVisuals(entity: LivingEntity, stack: PoseStack, node: GltfTree.Node, light: Int) {
         if ((node.name?.contains("left", ignoreCase = true) == true || node.name?.contains(

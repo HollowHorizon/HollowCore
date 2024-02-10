@@ -25,7 +25,6 @@ annotation class HollowPacketV2(val toTarget: Direction = Direction.ANY) {
 @Suppress("UnstableApiUsage")
 @Deprecated("Use HollowPacketV3 instead", replaceWith = ReplaceWith("HollowPacketV3", "ru.hollowhorizon.hc.common.network.HollowPacketV3"))
 open class Packet<T>(val function: Packet<T>.(Player, T) -> Unit) {
-    var direction: Optional<NetworkDirection> = Optional.empty()
     var value: T? = null
     var type: TypeToken<T> = object : TypeToken<T>(javaClass) {}
 

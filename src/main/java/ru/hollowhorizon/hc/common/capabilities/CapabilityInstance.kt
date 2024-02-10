@@ -1,5 +1,7 @@
 package ru.hollowhorizon.hc.common.capabilities
 
+import dev.ftb.mods.ftbteams.FTBTeamsAPI
+import dev.ftb.mods.ftbteams.data.Team
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -12,66 +14,67 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.chunk.LevelChunk
 import net.minecraftforge.common.capabilities.Capability
-import net.minecraftforge.common.capabilities.ICapabilityProviderImpl
+import net.minecraftforge.common.capabilities.ICapabilityProvider
 import net.minecraftforge.common.capabilities.ICapabilitySerializable
 import net.minecraftforge.common.util.LazyOptional
 import net.minecraftforge.network.PacketDistributor
-import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 
 @Suppress("API_STATUS_INTERNAL")
-open class CapabilityInstance :
-    ICapabilitySerializable<Tag> {
+open class CapabilityInstance : ICapabilitySerializable<Tag> {
     val properties = Object2ObjectOpenHashMap<String, Any?>()
     open val consumeOnServer: Boolean = false
     open val canOtherPlayersAccess: Boolean = true
-    lateinit var provider: ICapabilityProviderImpl<*> //Будет инициализированно инжектом
+    lateinit var provider: ICapabilityProvider //Будет инициализированно инжектом
     lateinit var capability: Capability<CapabilityInstance> //Будет инициализированно инжектом
 
     fun <T> syncable(default: T) = CapabilityProperty<CapabilityInstance, T>(default)
 
 
     fun sync() {
-        when (provider) {
+        when (val target = provider) {
             is Entity -> {
-                val entity = provider as Entity
-                val isPlayer = entity is Player
-                if (entity.level.isClientSide) {
-                    if (consumeOnServer) SSyncEntityCapabilityPacket(entity.id, capability.name, serializeNBT()).send()
-                } else CSyncEntityCapabilityPacket(entity.id, capability.name, serializeNBT()).send(
+                val isPlayer = target is Player
+                if (target.level.isClientSide) {
+                    if (consumeOnServer) SSyncEntityCapabilityPacket(target.id, capability.name, serializeNBT()).send()
+                } else CSyncEntityCapabilityPacket(target.id, capability.name, serializeNBT()).send(
                     when {
-                        !isPlayer -> PacketDistributor.TRACKING_ENTITY.with { (provider as Entity) }
-                        canOtherPlayersAccess -> PacketDistributor.TRACKING_ENTITY_AND_SELF.with { (provider as Entity) }
-                        else -> PacketDistributor.PLAYER.with { entity as ServerPlayer }
+                        !isPlayer -> PacketDistributor.TRACKING_ENTITY.with { target }
+                        canOtherPlayersAccess -> PacketDistributor.TRACKING_ENTITY_AND_SELF.with { target }
+                        else -> PacketDistributor.PLAYER.with { target as ServerPlayer }
                     }
                 )
 
             }
 
+            is Team -> {
+                target.save()
+                target.onlineMembers.forEach {
+                    FTBTeamsAPI.getManager().syncAllToPlayer(it, target)
+                }
+            }
+
             is BlockEntity -> {
-                val blockEntity = provider as BlockEntity
-                blockEntity.setChanged()
+                target.setChanged()
             }
 
             is LevelChunk -> {
-                val blockEntity = provider as LevelChunk
-                blockEntity.isUnsaved = true
+                target.isUnsaved = true
             }
 
             is Level -> {
-                val level = provider as Level
-                if (level.isClientSide) {
+                if (target.isClientSide) {
                     if (consumeOnServer) SSyncLevelCapabilityPacket(
-                        level.dimension().location().toString(),
+                        target.dimension().location().toString(),
                         capability.name,
                         serializeNBT()
                     ).send()
                 } else CSyncLevelCapabilityPacket(
                     capability.name,
                     serializeNBT()
-                ).send(PacketDistributor.DIMENSION.with { level.dimension() })
+                ).send(PacketDistributor.DIMENSION.with { target.dimension() })
             }
         }
     }

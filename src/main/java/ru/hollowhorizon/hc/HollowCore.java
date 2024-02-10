@@ -1,5 +1,7 @@
 package ru.hollowhorizon.hc;
 
+import dev.ftb.mods.ftbteams.FTBTeams;
+import dev.ftb.mods.ftbteams.data.Team;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
@@ -19,6 +21,7 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
@@ -89,6 +92,7 @@ public class HollowCore {
         forgeBus.addGenericListener(Entity.class, CapabilityStorage::registerProvidersEntity);
         forgeBus.addGenericListener(BlockEntity.class, CapabilityStorage::registerProvidersBlockEntity);
         forgeBus.addGenericListener(Level.class, CapabilityStorage::registerProvidersWorld);
+        if(ModList.get().isLoaded("ftbteams")) forgeBus.addGenericListener(Team.class, CapabilityStorage::registerProvidersTeam);
         forgeBus.addListener(this::configSave);
 
         RegistryLoader.registerAll();
