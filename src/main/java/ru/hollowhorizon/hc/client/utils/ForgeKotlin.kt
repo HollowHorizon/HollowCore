@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.client.utils
 
 import com.mojang.blaze3d.vertex.PoseStack
 import dev.ftb.mods.ftbteams.data.Team
+import dev.ftb.mods.ftbteams.data.TeamBase
 import net.irisshaders.iris.api.v0.IrisApi
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
@@ -45,7 +46,7 @@ operator fun <T : CapabilityInstance> ICapabilityProvider.get(capability: KClass
     getCapability(CapabilityStorage.getCapability(capability.java))
         .orElseThrow { IllegalStateException("Capability ${capability.simpleName} not found!") }
 
-fun <T : CapabilityInstance> Team.capability(capability: KClass<T>) = (this as ICapabilityProvider)[capability]
+fun <T : CapabilityInstance> TeamBase.capability(capability: KClass<T>) = (this as ICapabilityProvider)[capability]
 
 val String.rl get() = ResourceLocation(this)
 

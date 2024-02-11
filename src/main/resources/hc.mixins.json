@@ -14,7 +14,8 @@
     "ListTagAccessor",
     "PrimaryLevelDataMixin",
     "StructureBlockMixin",
-    "ftbteams.AbstractTeamMixin"
+    "ftbteams.AbstractTeamMixin",
+    "ftbteams.TeamMixin"
   ],
   "client": [
     "ScreenAccessor",
