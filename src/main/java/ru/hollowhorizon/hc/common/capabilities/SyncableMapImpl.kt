@@ -1,15 +1,40 @@
 package ru.hollowhorizon.hc.common.capabilities
 
-import net.minecraft.nbt.CompoundTag
+import com.google.common.reflect.TypeToken
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.serializer
 import net.minecraft.nbt.Tag
 import net.minecraftforge.common.util.INBTSerializable
+import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 
-class SyncableMapImpl<K : Any, V : Any>(val map: MutableMap<K, V>, val syncMethod: () -> Unit = {}) : MutableMap<K, V>,
-    INBTSerializable<Tag> {
-    override val entries = map.entries
-    override val keys = map.keys
-    override val size = map.size
-    override val values = map.values
+class SyncableMapImpl<K : Any, V : Any>(
+    val map: MutableMap<K, V>,
+    keyType: Class<K>? = null,
+    valueType: Class<V>? = null,
+    val syncMethod: () -> Unit = {},
+) : MutableMap<K, V>, INBTSerializable<Tag> {
+    companion object {
+        inline fun <reified K : Any, reified V : Any> create(
+            map: MutableMap<K, V> = HashMap(),
+            noinline syncMethod: () -> Unit = {},
+        ) = SyncableMapImpl(map, K::class.java, V::class.java, syncMethod)
+    }
+
+    val serializer = SyncableMapSerializer(
+        keyType ?: throw IllegalStateException("Key type must be not null"),
+        valueType ?: throw IllegalStateException("Value type must be not null"),
+    )
+
+    override val entries get() = map.entries
+    override val keys get() = map.keys
+    override val size get() = map.size
+    override val values get() = map.values
+
 
     override fun clear() {
         map.clear()
@@ -37,25 +62,52 @@ class SyncableMapImpl<K : Any, V : Any>(val map: MutableMap<K, V>, val syncMetho
 
     override fun containsKey(key: K) = map.containsKey(key)
     override fun serializeNBT(): Tag {
-        return CompoundTag().apply {
-            put("keys", SyncableListImpl(map.keys.toMutableList()).serializeNBT())
-            put("values", SyncableListImpl(map.values.toMutableList()).serializeNBT())
-        }
+        return NBTFormat.serialize(serializer, this)
     }
 
     override fun deserializeNBT(nbt: Tag) {
-        val tag = nbt as CompoundTag
-        val keys = SyncableListImpl(ArrayList())
-        keys.deserializeNBT(tag.get("keys")!!)
-        val values = SyncableListImpl(ArrayList())
-        values.deserializeNBT(tag.get("values")!!)
-        map.clear()
-        keys.forEachIndexed { index, key ->
-            map[key as K] = values[index] as V
-        }
+        val map = NBTFormat.deserialize(serializer, nbt)
+        this.map.clear()
+        this.map.putAll(map)
     }
 
     override fun toString(): String {
         return map.toString()
     }
+}
+
+class SyncableMapSerializer<K : Any, V : Any>(val keyType: Class<K>, val valueType: Class<V>) :
+    KSerializer<SyncableMapImpl<K, V>> {
+    val keySerializer = NBTFormat.serializersModule.serializer(TypeToken.of(keyType).type) as KSerializer<K>
+    val valueSerializer = NBTFormat.serializersModule.serializer(TypeToken.of(valueType).type) as KSerializer<V>
+
+    private val delegatedSerializer = MapSerializer(keySerializer, valueSerializer)
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override val descriptor = SerialDescriptor("map_serializer", delegatedSerializer.descriptor)
+
+    override fun serialize(encoder: Encoder, value: SyncableMapImpl<K, V>) {
+        val l = value.toMap()
+        encoder.encodeSerializableValue(delegatedSerializer, l)
+    }
+
+    override fun deserialize(decoder: Decoder): SyncableMapImpl<K, V> {
+        val l = decoder.decodeSerializableValue(delegatedSerializer)
+        return SyncableMapImpl(l.toMutableMap(), keyType, valueType)
+    }
+}
+
+fun main() {
+    val map = SyncableMapImpl.create<String, Long>(HashMap()) { println("Update") }
+    map["1"] = 1
+    map["2"] = 20L
+    println(map)
+
+    val tag = map.serializeNBT()
+
+    println(tag)
+    val map2 = SyncableMapImpl.create<String, Long>()
+    map2.deserializeNBT(tag)
+
+    println(map2)
 }

@@ -18,14 +18,14 @@ public abstract class TeamMixin extends TeamBase {
     private void injectOnSave(CallbackInfoReturnable<SNBTCompoundTag> cir) {
         HollowCore.LOGGER.info("saving team capabilities!");
 
-        CompoundTag tag = getExtraData();
+        CompoundTag tag = cir.getReturnValue();
         var capabilities = ((ICapabilityDispatcher) this).getCapabilities();
-        tag.put("hc_caps", capabilities.serializeNBT());
+        if (capabilities != null) tag.put("hc_caps", capabilities.serializeNBT());
     }
 
     @Inject(method = "deserializeNBT", at = @At("RETURN"))
     private void injectOnLoad(CompoundTag tag, CallbackInfo ci) {
         var capabilities = ((ICapabilityDispatcher) this).getCapabilities();
-        capabilities.deserializeNBT(tag.getCompound("extra").getCompound("hc_caps"));
+        if (capabilities != null) capabilities.deserializeNBT(tag.getCompound("hc_caps"));
     }
 }

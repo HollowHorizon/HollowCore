@@ -1,12 +1,15 @@
 package ru.hollowhorizon.hc.common.capabilities
 
+import dev.ftb.mods.ftbteams.FTBTeamsAPI
 import kotlinx.serialization.Serializable
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
 import net.minecraft.world.entity.player.Player
 import net.minecraftforge.common.capabilities.Capability
+import net.minecraftforge.common.capabilities.ICapabilityProvider
 import net.minecraftforge.network.PacketDistributor
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.client.utils.nbt.ForTag
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
@@ -98,3 +101,17 @@ class SSyncLevelCapabilityPacket(
 
 }
 
+@HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
+@Serializable
+class CSyncTeamCapabilityPacket(
+    val capability: String,
+    val value: @Serializable(ForTag::class) Tag,
+) : HollowPacketV3<CSyncTeamCapabilityPacket> {
+    override fun handle(player: Player, data: CSyncTeamCapabilityPacket) {
+        val updater = FTBTeamsAPI.getClientManager().selfTeam as ICapabilityProvider
+
+        updater.getCapability(CapabilityStorage.storages[data.capability] as Capability<CapabilityInstance>)
+            .orElseThrow { IllegalStateException("Unknown capability: $data".apply(HollowCore.LOGGER::warn)) }
+            .deserializeNBT(value)
+    }
+}

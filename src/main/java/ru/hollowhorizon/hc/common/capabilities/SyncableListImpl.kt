@@ -1,19 +1,32 @@
 package ru.hollowhorizon.hc.common.capabilities
 
-import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.ListTag
+import com.google.common.reflect.TypeToken
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import net.minecraft.nbt.Tag
 import net.minecraftforge.common.util.INBTSerializable
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
-import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
-import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 import java.util.function.Predicate
 
+class SyncableListImpl<T : Any>(
+    val list: MutableList<T>,
+    type: Class<T>? = null,
+    private val updateMethod: () -> Unit = {},
+) : MutableList<T>, INBTSerializable<Tag> {
+    private val serializer = SyncableListSerializer(type ?: throw IllegalStateException("Type must be not null"))
 
-class SyncableListImpl<T : Any>(val list: MutableList<T>, private val updateMethod: () -> Unit = {}) :
-    MutableList<T>,
-    INBTSerializable<Tag> {
-    override val size = list.size
+    companion object {
+        inline fun <reified E : Any> create(
+            list: MutableList<E> = ArrayList(),
+            noinline updateMethod: () -> Unit = {},
+        ) = SyncableListImpl(list, E::class.java, updateMethod)
+    }
+
+    override val size get() = list.size
+
     override fun clear() {
         list.clear()
         updateMethod()
@@ -176,33 +189,36 @@ class SyncableListImpl<T : Any>(val list: MutableList<T>, private val updateMeth
     }
 
     override fun serializeNBT(): Tag {
-        return ListTag().apply {
-            list.forEach { element ->
-                add(CompoundTag().apply {
-                    putString("class", element::class.java.name)
-                    put("nbt", NBTFormat.serializeNoInline(element, element::class.java as Class<T>))
-                })
-            }
-        }
+        return NBTFormat.serialize(serializer, this)
     }
 
     override fun deserializeNBT(nbt: Tag) {
-        if (nbt is ListTag) {
-            list.clear()
-            nbt.forEach { element ->
-                if (element is CompoundTag) {
-                    list.add(
-                        NBTFormat.deserializeNoInline(
-                            element.get("nbt")!!,
-                            Class.forName(element.getString("class"))
-                        ) as T
-                    )
-                }
-            }
-        }
+        val list = NBTFormat.deserialize(serializer, nbt)
+        this.list.clear()
+        this.list.addAll(list)
     }
 
     override fun toString(): String {
         return list.toString()
+    }
+}
+
+class SyncableListSerializer<T : Any>(val type: Class<T>) : KSerializer<SyncableListImpl<T>> {
+    val baseTypeSerializer = NBTFormat.serializersModule.serializer(TypeToken.of(type).type) as KSerializer<T>
+
+
+    private val delegatedSerializer = ListSerializer(baseTypeSerializer)
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override val descriptor = SerialDescriptor("list_serializer", delegatedSerializer.descriptor)
+
+    override fun serialize(encoder: Encoder, value: SyncableListImpl<T>) {
+        val l = value.toList()
+        encoder.encodeSerializableValue(delegatedSerializer, l)
+    }
+
+    override fun deserialize(decoder: Decoder): SyncableListImpl<T> {
+        val l = decoder.decodeSerializableValue(delegatedSerializer)
+        return SyncableListImpl(l.toMutableList(), type)
     }
 }

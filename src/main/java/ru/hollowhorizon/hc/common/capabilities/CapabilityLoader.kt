@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.common.capabilities
 
+import dev.ftb.mods.ftbteams.data.TeamBase
 import net.minecraft.world.entity.player.Player
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.fml.Logging
@@ -53,6 +54,7 @@ fun initCapabilities(capabilityClass: Class<*>, cap: Capability<*>, targets: Lis
     targets.forEach { target ->
         val targetClass = Class.forName(target.className)
         if (targetClass == Player::class.java) CapabilityStorage.playerCapabilities.add(cap)
+        if (targetClass == TeamBase::class.java) CapabilityStorage.teamCapabilities.add(cap)
 
         CapabilityStorage.providers.add(targetClass to { provider ->
             (capabilityClass.getDeclaredConstructor().newInstance() as CapabilityInstance).apply {

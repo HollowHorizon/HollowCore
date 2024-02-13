@@ -2,10 +2,8 @@ package ru.hollowhorizon.hc.common.capabilities
 
 import dev.ftb.mods.ftbteams.FTBTeamsAPI
 import dev.ftb.mods.ftbteams.data.Team
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.EndTag
 import net.minecraft.nbt.Tag
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
@@ -18,19 +16,19 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider
 import net.minecraftforge.common.capabilities.ICapabilitySerializable
 import net.minecraftforge.common.util.LazyOptional
 import net.minecraftforge.network.PacketDistributor
-import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
-import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
-import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 
 @Suppress("API_STATUS_INTERNAL")
 open class CapabilityInstance : ICapabilitySerializable<Tag> {
-    val properties = Object2ObjectOpenHashMap<String, Any?>()
+    val properties = ArrayList<CapabilityProperty<CapabilityInstance, *>>()
+    var notUsedTags = CompoundTag()
     open val consumeOnServer: Boolean = false
     open val canOtherPlayersAccess: Boolean = true
     lateinit var provider: ICapabilityProvider //Будет инициализированно инжектом
     lateinit var capability: Capability<CapabilityInstance> //Будет инициализированно инжектом
 
-    fun <T> syncable(default: T) = CapabilityProperty<CapabilityInstance, T>(default)
+    fun <T> syncable(default: T) = CapabilityProperty<CapabilityInstance, T>(default).apply {
+        properties += this
+    }
 
 
     fun sync() {
@@ -52,7 +50,7 @@ open class CapabilityInstance : ICapabilitySerializable<Tag> {
             is Team -> {
                 target.save()
                 target.onlineMembers.forEach {
-                    FTBTeamsAPI.getManager().syncAllToPlayer(it, target)
+                    CSyncTeamCapabilityPacket(capability.name, serializeNBT()).send(PacketDistributor.PLAYER.with { it })
                 }
             }
 
@@ -83,69 +81,37 @@ open class CapabilityInstance : ICapabilitySerializable<Tag> {
         return capability.orEmpty(cap, LazyOptional.of { this })
     }
 
-    override fun serializeNBT(): Tag {
-        val nbt = CompoundTag()
-        properties.forEach { (name, value) ->
-            if (value == null) nbt.put(name, EndTag.INSTANCE)
-            else {
-                nbt.putString("$name%%class", value.javaClass.name)
-
-                when (value) {
-                    is SyncableListImpl<*> -> {
-                        nbt.put(name, value.serializeNBT())
-                    }
-
-                    is SyncableMapImpl<*, *> -> {
-                        nbt.put(name, value.serializeNBT())
-                    }
-
-                    else -> nbt.put(name, NBTFormat.serializeNoInline(value, value.javaClass))
-                }
-            }
-        }
-        return nbt
+    override fun serializeNBT() = notUsedTags.copy().apply {
+        properties.forEach { it.serialize(this) }
     }
 
     override fun deserializeNBT(nbt: Tag) {
-        properties.clear()
-        if (nbt is CompoundTag) {
-            nbt.allKeys.filter { !it.endsWith("%%class") }.forEach { name ->
-                try {
-                    val value = nbt.get(name)
-
-                    //Вообще говоря не самое хорошее решение, но в теории подсунуть тут другой класс нельзя
-                    //Потому что по умолчанию капабилити при пакете на сервер не будут сериализоваться.
-                    //А если кому-то это нужно будет, то выйдет ошибка
-                    val type = Class.forName(nbt.getString("$name%%class"))
-
-                    when {
-                        type == SyncableListImpl::class.java -> {
-                            val list = SyncableListImpl(ArrayList(), this::sync)
-                            list.deserializeNBT(value!!)
-                            properties[name] = list
-                            return@forEach
-                        }
-
-                        type == SyncableMapImpl::class.java -> {
-                            val map = SyncableMapImpl(HashMap(), this::sync)
-                            map.deserializeNBT(value!!)
-                            properties[name] = map
-                            return@forEach
-                        }
-
-                        value == null || value is EndTag -> properties[name] = null
-                        else -> properties[name] = NBTFormat.deserializeNoInline(value, type)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
+        properties.forEach { if(it.deserialize(nbt as? CompoundTag ?: return)) nbt.remove(it.defaultName) }
+        notUsedTags = nbt as? CompoundTag ?: return
     }
 
-    fun <T : Any> syncableList(list: MutableList<T> = ArrayList()) = syncable(SyncableListImpl(list, this::sync))
+    inline fun <reified T : Any> syncableList(list: MutableList<T> = ArrayList()) =
+        syncable(SyncableListImpl(list, T::class.java, this::sync))
 
-    fun <T : Any> syncableList(vararg elements: T) = syncableList(elements.toMutableList())
+    inline fun <reified T : Any> syncableList(vararg elements: T) = syncableList(elements.toMutableList())
 
-    fun <K : Any, V : Any> syncableMap() = syncable(SyncableMapImpl<K, V>(HashMap(), this::sync))
+    inline fun <reified K : Any, reified V : Any> syncableMap() =
+        syncable(SyncableMapImpl(HashMap(), K::class.java, V::class.java, this::sync))
+}
+
+fun main() {
+    class Test: CapabilityInstance() {
+        var example: Int? by syncable(null)
+    }
+
+    val test = Test()
+
+    test.example = 10
+
+    Test().apply {
+        example
+        deserializeNBT(test.serializeNBT())
+    }
+
+    println(test)
 }

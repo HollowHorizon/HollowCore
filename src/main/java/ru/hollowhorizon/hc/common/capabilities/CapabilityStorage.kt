@@ -13,6 +13,7 @@ import ru.hollowhorizon.hc.client.utils.rl
 object CapabilityStorage {
     val storages = hashMapOf<String, Capability<*>>()
     val playerCapabilities = arrayListOf<Capability<*>>()
+    val teamCapabilities = arrayListOf<Capability<*>>()
     val providers = hashSetOf<Pair<Class<*>, (ICapabilityProvider) -> CapabilityInstance>>()
 
     fun getCapabilitiesForPlayer(): List<Capability<CapabilityInstance>> {
