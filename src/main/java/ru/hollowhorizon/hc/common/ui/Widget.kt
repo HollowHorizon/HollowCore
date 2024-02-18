@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.common.ui
 
+import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft
@@ -85,6 +86,7 @@ open class Widget : IWidget {
     var alignment = Alignment.CENTER
     var enableScissors = false
     var zLayer = 0
+    var visible = true
 
     @OnlyIn(Dist.CLIENT)
     override fun render(
@@ -94,14 +96,19 @@ open class Widget : IWidget {
         widgetWidth: Int, widgetHeight: Int,
         mouseX: Int, mouseY: Int, partialTick: Float,
     ) = stack.use {
+        RenderSystem.enableDepthTest()
         translate(0.0, 0.0, zLayer.toDouble())
+
+        if (!visible) return@use
 
         val width = width(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
         val height = height(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
         val offsetX = offsetX(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
         val offsetY = offsetY(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
-        val nx = (x + offsetX + widgetWidth * alignment.factorX - width * alignment.factorX).toInt()
-        val ny = (y + offsetY + widgetHeight * alignment.factorY - height * alignment.factorY).toInt()
+        val x = if(this@Widget.offsetX is ScreenPosition.Mouse) offsetX else x + offsetX
+        val y = if(this@Widget.offsetY is ScreenPosition.Mouse) offsetY else y + offsetY
+        val nx = (x + widgetWidth * alignment.factorX - width * alignment.factorX).toInt()
+        val ny = (y + widgetHeight * alignment.factorY - height * alignment.factorY).toInt()
 
         if (enableScissors) ScissorUtil.push(nx, ny, width, height)
 
@@ -127,6 +134,7 @@ open class Widget : IWidget {
             )
         }
         if (enableScissors) ScissorUtil.pop()
+        RenderSystem.disableDepthTest()
     }
 
     override fun buttonPressed(
@@ -139,17 +147,21 @@ open class Widget : IWidget {
         mouseX: Int,
         mouseY: Int,
     ): Boolean {
+        if (!visible) return false
+
         val width = width(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
         val height = height(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
-        val nx = (x + widgetWidth * alignment.factorX - width * alignment.factorX).toInt()
-        val ny = (y + widgetHeight * alignment.factorY - height * alignment.factorY).toInt()
+        val offsetX = offsetX(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
+        val offsetY = offsetY(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
+        val nx = (x + offsetX + widgetWidth * alignment.factorX - width * alignment.factorX).toInt()
+        val ny = (y + offsetY + widgetHeight * alignment.factorY - height * alignment.factorY).toInt()
 
         val left = padding.left(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
         val right = padding.right(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
         val top = padding.top(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
         val bottom = padding.bottom(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
 
-        val isPressed = widgets.any {
+        val isPressed = widgets.map { it as Widget }.sortedByDescending { it.zLayer }.any {
             it.buttonPressed(
                 nx + left,
                 ny + top,
@@ -186,8 +198,8 @@ open class Widget : IWidget {
     }
 
     fun offset(x: ScreenPosition, y: ScreenPosition) {
-        offsetX.isWidth = true
-        offsetY.isWidth = false
+        x.isWidth = true
+        y.isWidth = false
         offsetX = x
         offsetY = y
     }
@@ -265,6 +277,13 @@ fun main() {
         size(90.pw, 90.pw)
 
         image("hc:textures/gui/background_ftbq.png") {
+            align(Alignment.TOP_LEFT)
+            size(10.px, 10.px)
+            offset(mouse, mouse)
+            zLayer = 1
+        }
+
+        image("hc:textures/gui/background_ftbq.png") {
             align(Alignment.LEFT_CENTER)
             size(100.pw, 100.pw)
         }
@@ -273,7 +292,7 @@ fun main() {
             align(Alignment.LEFT_CENTER)
             size(70.pw, 30.pw)
 
-            onClick = { ServerLifecycleHooks.getCurrentServer().playerList.players.forEach(Player::kill) }
+            onClick = { ServerLifecycleHooks.getCurrentServer().playerList.players.forEach(Player::sweepAttack) }
         }
         button("Сломать колени", "hc:textures/gui/icons/volume_slider.png") {
             align(Alignment.LEFT_CENTER)
