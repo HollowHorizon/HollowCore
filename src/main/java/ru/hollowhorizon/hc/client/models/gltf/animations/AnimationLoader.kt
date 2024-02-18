@@ -80,7 +80,7 @@ object AnimationLoader {
             AnimationTarget.TRANSLATION -> Linear(keys, outputData.map { it as Vector3f }.toTypedArray())
             AnimationTarget.ROTATION -> SphericalLinear(keys, outputData.map { (it as Vector4f).asQuaternion }.toTypedArray())
             AnimationTarget.SCALE -> Linear(keys, outputData.map { it as Vector3f }.toTypedArray())
-            else -> throw UnsupportedOperationException("")
+            else -> throw UnsupportedOperationException("Unknown target: $target")
         }
     }
 }
