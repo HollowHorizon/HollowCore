@@ -103,4 +103,6 @@ enum class Interpolation(val function: (Float) -> Float) {
             }
         }
     });
+
+    operator fun invoke(float: Float) = function(float)
 }

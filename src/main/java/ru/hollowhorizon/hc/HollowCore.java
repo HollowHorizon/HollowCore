@@ -43,6 +43,7 @@ import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
 import ru.hollowhorizon.hc.common.registry.*;
+import ru.hollowhorizon.hc.common.ui.WidgetKt;
 import thedarkcolour.kotlinforforge.forge.ForgeKt;
 
 

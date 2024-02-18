@@ -15,27 +15,37 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.reflect.KClass
 
-internal val TagModule get() = SerializersModule {
-    polymorphic(Tag::class) {
-        subclass(ByteTag::class, ForByteNBT)
-        subclass(ShortTag::class, ForShortNBT)
-        subclass(IntTag::class, ForIntNBT)
-        subclass(LongTag::class, ForLongNBT)
-        subclass(FloatTag::class, ForFloatNBT)
-        subclass(DoubleTag::class, ForDoubleNBT)
-        subclass(StringTag::class, ForStringNBT)
-        subclass(EndTag::class, ForNbtNull)
-        subclass(ByteArrayTag::class, ForByteArrayNBT)
-        subclass(IntArrayTag::class, ForIntArrayNBT)
-        subclass(LongArrayTag::class, ForLongArrayNBT)
-        subclass(ListTag::class, ForNbtList)
-        subclass(CompoundTag::class, ForCompoundNBT)
+val NBT_TAGS = HashMap<KClass<*>, MutableList<KClass<*>>>()
+
+@OptIn(InternalSerializationApi::class)
+internal val TagModule
+    get() = SerializersModule {
+        polymorphic(Tag::class) {
+            subclass(ByteTag::class, ForByteNBT)
+            subclass(ShortTag::class, ForShortNBT)
+            subclass(IntTag::class, ForIntNBT)
+            subclass(LongTag::class, ForLongNBT)
+            subclass(FloatTag::class, ForFloatNBT)
+            subclass(DoubleTag::class, ForDoubleNBT)
+            subclass(StringTag::class, ForStringNBT)
+            subclass(EndTag::class, ForNbtNull)
+            subclass(ByteArrayTag::class, ForByteArrayNBT)
+            subclass(IntArrayTag::class, ForIntArrayNBT)
+            subclass(LongArrayTag::class, ForLongArrayNBT)
+            subclass(ListTag::class, ForNbtList)
+            subclass(CompoundTag::class, ForCompoundNBT)
+        }
+        NBT_TAGS.forEach { entry ->
+            entry.value.forEach { kClass ->
+                polymorphic(entry.key as KClass<Object>, kClass as KClass<Object>, kClass.serializer())
+            }
+        }
+        contextual(ForBlockPos)
+        contextual(ForResourceLocation)
+        contextual(ForSoundEvent)
     }
-    contextual(ForBlockPos)
-    contextual(ForResourceLocation)
-    contextual(ForSoundEvent)
-}
 
 val MAPPINGS_SERIALIZER by lazy { NBTFormat() }
 

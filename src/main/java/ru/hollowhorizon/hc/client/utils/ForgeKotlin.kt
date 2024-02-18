@@ -121,7 +121,15 @@ fun Int.toRGBA(): RGBA {
     )
 }
 
-data class RGBA(val r: Float, val g: Float, val b: Float, val a: Float)
+data class RGBA(val r: Float, val g: Float, val b: Float, val a: Float) {
+    fun toInt(): Int {
+        val red = (r * 255.0f + 0.5f).toInt() shl 16
+        val green = (g * 255.0f + 0.5f).toInt() shl 8
+        val blue = (b * 255.0f + 0.5f).toInt()
+        val alpha = (a * 255.0f + 0.5f).toInt() shl 24
+        return alpha or red or green or blue
+    }
+}
 
 fun <V> ResourceLocation.valueFrom(registry: IForgeRegistry<V>): V {
     return registry.getValue(this) ?: throw IllegalArgumentException("Value $this not found in registry $registry")

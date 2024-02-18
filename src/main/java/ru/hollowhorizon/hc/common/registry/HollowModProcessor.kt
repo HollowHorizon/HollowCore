@@ -9,8 +9,10 @@ import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.utils.HollowCommand
 import ru.hollowhorizon.hc.api.utils.HollowConfig
+import ru.hollowhorizon.hc.api.utils.Polymorphic
 import ru.hollowhorizon.hc.client.config.HollowCoreConfig
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
+import ru.hollowhorizon.hc.client.utils.nbt.NBT_TAGS
 import ru.hollowhorizon.hc.common.commands.HollowCommands
 import ru.hollowhorizon.hc.common.network.*
 import ru.hollowhorizon.hc.core.AsmReflectionMethodGenerator
@@ -48,8 +50,14 @@ object HollowModProcessor {
         }
 
         registerHandler<HollowConfig> { content  ->
-            content.whenObjectTask = { obj ->
+            content.whenPropertyTask = { obj ->
                 HollowCoreConfig.FIELDS.computeIfAbsent(content.modId) { ArrayList() }.add(obj)
+            }
+        }
+
+        registerHandler<Polymorphic> { content ->
+            content.whenClassTask = {
+                NBT_TAGS.computeIfAbsent(content.annotation.baseClass) { ArrayList() }.add(it.kotlin)
             }
         }
     }
@@ -121,7 +129,7 @@ object HollowModProcessor {
 
             ANNOTATIONS[type]?.invoke(container)
 
-            container.whenObjectTask.invoke(field)
+            container.whenPropertyTask.invoke(field)
         }
     }
 
@@ -178,7 +186,7 @@ class AnnotationContainer<T : Any>(
     val annotation: T,
     val targetName: String,
 ) {
-    var whenObjectTask: (Field) -> Unit = {}
+    var whenPropertyTask: (Field) -> Unit = {}
     var whenClassTask: (Class<*>) -> Unit = {}
     var whenMethodTask: (() -> ReflectionMethod) -> Unit = {}
 }
