@@ -17,15 +17,15 @@ import ru.hollowhorizon.hc.client.utils.nbt.serialize
 import ru.hollowhorizon.hc.client.utils.use
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
-import ru.hollowhorizon.hc.common.ui.animations.AnimationTrigger
 import ru.hollowhorizon.hc.common.ui.animations.UIAnimation
 import ru.hollowhorizon.hc.common.ui.widgets.button
 import ru.hollowhorizon.hc.common.ui.widgets.entity
 import ru.hollowhorizon.hc.common.ui.widgets.image
-import kotlin.collections.ArrayList
 
 fun gui(builder: Widget.() -> Unit) = Widget().apply(builder)
-fun Widget.gui(builder: Widget.() -> Unit) { this += Widget().apply(builder) }
+fun Widget.gui(builder: Widget.() -> Unit) {
+    this += Widget().apply(builder)
+}
 
 interface IWidget {
 
@@ -57,7 +57,7 @@ interface IWidget {
         widgetWidth: Int,
         widgetHeight: Int,
         mouseX: Int,
-        mouseY: Int
+        mouseY: Int,
     ): Boolean = false
 
     fun widgetButtonPressed(
@@ -68,7 +68,7 @@ interface IWidget {
         widgetWidth: Int,
         widgetHeight: Int,
         mouseX: Int,
-        mouseY: Int
+        mouseY: Int,
     ): Boolean = false
 }
 
@@ -77,6 +77,8 @@ interface IWidget {
 open class Widget : IWidget {
     internal val widgets = ArrayList<IWidget>()
     internal val animations = ArrayList<UIAnimation>()
+    var offsetX: ScreenPosition = 0.px
+    var offsetY: ScreenPosition = 0.px
     var width: ScreenPosition = 200.px
     var height: ScreenPosition = 100.px
     var padding = Padding(0.px, 0.px, 0.px, 0.px)
@@ -96,10 +98,12 @@ open class Widget : IWidget {
 
         val width = width(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
         val height = height(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
-        val nx = (x + widgetWidth * alignment.factorX - width * alignment.factorX).toInt()
-        val ny = (y + widgetHeight * alignment.factorY - height * alignment.factorY).toInt()
+        val offsetX = offsetX(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
+        val offsetY = offsetY(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
+        val nx = (x + offsetX + widgetWidth * alignment.factorX - width * alignment.factorX).toInt()
+        val ny = (y + offsetY + widgetHeight * alignment.factorY - height * alignment.factorY).toInt()
 
-        if(enableScissors) ScissorUtil.push(nx, ny, width, height)
+        if (enableScissors) ScissorUtil.push(nx, ny, width, height)
 
         renderWidget(stack, nx, ny, screenWidth, screenHeight, width, height, mouseX, mouseY, partialTick)
 
@@ -122,7 +126,7 @@ open class Widget : IWidget {
                 partialTick
             )
         }
-        if(enableScissors) ScissorUtil.pop()
+        if (enableScissors) ScissorUtil.pop()
     }
 
     override fun buttonPressed(
@@ -133,7 +137,7 @@ open class Widget : IWidget {
         widgetWidth: Int,
         widgetHeight: Int,
         mouseX: Int,
-        mouseY: Int
+        mouseY: Int,
     ): Boolean {
         val width = width(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
         val height = height(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
@@ -181,6 +185,13 @@ open class Widget : IWidget {
         height = y
     }
 
+    fun offset(x: ScreenPosition, y: ScreenPosition) {
+        offsetX.isWidth = true
+        offsetY.isWidth = false
+        offsetX = x
+        offsetY = y
+    }
+
     fun padding(
         top: ScreenPosition = 0.px,
         bottom: ScreenPosition = 0.px,
@@ -218,12 +229,12 @@ open class Widget : IWidget {
     )
 
     fun getPathToNode(target: Widget, targetPath: MutableList<Int> = arrayListOf()): Boolean {
-        if(this == target) return true
+        if (this == target) return true
         else {
             widgets.map { it as Widget }.forEachIndexed { index, widget ->
                 targetPath.add(index)
-                if(widget == target) return true
-                if(widget.getPathToNode(target, targetPath)) return true
+                if (widget == target) return true
+                if (widget.getPathToNode(target, targetPath)) return true
                 targetPath.removeLast()
             }
         }
@@ -258,22 +269,18 @@ fun main() {
             size(100.pw, 100.pw)
         }
 
-        gui {
+        button("Дать леща", "hc:textures/gui/icons/volume_slider.png") {
             align(Alignment.LEFT_CENTER)
-            size(60.pw, 30.pw)
+            size(70.pw, 30.pw)
 
-            button("Дать леща", "hc:textures/gui/icons/volume_slider.png") {
-                align(Alignment.TOP_LEFT)
-                size(100.pw, 50.pw)
+            onClick = { ServerLifecycleHooks.getCurrentServer().playerList.players.forEach(Player::kill) }
+        }
+        button("Сломать колени", "hc:textures/gui/icons/volume_slider.png") {
+            align(Alignment.LEFT_CENTER)
+            size(70.pw, 30.pw)
+            offset(0.px, 30.pw + 10.px)
 
-                onClick = { ServerLifecycleHooks.getCurrentServer().playerList.players.forEach(Player::kill) }
-            }
-            button("Сломать колени", "hc:textures/gui/icons/volume_slider.png") {
-                align(Alignment.BOTTOM_LEFT)
-                size(100.pw, 50.pw)
-
-                onClick = { ServerLifecycleHooks.getCurrentServer().playerList.players.forEach(Player::kill) }
-            }
+            onClick = { ServerLifecycleHooks.getCurrentServer().playerList.players.forEach(Player::kill) }
         }
 
         entity(ServerLifecycleHooks.getCurrentServer().playerList.players.first()) {
@@ -281,7 +288,7 @@ fun main() {
             align(Alignment.TOP_RIGHT)
             size(40.pw, 100.pw)
             scale = 4f
-            offsetY = 50.px
+            entityY = 50.px
         }
     }
 

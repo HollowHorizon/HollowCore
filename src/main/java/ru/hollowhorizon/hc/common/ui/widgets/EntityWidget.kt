@@ -15,12 +15,12 @@ import ru.hollowhorizon.hc.common.ui.Widget
 @Polymorphic(IWidget::class)
 class EntityWidget(val entity: @Serializable(ForEntity::class) Entity) : Widget() {
     var scale = 1f
-    var offsetX: ScreenPosition = 0.px
+    var entityX: ScreenPosition = 0.px
         set(value) {
             value.isWidth = true
             field = value
         }
-    var offsetY: ScreenPosition = 0.px
+    var entityY: ScreenPosition = 0.px
         set(value) {
             value.isWidth = false
             field = value
@@ -50,15 +50,15 @@ class EntityWidget(val entity: @Serializable(ForEntity::class) Entity) : Widget(
     ) {
         val rotationX = rotationX(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
         val rotationY = rotationY(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
-        val offsetX = offsetX(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
-        val offsetY = offsetY(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
+        val entityX = entityX(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
+        val entityY = entityY(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
 
         InventoryScreen.renderEntityInInventory(
-            x + widgetWidth / 2 + offsetX,
-            y + widgetHeight + offsetY,
+            x + widgetWidth / 2 + entityX,
+            y + widgetHeight + entityY,
             (scale * 30).toInt(),
-            x + widgetWidth / 2 + offsetX - rotationX.toFloat(),
-            y + widgetHeight * 0.33f - rotationY + offsetY,
+            x + widgetWidth / 2 + entityX - rotationX.toFloat(),
+            y + widgetHeight * 0.33f - rotationY + entityY,
             entity as LivingEntity
         )
     }
