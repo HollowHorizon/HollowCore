@@ -86,6 +86,7 @@ open class Widget : IWidget {
     var alignment = Alignment.CENTER
     var enableScissors = false
     var zLayer = 0
+    var enableDepth = false
     var visible = true
 
     @OnlyIn(Dist.CLIENT)
@@ -96,7 +97,7 @@ open class Widget : IWidget {
         widgetWidth: Int, widgetHeight: Int,
         mouseX: Int, mouseY: Int, partialTick: Float,
     ) = stack.use {
-        RenderSystem.enableDepthTest()
+        if(enableDepth) RenderSystem.enableDepthTest()
         translate(0.0, 0.0, zLayer.toDouble())
 
         if (!visible) return@use
@@ -134,7 +135,7 @@ open class Widget : IWidget {
             )
         }
         if (enableScissors) ScissorUtil.pop()
-        RenderSystem.disableDepthTest()
+        if(enableDepth) RenderSystem.disableDepthTest()
     }
 
     override fun buttonPressed(
