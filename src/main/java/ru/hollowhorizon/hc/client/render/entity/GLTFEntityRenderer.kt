@@ -139,15 +139,16 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     }
 
     private fun updateAnimations(entity: T, capability: AnimatedEntityCapability, manager: GLTFAnimationPlayer) {
+        val layers = capability.layers
         when {
             entity.hurtTime > 0 -> {
                 val name = manager.typeToAnimationMap[AnimationType.HURT]?.name ?: return
-                if (capability.layers.any { it.animation == name }) {
-                    capability.layers.filter { it.animation == name }.forEach { it.time = 0 }
+                if (layers.any { it.animation == name }) {
+                    layers.filter { it.animation == name }.forEach { it.time = 0 }
                     return
                 }
 
-                capability.layers += AnimationLayer(
+                layers += AnimationLayer(
                     name,
                     LayerMode.ADD,
                     PlayMode.ONCE,
@@ -157,12 +158,9 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
             entity.swinging -> {
                 val name = manager.typeToAnimationMap[AnimationType.SWING]?.name ?: return
-                if (capability.layers.any { it.animation == name }) {
-                    capability.layers.filter { it.animation == name }.forEach { it.time = 0 }
-                    return
-                }
+                if (layers.any { it.animation == name }) return
 
-                capability.layers += AnimationLayer(
+                layers += AnimationLayer(
                     name,
                     LayerMode.ADD,
                     PlayMode.ONCE,
@@ -172,9 +170,9 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
             !entity.isAlive -> {
                 val name = manager.typeToAnimationMap[AnimationType.DEATH]?.name ?: return
-                if (capability.layers.any { it.animation == name }) return
+                if (layers.any { it.animation == name }) return
 
-                capability.layers += AnimationLayer(
+                layers += AnimationLayer(
                     name,
                     LayerMode.ADD,
                     PlayMode.LAST_FRAME,
