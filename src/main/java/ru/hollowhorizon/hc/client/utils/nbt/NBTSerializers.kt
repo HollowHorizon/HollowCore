@@ -110,9 +110,9 @@ object ForStringNBT : KSerializer<StringTag> {
     override fun deserialize(decoder: Decoder): StringTag = StringTag.valueOf(decoder.decodeString())
 }
 
-object ForTextComponent : KSerializer<MutableComponent> {
+object ForTextComponent : KSerializer<Component> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("StringNBT", PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: MutableComponent) = encoder.encodeString(Component.Serializer.toJson(value))
+    override fun serialize(encoder: Encoder, value: Component) = encoder.encodeString(Component.Serializer.toJson(value))
     override fun deserialize(decoder: Decoder) = Component.Serializer.fromJson(decoder.decodeString()) ?: "".mcText
 }
 

@@ -558,8 +558,37 @@ object GltfTree {
             consumer: (ResourceLocation) -> Int,
             light: Int,
         ) {
+            val entity = data.entity
             var changedTexture = consumer
-            renderArmor(data.entity)?.let { changedTexture = it }
+            if (isArmor) {
+                if (entity == null) return
+                when {
+                    !entity.getItemBySlot(EquipmentSlot.HEAD).isEmpty && isHelmet -> {
+                        val armorItem = entity.getItemBySlot(EquipmentSlot.HEAD)
+                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.HEAD)
+                        changedTexture = { texture.toTexture().id }
+                    }
+
+                    !entity.getItemBySlot(EquipmentSlot.CHEST).isEmpty && isChestplate -> {
+                        val armorItem = entity.getItemBySlot(EquipmentSlot.CHEST)
+                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.CHEST)
+                        changedTexture = { texture.toTexture().id }
+                    }
+
+                    !entity.getItemBySlot(EquipmentSlot.LEGS).isEmpty && isLeggings -> {
+                        val armorItem = entity.getItemBySlot(EquipmentSlot.LEGS)
+                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.LEGS)
+                        changedTexture = { texture.toTexture().id }
+                    }
+
+                    !entity.getItemBySlot(EquipmentSlot.FEET).isEmpty && isBoots -> {
+                        val armorItem = entity.getItemBySlot(EquipmentSlot.FEET)
+                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.FEET)
+                        changedTexture = { texture.toTexture().id }
+                    }
+                    else -> return
+                }
+            }
 
             if (hasFirstPersonModel && dev.tr7zw.firstperson.api.FirstPersonAPI.isRenderingPlayer()
                 && name?.contains("head", ignoreCase = true) == true) return
@@ -570,40 +599,6 @@ object GltfTree {
                 mesh?.render(this@Node, stack, changedTexture)
                 children.forEach { it.render(stack, nodeRenderer, data, changedTexture, light) }
             }
-        }
-
-        fun renderArmor(entity: LivingEntity?): ((ResourceLocation) -> Int)? {
-            if (isArmor) {
-                if (entity == null) return null
-                when {
-                    !entity.getItemBySlot(EquipmentSlot.HEAD).isEmpty && isHelmet -> {
-                        val armorItem = entity.getItemBySlot(EquipmentSlot.HEAD)
-                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.HEAD)
-                        return { texture.toTexture().id }
-                    }
-
-                    !entity.getItemBySlot(EquipmentSlot.CHEST).isEmpty && isChestplate -> {
-                        val armorItem = entity.getItemBySlot(EquipmentSlot.CHEST)
-                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.CHEST)
-                        return { texture.toTexture().id }
-                    }
-
-                    !entity.getItemBySlot(EquipmentSlot.LEGS).isEmpty && isLeggings -> {
-                        val armorItem = entity.getItemBySlot(EquipmentSlot.LEGS)
-                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.LEGS)
-                        return { texture.toTexture().id }
-                    }
-
-                    !entity.getItemBySlot(EquipmentSlot.FEET).isEmpty && isBoots -> {
-                        val armorItem = entity.getItemBySlot(EquipmentSlot.FEET)
-                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.FEET)
-                        return { texture.toTexture().id }
-                    }
-
-                    else -> return null
-                }
-            }
-            return null
         }
 
         fun renderDecorations(

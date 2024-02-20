@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.common.ui.widgets
 import com.mojang.blaze3d.vertex.PoseStack
 import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
@@ -17,7 +18,7 @@ import ru.hollowhorizon.hc.common.ui.Widget
 @Serializable
 @Polymorphic(IWidget::class)
 class LabelWidget(
-    val text: @Serializable(ForTextComponent::class) MutableComponent,
+    val text: @Serializable(ForTextComponent::class) Component,
     var anchor: Anchor = Anchor.CENTER,
     var scale: Float = 1f,
 ) : Widget() {
