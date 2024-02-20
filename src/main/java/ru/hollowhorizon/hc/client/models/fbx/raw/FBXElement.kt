@@ -8,4 +8,8 @@ class FBXElement(val name: String, val properties: Array<FBXProperty<*>>, val el
         }
         return null
     }
+
+    override fun toString(): String {
+        return "$name [${properties.joinToString(", ")}] {\n${elements.joinToString("\n  ")}}"
+    }
 }

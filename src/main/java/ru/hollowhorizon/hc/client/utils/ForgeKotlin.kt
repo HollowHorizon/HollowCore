@@ -1,7 +1,6 @@
 package ru.hollowhorizon.hc.client.utils
 
 import com.mojang.blaze3d.vertex.PoseStack
-import dev.ftb.mods.ftbteams.data.Team
 import dev.ftb.mods.ftbteams.data.TeamBase
 import net.irisshaders.iris.api.v0.IrisApi
 import net.minecraft.client.Minecraft
@@ -10,8 +9,12 @@ import net.minecraft.client.gui.GuiComponent.blit
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.renderer.texture.AbstractTexture
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.HoverEvent
+import net.minecraft.network.chat.MutableComponent
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraftforge.api.distmarker.Dist
@@ -44,7 +47,7 @@ val areShadersEnabled get() = hasShaders && IrisApi.getInstance().config.areShad
 
 operator fun <T : CapabilityInstance> ICapabilityProvider.get(capability: KClass<T>): T =
     getCapability(CapabilityStorage.getCapability(capability.java))
-        .orElseThrow { IllegalStateException("Capability ${capability.simpleName} not found!") }
+        .orElseThrow { IllegalStateException("Capability ${capability.simpleName} not found!") } as T
 
 fun <T : CapabilityInstance> TeamBase.capability(capability: KClass<T>) = (this as ICapabilityProvider)[capability]
 
@@ -62,19 +65,42 @@ fun ResourceLocation.exists(): Boolean {
 val ResourceLocation.stream: InputStream
     get() = HollowJavaUtils.getResource(this)
 
-fun String.toSTC(): Component {
+fun String.toSTC(): MutableComponent {
     return Component.literal(this)
 }
 
-val String.mcText: Component
+val String.mcText: MutableComponent
     get() = Component.literal(this)
 
-fun String.toTTC(): Component {
+fun String.toTTC(): MutableComponent {
     return Component.translatable(this)
 }
 
-val String.mcTranslate: Component
+val String.mcTranslate: MutableComponent
     get() = Component.translatable(this)
+
+fun String.mcTranslate(vararg args: Any): MutableComponent {
+    return Component.translatable(this, *args)
+}
+
+operator fun MutableComponent.plus(other: Component): MutableComponent = this.append(other)
+
+fun MutableComponent.colored(color: Int): MutableComponent = this.withStyle { it.withColor(color) }
+fun MutableComponent.bold(): MutableComponent = this.withStyle { it.withBold(true) }
+fun MutableComponent.italic(): MutableComponent = this.withStyle { it.withItalic(true) }
+fun MutableComponent.obfuscated(): MutableComponent = this.withStyle { it.withObfuscated(true) }
+fun MutableComponent.underlined(): MutableComponent = this.withStyle { it.withUnderlined(true) }
+fun MutableComponent.strikethrough(): MutableComponent = this.withStyle { it.withStrikethrough(true) }
+
+fun MutableComponent.onClickUrl(url: String): MutableComponent = this.withStyle { it.withClickEvent(ClickEvent(ClickEvent.Action.OPEN_URL, url)) }
+fun MutableComponent.onClickCommand(command: String): MutableComponent = this.withStyle { it.withClickEvent(ClickEvent(ClickEvent.Action.RUN_COMMAND, command)) }
+fun MutableComponent.onClickSuggestion(command: String): MutableComponent = this.withStyle { it.withClickEvent(ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command)) }
+fun MutableComponent.onClickCopy(text: String): MutableComponent = this.withStyle { it.withClickEvent(ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, text)) }
+
+fun MutableComponent.onHoverText(text: Component): MutableComponent = this.withStyle { it.withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, text)) }
+fun MutableComponent.onHoverText(text: String) = onHoverText(Component.literal(text))
+fun MutableComponent.onHoverItem(item: ItemStack) = this.withStyle { it.withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_ITEM, HoverEvent.ItemStackInfo(item))) }
+fun MutableComponent.onHoverEntity(entity: Entity) = this.withStyle { it.withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_ENTITY, HoverEvent.EntityTooltipInfo(entity.type, entity.uuid, entity.name))) }
 
 @OnlyIn(Dist.CLIENT)
 fun Screen.open() {
@@ -98,16 +124,19 @@ fun Font.drawScaled(
     text: Component,
     x: Int,
     y: Int,
-    color: Int,
-    scale: Float,
+    color: Int = 0xFFFFFF,
+    scale: Float = 1.0f,
+    shadow: Boolean = false
 ) {
+    val draw: (PoseStack, Component, Float, Float, Int) -> Unit = if (shadow) this::draw else this::drawShadow
+
     stack.pushPose()
     stack.translate((x).toDouble(), (y).toDouble(), 0.0)
     stack.scale(scale, scale, 0F)
     when (anchor) {
-        Anchor.CENTER -> this.draw(stack, text, -this.width(text) / 2f, -this.lineHeight / 2f, color)
-        Anchor.END -> this.draw(stack, text, -this.width(text).toFloat(), 0f, color)
-        Anchor.START -> this.draw(stack, text, 0f, 0f, color)
+        Anchor.CENTER -> draw(stack, text, -this.width(text) / 2f, -this.lineHeight / 2f, color)
+        Anchor.END -> draw(stack, text, -this.width(text).toFloat(), 0f, color)
+        Anchor.START -> draw(stack, text, 0f, 0f, color)
     }
     stack.popPose()
 }

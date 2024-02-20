@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.LivingEntity
 import net.minecraftforge.fml.ModList
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
@@ -30,6 +31,7 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 import java.util.*
+import java.util.function.Consumer
 
 
 fun DataInputStream.readUInt(): Int {
@@ -556,51 +558,52 @@ object GltfTree {
             consumer: (ResourceLocation) -> Int,
             light: Int,
         ) {
-            var consumer = consumer
-            val entity = data.entity
+            var changedTexture = consumer
+            renderArmor(data.entity)?.let { changedTexture = it }
+
+            if (hasFirstPersonModel && dev.tr7zw.firstperson.api.FirstPersonAPI.isRenderingPlayer()
+                && name?.contains("head", ignoreCase = true) == true) return
+
+            stack.use {
+                mulPoseMatrix(localMatrix)
+
+                mesh?.render(this@Node, stack, changedTexture)
+                children.forEach { it.render(stack, nodeRenderer, data, changedTexture, light) }
+            }
+        }
+
+        fun renderArmor(entity: LivingEntity?): ((ResourceLocation) -> Int)? {
             if (isArmor) {
-                if (entity == null) return
+                if (entity == null) return null
                 when {
                     !entity.getItemBySlot(EquipmentSlot.HEAD).isEmpty && isHelmet -> {
                         val armorItem = entity.getItemBySlot(EquipmentSlot.HEAD)
                         val texture = armorItem.getArmorTexture(entity, EquipmentSlot.HEAD)
-                        consumer = { texture.toTexture().id }
+                        return { texture.toTexture().id }
                     }
 
                     !entity.getItemBySlot(EquipmentSlot.CHEST).isEmpty && isChestplate -> {
                         val armorItem = entity.getItemBySlot(EquipmentSlot.CHEST)
                         val texture = armorItem.getArmorTexture(entity, EquipmentSlot.CHEST)
-                        consumer = { texture.toTexture().id }
+                        return { texture.toTexture().id }
                     }
 
                     !entity.getItemBySlot(EquipmentSlot.LEGS).isEmpty && isLeggings -> {
                         val armorItem = entity.getItemBySlot(EquipmentSlot.LEGS)
                         val texture = armorItem.getArmorTexture(entity, EquipmentSlot.LEGS)
-                        consumer = { texture.toTexture().id }
+                        return { texture.toTexture().id }
                     }
 
                     !entity.getItemBySlot(EquipmentSlot.FEET).isEmpty && isBoots -> {
                         val armorItem = entity.getItemBySlot(EquipmentSlot.FEET)
                         val texture = armorItem.getArmorTexture(entity, EquipmentSlot.FEET)
-                        consumer = { texture.toTexture().id }
+                        return { texture.toTexture().id }
                     }
 
-                    else -> return
+                    else -> return null
                 }
             }
-
-            if (hasFirstPersonModel && dev.tr7zw.firstperson.api.FirstPersonAPI.isRenderingPlayer() &&
-                name?.contains("head", ignoreCase = true) == true
-            ) {
-                return
-            }
-
-            stack.use {
-                mulPoseMatrix(localMatrix)
-
-                mesh?.render(this@Node, stack, consumer)
-                children.forEach { it.render(stack, nodeRenderer, data, consumer, light) }
-            }
+            return null
         }
 
         fun renderDecorations(

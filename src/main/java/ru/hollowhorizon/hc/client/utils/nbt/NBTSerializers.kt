@@ -15,6 +15,8 @@ import kotlinx.serialization.encoding.encodeStructure
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.*
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.MutableComponent
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
@@ -22,10 +24,9 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.monster.Zombie
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
-import net.minecraftforge.common.util.FakePlayer
-import net.minecraftforge.common.util.FakePlayerFactory
 import net.minecraftforge.registries.ForgeRegistries
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.utils.mcText
 import ru.hollowhorizon.hc.client.utils.rl
 import java.util.*
 
@@ -107,6 +108,12 @@ object ForStringNBT : KSerializer<StringTag> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("StringNBT", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: StringTag) = encoder.encodeString(value.asString)
     override fun deserialize(decoder: Decoder): StringTag = StringTag.valueOf(decoder.decodeString())
+}
+
+object ForTextComponent : KSerializer<MutableComponent> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("StringNBT", PrimitiveKind.STRING)
+    override fun serialize(encoder: Encoder, value: MutableComponent) = encoder.encodeString(Component.Serializer.toJson(value))
+    override fun deserialize(decoder: Decoder) = Component.Serializer.fromJson(decoder.decodeString()) ?: "".mcText
 }
 
 

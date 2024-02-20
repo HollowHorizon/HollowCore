@@ -4,7 +4,7 @@ import java.io.IOException
 
 class FBXProperty<T>(val character: Char, private val data: T) {
     override fun toString(): String {
-        return "[$character, $data]"
+        return "<$character, $data>"
     }
 
     @Suppress("UNCHECKED_CAST")
