@@ -15,15 +15,15 @@ class UIAnimation(
     val interpolation: Interpolation = Interpolation.LINEAR,
 ) {
     @Transient
-    var startTime = ClientTickHandler.ticks
-    val isEnd get() = trigger != AnimationTrigger.LOOP || ClientTickHandler.ticks - startTime > duration
+    var startTime = ClientTickHandler.clientTicks
+    val isEnd get() = trigger != AnimationTrigger.LOOP || ClientTickHandler.clientTicks - startTime > duration
 
     fun reset() {
-        startTime = ClientTickHandler.ticks
+        startTime = ClientTickHandler.clientTicks
     }
 
     fun update(partialTick: Float): Float {
-        val time = (ClientTickHandler.ticks - startTime + partialTick % duration) / duration
+        val time = (ClientTickHandler.clientTicks - startTime + partialTick % duration) / duration
 
         return startValue + (endValue - startTime) * interpolation(time)
     }

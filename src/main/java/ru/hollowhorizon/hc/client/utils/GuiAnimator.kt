@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.client.utils
 
-import net.minecraft.client.Minecraft
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -14,11 +13,11 @@ open class GuiAnimator protected constructor(
     var value: Int = begin
     val maxTime = time * 20
     protected var timePassed: Float = 0f
-    protected var startTicks = ClientTickHandler.ticks
+    protected var startTicks = ClientTickHandler.clientTicks
 
     open fun update(partialTick: Float) {
         value = begin + ((end - begin) * interpolation((timePassed / maxTime).coerceAtMost(1.0f))).toInt()
-        if(!isFinished()) timePassed = ClientTickHandler.ticks - startTicks + partialTick
+        if(!isFinished()) timePassed = ClientTickHandler.clientTicks - startTicks + partialTick
     }
 
     fun setTime(v: Float) {
@@ -30,7 +29,7 @@ open class GuiAnimator protected constructor(
     }
 
     fun reset() {
-        startTicks = ClientTickHandler.ticks
+        startTicks = ClientTickHandler.clientTicks
         timePassed = 0f
         value = begin
     }
@@ -42,7 +41,7 @@ open class GuiAnimator protected constructor(
         override fun update(partialTick: Float) {
             if (switch) {
                 value = begin + ((end - begin) * interpolation(1f - (timePassed / maxTime).coerceAtMost(1.0f))).toInt()
-                if(!isFinished()) timePassed = ClientTickHandler.ticks - startTicks + partialTick
+                if(!isFinished()) timePassed = ClientTickHandler.clientTicks - startTicks + partialTick
             } else super.update(partialTick)
 
             if (isFinished()) {

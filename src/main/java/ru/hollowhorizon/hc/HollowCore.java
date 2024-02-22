@@ -73,6 +73,7 @@ public class HollowCore {
 
             //события
             forgeBus.addListener(ClientTickHandler::clientTickEnd);
+            forgeBus.addListener(ClientTickHandler::serverTickEnd);
 
             //модели
             modBus.addListener(GltfManager::onReload);
