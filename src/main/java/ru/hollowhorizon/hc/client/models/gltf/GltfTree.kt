@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.ArmorItem
 import net.minecraftforge.fml.ModList
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
@@ -565,26 +566,34 @@ object GltfTree {
                 when {
                     !entity.getItemBySlot(EquipmentSlot.HEAD).isEmpty && isHelmet -> {
                         val armorItem = entity.getItemBySlot(EquipmentSlot.HEAD)
-                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.HEAD)
-                        changedTexture = { texture.toTexture().id }
+                        if(armorItem.item is ArmorItem) {
+                            val texture = armorItem.getArmorTexture(entity, EquipmentSlot.HEAD)
+                            changedTexture = { texture.toTexture().id }
+                        }
                     }
 
                     !entity.getItemBySlot(EquipmentSlot.CHEST).isEmpty && isChestplate -> {
                         val armorItem = entity.getItemBySlot(EquipmentSlot.CHEST)
-                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.CHEST)
-                        changedTexture = { texture.toTexture().id }
+                        if(armorItem.item is ArmorItem) {
+                            val texture = armorItem.getArmorTexture(entity, EquipmentSlot.CHEST)
+                            changedTexture = { texture.toTexture().id }
+                        }
                     }
 
                     !entity.getItemBySlot(EquipmentSlot.LEGS).isEmpty && isLeggings -> {
                         val armorItem = entity.getItemBySlot(EquipmentSlot.LEGS)
-                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.LEGS)
-                        changedTexture = { texture.toTexture().id }
+                        if(armorItem.item is ArmorItem) {
+                            val texture = armorItem.getArmorTexture(entity, EquipmentSlot.LEGS)
+                            changedTexture = { texture.toTexture().id }
+                        }
                     }
 
                     !entity.getItemBySlot(EquipmentSlot.FEET).isEmpty && isBoots -> {
                         val armorItem = entity.getItemBySlot(EquipmentSlot.FEET)
-                        val texture = armorItem.getArmorTexture(entity, EquipmentSlot.FEET)
-                        changedTexture = { texture.toTexture().id }
+                        if(armorItem.item is ArmorItem) {
+                            val texture = armorItem.getArmorTexture(entity, EquipmentSlot.FEET)
+                            changedTexture = { texture.toTexture().id }
+                        }
                     }
                     else -> return
                 }
