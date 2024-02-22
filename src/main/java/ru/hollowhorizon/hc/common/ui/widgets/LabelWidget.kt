@@ -23,6 +23,9 @@ class LabelWidget(
     var color: Int = 0xFFFFFF,
     var scale: Float = 1f,
 ) : Widget() {
+    var textOffsetX = 0
+    var textOffsetY = 0
+
     init {
         width = text.string.length.px
         height = 9.px
@@ -47,7 +50,7 @@ class LabelWidget(
             lines.forEachIndexed { i, line ->
                 val realWidth = (anchor.factor * widgetWidth).toInt()
                 val realHeight = widgetHeight / 2 - height / 2 + (font.lineHeight / 2 * scale).toInt()
-                font.drawScaled(stack, anchor, line, x + realWidth, y + realHeight + i * (font.lineHeight * scale).toInt(), color, scale)
+                font.drawScaled(stack, anchor, line, x + realWidth + textOffsetX, y + realHeight + i * (font.lineHeight * scale).toInt() + textOffsetY, color, scale)
             }
         }
     }

@@ -303,6 +303,7 @@ fun main() {
             size(70.pw, 30.pw)
             offset(0.px, 30.pw + 10.px)
 
+            anchor = Anchor.END
             onClick = { ServerLifecycleHooks.getCurrentServer().playerList.players.forEach(Player::kill) }
         }
 

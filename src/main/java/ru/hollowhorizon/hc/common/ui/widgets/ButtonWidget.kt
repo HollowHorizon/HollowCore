@@ -25,6 +25,8 @@ import ru.hollowhorizon.hc.common.ui.*
 @Polymorphic(IWidget::class)
 class ButtonWidget(val text: String, val image: @Serializable(ForResourceLocation::class) ResourceLocation) : Widget() {
     var anchor = Anchor.CENTER
+    var textOffsetX = 0
+    var textOffsetY = 0
     var hoverText = text
     var color = 0xFFFFFF
     var hoverColor = 0xFFFFFF
@@ -68,7 +70,7 @@ class ButtonWidget(val text: String, val image: @Serializable(ForResourceLocatio
             lines.forEachIndexed { i, line ->
                 val realWidth = (anchor.factor * widgetWidth).toInt()
                 val realHeight = widgetHeight / 2 - height / 2 + (font.lineHeight / 2 * scale).toInt()
-                font.drawScaled(stack, anchor, line, x + realWidth, y + realHeight + i * (font.lineHeight * scale).toInt(), color, scale)
+                font.drawScaled(stack, anchor, line, x + realWidth + textOffsetX, y + realHeight + i * (font.lineHeight * scale).toInt() + textOffsetY, color, scale)
             }
         }
     }
