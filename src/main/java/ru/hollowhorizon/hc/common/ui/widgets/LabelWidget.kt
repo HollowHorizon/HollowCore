@@ -8,10 +8,10 @@ import net.minecraft.network.chat.MutableComponent
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import ru.hollowhorizon.hc.api.utils.Polymorphic
-import ru.hollowhorizon.hc.client.screens.util.Anchor
 import ru.hollowhorizon.hc.client.utils.drawScaled
 import ru.hollowhorizon.hc.client.utils.mcText
 import ru.hollowhorizon.hc.client.utils.nbt.ForTextComponent
+import ru.hollowhorizon.hc.common.ui.Anchor
 import ru.hollowhorizon.hc.common.ui.IWidget
 import ru.hollowhorizon.hc.common.ui.Widget
 
@@ -20,6 +20,7 @@ import ru.hollowhorizon.hc.common.ui.Widget
 class LabelWidget(
     val text: @Serializable(ForTextComponent::class) Component,
     var anchor: Anchor = Anchor.CENTER,
+    var color: Int = 0xFFFFFF,
     var scale: Float = 1f,
 ) : Widget() {
     init {
@@ -40,15 +41,15 @@ class LabelWidget(
         mouseY: Int,
         partialTick: Float,
     ) {
-        Minecraft.getInstance().font.drawScaled(
-            stack,
-            anchor,
-            text,
-            x + widgetWidth / 2,
-            y + widgetHeight / 2,
-            0xFFFFFF,
-            scale
-        )
+        Minecraft.getInstance().font.let { font ->
+            val lines = font.split(text, (widgetWidth / scale).toInt())
+            val height = lines.size * (font.lineHeight * scale).toInt()
+            lines.forEachIndexed { i, line ->
+                val realWidth = (anchor.factor * widgetWidth).toInt()
+                val realHeight = widgetHeight / 2 - height / 2 + (font.lineHeight / 2 * scale).toInt()
+                font.drawScaled(stack, anchor, line, x + realWidth, y + realHeight + i * (font.lineHeight * scale).toInt(), color, scale)
+            }
+        }
     }
 }
 

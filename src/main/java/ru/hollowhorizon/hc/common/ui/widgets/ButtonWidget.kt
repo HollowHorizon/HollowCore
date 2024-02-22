@@ -13,25 +13,23 @@ import net.minecraft.world.entity.player.Player
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import ru.hollowhorizon.hc.api.utils.Polymorphic
-import ru.hollowhorizon.hc.client.screens.util.Anchor
 import ru.hollowhorizon.hc.client.utils.drawScaled
 import ru.hollowhorizon.hc.client.utils.mcText
 import ru.hollowhorizon.hc.client.utils.nbt.ForResourceLocation
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
-import ru.hollowhorizon.hc.common.ui.CURRENT_CLIENT_GUI
-import ru.hollowhorizon.hc.common.ui.CURRENT_SERVER_GUI
-import ru.hollowhorizon.hc.common.ui.IWidget
-import ru.hollowhorizon.hc.common.ui.Widget
+import ru.hollowhorizon.hc.common.ui.*
 
 @Serializable
 @Polymorphic(IWidget::class)
 class ButtonWidget(val text: String, val image: @Serializable(ForResourceLocation::class) ResourceLocation) : Widget() {
+    var anchor = Anchor.CENTER
     var hoverText = text
     var color = 0xFFFFFF
     var hoverColor = 0xFFFFFF
-    var scale = 1.2f
+    var scale = 1.5f
+
     @Transient
     var onClick = {}
 
@@ -49,6 +47,8 @@ class ButtonWidget(val text: String, val image: @Serializable(ForResourceLocatio
         partialTick: Float,
     ) {
         val hovered = mouseX in x..x + widgetWidth && mouseY in y..y + widgetHeight
+        val text = (if (hovered) hoverText else text).mcText
+        RenderSystem.enableBlend()
         RenderSystem.setShaderTexture(0, image)
         Screen.blit(
             stack,
@@ -61,15 +61,16 @@ class ButtonWidget(val text: String, val image: @Serializable(ForResourceLocatio
             widgetWidth,
             widgetHeight * 2
         )
-        Minecraft.getInstance().font.drawScaled(
-            stack,
-            Anchor.CENTER,
-            (if(hovered) hoverText else text).mcText,
-            x + widgetWidth / 2,
-            y + widgetHeight / 2,
-            if(hovered) hoverColor else color,
-            scale
-        )
+        RenderSystem.disableBlend()
+        Minecraft.getInstance().font.let { font ->
+            val lines = font.split(text, (widgetWidth / scale).toInt())
+            val height = lines.size * (font.lineHeight * scale).toInt()
+            lines.forEachIndexed { i, line ->
+                val realWidth = (anchor.factor * widgetWidth).toInt()
+                val realHeight = widgetHeight / 2 - height / 2 + (font.lineHeight / 2 * scale).toInt()
+                font.drawScaled(stack, anchor, line, x + realWidth, y + realHeight + i * (font.lineHeight * scale).toInt(), color, scale)
+            }
+        }
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -81,7 +82,7 @@ class ButtonWidget(val text: String, val image: @Serializable(ForResourceLocatio
         widgetWidth: Int,
         widgetHeight: Int,
         mouseX: Int,
-        mouseY: Int
+        mouseY: Int,
     ): Boolean {
         if (mouseX in x..x + widgetWidth && mouseY in y..y + widgetHeight) {
             Minecraft.getInstance().soundManager.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0f))
@@ -106,4 +107,6 @@ class ServerButtonPress(val path: List<Int>) : HollowPacketV3<ServerButtonPress>
 
 }
 
-fun Widget.button(text: String, image: String, config: ButtonWidget.() -> Unit = {}) { this += ButtonWidget(text, image.rl).apply(config) }
+fun Widget.button(text: String, image: String, config: ButtonWidget.() -> Unit = {}) {
+    this += ButtonWidget(text, image.rl).apply(config)
+}

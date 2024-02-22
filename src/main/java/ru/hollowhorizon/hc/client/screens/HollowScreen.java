@@ -10,9 +10,9 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
-import ru.hollowhorizon.hc.client.screens.util.Alignment;
 import ru.hollowhorizon.hc.client.screens.widget.HollowWidget;
 import ru.hollowhorizon.hc.client.screens.widget.layout.ILayoutConsumer;
+import ru.hollowhorizon.hc.common.ui.Alignment;
 import ru.hollowhorizon.hc.mixin.ScreenAccessor;
 
 public class HollowScreen extends Screen implements ILayoutConsumer {

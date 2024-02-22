@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.FormattedCharSequence
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
@@ -25,9 +26,9 @@ import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.fml.loading.FMLLoader
 import net.minecraftforge.fml.util.thread.SidedThreadGroups
 import net.minecraftforge.registries.IForgeRegistry
-import ru.hollowhorizon.hc.client.screens.util.Anchor
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage
+import ru.hollowhorizon.hc.common.ui.Anchor
 import java.io.InputStream
 import kotlin.reflect.KClass
 
@@ -92,15 +93,33 @@ fun MutableComponent.obfuscated(): MutableComponent = this.withStyle { it.withOb
 fun MutableComponent.underlined(): MutableComponent = this.withStyle { it.withUnderlined(true) }
 fun MutableComponent.strikethrough(): MutableComponent = this.withStyle { it.withStrikethrough(true) }
 
-fun MutableComponent.onClickUrl(url: String): MutableComponent = this.withStyle { it.withClickEvent(ClickEvent(ClickEvent.Action.OPEN_URL, url)) }
-fun MutableComponent.onClickCommand(command: String): MutableComponent = this.withStyle { it.withClickEvent(ClickEvent(ClickEvent.Action.RUN_COMMAND, command)) }
-fun MutableComponent.onClickSuggestion(command: String): MutableComponent = this.withStyle { it.withClickEvent(ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command)) }
-fun MutableComponent.onClickCopy(text: String): MutableComponent = this.withStyle { it.withClickEvent(ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, text)) }
+fun MutableComponent.onClickUrl(url: String): MutableComponent =
+    this.withStyle { it.withClickEvent(ClickEvent(ClickEvent.Action.OPEN_URL, url)) }
 
-fun MutableComponent.onHoverText(text: Component): MutableComponent = this.withStyle { it.withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, text)) }
+fun MutableComponent.onClickCommand(command: String): MutableComponent =
+    this.withStyle { it.withClickEvent(ClickEvent(ClickEvent.Action.RUN_COMMAND, command)) }
+
+fun MutableComponent.onClickSuggestion(command: String): MutableComponent =
+    this.withStyle { it.withClickEvent(ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command)) }
+
+fun MutableComponent.onClickCopy(text: String): MutableComponent =
+    this.withStyle { it.withClickEvent(ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, text)) }
+
+fun MutableComponent.onHoverText(text: Component): MutableComponent =
+    this.withStyle { it.withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, text)) }
+
 fun MutableComponent.onHoverText(text: String) = onHoverText(Component.literal(text))
-fun MutableComponent.onHoverItem(item: ItemStack) = this.withStyle { it.withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_ITEM, HoverEvent.ItemStackInfo(item))) }
-fun MutableComponent.onHoverEntity(entity: Entity) = this.withStyle { it.withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_ENTITY, HoverEvent.EntityTooltipInfo(entity.type, entity.uuid, entity.name))) }
+fun MutableComponent.onHoverItem(item: ItemStack) =
+    this.withStyle { it.withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_ITEM, HoverEvent.ItemStackInfo(item))) }
+
+fun MutableComponent.onHoverEntity(entity: Entity) = this.withStyle {
+    it.withHoverEvent(
+        HoverEvent(
+            HoverEvent.Action.SHOW_ENTITY,
+            HoverEvent.EntityTooltipInfo(entity.type, entity.uuid, entity.name)
+        )
+    )
+}
 
 @OnlyIn(Dist.CLIENT)
 fun Screen.open() {
@@ -121,22 +140,47 @@ fun AbstractTexture.render(stack: PoseStack, x: Int, y: Int, width: Int, height:
 fun Font.drawScaled(
     stack: PoseStack,
     anchor: Anchor = Anchor.CENTER,
-    text: Component,
+    text: FormattedCharSequence,
     x: Int,
     y: Int,
     color: Int = 0xFFFFFF,
     scale: Float = 1.0f,
-    shadow: Boolean = false
+    shadow: Boolean = false,
 ) {
-    val draw: (PoseStack, Component, Float, Float, Int) -> Unit = if (shadow) this::draw else this::drawShadow
+    val drawMethod: (PoseStack, FormattedCharSequence, Float, Float, Int) -> Unit = if (shadow) this::draw else this::drawShadow
 
     stack.pushPose()
     stack.translate((x).toDouble(), (y).toDouble(), 0.0)
     stack.scale(scale, scale, 0F)
     when (anchor) {
-        Anchor.CENTER -> draw(stack, text, -this.width(text) / 2f, -this.lineHeight / 2f, color)
-        Anchor.END -> draw(stack, text, -this.width(text).toFloat(), 0f, color)
-        Anchor.START -> draw(stack, text, 0f, 0f, color)
+        Anchor.CENTER -> drawMethod(stack, text, -this.width(text) / 2f, -this.lineHeight / 2f, color)
+        Anchor.END -> drawMethod(stack, text, -this.width(text).toFloat(), 0f, color)
+        Anchor.START -> drawMethod(stack, text, 0f, 0f, color)
+    }
+    stack.popPose()
+}
+
+@OnlyIn(Dist.CLIENT)
+@JvmOverloads
+fun Font.drawScaled(
+    stack: PoseStack,
+    anchor: Anchor = Anchor.CENTER,
+    text: Component,
+    x: Int,
+    y: Int,
+    color: Int = 0xFFFFFF,
+    scale: Float = 1.0f,
+    shadow: Boolean = false,
+) {
+    val drawMethod: (PoseStack, Component, Float, Float, Int) -> Unit = if (shadow) this::draw else this::drawShadow
+
+    stack.pushPose()
+    stack.translate((x).toDouble(), (y).toDouble(), 0.0)
+    stack.scale(scale, scale, 0F)
+    when (anchor) {
+        Anchor.CENTER -> drawMethod(stack, text, -this.width(text) / 2f, -this.lineHeight / 2f, color)
+        Anchor.END -> drawMethod(stack, text, -this.width(text).toFloat(), 0f, color)
+        Anchor.START -> drawMethod(stack, text, 0f, 0f, color)
     }
     stack.popPose()
 }

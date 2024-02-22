@@ -97,7 +97,7 @@ open class Widget : IWidget {
         widgetWidth: Int, widgetHeight: Int,
         mouseX: Int, mouseY: Int, partialTick: Float,
     ) = stack.use {
-        if(enableDepth) RenderSystem.enableDepthTest()
+        if (enableDepth) RenderSystem.enableDepthTest()
         translate(0.0, 0.0, zLayer.toDouble())
 
         if (!visible) return@use
@@ -106,8 +106,8 @@ open class Widget : IWidget {
         val height = height(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
         val offsetX = offsetX(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
         val offsetY = offsetY(screenWidth, screenHeight, widgetWidth, widgetHeight, mouseX, mouseY)
-        val x = if(this@Widget.offsetX is ScreenPosition.Mouse) offsetX else x + offsetX
-        val y = if(this@Widget.offsetY is ScreenPosition.Mouse) offsetY else y + offsetY
+        val x = if (this@Widget.offsetX is ScreenPosition.Mouse) offsetX else x + offsetX
+        val y = if (this@Widget.offsetY is ScreenPosition.Mouse) offsetY else y + offsetY
         val nx = (x + widgetWidth * alignment.factorX - width * alignment.factorX).toInt()
         val ny = (y + widgetHeight * alignment.factorY - height * alignment.factorY).toInt()
 
@@ -135,7 +135,7 @@ open class Widget : IWidget {
             )
         }
         if (enableScissors) ScissorUtil.pop()
-        if(enableDepth) RenderSystem.disableDepthTest()
+        if (enableDepth) RenderSystem.disableDepthTest()
     }
 
     override fun buttonPressed(
@@ -289,13 +289,16 @@ fun main() {
             size(100.pw, 100.pw)
         }
 
-        button("Дать леща", "hc:textures/gui/icons/volume_slider.png") {
+        button("Дать леща", "hc:textures/gui/buttons/hollow_button.png") {
             align(Alignment.LEFT_CENTER)
             size(70.pw, 30.pw)
 
             onClick = { ServerLifecycleHooks.getCurrentServer().playerList.players.forEach(Player::sweepAttack) }
         }
-        button("Сломать колени", "hc:textures/gui/icons/volume_slider.png") {
+        button(
+            "Сломать колени, а также распределить этот текст на несколько довольно длинных строк",
+            "hc:textures/gui/buttons/hollow_button.png"
+        ) {
             align(Alignment.LEFT_CENTER)
             size(70.pw, 30.pw)
             offset(0.px, 30.pw + 10.px)

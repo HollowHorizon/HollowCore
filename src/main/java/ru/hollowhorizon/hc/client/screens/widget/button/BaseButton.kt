@@ -5,11 +5,11 @@ import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
-import ru.hollowhorizon.hc.client.screens.util.Anchor
 import ru.hollowhorizon.hc.client.screens.widget.HollowWidget
 import ru.hollowhorizon.hc.client.utils.drawScaled
 import ru.hollowhorizon.hc.client.utils.mc
 import ru.hollowhorizon.hc.client.utils.mcText
+import ru.hollowhorizon.hc.common.ui.Anchor
 import javax.annotation.Nonnull
 
 

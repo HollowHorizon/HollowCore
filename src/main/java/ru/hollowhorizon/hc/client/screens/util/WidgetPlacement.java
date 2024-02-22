@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.client.screens.util;
 import net.minecraft.client.gui.components.AbstractWidget;
 import ru.hollowhorizon.hc.client.screens.HollowScreen;
 import ru.hollowhorizon.hc.client.screens.widget.IWidgetConsumer;
+import ru.hollowhorizon.hc.common.ui.Alignment;
 
 public class WidgetPlacement {
     private WidgetPlacement() {

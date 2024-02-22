@@ -5,12 +5,12 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import ru.hollowhorizon.hc.client.screens.util.Alignment;
 import ru.hollowhorizon.hc.client.screens.util.WidgetPlacement;
 import ru.hollowhorizon.hc.client.screens.widget.HollowWidget;
 import ru.hollowhorizon.hc.client.screens.widget.VerticalSliderWidget;
 import ru.hollowhorizon.hc.client.screens.widget.WidgetBox;
 import ru.hollowhorizon.hc.client.utils.ScissorUtil;
+import ru.hollowhorizon.hc.common.ui.Alignment;
 
 import java.util.List;
 

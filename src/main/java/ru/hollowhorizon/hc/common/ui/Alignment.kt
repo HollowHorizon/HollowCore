@@ -12,10 +12,13 @@ enum class Alignment(override val factorX: Float, override val factorY: Float): 
     TOP_CENTER(0.5F, 0F),
     TOP_RIGHT(1F, 0F),
     TOP_LEFT(0F, 0F);
+
+    fun factorX() = factorX
+    fun factorY() = factorY
 }
 
 
-enum class Anchor(value: Float) {
+enum class Anchor(val factor: Float) {
     START(0f),
     CENTER(0.5f),
     END(1f)

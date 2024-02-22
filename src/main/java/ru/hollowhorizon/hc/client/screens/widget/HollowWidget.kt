@@ -15,8 +15,8 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
 import net.minecraftforge.client.ForgeHooksClient
 import ru.hollowhorizon.hc.client.screens.HollowScreen
-import ru.hollowhorizon.hc.client.screens.util.Alignment
 import ru.hollowhorizon.hc.client.screens.widget.layout.ILayoutConsumer
+import ru.hollowhorizon.hc.common.ui.Alignment
 
 open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: Component) :
     AbstractWidget(x, y, width, height, text), ILayoutConsumer {

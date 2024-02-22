@@ -4,11 +4,11 @@ import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
-import ru.hollowhorizon.hc.client.screens.util.Anchor
 import ru.hollowhorizon.hc.client.utils.drawScaled
 import ru.hollowhorizon.hc.client.utils.mc
 import ru.hollowhorizon.hc.client.utils.mcText
 import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.ui.Anchor
 
 class ColorButton @JvmOverloads constructor(
     x: Int,

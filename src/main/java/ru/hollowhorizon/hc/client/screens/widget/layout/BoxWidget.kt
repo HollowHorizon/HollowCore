@@ -1,20 +1,17 @@
 package ru.hollowhorizon.hc.client.screens.widget.layout
 
 import com.mojang.blaze3d.vertex.PoseStack
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.sounds.SoundManager
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.screens.DrawUtils
-import ru.hollowhorizon.hc.client.screens.util.Alignment
-import ru.hollowhorizon.hc.client.screens.util.IPlacement
 import ru.hollowhorizon.hc.client.screens.widget.HorizontalSliderWidget
 import ru.hollowhorizon.hc.client.screens.widget.OriginWidget
 import ru.hollowhorizon.hc.client.screens.widget.VerticalSliderWidget
+import ru.hollowhorizon.hc.common.ui.Alignment
+import ru.hollowhorizon.hc.common.ui.IPlacement
 
 class BoxWidget(
     x: Int,
@@ -109,7 +106,7 @@ class BoxWidget(
                 }
             }
             if (maxWidth > 0) {
-                val flag = if(maxHeight == 0) true else (Screen.hasShiftDown() || Screen.hasControlDown())
+                val flag = if (maxHeight == 0) true else (Screen.hasShiftDown() || Screen.hasControlDown())
                 if (this.horizontalSlider != null && flag) {
                     this.horizontalSlider!!.scroll += scrollVal
                 }
@@ -180,10 +177,10 @@ class BoxBuilder(val x0: Int, val y0: Int, val maxWidth: Int, val maxHeight: Int
     }
 
     fun x(): Int =
-        (x0 + pos.width.value + align.factorX() * maxWidth - align.factorX() * size.width.value).toInt()
+        (x0 + pos.width.value + align.factorX * maxWidth - align.factorX * size.width.value).toInt()
 
     fun y(): Int =
-        (y0 + pos.height.value + align.factorY() * maxHeight - align.factorY() * size.height.value).toInt()
+        (y0 + pos.height.value + align.factorY * maxHeight - align.factorY * size.height.value).toInt()
 
     fun width(): Int {
         return size.width.value
@@ -237,7 +234,7 @@ class WidgetBuilder(
                         currentRowWidth = 0
                     }
 
-                    if(widget !is LineBreak) {
+                    if (widget !is LineBreak) {
                         currentRow.add(widget)
                         currentRowWidth += widget.width + prev.spacing.width.value
                     }
@@ -250,13 +247,14 @@ class WidgetBuilder(
 
                 val freeHeight = height() - maxHeight + prev.spacing.height.value + 1 // +1 to fix when factorY is 1.0
 
-                var yDelta = (y() + freeHeight * align.factorY()).toInt()
+                var yDelta = (y() + freeHeight * align.factorY).toInt()
 
                 sizedWidgets.forEach { rowWidgets ->
                     val freeWidth =
-                        width() - rowWidgets.filter { it !is LineBreak }.sumOf { it.width + prev.spacing.width.value } + prev.spacing.width.value
+                        width() - rowWidgets.filter { it !is LineBreak }
+                            .sumOf { it.width + prev.spacing.width.value } + prev.spacing.width.value
 
-                    var xDelta = (x() + freeWidth * align.factorX()).toInt()
+                    var xDelta = (x() + freeWidth * align.factorX).toInt()
 
                     rowWidgets.filter { it !is LineBreak }.forEach { widget ->
                         widget.x = xDelta
@@ -265,7 +263,8 @@ class WidgetBuilder(
                         xDelta += widget.width + prev.spacing.width.value
                     }
 
-                    yDelta += (rowWidgets.filter { it !is LineBreak }.maxOfOrNull { it.height } ?: 0) + prev.spacing.height.value
+                    yDelta += (rowWidgets.filter { it !is LineBreak }.maxOfOrNull { it.height }
+                        ?: 0) + prev.spacing.height.value
                 }
             }
 
@@ -273,11 +272,11 @@ class WidgetBuilder(
                 val freeHeight =
                     height() - widgets.sumOf { it.height + prev.spacing.height.value } + prev.spacing.height.value
 
-                var yDelta = (y() + freeHeight * align.factorY()).toInt()
+                var yDelta = (y() + freeHeight * align.factorY).toInt()
 
                 widgets.forEach { widget ->
 
-                    widget.x = (x() + width() * align.factorX() - widget.width * align.factorX()).toInt()
+                    widget.x = (x() + width() * align.factorX - widget.width * align.factorX).toInt()
                     widget.y = yDelta
 
                     yDelta += widget.height + prev.spacing.height.value
@@ -288,12 +287,12 @@ class WidgetBuilder(
                 val freeWidth =
                     width() - widgets.sumOf { it.width + prev.spacing.width.value } + prev.spacing.width.value
 
-                var xDelta = (x() + freeWidth * align.factorX()).toInt()
+                var xDelta = (x() + freeWidth * align.factorX).toInt()
 
                 widgets.forEach { widget ->
                     widget.x = xDelta
                     widget.y =
-                        (y() + height() * align.factorY() - widget.height * align.factorY()).toInt()
+                        (y() + height() * align.factorY - widget.height * align.factorY).toInt()
 
                     xDelta += widget.width + prev.spacing.width.value
                 }
@@ -380,8 +379,8 @@ fun ILayoutConsumer.box(builder: BoxBuilder.() -> Unit): BoxWidget {
     for (widget in boxBuilder.widgets) {
         box.addLayoutWidget(widget)
     }
-    if (box.maxHeight > 0) box.offsetY = (-box.maxHeight * boxBuilder.align.factorY()).toInt()
-    if (box.maxWidth > 0) box.offsetX = (-box.maxWidth * boxBuilder.align.factorX()).toInt()
+    if (box.maxHeight > 0) box.offsetY = (-box.maxHeight * boxBuilder.align.factorY).toInt()
+    if (box.maxWidth > 0) box.offsetX = (-box.maxWidth * boxBuilder.align.factorX).toInt()
     this.addLayoutWidget(box)
     return box
 }

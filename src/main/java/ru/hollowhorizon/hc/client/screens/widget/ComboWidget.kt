@@ -8,9 +8,9 @@ import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.client.screens.util.Alignment
 import ru.hollowhorizon.hc.client.screens.widget.layout.BoxWidget
 import ru.hollowhorizon.hc.client.screens.widget.layout.box
+import ru.hollowhorizon.hc.common.ui.Alignment
 
 
 class ComboWidget<T : AbstractWidget>(
