@@ -21,13 +21,9 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
     init {
         this[AnimatedEntityCapability::class].apply {
             model = "hc:models/entity/player_model.gltf"
-            subModels["Head"] = SubModel(
-                "hc:models/entity/player_model.gltf",
-                arrayListOf(AnimationLayer("sit_anim", LayerMode.ADD, PlayMode.LOOPED, 1f)),
-                HashMap(),
-                Transform(sX = 0.5f, sY = 0.5f, sZ = 0.5f, tY = 0.5f),
-                HashMap()
-            )
+            transform = Transform.create {
+                translate(0f, 0.5f, 0f)
+            }
         }
         this.setItemInHand(InteractionHand.MAIN_HAND, ItemStack(Items.NETHERITE_HOE))
         this.setItemInHand(InteractionHand.OFF_HAND, ItemStack(Items.TNT))

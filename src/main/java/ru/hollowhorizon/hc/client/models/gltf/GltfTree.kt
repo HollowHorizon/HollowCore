@@ -5,22 +5,17 @@ import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.*
-import net.coderbot.iris.texture.pbr.PBRTextureManager
-import net.coderbot.iris.texture.pbr.loader.PBRTextureLoader
-import net.coderbot.iris.texture.pbr.loader.PBRTextureLoaderRegistry
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ArmorItem
 import net.minecraftforge.fml.ModList
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.registry.ModShaders
 import java.io.ByteArrayInputStream
@@ -32,7 +27,6 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 import java.util.*
-import java.util.function.Consumer
 
 
 fun DataInputStream.readUInt(): Int {
@@ -566,7 +560,7 @@ object GltfTree {
                 when {
                     !entity.getItemBySlot(EquipmentSlot.HEAD).isEmpty && isHelmet -> {
                         val armorItem = entity.getItemBySlot(EquipmentSlot.HEAD)
-                        if(armorItem.item is ArmorItem) {
+                        if (armorItem.item is ArmorItem) {
                             val texture = armorItem.getArmorTexture(entity, EquipmentSlot.HEAD)
                             changedTexture = { texture.toTexture().id }
                         }
@@ -574,7 +568,7 @@ object GltfTree {
 
                     !entity.getItemBySlot(EquipmentSlot.CHEST).isEmpty && isChestplate -> {
                         val armorItem = entity.getItemBySlot(EquipmentSlot.CHEST)
-                        if(armorItem.item is ArmorItem) {
+                        if (armorItem.item is ArmorItem) {
                             val texture = armorItem.getArmorTexture(entity, EquipmentSlot.CHEST)
                             changedTexture = { texture.toTexture().id }
                         }
@@ -582,7 +576,7 @@ object GltfTree {
 
                     !entity.getItemBySlot(EquipmentSlot.LEGS).isEmpty && isLeggings -> {
                         val armorItem = entity.getItemBySlot(EquipmentSlot.LEGS)
-                        if(armorItem.item is ArmorItem) {
+                        if (armorItem.item is ArmorItem) {
                             val texture = armorItem.getArmorTexture(entity, EquipmentSlot.LEGS)
                             changedTexture = { texture.toTexture().id }
                         }
@@ -590,17 +584,19 @@ object GltfTree {
 
                     !entity.getItemBySlot(EquipmentSlot.FEET).isEmpty && isBoots -> {
                         val armorItem = entity.getItemBySlot(EquipmentSlot.FEET)
-                        if(armorItem.item is ArmorItem) {
+                        if (armorItem.item is ArmorItem) {
                             val texture = armorItem.getArmorTexture(entity, EquipmentSlot.FEET)
                             changedTexture = { texture.toTexture().id }
                         }
                     }
+
                     else -> return
                 }
             }
 
             if (hasFirstPersonModel && dev.tr7zw.firstperson.api.FirstPersonAPI.isRenderingPlayer()
-                && name?.contains("head", ignoreCase = true) == true) return
+                && name?.contains("head", ignoreCase = true) == true
+            ) return
 
             stack.use {
                 mulPoseMatrix(localMatrix)
@@ -917,7 +913,6 @@ object GltfTree {
             //Всякие настройки смешивания, материалы и т.п.
             val texture = consumer(material.texture)
 
-
             if (!node.isAllHovered()) GL33.glVertexAttrib4f(
                 1,
                 material.color.x(),
@@ -927,7 +922,14 @@ object GltfTree {
             )
             else GL33.glVertexAttrib4f(1, 0f, 0.45f, 1f, 1f)
 
-            GL13.glActiveTexture(GL13.GL_TEXTURE0)
+            if (hasShaders) {
+                GL33.glActiveTexture(NORMAL_MAP_INDEX)
+                GL33.glBindTexture(GL33.GL_TEXTURE_2D, 0)
+                GL33.glActiveTexture(SPECULAR_MAP_INDEX)
+                GL33.glBindTexture(GL33.GL_TEXTURE_2D, 0)
+            }
+
+            GL13.glActiveTexture(COLOR_MAP_INDEX)
             GL33.glBindTexture(GL33.GL_TEXTURE_2D, texture)
 
             if (material.doubleSided) RenderSystem.disableCull()

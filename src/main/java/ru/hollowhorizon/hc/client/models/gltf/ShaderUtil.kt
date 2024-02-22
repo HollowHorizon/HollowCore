@@ -2,18 +2,16 @@ package ru.hollowhorizon.hc.client.models.gltf
 
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.math.Matrix4f
 import com.mojang.math.Vector4f
-import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ShaderInstance
-import org.lwjgl.opengl.*
-import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
+import org.lwjgl.opengl.GL13
+import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.mixin.ShaderInstanceAccessor
 
 
 inline fun drawWithShader(
     pShaderInstance: ShaderInstance,
-    body: () -> Unit
+    body: () -> Unit,
 ) {
     RenderSystem.setupShaderLights(pShaderInstance)
     //TODO: Не стоит использовать стандарные apply и clear, они бонусом тебе ещё кучу ненужных фич включают
@@ -55,3 +53,7 @@ inline fun drawWithShader(
 
     pShaderInstance.clear()
 }
+
+const val COLOR_MAP_INDEX = GL13.GL_TEXTURE0
+const val NORMAL_MAP_INDEX = GL13.GL_TEXTURE1
+const val SPECULAR_MAP_INDEX = GL13.GL_TEXTURE3
