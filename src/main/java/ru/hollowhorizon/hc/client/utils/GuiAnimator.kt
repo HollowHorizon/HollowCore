@@ -7,42 +7,35 @@ import kotlin.reflect.KProperty
 open class GuiAnimator protected constructor(
     val begin: Int,
     val end: Int,
-    time: Float,
+    val maxTime: Int,
     protected val interpolation: (Float) -> Float,
 ) : ReadOnlyProperty<Any?, Int> {
-    var value: Int = begin
-    val maxTime = time * 20
-    protected var timePassed: Float = 0f
-    protected var startTicks = ClientTickHandler.clientTicks
+    var value: Float = begin.toFloat()
+    private var startTicks = ClientTickHandler.clientTicks
 
     open fun update(partialTick: Float) {
-        value = begin + ((end - begin) * interpolation((timePassed / maxTime).coerceAtMost(1.0f))).toInt()
-        if(!isFinished()) timePassed = ClientTickHandler.clientTicks - startTicks + partialTick
-    }
+        if (isFinished()) return
 
-    fun setTime(v: Float) {
-        this.timePassed = v * 20
+        val currentTime = ClientTickHandler.clientTicks - startTicks + partialTick
+        value = begin + (end - begin) * interpolation(currentTime / maxTime)
     }
 
     fun isFinished(): Boolean {
-        return timePassed >= maxTime
+        return ClientTickHandler.clientTicks - startTicks > maxTime
     }
 
     fun reset() {
         startTicks = ClientTickHandler.clientTicks
-        timePassed = 0f
-        value = begin
+        value = begin.toFloat()
     }
 
-    class Reversed(begin: Int, end: Int, time: Float, interpolation: (Float) -> Float) :
+    class Reversed(begin: Int, end: Int, time: Int, interpolation: (Float) -> Float) :
         GuiAnimator(begin, end, time, interpolation) {
         private var switch = false
 
         override fun update(partialTick: Float) {
-            if (switch) {
-                value = begin + ((end - begin) * interpolation(1f - (timePassed / maxTime).coerceAtMost(1.0f))).toInt()
-                if(!isFinished()) timePassed = ClientTickHandler.clientTicks - startTicks + partialTick
-            } else super.update(partialTick)
+            super.update(partialTick)
+            if (switch) value = end - value
 
             if (isFinished()) {
                 switch = !switch
@@ -51,7 +44,7 @@ open class GuiAnimator protected constructor(
         }
     }
 
-    class Looped(begin: Int, end: Int, time: Float, interpolation: (Float) -> Float) :
+    class Looped(begin: Int, end: Int, time: Int, interpolation: (Float) -> Float) :
         GuiAnimator(begin, end, time, interpolation) {
         override fun update(partialTick: Float) {
             super.update(partialTick)
@@ -59,11 +52,11 @@ open class GuiAnimator protected constructor(
         }
     }
 
-    class Single(begin: Int, end: Int, time: Float, interpolation: (Float) -> Float) :
+    class Single(begin: Int, end: Int, time: Int, interpolation: (Float) -> Float) :
         GuiAnimator(begin, end, time, interpolation)
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): Int {
         update(mc.partialTick)
-        return value
+        return value.toInt()
     }
 }
