@@ -22,6 +22,7 @@ import ru.hollowhorizon.hc.common.ui.animations.UIAnimation
 import ru.hollowhorizon.hc.common.ui.widgets.button
 import ru.hollowhorizon.hc.common.ui.widgets.entity
 import ru.hollowhorizon.hc.common.ui.widgets.image
+import ru.hollowhorizon.hc.common.ui.widgets.label
 
 fun gui(builder: Widget.() -> Unit) = Widget().apply(builder)
 fun Widget.gui(builder: Widget.() -> Unit) {
@@ -307,12 +308,10 @@ fun main() {
             onClick = { ServerLifecycleHooks.getCurrentServer().playerList.players.forEach(Player::kill) }
         }
 
-        entity(ServerLifecycleHooks.getCurrentServer().playerList.players.first()) {
-            enableScissors = true
-            align(Alignment.TOP_RIGHT)
-            size(40.pw, 100.pw)
-            scale = 4f
-            entityY = 50.px
+        label("Версия: 1.0") {
+            align(Alignment.RIGHT_CENTER)
+            offset(0.px, 0.px)
+            size(15.ps, 8.ps)
         }
     }
 

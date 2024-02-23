@@ -26,11 +26,6 @@ class LabelWidget(
     var textOffsetX = 0
     var textOffsetY = 0
 
-    init {
-        width = text.string.length.px
-        height = 9.px
-    }
-
     @OnlyIn(Dist.CLIENT)
     override fun renderWidget(
         stack: PoseStack,

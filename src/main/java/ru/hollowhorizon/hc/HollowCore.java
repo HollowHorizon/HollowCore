@@ -53,7 +53,7 @@ public class HollowCore {
     public static final String MODID = "hc";
     public static final Logger LOGGER = LogManager.getLogger();
     @HollowConfig(value = "general/debug_mode", description = "Enables debug mode, logs, and some more info for developers.")
-    public static final boolean DEBUG_MODE = true;
+    public static final boolean DEBUG_MODE = false;
 
     public HollowCore() {
         HollowModProcessor.initMod();

@@ -23,6 +23,7 @@ import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.lwjgl.glfw.GLFW;
+import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.screens.EntityNodePickerScreen;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
@@ -53,7 +54,7 @@ public class HollowEventHandler {
 
     @SubscribeEvent
     public void onBlockClick(PlayerInteractEvent.RightClickBlock event) {
-        if (event.getLevel().getBlockState(event.getHitVec().getBlockPos()).getBlock().equals(Blocks.BEACON)) {
+        if (event.getLevel().getBlockState(event.getHitVec().getBlockPos()).getBlock().equals(Blocks.BEACON) && HollowCore.DEBUG_MODE) {
             WidgetKt.main();
             event.setCanceled(true);
         }
