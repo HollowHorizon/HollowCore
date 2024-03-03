@@ -101,10 +101,10 @@ class RegistryHolder<T>(private val config: ObjectConfig, supplier: () -> T, val
     } as DeferredRegister<T>
     val result: RegistryObject<T> = registry.register(config.name, supplier).apply {
         when {
-            target.isAssignableFrom(Block::class.java) -> {
+            Block::class.java.isAssignableFrom(target) -> {
                 if (config.autoModel) HollowPack.genBlockData.add(ResourceLocation(modId, config.name))
 
-                if (target.isAssignableFrom(IBlockProperties::class.java)) {
+                if (IBlockProperties::class.java.isAssignableFrom(target)) {
                     RegistryLoader.getRegistry(ForgeRegistries.ITEMS, modId).register(config.name) {
                         val data = this.get() as Block
                         BlockItem(data, (data as IBlockProperties).properties)
@@ -112,11 +112,11 @@ class RegistryHolder<T>(private val config: ObjectConfig, supplier: () -> T, val
                 }
             }
 
-            target.isAssignableFrom(Item::class.java) -> {
+            Item::class.java.isAssignableFrom(target) -> {
                 if (config.autoModel) HollowPack.genItemModels.add(ResourceLocation(modId, config.name))
             }
 
-            target.isAssignableFrom(EntityType::class.java) -> {
+            EntityType::class.java.isAssignableFrom(target) -> {
                 if (config.entityRenderer != null && isPhysicalClient) {
                     RenderFactoryBuilder.buildEntity(
                         { this.get() as EntityType<Entity> },
@@ -130,7 +130,7 @@ class RegistryHolder<T>(private val config: ObjectConfig, supplier: () -> T, val
                 }
             }
 
-            target.isAssignableFrom(BlockEntityType::class.java) -> {
+            BlockEntityType::class.java.isAssignableFrom(target) -> {
                 if (config.blockEntityRenderer != null) {
                     RenderFactoryBuilder.buildTileEntity(
                         { this.get() as BlockEntityType<BlockEntity> },

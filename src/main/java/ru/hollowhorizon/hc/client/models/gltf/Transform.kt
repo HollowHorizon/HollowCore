@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
+import com.mojang.math.Matrix3f
 import com.mojang.math.Matrix4f
 import com.mojang.math.Vector3f
 import kotlinx.serialization.Serializable
@@ -19,6 +20,16 @@ data class Transform(
             matrix.multiply(Vector3f.YP.rotationDegrees(rY))
             matrix.multiply(Vector3f.ZP.rotationDegrees(rZ))
             matrix.multiply(Matrix4f.createScaleMatrix(sX, sY, sZ))
+            return matrix
+        }
+    val normalMatrix: Matrix3f
+        get() {
+            val matrix = Matrix3f()
+            matrix.setIdentity()
+            matrix.mul(Vector3f.XP.rotationDegrees(rX))
+            matrix.mul(Vector3f.YP.rotationDegrees(rY))
+            matrix.mul(Vector3f.ZP.rotationDegrees(rZ))
+            matrix.mul(Matrix3f.createScaleMatrix(sX, sY, sZ))
             return matrix
         }
 

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "minecraft:block/stone"
+    },
+    "facing=north": {
+      "model": "minecraft:block/stone"
+    },
+    "facing=south": {
+      "model": "minecraft:block/stone"
+    },
+    "facing=west": {
+      "model": "minecraft:block/stone"
+    }
+  }
+}

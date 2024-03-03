@@ -4,21 +4,19 @@ import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Vector4f
+import net.coderbot.iris.Iris
+import net.coderbot.iris.pipeline.newshader.NewWorldRenderingPipeline
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.ItemInHandRenderer
-import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.Pose
 import net.minecraft.world.item.ItemStack
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.areShadersEnabled
+import ru.hollowhorizon.hc.client.utils.hasShaders
 import ru.hollowhorizon.hc.common.registry.ModShaders
 
 
@@ -79,9 +77,10 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         GlStateManager._bindTexture(RenderSystem.getShaderTexture(1))
         Minecraft.getInstance().gameRenderer.overlayTexture().teardownOverlayColor()
         GlStateManager._activeTexture(GL33.GL_TEXTURE0)
+
         val texture = GlStateManager._getTextureId(GlStateManager._getActiveTexture())
 
-        drawWithShader(if (!areShadersEnabled) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!) {
+        drawWithShader(if(areShadersEnabled) ENTITY_SHADER else ModShaders.GLTF_ENTITY) {
             modelTree.scenes.forEach { it.render(stack, visuals, modelData, consumer, light) }
         }
 

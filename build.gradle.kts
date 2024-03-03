@@ -114,7 +114,7 @@ dependencies {
     implementation(fg.deobf("curse.maven:ftb-library-forge-404465:4661834"))
     implementation(fg.deobf("curse.maven:architectury-api-419699:4555749"))
     compileOnly(fg.deobf("curse.maven:firstperson:2.3.2"))
-    
+
     shadow("com.esotericsoftware:kryo:5.4.0")
 }
 

@@ -46,9 +46,13 @@ val hasShaders get() = ModList.get().isLoaded("oculus") || ModList.get().isLoade
 
 val areShadersEnabled get() = hasShaders && IrisApi.getInstance().config.areShadersEnabled()
 
+fun fromJava(clazz: Class<*>) = clazz.kotlin
+
 operator fun <T : CapabilityInstance> ICapabilityProvider.get(capability: KClass<T>): T =
     getCapability(CapabilityStorage.getCapability(capability.java))
         .orElseThrow { IllegalStateException("Capability ${capability.simpleName} not found!") } as T
+
+operator fun <T : CapabilityInstance> ICapabilityProvider.get(capability: Class<T>) = get(capability.kotlin)
 
 fun <T : CapabilityInstance> TeamBase.capability(capability: KClass<T>) = (this as ICapabilityProvider)[capability]
 
@@ -147,7 +151,8 @@ fun Font.drawScaled(
     scale: Float = 1.0f,
     shadow: Boolean = false,
 ) {
-    val drawMethod: (PoseStack, FormattedCharSequence, Float, Float, Int) -> Unit = if (shadow) this::draw else this::drawShadow
+    val drawMethod: (PoseStack, FormattedCharSequence, Float, Float, Int) -> Unit =
+        if (shadow) this::draw else this::drawShadow
 
     stack.pushPose()
     stack.translate((x).toDouble(), (y).toDouble(), 0.0)

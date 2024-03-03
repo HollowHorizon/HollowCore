@@ -15,6 +15,22 @@ class QuatStep(keys: FloatArray, values: Array<Quaternion>) : Interpolator<Quate
     override fun compute(time: Float): Quaternion = values[time.animIndex]
 }
 
+class LinearSingle(keys: FloatArray, values: Array<Float>): Interpolator<Float>(keys, values) {
+    override fun compute(time: Float): Float {
+        if (time <= keys.first() || keys.size == 1) return values.first()
+        else if (time >= keys.last()) return values.last()
+        else {
+            val previousIndex = time.animIndex
+            val nextIndex = previousIndex + 1
+            val local = time - keys[previousIndex]
+            val delta = keys[nextIndex] - keys[previousIndex]
+            val alpha = local / delta
+            return values[previousIndex] + (values[nextIndex] - values[previousIndex]) * alpha
+        }
+    }
+
+}
+
 class Linear(keys: FloatArray, values: Array<Vector3f>) : Interpolator<Vector3f>(keys, values) {
     override fun compute(time: Float): Vector3f {
         if (time <= keys.first() || keys.size == 1) return values.first()
