@@ -6,7 +6,6 @@ import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.*
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.EquipmentSlot
@@ -600,6 +599,7 @@ object GltfTree {
 
             stack.use {
                 mulPoseMatrix(localMatrix)
+                last().normal().mul(normalMatrix)
 
                 mesh?.render(this@Node, stack, changedTexture)
                 children.forEach { it.render(stack, nodeRenderer, data, changedTexture, light) }
@@ -614,6 +614,7 @@ object GltfTree {
         ) {
             stack.use {
                 mulPoseMatrix(localMatrix)
+                last().normal().mul(normalMatrix)
 
                 data.entity?.let {
                     nodeRenderer(it, stack, this@Node, light)
@@ -663,6 +664,7 @@ object GltfTree {
             }
 
         val localMatrix get() = transform.getMatrix()
+        val normalMatrix get() = transform.getNormalMatrix()
     }
 
     class Skin(
@@ -726,6 +728,7 @@ object GltfTree {
 
         private var vertexBuffer = -1
         private var normalBuffer = -1
+        private var tangentBuffer = -1
         private var texCoordsBuffer = -1
         private var midCoordsBuffer = -1
         private var indexBuffer = -1
@@ -778,6 +781,16 @@ object GltfTree {
                     GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
 
                 }
+                attributes[GltfAttribute.TANGENT]?.get<Vector4f>()?.run {
+                    val tangents = BufferUtils.createFloatBuffer(this.size * 4)
+                    for (t in this) tangents.put(t.x()).put(t.y()).put(t.z()).put(t.w())
+                    tangents.flip()
+
+                    tangentBuffer = GL33.glGenBuffers()
+                    GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, tangentBuffer)
+                    GL33.glBufferData(GL33.GL_ARRAY_BUFFER, tangents, GL33.GL_STATIC_DRAW)
+                    GL33.glVertexAttribPointer(8, 4, GL33.GL_FLOAT, false, 0, 0)
+                }
             } else {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
                 GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0)
@@ -807,10 +820,12 @@ object GltfTree {
                     midCoordsBuffer = GL33.glGenBuffers()
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, midCoordsBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
-                    GL33.glVertexAttribPointer(12, 2, GL33.GL_FLOAT, false, 0, 0)
+                    GL33.glVertexAttribPointer(7, 2, GL33.GL_FLOAT, false, 0, 0)
 
                 }
             }
+
+            GL20.glVertexAttribPointer(1, 4, GL33.GL_FLOAT, false, 0, 0)
 
             indices?.get<Int>()?.run {
                 val buffer = BufferUtils.createIntBuffer(this.size)
@@ -908,8 +923,7 @@ object GltfTree {
             consumer: (ResourceLocation) -> Int,
         ) {
             val hasShaders = areShadersEnabled
-            val shader =
-                if (!hasShaders) ModShaders.GLTF_ENTITY else GameRenderer.getRendertypeEntityTranslucentShader()!!
+            val shader = if (hasShaders) ENTITY_SHADER else ModShaders.GLTF_ENTITY
             //Всякие настройки смешивания, материалы и т.п.
             val texture = consumer(material.texture)
 
@@ -922,11 +936,21 @@ object GltfTree {
             )
             else GL33.glVertexAttrib4f(1, 0f, 0.45f, 1f, 1f)
 
+            var normal = 0
+            var specular = 0
+
             if (hasShaders) {
-                GL33.glActiveTexture(NORMAL_MAP_INDEX)
-                GL33.glBindTexture(GL33.GL_TEXTURE_2D, 0)
-                GL33.glActiveTexture(SPECULAR_MAP_INDEX)
-                GL33.glBindTexture(GL33.GL_TEXTURE_2D, 0)
+                //т.к. Iris использует отличные от Optifine id текстур стоит взять их из самого шейдера
+                GL33.glGetUniformLocation(shader.id, "normals").takeIf { it != -1 }?.let {
+                    GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
+                    normal = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
+                    GL33.glBindTexture(GL33.GL_TEXTURE_2D, material.normalTexture.toTexture().id)
+                }
+                GL33.glGetUniformLocation(shader.id, "specular").takeIf { it != -1 }?.let {
+                    GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
+                    specular = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
+                    GL33.glBindTexture(GL33.GL_TEXTURE_2D, material.specularTexture.toTexture().id)
+                }
             }
 
             GL13.glActiveTexture(COLOR_MAP_INDEX)
@@ -940,11 +964,14 @@ object GltfTree {
             GL33.glEnableVertexAttribArray(0) // Вершины
             GL33.glEnableVertexAttribArray(2) // Текстурные координаты
             GL33.glEnableVertexAttribArray(5) // Нормали
-            if (hasMidTexCoords) GL20.glEnableVertexAttribArray(8) //координаты для глубины (pbr)
+            if (tangentBuffer != -1) GL33.glEnableVertexAttribArray(8) //Тангенты
+            if (hasMidTexCoords) GL20.glEnableVertexAttribArray(7) //координаты для глубины (pbr)
+
+            val modelView = RenderSystem.getModelViewMatrix().copy()
+                .apply { multiply(stack.last().pose()) }
 
             //Матрица
-            shader.MODEL_VIEW_MATRIX?.set(RenderSystem.getModelViewMatrix().copy()
-                .apply { multiply(stack.last().pose()) })
+            shader.MODEL_VIEW_MATRIX?.set(modelView)
             shader.MODEL_VIEW_MATRIX?.upload()
 
             //Нормали
@@ -956,11 +983,30 @@ object GltfTree {
             //Отрисовка
             GL33.glDrawElements(GL33.GL_TRIANGLES, indexCount, GL33.GL_UNSIGNED_INT, 0L)
 
+            if (material.doubleSided) RenderSystem.enableCull()
+
+            if (hasShaders) {
+                //т.к. Iris использует отличные от Optifine id текстур стоит взять их из самого шейдера
+                GL33.glGetUniformLocation(shader.id, "normals").takeIf { it != -1 }?.let {
+                    GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
+                    GL33.glBindTexture(GL33.GL_TEXTURE_2D, normal)
+                }
+                GL33.glGetUniformLocation(shader.id, "specular").takeIf { it != -1 }?.let {
+                    GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
+                    GL33.glBindTexture(GL33.GL_TEXTURE_2D, specular)
+                }
+            }
+
+            GL13.glActiveTexture(COLOR_MAP_INDEX)
+            GL33.glBindTexture(GL33.GL_TEXTURE_2D, 0)
+            GL33.glCullFace(GL33.GL_BACK)
+
             //Отключение параметров выше
             GL33.glDisableVertexAttribArray(0)
             GL33.glDisableVertexAttribArray(2)
             GL33.glDisableVertexAttribArray(5)
-            if (hasMidTexCoords) GL20.glDisableVertexAttribArray(8)
+            if (tangentBuffer != -1) GL33.glDisableVertexAttribArray(8)
+            if (hasMidTexCoords) GL20.glDisableVertexAttribArray(7)
         }
 
         fun transformSkinning(node: Node, stack: PoseStack) {
@@ -1045,8 +1091,6 @@ object GltfTree {
 
             GL13.glActiveTexture(GL13.GL_TEXTURE0)
 
-            GL33.glEnable(GL33.GL_BLEND)
-            GL33.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
             if (material.doubleSided) GL11.glEnable(GL11.GL_CULL_FACE)
 
             //Подключение VAO и IBO
@@ -1145,7 +1189,7 @@ object GltfTree {
 val NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE = IdentityHashMap<GltfTree.Node, Matrix4f>()
 
 fun main() {
-    val tree = GltfTree.parse("hc:models/entity/hilda_regular.glb".rl)
+    val tree = GltfTree.parse("hc:models/entity/boom_box.gltf".rl)
 
     println(tree)
 }

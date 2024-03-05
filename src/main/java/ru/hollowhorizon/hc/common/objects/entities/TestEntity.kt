@@ -10,6 +10,7 @@ import net.minecraft.world.entity.ai.goal.RandomStrollGoal
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.pathfinder.BlockPathTypes
 import ru.hollowhorizon.hc.client.models.gltf.Transform
 import ru.hollowhorizon.hc.client.models.gltf.animations.PlayMode
 import ru.hollowhorizon.hc.client.models.gltf.manager.*
@@ -20,11 +21,12 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
 
     init {
         this[AnimatedEntityCapability::class].apply {
-            model = "hc:models/entity/player_model.gltf"
+            model = "hc:models/entity/afelisa.gltf"
             transform = Transform.create {
-                translate(0f, 0.5f, 0f)
+                //translate(0f, 0.5f, 0f)
             }
         }
+        setPathfindingMalus(BlockPathTypes.WATER, -1.0f)
         this.setItemInHand(InteractionHand.MAIN_HAND, ItemStack(Items.NETHERITE_HOE))
         this.setItemInHand(InteractionHand.OFF_HAND, ItemStack(Items.TNT))
 

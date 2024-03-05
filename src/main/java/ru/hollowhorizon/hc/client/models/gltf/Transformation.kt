@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
+import com.mojang.math.Matrix3f
 import com.mojang.math.Matrix4f
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
@@ -209,6 +210,18 @@ data class Transformation(
         m.multiply(r)
         m.multiply(s)
         m.multiply(matrix)
+
+        return m
+    }
+
+    fun getNormalMatrix(): Matrix3f {
+        val m = Matrix3f()
+        m.setIdentity()
+
+        val s = Matrix3f.createScaleMatrix(scaleX, scaleY, scaleZ)
+
+        m.mul(rotation)
+        m.mul(s)
 
         return m
     }

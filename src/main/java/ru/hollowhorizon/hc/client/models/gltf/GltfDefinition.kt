@@ -207,7 +207,7 @@ data class GltfPrimitive(
     val indices: Int? = null,
     val material: Int? = null,
     val mode: Int = 4,
-    val targets: Map<String, Int> = emptyMap(),
+    val targets: List<Map<String, Int>> = emptyList(),
     val extensions: String? = null,
     val extras: Any? = null,
 )

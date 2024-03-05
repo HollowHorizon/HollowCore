@@ -33,6 +33,7 @@ import ru.hollowhorizon.hc.api.utils.HollowConfig;
 import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
 import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager;
+import ru.hollowhorizon.hc.client.render.block.GLTFBlockEntityRenderer;
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer;
 import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
@@ -53,7 +54,7 @@ public class HollowCore {
     public static final String MODID = "hc";
     public static final Logger LOGGER = LogManager.getLogger();
     @HollowConfig(value = "general/debug_mode", description = "Enables debug mode, logs, and some more info for developers.")
-    public static final boolean DEBUG_MODE = false;
+    public static final boolean DEBUG_MODE = true;
 
     public HollowCore() {
         HollowModProcessor.initMod();
@@ -136,7 +137,10 @@ public class HollowCore {
     @OnlyIn(Dist.CLIENT)
     private void onRendererCreating(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.INSTANCE.getTEST_ENTITY().get(), GLTFEntityRenderer::new);
+
+        event.registerBlockEntityRenderer(ModTileEntities.INSTANCE.getSAVE_OBELISK_TILE().get(), GLTFBlockEntityRenderer::new);
     }
+
 
     private void configSave(ServerStoppedEvent event) {
         //HollowCoreConfig.save();

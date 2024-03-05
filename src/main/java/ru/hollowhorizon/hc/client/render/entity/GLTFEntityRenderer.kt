@@ -134,6 +134,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         stack: PoseStack,
     ) {
         stack.mulPoseMatrix(capability.transform.matrix)
+        stack.last().normal().mul(capability.transform.normalMatrix)
         stack.mulPose(Vector3f.YP.rotationDegrees(180f))
         updateAnimations(entity, capability, manager)
     }
