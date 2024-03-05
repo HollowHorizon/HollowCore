@@ -2,7 +2,6 @@
 HollowCore is a minecraft modding library by [HollowHorizon](https://github.com/HollowHorizon). It is designed to be a lightweight, easy to use, and powerful library for more easily creating minecraft mods. It is designed to be used with Forge.
 
 ## Features
-- [x] KotlinScript-based (.kts) scripting engine with support for remapping when running on a production run. (Using official mappings)
 - [x] Easier registration of blocks, items, and tile entities using annotations. (also automatic model generation and renderers registration is required)
 - [x] NBT serialization and deserialization of objects using Kotlinx.Serialization.
 - [x] A simple and easy to creating gui's using special layout. (also easy to posing objects, and some widgets, for example lists, buttons, and navigation fields)
