@@ -789,7 +789,7 @@ object GltfTree {
                     tangentBuffer = GL33.glGenBuffers()
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, tangentBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, tangents, GL33.GL_STATIC_DRAW)
-                    GL33.glVertexAttribPointer(7, 4, GL33.GL_FLOAT, false, 0, 0)
+                    GL33.glVertexAttribPointer(8, 4, GL33.GL_FLOAT, false, 0, 0)
                 }
             } else {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
@@ -820,10 +820,12 @@ object GltfTree {
                     midCoordsBuffer = GL33.glGenBuffers()
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, midCoordsBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
-                    GL33.glVertexAttribPointer(8, 2, GL33.GL_FLOAT, false, 0, 0)
+                    GL33.glVertexAttribPointer(7, 2, GL33.GL_FLOAT, false, 0, 0)
 
                 }
             }
+
+            GL20.glVertexAttribPointer(1, 4, GL33.GL_FLOAT, false, 0, 0)
 
             indices?.get<Int>()?.run {
                 val buffer = BufferUtils.createIntBuffer(this.size)
@@ -962,8 +964,8 @@ object GltfTree {
             GL33.glEnableVertexAttribArray(0) // Вершины
             GL33.glEnableVertexAttribArray(2) // Текстурные координаты
             GL33.glEnableVertexAttribArray(5) // Нормали
-            if (tangentBuffer != -1) GL33.glEnableVertexAttribArray(7) //Тангенты
-            if (hasMidTexCoords) GL20.glEnableVertexAttribArray(8) //координаты для глубины (pbr)
+            if (tangentBuffer != -1) GL33.glEnableVertexAttribArray(8) //Тангенты
+            if (hasMidTexCoords) GL20.glEnableVertexAttribArray(7) //координаты для глубины (pbr)
 
             val modelView = RenderSystem.getModelViewMatrix().copy()
                 .apply { multiply(stack.last().pose()) }
@@ -1003,8 +1005,8 @@ object GltfTree {
             GL33.glDisableVertexAttribArray(0)
             GL33.glDisableVertexAttribArray(2)
             GL33.glDisableVertexAttribArray(5)
-            if (tangentBuffer != -1) GL33.glDisableVertexAttribArray(7)
-            if (hasMidTexCoords) GL20.glDisableVertexAttribArray(8)
+            if (tangentBuffer != -1) GL33.glDisableVertexAttribArray(8)
+            if (hasMidTexCoords) GL20.glDisableVertexAttribArray(7)
         }
 
         fun transformSkinning(node: Node, stack: PoseStack) {
