@@ -1,0 +1,19 @@
+{
+    "targets": [
+        "swap"
+    ],
+    "passes": [
+        {
+            "name": "hc:shake",
+            "intarget": "minecraft:main",
+            "outtarget": "swap",
+            "uniforms": []
+        },
+        {
+            "name": "hc:shake",
+            "intarget": "swap",
+            "outtarget": "minecraft:main",
+            "uniforms": []
+        }
+    ]
+}

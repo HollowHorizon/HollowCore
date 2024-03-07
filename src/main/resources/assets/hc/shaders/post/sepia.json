@@ -1,0 +1,19 @@
+{
+    "targets": [
+        "swap"
+    ],
+    "passes": [
+        {
+            "name": "hc:sepia",
+            "intarget": "minecraft:main",
+            "outtarget": "swap",
+            "uniforms": []
+        },
+        {
+            "name": "hc:sepia",
+            "intarget": "swap",
+            "outtarget": "minecraft:main",
+            "uniforms": []
+        }
+    ]
+}

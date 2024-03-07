@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.common.network
 
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.player.Player
 import net.minecraftforge.network.NetworkDirection
 import net.minecraftforge.network.NetworkEvent
@@ -23,6 +24,12 @@ interface HollowPacketV3<T> {
 
     fun send() {
         NetworkHandler.sendMessageToServer(this)
+    }
+
+    fun send(vararg players: ServerPlayer) {
+        players.forEach {
+            NetworkHandler.HollowCoreChannel.send(PacketDistributor.PLAYER.with { it }, this)
+        }
     }
 }
 
