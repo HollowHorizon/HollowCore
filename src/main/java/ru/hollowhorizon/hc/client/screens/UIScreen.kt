@@ -16,6 +16,11 @@ import ru.hollowhorizon.hc.common.ui.Widget
 
 
 class UIScreen(val gui: Widget) : HollowScreen("".toSTC()), IAutoScaled {
+
+    init {
+        Minecraft.getInstance().options.hideGui = true
+    }
+
     override fun render(pPoseStack: PoseStack, pMouseX: Int, pMouseY: Int, pPartialTick: Float) {
         gui.render(pPoseStack, 0, 0, width, height, width, height, pMouseX, pMouseY, pPartialTick)
     }
@@ -27,6 +32,7 @@ class UIScreen(val gui: Widget) : HollowScreen("".toSTC()), IAutoScaled {
     override fun onClose() {
         super.onClose()
         CURRENT_CLIENT_GUI = null
+        Minecraft.getInstance().options.hideGui = false
         ClosedGuiPacket().send()
     }
 
