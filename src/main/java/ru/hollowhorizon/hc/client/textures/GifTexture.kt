@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.resources.ResourceManager
 import org.apache.commons.io.IOUtils
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.handlers.ClientTickHandler
+import ru.hollowhorizon.hc.client.handlers.TickHandler
 import java.io.*
 import java.util.*
 import javax.imageio.ImageIO
@@ -33,7 +33,7 @@ class GifTexture(location: ResourceLocation) : SimpleTexture(location) {
 
     override fun getId(): Int {
         val id = super.getId()
-        val time = (ClientTickHandler.clientTicks + Minecraft.getInstance().partialTick) % fullTime
+        val time = (TickHandler.clientTicks + Minecraft.getInstance().partialTick) % fullTime
 
         val frame = frames[keys[time.animIndex]]
 

@@ -4,12 +4,11 @@
   "refmap": "hollowcore.refmap.json",
   "target": "@env(DEFAULT)",
   "minVersion": "0.8",
+  "plugin": "ru.hollowhorizon.hc.mixin.HollowMixinPlugin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "CapabilityManagerMixin",
     "CapabilityProviderMixin",
-    "EventBusMixin",
-    "FMLModContainerMixin",
     "ForgeRegistryMixin",
     "ListTagAccessor",
     "PrimaryLevelDataMixin",

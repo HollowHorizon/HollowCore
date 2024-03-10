@@ -15,7 +15,7 @@ import net.minecraftforge.network.simple.SimpleChannel
 import ru.hollowhorizon.hc.common.network.packets.SpawnParticlesPacket
 
 object NetworkHandler {
-    val HOLLOW_CORE_CHANNEL: ResourceLocation = ResourceLocation("hc", "hollow_core_channel")
+    private val HOLLOW_CORE_CHANNEL: ResourceLocation = ResourceLocation("hc", "hollow_core_channel")
     val PACKETS: MutableMap<String, MutableList<Runnable>> = HashMap()
     lateinit var HollowCoreChannel: SimpleChannel
     var PACKET_INDEX: Int = 0
@@ -39,6 +39,7 @@ object NetworkHandler {
     }
 
     @JvmStatic
+    @Suppress("inaccessible_type")
     fun register() {
         val index = PACKETS.values.sumOf { it.size } + 1
 

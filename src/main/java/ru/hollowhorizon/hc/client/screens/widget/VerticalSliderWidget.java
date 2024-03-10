@@ -1,14 +1,13 @@
 package ru.hollowhorizon.hc.client.screens.widget;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
-import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.toSTC;
+import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.getMcText;
 
 public class VerticalSliderWidget extends HollowWidget implements IOriginBlackList {
     private final ResourceLocation texture;
@@ -19,7 +18,7 @@ public class VerticalSliderWidget extends HollowWidget implements IOriginBlackLi
     };
 
     public VerticalSliderWidget(int x, int y, int w, int h, ResourceLocation texture) {
-        super(x, y, w, h, toSTC(""));
+        super(x, y, w, h, getMcText(""));
         this.texture = texture;
 
         if (w > h)

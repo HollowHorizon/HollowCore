@@ -4,7 +4,6 @@ import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.PathfinderMob
-import net.minecraft.world.entity.Pose
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal
 import net.minecraft.world.item.ItemStack
@@ -12,8 +11,8 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.pathfinder.BlockPathTypes
 import ru.hollowhorizon.hc.client.models.gltf.Transform
-import ru.hollowhorizon.hc.client.models.gltf.animations.PlayMode
-import ru.hollowhorizon.hc.client.models.gltf.manager.*
+import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
 import ru.hollowhorizon.hc.client.utils.get
 
 
@@ -22,9 +21,7 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
     init {
         this[AnimatedEntityCapability::class].apply {
             model = "hc:models/entity/afelisa.gltf"
-            transform = Transform.create {
-                //translate(0f, 0.5f, 0f)
-            }
+            transform = Transform.create {}
         }
         setPathfindingMalus(BlockPathTypes.WATER, -1.0f)
         this.setItemInHand(InteractionHand.MAIN_HAND, ItemStack(Items.NETHERITE_HOE))

@@ -4,7 +4,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.serialization.Serializable
 import net.minecraft.nbt.Tag
 import net.minecraft.world.entity.player.Player
-import ru.hollowhorizon.hc.client.handlers.ClientTickHandler
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.Transform
 import ru.hollowhorizon.hc.client.models.gltf.Transformation

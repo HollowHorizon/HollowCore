@@ -17,30 +17,30 @@ import kotlin.reflect.javaType
 @OptIn(ExperimentalStdlibApi::class)
 open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : ReadWriteProperty<T, V> {
     var defaultName = ""
-    var defaultType: Class<out V>? = null
-    override fun getValue(thisRef: T, variable: KProperty<*>): V {
+    private var defaultType: Class<out V>? = null
+    override fun getValue(thisRef: T, property: KProperty<*>): V {
         if (defaultName.isEmpty()) {
-            defaultName = variable.name
-            defaultType = if(value == null) variable.returnType.javaType as Class<out V> else value!!.javaClass
-            if(variable.name !in thisRef.notUsedTags) return value
+            defaultName = property.name
+            defaultType = if(value == null) property.returnType.javaType as Class<out V> else value!!.javaClass
+            if(property.name !in thisRef.notUsedTags) return value
 
-            val tag = thisRef.notUsedTags.get(variable.name) ?: return value
+            val tag = thisRef.notUsedTags.get(property.name) ?: return value
             if (tag is EndTag) return value
             if (value is INBTSerializable<*>) {
                 (value as INBTSerializable<Tag>).deserializeNBT(tag)
                 return value
             }
 
-            value = NBTFormat.deserializeNoInline(tag, variable.returnType.javaType as Class<out V>) as V
+            value = NBTFormat.deserializeNoInline(tag, property.returnType.javaType as Class<out V>) as V
         }
 
         return value
     }
 
-    override fun setValue(thisRef: T, variable: KProperty<*>, value: V) {
-        if (defaultName.isEmpty()) defaultName = variable.name
+    override fun setValue(thisRef: T, property: KProperty<*>, value: V) {
+        if (defaultName.isEmpty()) defaultName = property.name
         this.value = value
-        if (defaultType == null) defaultType = if(this.value == null) variable.returnType.javaType as Class<out V> else this.value!!.javaClass
+        if (defaultType == null) defaultType = if(this.value == null) property.returnType.javaType as Class<out V> else this.value!!.javaClass
         thisRef.sync()
     }
 

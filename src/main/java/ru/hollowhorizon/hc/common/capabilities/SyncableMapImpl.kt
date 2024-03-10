@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage", "UNCHECKED_CAST")
+
 package ru.hollowhorizon.hc.common.capabilities
 
 import com.google.common.reflect.TypeToken

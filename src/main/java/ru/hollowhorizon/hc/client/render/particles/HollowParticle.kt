@@ -87,7 +87,7 @@ class HollowParticle(
             if (spritePicker == SpritePicker.WITH_AGE) {
                 setSpriteFromAge(spriteSet)
             }
-            pickColor(colorData.colorCurveEasing.function(colorData.getProgress(age, lifetime)))
+            pickColor(colorData.colorCurveEasing(colorData.getProgress(age, lifetime)))
 
             quadSize = scaleData.getValue(age, lifetime)
             alpha = transparencyData.getValue(age, lifetime)

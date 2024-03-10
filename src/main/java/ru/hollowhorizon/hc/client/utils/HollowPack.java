@@ -8,27 +8,25 @@ import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.nio.file.Files;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
 public class HollowPack implements PackResources {
     @NotNull
-    public static final Map<String, JsonObject> genSounds = new HashMap<>();
+    protected static final Map<String, JsonObject> genSounds = new HashMap<>();
     public static List<ResourceLocation> genItemModels = new ArrayList<>();
     public static List<ResourceLocation> genBlockData = new ArrayList<>();
-    public static List<ResourceLocation> genParticles = new ArrayList<>();
+    protected static List<ResourceLocation> genParticles = new ArrayList<>();
     static HollowPack packInstance;
     public final Map<ResourceLocation, IResourceStreamSupplier> resourceMap = new HashMap<>();
 
     private static IResourceStreamSupplier ofText(String text) {
         return IResourceStreamSupplier.create(() -> true, () -> new ByteArrayInputStream(text.getBytes()));
-    }
-
-    private static IResourceStreamSupplier ofFile(File file) {
-        return IResourceStreamSupplier.create(file::isFile, () -> Files.newInputStream(file.toPath()));
     }
 
     public static HollowPack getPackInstance() {
@@ -37,9 +35,14 @@ public class HollowPack implements PackResources {
         return packInstance;
     }
 
+    public void generatePostShader(ResourceLocation location) {
+        resourceMap.put(new ResourceLocation(location.getNamespace(), "shaders/post/" + location.getPath() + ".json"), ofText("{\"targets\": [\"swap\"],\"passes\": [{\"name\": \"" + location + "\",\"intarget\": \"minecraft:main\",\"outtarget\": \"swap\",\"uniforms\": []},{\"name\": \"" + location + "\",\"intarget\": \"swap\",\"outtarget\": \"minecraft:main\",\"uniforms\": []}]}"));
+        resourceMap.put(new ResourceLocation(location.getNamespace(), "shaders/program/" + location.getPath() + ".json"), ofText("{\"blend\":{\"func\":\"add\",\"srcrgb\":\"one\",\"dstrgb\":\"zero\"},\"vertex\":\"sobel\",\"fragment\":\"" + location + "\",\"attributes\":[\"Position\"],\"samplers\":[{\"name\":\"DiffuseSampler\"}],\"uniforms\":[{\"name\":\"ProjMat\",\"type\":\"matrix4x4\",\"count\":16,\"values\":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]},{\"name\":\"InSize\",\"type\":\"float\",\"count\":2,\"values\":[1.0,1.0]},{\"name\":\"OutSize\",\"type\":\"float\",\"count\":2,\"values\":[1.0,1.0]},{\"name\":\"Time\",\"type\":\"float\",\"count\":1,\"values\":[0.0]}]}"));
+    }
+
     private void addItemModel(ResourceLocation location) {
-        ResourceLocation models_item = new ResourceLocation(location.getNamespace(), "models/item/" + location.getPath() + ".json");
-        resourceMap.put(models_item, ofText("{\"parent\":\"item/handheld\",\"textures\":{\"layer0\":\"" + location.getNamespace() + ":items/" + location.getPath() + "\"}}"));
+        ResourceLocation modelLocation = new ResourceLocation(location.getNamespace(), "models/item/" + location.getPath() + ".json");
+        resourceMap.put(modelLocation, ofText("{\"parent\":\"item/handheld\",\"textures\":{\"layer0\":\"" + location.getNamespace() + ":items/" + location.getPath() + "\"}}"));
     }
 
     private void addParticleModel(ResourceLocation location) {
@@ -59,18 +62,10 @@ public class HollowPack implements PackResources {
     }
 
     public void init() {
-        for (ResourceLocation location : genItemModels) {
-            addItemModel(location);
-        }
-        for (ResourceLocation location : genParticles) {
-            addParticleModel(location);
-        }
-        for (ResourceLocation location : genBlockData) {
-            addBlockModel(location);
-        }
-        for (Map.Entry<String, JsonObject> sound : genSounds.entrySet()) {
-            addSoundJson(sound.getKey(), sound.getValue());
-        }
+        for (ResourceLocation location : genItemModels) addItemModel(location);
+        for (ResourceLocation location : genParticles) addParticleModel(location);
+        for (ResourceLocation location : genBlockData) addBlockModel(location);
+        for (Map.Entry<String, JsonObject> sound : genSounds.entrySet()) addSoundJson(sound.getKey(), sound.getValue());
 
         genItemModels.clear();
         genParticles.clear();
@@ -79,34 +74,28 @@ public class HollowPack implements PackResources {
     }
 
     @Override
-    public InputStream getRootResource(String filename) throws IOException {
-        throw new FileNotFoundException(filename);
+    public InputStream getRootResource(@NotNull String fileName) throws IOException {
+        throw new FileNotFoundException(fileName);
     }
 
     @Override
-    public InputStream getResource(PackType pType, ResourceLocation pLocation) throws IOException {
-        try {
-            return resourceMap.get(pLocation).create();
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof IOException)
-                throw (IOException) e.getCause();
-            throw e;
-        }
+    public @NotNull InputStream getResource(@NotNull PackType type, @NotNull ResourceLocation pLocation) throws IOException {
+        return resourceMap.get(pLocation).create();
     }
 
     @Override
-    public Collection<ResourceLocation> getResources(PackType pType, String pNamespace, String pPath, Predicate<ResourceLocation> pFilter) {
+    public @NotNull Collection<ResourceLocation> getResources(@NotNull PackType pType, @NotNull String pNamespace, @NotNull String pPath, @NotNull Predicate<ResourceLocation> pFilter) {
         return Collections.emptyList();
     }
 
     @Override
-    public boolean hasResource(PackType pType, ResourceLocation pLocation) {
+    public boolean hasResource(@NotNull PackType pType, @NotNull ResourceLocation pLocation) {
         IResourceStreamSupplier s;
         return (s = resourceMap.get(pLocation)) != null && s.exists();
     }
 
     @Override
-    public Set<String> getNamespaces(PackType pType) {
+    public @NotNull Set<String> getNamespaces(@NotNull PackType pType) {
         Set<String> hSet = new HashSet<>();
         for (ResourceLocation data : resourceMap.keySet()) hSet.add(data.getNamespace());
         return hSet;
@@ -114,7 +103,7 @@ public class HollowPack implements PackResources {
 
     @Nullable
     @Override
-    public <T> T getMetadataSection(MetadataSectionSerializer<T> pDeserializer) throws IOException {
+    public <T> T getMetadataSection(MetadataSectionSerializer<T> pDeserializer) {
         if (pDeserializer.getMetadataSectionName().equals("pack")) {
             JsonObject obj = new JsonObject();
             obj.addProperty("pack_format", 6);
@@ -125,13 +114,13 @@ public class HollowPack implements PackResources {
     }
 
     @Override
-    public String getName() {
+    public @NotNull String getName() {
         return "Hollow Core Generated Resources";
     }
 
     @Override
     public void close() {
-
+        // Nothing to close
     }
 
     public interface IResourceStreamSupplier {

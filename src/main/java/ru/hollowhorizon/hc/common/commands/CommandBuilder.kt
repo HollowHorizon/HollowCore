@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package ru.hollowhorizon.hc.common.commands
 
 import com.mojang.brigadier.CommandDispatcher
@@ -18,7 +20,7 @@ class CommandBuilder(private val dispatcher: CommandDispatcher<CommandSourceStac
     }
 }
 
-class CommandEditor(val srcCommand: LiteralArgumentBuilder<CommandSourceStack>) {
+class CommandEditor(private val srcCommand: LiteralArgumentBuilder<CommandSourceStack>) {
     operator fun String.invoke(
         vararg args: RequiredArgumentBuilder<CommandSourceStack, *>,
         operation: CommandContext<CommandSourceStack>.() -> Unit,
@@ -45,18 +47,23 @@ fun <S, T : ArgumentBuilder<S, T>> ArgumentBuilder<S, T>.then(
     )
 }
 
-fun arg(name: String, type: ArgumentType<*>) = Commands.argument(name, type)
+fun <T> arg(name: String, type: ArgumentType<T>): RequiredArgumentBuilder<CommandSourceStack, T> =
+    Commands.argument(name, type)
 
 @JvmName("argString")
-fun arg(name: String, type: ArgumentType<*>, suggests: Collection<String>) =
-    Commands.argument(name, type).suggests { ctx, builder ->
+fun <T> arg(
+    name: String,
+    type: ArgumentType<T>,
+    suggests: Collection<String>,
+): RequiredArgumentBuilder<CommandSourceStack, T> =
+    Commands.argument(name, type).suggests { _, builder ->
         suggests.forEach(builder::suggest)
         builder.buildFuture()
     }
 
 @JvmName("argInt")
-fun arg(name: String, type: ArgumentType<*>, suggests: Collection<Int>) =
-    Commands.argument(name, type).suggests { ctx, builder ->
+fun <T> arg(name: String, type: ArgumentType<T>, suggests: Collection<Int>): RequiredArgumentBuilder<CommandSourceStack, T> =
+    Commands.argument(name, type).suggests { _, builder ->
         suggests.forEach(builder::suggest)
         builder.buildFuture()
     }

@@ -14,7 +14,6 @@ import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.common.registry.ModTileEntities;
 
 public class SaveObeliskTile extends HollowTileEntity implements IAnimated {
-    private final boolean isAnimating = false;
     private boolean isActivated = false;
 
     public SaveObeliskTile(BlockPos pos, BlockState state) {
@@ -24,7 +23,7 @@ public class SaveObeliskTile extends HollowTileEntity implements IAnimated {
     }
 
 
-    public static <T extends BlockEntity> void tick(Level level, BlockPos pos, BlockState state, T tile) {
+    public static <T extends BlockEntity> void tick(Level level, BlockPos pos, BlockState ignoredState, T ignoredTile) {
         if (level != null && !level.isClientSide) {
             ServerLevel world = (ServerLevel) level;
 

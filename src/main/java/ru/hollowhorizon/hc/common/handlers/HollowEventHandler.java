@@ -1,8 +1,6 @@
 package ru.hollowhorizon.hc.common.handlers;
 
-import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
@@ -10,7 +8,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -22,10 +19,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-import org.lwjgl.glfw.GLFW;
 import ru.hollowhorizon.hc.HollowCore;
-import ru.hollowhorizon.hc.api.utils.HollowConfig;
-import ru.hollowhorizon.hc.client.screens.EntityNodePickerScreen;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
 import ru.hollowhorizon.hc.common.ui.HollowMenuKt;
@@ -33,8 +27,6 @@ import ru.hollowhorizon.hc.common.ui.WidgetKt;
 import thedarkcolour.kotlinforforge.forge.ForgeKt;
 
 public class HollowEventHandler {
-    @HollowConfig("enable_blur")
-    public static boolean ENABLE_BLUR = true;
 
     public void init() {
         MinecraftForge.EVENT_BUS.register(this);
@@ -43,14 +35,6 @@ public class HollowEventHandler {
         }
     }
 
-
-    //@SubscribeEvent
-    @OnlyIn(Dist.CLIENT)
-    public void onKey(ScreenEvent.KeyPressed event) {
-        if (event.getKeyCode() == GLFW.GLFW_KEY_V) {
-            Minecraft.getInstance().setScreen(new EntityNodePickerScreen());
-        }
-    }
 
     @SubscribeEvent
     public void onBlockClick(PlayerInteractEvent.RightClickBlock event) {
@@ -95,12 +79,13 @@ public class HollowEventHandler {
                 if (!origCap.isPresent()) continue;
                 CapabilityInstance newCap = (CapabilityInstance) event.getEntity().getCapability(cap).orElseThrow(() -> new IllegalStateException("Capability not present!"));
 
-                newCap.deserializeNBT(((CapabilityInstance) origCap.orElse(null)).serializeNBT());
+                origCap.ifPresent(orig -> newCap.deserializeNBT(((CapabilityInstance) orig).serializeNBT()));
             }
         }
     }
 
     @SubscribeEvent
+    @SuppressWarnings("unchecked")
     public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         var player = (ServerPlayer) event.getEntity();
 

@@ -28,18 +28,11 @@ internal interface ICanDecodeTag : ICanDecodeCompoundNBT {
     override fun decodeCompoundNBT(): CompoundTag = decodeTag() as CompoundTag
 }
 
-internal interface ICanEncodeCompoundNBT {
+internal fun interface ICanEncodeCompoundNBT {
     fun encodeCompoundNBT(tag: Tag)
 }
 
-internal interface ICanDecodeCompoundNBT {
+internal fun interface ICanDecodeCompoundNBT {
     fun decodeCompoundNBT(): CompoundTag
 }
 
-internal interface ICanEncodeIngredient {
-    fun encodeIngredient(ingredient: Tag)
-}
-
-interface ICanDecodeIngredient {
-    fun decodeIngredient(): Tag
-}

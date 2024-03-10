@@ -1,7 +1,9 @@
 package ru.hollowhorizon.hc.client.utils
 
+import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import dev.ftb.mods.ftbteams.data.TeamBase
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.irisshaders.iris.api.v0.IrisApi
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
@@ -70,16 +72,8 @@ fun ResourceLocation.exists(): Boolean {
 val ResourceLocation.stream: InputStream
     get() = HollowJavaUtils.getResource(this)
 
-fun String.toSTC(): MutableComponent {
-    return Component.literal(this)
-}
-
 val String.mcText: MutableComponent
     get() = Component.literal(this)
-
-fun String.toTTC(): MutableComponent {
-    return Component.translatable(this)
-}
 
 val String.mcTranslate: MutableComponent
     get() = Component.translatable(this)
@@ -88,7 +82,7 @@ fun String.mcTranslate(vararg args: Any): MutableComponent {
     return Component.translatable(this, *args)
 }
 
-operator fun MutableComponent.plus(other: Component): MutableComponent = this.append(other)
+operator fun MutableComponent.plus(other: Component): MutableComponent = this.copy().append(other)
 
 fun MutableComponent.colored(color: Int): MutableComponent = this.withStyle { it.withColor(color) }
 fun MutableComponent.bold(): MutableComponent = this.withStyle { it.withBold(true) }
@@ -135,7 +129,7 @@ fun ResourceLocation.toTexture(): AbstractTexture = mc.textureManager.getTexture
 
 @OnlyIn(Dist.CLIENT)
 fun AbstractTexture.render(stack: PoseStack, x: Int, y: Int, width: Int, height: Int) {
-    this.bind()
+    RenderSystem.bindTexture(this.id)
     blit(stack, x, y, 0F, 0F, width, height, width, height)
 }
 
@@ -222,4 +216,11 @@ inline fun PoseStack.use(usable: PoseStack.() -> Unit) {
     this.pushPose()
     usable()
     this.popPose()
+}
+
+fun <A, B> ((A) -> B).memoize(): (A) -> B {
+    val cache: MutableMap<A, B> = Object2ObjectOpenHashMap()
+    return {
+        cache.getOrPut(it) { this(it) }
+    }
 }

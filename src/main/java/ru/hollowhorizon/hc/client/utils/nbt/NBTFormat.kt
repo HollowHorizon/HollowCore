@@ -20,6 +20,7 @@ import kotlin.reflect.KClass
 val NBT_TAGS = HashMap<KClass<*>, MutableList<KClass<*>>>()
 
 @OptIn(InternalSerializationApi::class)
+@Suppress("UNCHECKED_CAST")
 internal val TagModule
     get() = SerializersModule {
         polymorphic(Tag::class) {

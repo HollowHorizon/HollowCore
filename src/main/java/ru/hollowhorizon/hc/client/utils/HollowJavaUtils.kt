@@ -19,15 +19,4 @@ object HollowJavaUtils {
                 ?: throw FileNotFoundException("Resource $location not found!")
         }
     }
-
-    fun hasResource(location: ResourceLocation): Boolean {
-        return Minecraft.getInstance().resourceManager.getResource(location).isPresent
-    }
-
-
-    @JvmStatic
-    fun initPath(file: File) {
-        file.parentFile.mkdirs()
-        file.createNewFile()
-    }
 }

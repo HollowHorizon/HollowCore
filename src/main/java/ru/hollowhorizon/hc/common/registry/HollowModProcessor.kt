@@ -7,14 +7,12 @@ import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.forgespi.language.ModFileScanData
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.api.utils.HollowCommand
-import ru.hollowhorizon.hc.api.utils.HollowConfig
 import ru.hollowhorizon.hc.api.utils.Polymorphic
-import ru.hollowhorizon.hc.client.config.HollowCoreConfig
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.client.utils.nbt.NBT_TAGS
-import ru.hollowhorizon.hc.common.commands.HollowCommands
-import ru.hollowhorizon.hc.common.network.*
+import ru.hollowhorizon.hc.common.network.HollowPacketV2
+import ru.hollowhorizon.hc.common.network.HollowPacketV3
+import ru.hollowhorizon.hc.common.network.register
 import ru.hollowhorizon.hc.core.AsmReflectionMethodGenerator
 import ru.hollowhorizon.hc.core.ReflectionMethod
 import java.lang.annotation.ElementType
@@ -34,24 +32,8 @@ object HollowModProcessor {
         isInitialized = true
         registerHandler<HollowPacketV2> { cont ->
             cont.whenClassTask = { clazz ->
-                if(HollowPacketV3::class.java in clazz.interfaces) clazz.register(cont.modId)
+                if (HollowPacketV3::class.java in clazz.interfaces) clazz.register(cont.modId)
                 else HollowCore.LOGGER.warn("Unsupported packet: ${clazz.simpleName}")
-            }
-        }
-
-        registerHandler<HollowCommand> { cont ->
-            cont.whenMethodTask = { methodCaller ->
-                val method = methodCaller()
-
-                HollowCommands.addCommand(cont.annotation.value to Runnable {
-                    method.invoke(null)
-                })
-            }
-        }
-
-        registerHandler<HollowConfig> { content  ->
-            content.whenPropertyTask = { obj ->
-                HollowCoreConfig.FIELDS.computeIfAbsent(content.modId) { ArrayList() }.add(obj)
             }
         }
 

@@ -3,6 +3,11 @@ package ru.hollowhorizon.hc.client.utils.json
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import net.minecraft.resources.ResourceLocation
+import ru.hollowhorizon.hc.client.utils.stream
+import java.io.InputStream
+import java.io.InputStreamReader
 
 class JsonBuilder(val obj: JsonObject) {
     infix fun String.to(json: JsonElement) = obj.add(this, json)
@@ -41,3 +46,7 @@ fun json(vararg elements: Number) = JsonArray().apply { elements.forEach(::add) 
 fun json(vararg elements: String) = JsonArray().apply { elements.forEach(::add) }
 fun json(vararg elements: Char) = JsonArray().apply { elements.forEach(::add) }
 fun json(vararg elements: Boolean) = JsonArray().apply { elements.forEach(::add) }
+
+fun json(stream: InputStream): JsonElement = JsonParser.parseReader(InputStreamReader(stream))
+
+fun json(location: ResourceLocation) = json(location.stream)

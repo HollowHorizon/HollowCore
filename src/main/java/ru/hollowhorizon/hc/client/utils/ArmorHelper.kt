@@ -8,6 +8,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraftforge.client.ForgeHooksClient
 import java.util.*
 
+@Suppress("UnstableApiUsage")
 fun ItemStack.getArmorTexture(entity: Entity, slot: EquipmentSlot): ResourceLocation {
     val item = item as ArmorItem
     var texture = item.material.name

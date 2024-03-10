@@ -124,10 +124,10 @@ data class GenericData(
     fun getValue(age: Int, lifetime: Int): Float {
         val progress = getProgress(age, lifetime)
         val result = if (trinary) {
-            if (progress >= 0.5f) Mth.lerp(middleToEndEasing.function(progress - 0.5f), middleValue, endingValue)
-            else Mth.lerp(startToMiddleEasing.function(progress), startingValue, middleValue)
+            if (progress >= 0.5f) Mth.lerp(middleToEndEasing(progress - 0.5f), middleValue, endingValue)
+            else Mth.lerp(startToMiddleEasing(progress), startingValue, middleValue)
         } else {
-            Mth.lerp(startToMiddleEasing.function(progress), startingValue, middleValue)
+            Mth.lerp(startToMiddleEasing(progress), startingValue, middleValue)
         }
         return result * valueMultiplier
     }

@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.common.capabilities
 
-import dev.ftb.mods.ftbteams.FTBTeamsAPI
 import dev.ftb.mods.ftbteams.data.Team
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
@@ -15,6 +14,7 @@ import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.capabilities.ICapabilityProvider
 import net.minecraftforge.common.capabilities.ICapabilitySerializable
 import net.minecraftforge.common.util.LazyOptional
+import net.minecraftforge.fml.ModList
 import net.minecraftforge.network.PacketDistributor
 
 @Suppress("API_STATUS_INTERNAL")
@@ -32,6 +32,19 @@ open class CapabilityInstance : ICapabilitySerializable<Tag> {
 
 
     fun sync() {
+        if (ModList.get().isLoaded("ftbteams")) {
+            val target = provider
+            if (target is Team) {
+                target.save()
+                target.onlineMembers.forEach {
+                    CSyncTeamCapabilityPacket(
+                        capability.name,
+                        serializeNBT()
+                    ).send(PacketDistributor.PLAYER.with { it })
+                }
+            }
+        }
+
         when (val target = provider) {
             is Entity -> {
                 val isPlayer = target is Player
@@ -45,13 +58,6 @@ open class CapabilityInstance : ICapabilitySerializable<Tag> {
                     }
                 )
 
-            }
-
-            is Team -> {
-                target.save()
-                target.onlineMembers.forEach {
-                    CSyncTeamCapabilityPacket(capability.name, serializeNBT()).send(PacketDistributor.PLAYER.with { it })
-                }
             }
 
             is BlockEntity -> {
@@ -86,7 +92,7 @@ open class CapabilityInstance : ICapabilitySerializable<Tag> {
     }
 
     override fun deserializeNBT(nbt: Tag) {
-        properties.forEach { if(it.deserialize(nbt as? CompoundTag ?: return)) nbt.remove(it.defaultName) }
+        properties.forEach { if (it.deserialize(nbt as? CompoundTag ?: return)) nbt.remove(it.defaultName) }
         notUsedTags = nbt as? CompoundTag ?: return
     }
 
@@ -97,21 +103,4 @@ open class CapabilityInstance : ICapabilitySerializable<Tag> {
 
     inline fun <reified K : Any, reified V : Any> syncableMap() =
         syncable(SyncableMapImpl(HashMap(), K::class.java, V::class.java, this::sync))
-}
-
-fun main() {
-    class Test: CapabilityInstance() {
-        var example: Int? by syncable(null)
-    }
-
-    val test = Test()
-
-    test.example = 10
-
-    Test().apply {
-        example
-        deserializeNBT(test.serializeNBT())
-    }
-
-    println(test)
 }

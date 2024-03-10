@@ -9,14 +9,15 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class HollowTileEntity extends BlockEntity {
-    public HollowTileEntity(BlockEntityType<?> tileEntityType, BlockPos pos, BlockState state) {
+    protected HollowTileEntity(BlockEntityType<?> tileEntityType, BlockPos pos, BlockState state) {
         super(tileEntityType, pos, state);
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
+    public @NotNull CompoundTag getUpdateTag() {
         CompoundTag nbt = new CompoundTag();
         this.saveNBT(nbt);
         return nbt;
@@ -30,7 +31,7 @@ public abstract class HollowTileEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag nbt) {
+    public void load(@NotNull CompoundTag nbt) {
         loadNBT(nbt);
         super.load(nbt);
     }

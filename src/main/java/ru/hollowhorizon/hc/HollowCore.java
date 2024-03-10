@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc;
 
-import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.data.Team;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
@@ -28,33 +27,26 @@ import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import ru.hollowhorizon.hc.api.registy.HollowMod;
-import ru.hollowhorizon.hc.api.utils.HollowConfig;
-import ru.hollowhorizon.hc.client.graphics.GPUMemoryManager;
-import ru.hollowhorizon.hc.client.handlers.ClientTickHandler;
+import ru.hollowhorizon.hc.client.handlers.TickHandler;
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager;
 import ru.hollowhorizon.hc.client.render.block.GLTFBlockEntityRenderer;
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer;
-import ru.hollowhorizon.hc.client.utils.HollowKeyHandler;
+import ru.hollowhorizon.hc.client.render.shaders.post.PostChain;
 import ru.hollowhorizon.hc.client.utils.HollowPack;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
 import ru.hollowhorizon.hc.common.commands.HollowCommands;
-import ru.hollowhorizon.hc.common.handlers.DelayHandler;
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
 import ru.hollowhorizon.hc.common.registry.*;
-import ru.hollowhorizon.hc.common.ui.WidgetKt;
 import thedarkcolour.kotlinforforge.forge.ForgeKt;
 
 
-@HollowMod(HollowCore.MODID)
 @Mod(HollowCore.MODID)
 public class HollowCore {
     public static final String MODID = "hc";
     public static final Logger LOGGER = LogManager.getLogger();
-    @HollowConfig(value = "general/debug_mode", description = "Enables debug mode, logs, and some more info for developers.")
-    public static final boolean DEBUG_MODE = true;
+    public static final boolean DEBUG_MODE = false;
 
     public HollowCore() {
         HollowModProcessor.initMod();
@@ -62,30 +54,24 @@ public class HollowCore {
 
         IEventBus modBus = ForgeKt.getMOD_CONTEXT().getKEventBus();
         modBus.addListener(this::setup);
-        modBus.addListener(this::loadEnd);
         modBus.addListener(this::onAttribute);
         modBus.addListener(this::onResourcePackAdd);
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
         if (FMLEnvironment.dist.isClient()) {
-            //клавиши
-            forgeBus.register(new HollowKeyHandler());
-            forgeBus.addListener(HollowKeyHandler::onKeyInput);
 
             //события
-            forgeBus.addListener(ClientTickHandler::clientTickEnd);
-            forgeBus.addListener(ClientTickHandler::serverTickEnd);
+            forgeBus.addListener(TickHandler::clientTickEnd);
+            forgeBus.addListener(TickHandler::serverTickEnd);
 
             //модели
             modBus.addListener(GltfManager::onReload);
+            modBus.addListener(PostChain::onReload);
             modBus.addListener(this::onRendererCreating);
             modBus.register(ModShaders.INSTANCE);
             modBus.addListener(ModParticles::onRegisterParticles);
-
-            GPUMemoryManager.INSTANCE.initialize();
         }
         new HollowEventHandler().init();
-        DelayHandler.init();
         //команды
         forgeBus.addListener(this::registerCommands);
 
@@ -95,8 +81,8 @@ public class HollowCore {
         forgeBus.addGenericListener(Entity.class, CapabilityStorage::registerProvidersEntity);
         forgeBus.addGenericListener(BlockEntity.class, CapabilityStorage::registerProvidersBlockEntity);
         forgeBus.addGenericListener(Level.class, CapabilityStorage::registerProvidersWorld);
-        if(ModList.get().isLoaded("ftbteams")) forgeBus.addGenericListener(Team.class, CapabilityStorage::registerProvidersTeam);
-        forgeBus.addListener(this::configSave);
+        if (ModList.get().isLoaded("ftbteams"))
+            forgeBus.addGenericListener(Team.class, CapabilityStorage::registerProvidersTeam);
 
         RegistryLoader.registerAll();
     }
@@ -104,21 +90,7 @@ public class HollowCore {
     public void onResourcePackAdd(AddPackFindersEvent event) {
         event.addRepositorySource((adder, creator) -> {
             var pack = HollowPack.getPackInstance();
-            adder.accept(
-                    creator.create(
-                            pack.getName(),
-                            Component.literal(pack.getName()),
-                            true,
-                            () -> pack,
-                            new PackMetadataSection(
-                                    Component.translatable("fml.resources.modresources", 1),
-                                    PackType.CLIENT_RESOURCES.getVersion(SharedConstants.getCurrentVersion())
-                            ),
-                            Pack.Position.TOP,
-                            PackSource.BUILT_IN,
-                            pack.isHidden()
-                    )
-            );
+            adder.accept(creator.create(pack.getName(), Component.literal(pack.getName()), true, () -> pack, new PackMetadataSection(Component.translatable("fml.resources.modresources", 1), PackType.CLIENT_RESOURCES.getVersion(SharedConstants.getCurrentVersion())), Pack.Position.TOP, PackSource.BUILT_IN, pack.isHidden()));
         });
     }
 
@@ -131,7 +103,6 @@ public class HollowCore {
 
     private void onAttribute(EntityAttributeCreationEvent event) {
         event.put(ModEntities.INSTANCE.getTEST_ENTITY().get(), TestEntity.createMobAttributes().add(Attributes.MOVEMENT_SPEED, 0.2f).build());
-        //event.put(ModEntities.TEST_ENTITY_V2, TestEntity.createMobAttributes().build());
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -142,20 +113,8 @@ public class HollowCore {
     }
 
 
-    private void configSave(ServerStoppedEvent event) {
-        //HollowCoreConfig.save();
-    }
-
-    //『Post-Init』
-    private void loadEnd(final FMLLoadCompleteEvent event) {
-
-    }
-
-    //『server』
-
     private void registerCommands(RegisterCommandsEvent event) {
         HollowCommands.register(event.getDispatcher());
     }
-
 
 }

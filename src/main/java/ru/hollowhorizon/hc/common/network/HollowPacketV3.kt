@@ -35,6 +35,7 @@ interface HollowPacketV3<T> {
 
 fun <T> Class<T>.register(modId: String) = JavaHacks.registerPacket(this, modId)
 
+@Suppress("inaccessible_type")
 fun <T : HollowPacketV3<T>> registerPacket(packetClass: Class<T>, modId: String) {
     val packets = NetworkHandler.PACKETS.computeIfAbsent(modId) { ArrayList() }
     packets.add {

@@ -6,8 +6,8 @@ import net.minecraftforge.registries.RegistryObject
 import ru.hollowhorizon.hc.client.render.particles.HollowParticleType
 
 object ModParticles : HollowRegistry() {
-    val CIRCLE by register("circle", ::HollowParticleType)
-    val STAR by register("star", ::HollowParticleType)
+    private val CIRCLE by register("circle", ::HollowParticleType)
+    private val STAR by register("star", ::HollowParticleType)
 
     private val GENERATED_LIST = ArrayList<RegistryObject<HollowParticleType>>()
 

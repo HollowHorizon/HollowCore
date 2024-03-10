@@ -16,7 +16,6 @@ import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.*
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.MutableComponent
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
@@ -601,8 +600,8 @@ object ForEntity: KSerializer<Entity> {
         return Minecraft.getInstance().level?.getEntity(decoder.decodeInt()) ?: Zombie(Minecraft.getInstance().level!!)
     }
 
-    override fun serialize(encoder: Encoder, entity: Entity) {
-        encoder.encodeInt(entity.id)
+    override fun serialize(encoder: Encoder, value: Entity) {
+        encoder.encodeInt(value.id)
     }
 
 }

@@ -1,6 +1,6 @@
 package ru.hollowhorizon.hc.client.utils
 
-import ru.hollowhorizon.hc.client.handlers.ClientTickHandler
+import ru.hollowhorizon.hc.client.handlers.TickHandler
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -11,21 +11,21 @@ open class GuiAnimator protected constructor(
     protected val interpolation: (Float) -> Float,
 ) : ReadOnlyProperty<Any?, Int> {
     var value: Float = begin.toFloat()
-    private var startTicks = ClientTickHandler.clientTicks
+    private var startTicks = TickHandler.clientTicks
 
     open fun update(partialTick: Float) {
         if (isFinished()) return
 
-        val currentTime = ClientTickHandler.clientTicks - startTicks + partialTick
+        val currentTime = TickHandler.clientTicks - startTicks + partialTick
         value = begin + (end - begin) * interpolation(currentTime / maxTime)
     }
 
     fun isFinished(): Boolean {
-        return ClientTickHandler.clientTicks - startTicks > maxTime
+        return TickHandler.clientTicks - startTicks > maxTime
     }
 
     fun reset() {
-        startTicks = ClientTickHandler.clientTicks
+        startTicks = TickHandler.clientTicks
         value = begin.toFloat()
     }
 

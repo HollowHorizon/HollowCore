@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package ru.hollowhorizon.hc.common.capabilities
 
 import dev.ftb.mods.ftbteams.data.Team
@@ -23,10 +25,6 @@ object CapabilityStorage {
     @JvmStatic
     fun <T : CapabilityInstance> getCapability(cap: Class<T>): Capability<T> {
         return storages[cap.name] as Capability<T>
-    }
-
-    inline fun <reified T : CapabilityInstance> getCapability(): Capability<T> {
-        return storages[T::class.java.name] as Capability<T>
     }
 
     @JvmStatic

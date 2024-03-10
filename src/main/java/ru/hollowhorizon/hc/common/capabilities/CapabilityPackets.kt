@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package ru.hollowhorizon.hc.common.capabilities
 
 import dev.ftb.mods.ftbteams.FTBTeamsAPI
@@ -9,7 +11,6 @@ import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.capabilities.ICapabilityProvider
 import net.minecraftforge.network.PacketDistributor
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.client.utils.nbt.ForTag
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
@@ -18,7 +19,7 @@ import ru.hollowhorizon.hc.common.network.HollowPacketV3
 @HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
 @Serializable
 class CSyncEntityCapabilityPacket(
-    val entityId: Int,
+    private val entityId: Int,
     val capability: String,
     val value: @Serializable(ForTag::class) Tag,
 ) : HollowPacketV3<CSyncEntityCapabilityPacket> {
@@ -37,7 +38,7 @@ class CSyncEntityCapabilityPacket(
 @HollowPacketV2(HollowPacketV2.Direction.TO_SERVER)
 @Serializable
 class SSyncEntityCapabilityPacket(
-    val entityId: Int,
+    private val entityId: Int,
     val capability: String,
     val value: @Serializable(ForTag::class) Tag,
 ) : HollowPacketV3<SSyncEntityCapabilityPacket> {
@@ -83,7 +84,7 @@ class SSyncLevelCapabilityPacket(
 ) : HollowPacketV3<SSyncLevelCapabilityPacket> {
     override fun handle(player: Player, data: SSyncLevelCapabilityPacket) {
         val server = player.server ?: throw IllegalStateException("Server not found".apply(HollowCore.LOGGER::warn))
-        val levelKey = server.levelKeys().find { it.location().equals(data.level.rl) }
+        val levelKey = server.levelKeys().find { it.location() == data.level.rl }
             ?: throw IllegalStateException("Unknown level: $data".apply(HollowCore.LOGGER::warn))
         val level = server.getLevel(levelKey)
             ?: throw IllegalStateException("Level not found: $data".apply(HollowCore.LOGGER::warn))

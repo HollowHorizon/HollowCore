@@ -7,7 +7,7 @@ import net.minecraft.world.entity.player.Player
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.player.PlayerEvent
 import ru.hollowhorizon.hc.api.IAutoScaled
-import ru.hollowhorizon.hc.client.utils.toSTC
+import ru.hollowhorizon.hc.client.utils.mcText
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
 import ru.hollowhorizon.hc.common.ui.CURRENT_CLIENT_GUI
@@ -15,7 +15,7 @@ import ru.hollowhorizon.hc.common.ui.CURRENT_SERVER_GUI
 import ru.hollowhorizon.hc.common.ui.Widget
 
 
-class UIScreen(val gui: Widget) : HollowScreen("".toSTC()), IAutoScaled {
+class UIScreen(val gui: Widget) : HollowScreen("".mcText), IAutoScaled {
 
     init {
         Minecraft.getInstance().options.hideGui = true

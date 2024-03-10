@@ -2,7 +2,7 @@ package ru.hollowhorizon.hc.common.ui.animations
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import ru.hollowhorizon.hc.client.handlers.ClientTickHandler
+import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
 
 @Serializable
@@ -15,15 +15,15 @@ class UIAnimation(
     val interpolation: Interpolation = Interpolation.LINEAR,
 ) {
     @Transient
-    var startTime = ClientTickHandler.clientTicks
-    val isEnd get() = trigger != AnimationTrigger.LOOP || ClientTickHandler.clientTicks - startTime > duration
+    var startTime = TickHandler.clientTicks
+    val isEnd get() = trigger != AnimationTrigger.LOOP || TickHandler.clientTicks - startTime > duration
 
     fun reset() {
-        startTime = ClientTickHandler.clientTicks
+        startTime = TickHandler.clientTicks
     }
 
     fun update(partialTick: Float): Float {
-        val time = (ClientTickHandler.clientTicks - startTime + partialTick % duration) / duration
+        val time = (TickHandler.clientTicks - startTime + partialTick % duration) / duration
 
         return startValue + (endValue - startTime) * interpolation(time)
     }

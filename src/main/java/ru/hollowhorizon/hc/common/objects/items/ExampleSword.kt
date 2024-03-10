@@ -8,6 +8,5 @@ import java.util.function.Consumer
 
 class ExampleSword : SwordItem(Tiers.NETHERITE, 10, -2.4f, Properties()) {
     override fun initializeClient(consumer: Consumer<IClientItemExtensions>) {
-        //consumer.accept(GLTFItemRenderer())
     }
 }

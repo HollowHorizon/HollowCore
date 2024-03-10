@@ -8,7 +8,6 @@ import net.minecraftforge.network.NetworkEvent
 import net.minecraftforge.registries.ForgeRegistries
 import java.util.function.Supplier
 
-//TODO: Сделать нормальный пакет с нормальной сериализацией...
 class SpawnParticlesPacket(
     val options: ParticleOptions,
     val spawnX: Double,

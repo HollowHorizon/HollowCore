@@ -1,9 +1,12 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package ru.hollowhorizon.hc.common.capabilities
 
 import dev.ftb.mods.ftbteams.data.TeamBase
 import net.minecraft.world.entity.player.Player
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.fml.Logging
+import net.minecraftforge.fml.ModList
 import net.minecraftforge.forgespi.language.ModFileScanData
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
@@ -12,7 +15,6 @@ import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.CLASS)
 annotation class HollowCapabilityV2(vararg val value: KClass<*>) {
-    @Suppress("UNCHECKED_CAST")
     companion object {
 
         fun <T> get(clazz: Class<T>): Capability<T> {
@@ -20,16 +22,15 @@ annotation class HollowCapabilityV2(vararg val value: KClass<*>) {
         }
 
         @JvmField
-        val TYPE = Type.getType(HollowCapabilityV2::class.java)
+        val TYPE: Type = Type.getType(HollowCapabilityV2::class.java)
 
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-fun <T> callHook(list: MutableList<ModFileScanData>, getMethod: (String, Boolean) -> Capability<T>) {
+fun <T> callHook(list: List<ModFileScanData>, getMethod: (String, Boolean) -> Capability<T>) {
     val data = list.flatMap { it.annotations }
     val annotations = data
-        .filter { HollowCapabilityV2.TYPE.equals(it.annotationType) }
+        .filter { HollowCapabilityV2.TYPE == it.annotationType }
         .distinct()
         .sortedBy { it.clazz.toString() }
 
@@ -54,7 +55,9 @@ fun initCapabilities(capabilityClass: Class<*>, cap: Capability<*>, targets: Lis
     targets.forEach { target ->
         val targetClass = Class.forName(target.className)
         if (targetClass == Player::class.java) CapabilityStorage.playerCapabilities.add(cap)
-        if (targetClass == TeamBase::class.java) CapabilityStorage.teamCapabilities.add(cap)
+        if (ModList.get()
+                .isLoaded("ftbteams") && targetClass == TeamBase::class.java
+        ) CapabilityStorage.teamCapabilities.add(cap)
 
         CapabilityStorage.providers.add(targetClass to { provider ->
             (capabilityClass.getDeclaredConstructor().newInstance() as CapabilityInstance).apply {

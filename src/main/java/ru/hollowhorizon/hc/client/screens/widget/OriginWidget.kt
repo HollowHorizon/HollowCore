@@ -8,9 +8,9 @@ import net.minecraft.client.sounds.SoundManager
 import net.minecraft.network.chat.Style
 import net.minecraft.util.FormattedCharSequence
 import ru.hollowhorizon.hc.client.utils.ScissorUtil
-import ru.hollowhorizon.hc.client.utils.toSTC
+import ru.hollowhorizon.hc.client.utils.mcText
 
-open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(x, y, width, height, "ORIGIN".toSTC()) {
+open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(x, y, width, height, "ORIGIN".mcText) {
     private var isLeftButtonPressed = false
     private var lastMouseX = 0
     private var lastMouseY = 0

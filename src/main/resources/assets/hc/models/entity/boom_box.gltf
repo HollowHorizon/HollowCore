@@ -84,32 +84,16 @@
   ],
   "images": [
     {
-      "uri": "boom_box_color_emissive_color.png",
-      "extras":
-      {
-        "resourceLocation": "mcgltf:models/block/boom_box_color_emissive_color.png"
-      }
+      "uri": "boom_box_color_emissive_color.png"
     },
     {
-      "uri": "boom_box_glossiness_metallic_emissive.png",
-      "extras":
-      {
-        "resourceLocation": "mcgltf:models/block/boom_box_glossiness_metallic_emissive.png"
-      }
+      "uri": "boom_box_glossiness_metallic_emissive.png"
     },
     {
-      "uri": "boom_box_normal.png",
-      "extras":
-      {
-        "resourceLocation": "mcgltf:models/block/boom_box_normal.png"
-      }
+      "uri": "boom_box_normal.png"
     },
     {
-      "uri": "boom_box_emissive.png",
-      "extras":
-      {
-        "resourceLocation": "mcgltf:models/block/boom_box_emissive.png"
-      }
+      "uri": "boom_box_emissive.png"
     }
   ],
   "meshes": [

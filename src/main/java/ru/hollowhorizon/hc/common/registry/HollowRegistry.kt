@@ -19,7 +19,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.levelgen.feature.Feature
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent
-import net.minecraftforge.fml.ModLoadingContext
 import net.minecraftforge.registries.DeferredRegister
 import net.minecraftforge.registries.ForgeRegistries
 import net.minecraftforge.registries.IForgeRegistry
@@ -37,7 +36,9 @@ open class HollowRegistry {
     companion object {
         var currentModId = "hc"
     }
+
     //Avoid fake NotNulls parameters like BlockEntityType.Builder::build
+    @Suppress("UNCHECKED_CAST")
     fun <T> promise(): T = null as T
 
     inline fun <reified T> register(
@@ -63,7 +64,7 @@ data class ObjectConfig(
 
 @Suppress("UNCHECKED_CAST")
 class RegistryHolder<T>(private val config: ObjectConfig, supplier: () -> T, val target: Class<T>) {
-    val modId = HollowRegistry.currentModId
+    private val modId = HollowRegistry.currentModId
 
     val registry: DeferredRegister<T> = with(target) {
         when {
@@ -123,9 +124,10 @@ class RegistryHolder<T>(private val config: ObjectConfig, supplier: () -> T, val
                         Class.forName(config.entityRenderer) as Class<EntityRenderer<Entity>>
                     )
                 }
-                if (config.attributeSupplier != null) {
+                val attributes = config.attributeSupplier
+                if (attributes != null) {
                     MinecraftForge.EVENT_BUS.addListener<EntityAttributeCreationEvent> { event ->
-                        event.put(this.get() as EntityType<LivingEntity>, config.attributeSupplier!!())
+                        event.put(this.get() as EntityType<LivingEntity>, attributes())
                     }
                 }
             }

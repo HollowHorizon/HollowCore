@@ -130,10 +130,10 @@ object GltfTree {
 
         fun retrieveFile(path: String): InputStream {
             if (path.startsWith("data:application/octet-stream;base64,")) {
-                return java.util.Base64.getDecoder().wrap(path.substring(37).byteInputStream())
+                return Base64.getDecoder().wrap(path.substring(37).byteInputStream())
             }
             if (path.startsWith("data:image/png;base64,")) {
-                return java.util.Base64.getDecoder().wrap(path.substring(22).byteInputStream())
+                return Base64.getDecoder().wrap(path.substring(22).byteInputStream())
             }
 
             val basePath = location.path.substringBeforeLast('/', "")
@@ -1152,8 +1152,8 @@ object GltfTree {
         val byteOffset: Int,
     ) {
         fun <T> get() = data as List<T>
-        fun getAsFloatArray() = (data as List<Float>).toFloatArray();
-        fun getAsIntArray() = (data as List<Int>).toIntArray();
+        fun getAsFloatArray() = (data as List<Float>).toFloatArray()
+        fun getAsIntArray() = (data as List<Int>).toIntArray()
 
         fun <T> get(index: Int) = data[index] as T
 

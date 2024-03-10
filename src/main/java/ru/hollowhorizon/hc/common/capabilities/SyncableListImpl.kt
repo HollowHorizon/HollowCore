@@ -1,11 +1,15 @@
+@file:Suppress("UnstableApiUsage", "UNCHECKED_CAST")
+
 package ru.hollowhorizon.hc.common.capabilities
 
 import com.google.common.reflect.TypeToken
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.serializer
 import net.minecraft.nbt.Tag
 import net.minecraftforge.common.util.INBTSerializable
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
@@ -116,7 +120,7 @@ class SyncableListImpl<T : Any>(
     }
 
     fun setNoUpdate(index: Int, element: T) {
-        list.set(index, element)
+        list[index] = element
     }
 
     override fun retainAll(elements: Collection<T>): Boolean {
@@ -204,7 +208,7 @@ class SyncableListImpl<T : Any>(
 }
 
 class SyncableListSerializer<T : Any>(val type: Class<T>) : KSerializer<SyncableListImpl<T>> {
-    val baseTypeSerializer = NBTFormat.serializersModule.serializer(TypeToken.of(type).type) as KSerializer<T>
+    private val baseTypeSerializer = NBTFormat.serializersModule.serializer(TypeToken.of(type).type) as KSerializer<T>
 
 
     private val delegatedSerializer = ListSerializer(baseTypeSerializer)

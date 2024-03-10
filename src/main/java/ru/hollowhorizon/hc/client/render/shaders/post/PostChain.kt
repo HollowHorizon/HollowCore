@@ -4,7 +4,11 @@ import com.mojang.blaze3d.systems.RenderSystem
 import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import net.minecraft.world.entity.player.Player
+import net.minecraftforge.client.event.RegisterClientReloadListenersEvent
+import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.nbt.ForResourceLocation
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
@@ -23,6 +27,18 @@ object PostChain {
         }
     }
 
+    @JvmStatic
+    fun onReload(event: RegisterClientReloadListenersEvent) {
+        event.registerReloadListener(ResourceManagerReloadListener {
+            it.listResources("shaders") {
+                it.path.endsWith(".post.fsh")
+            }.forEach {
+                val namespace = it.key.namespace
+                val path = it.key.path.substringAfterLast("/").removeSuffix(".fsh")
+                HollowPack.getPackInstance().generatePostShader(ResourceLocation(namespace, path))
+            }
+        })
+    }
 }
 
 @Serializable

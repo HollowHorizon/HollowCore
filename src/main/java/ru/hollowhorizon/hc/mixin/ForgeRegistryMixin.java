@@ -24,7 +24,7 @@ public abstract class ForgeRegistryMixin<V> implements IForgeRegistry<V>, IReloa
 
     @Unique
     @Final
-    private final Set<ResourceLocation> dummies = new ObjectOpenHashSet<>();
+    private final Set<ResourceLocation> hollowCore$dummies = new ObjectOpenHashSet<>();
     @Shadow
     @Final
     private BiMap<ResourceLocation, V> names;
@@ -107,7 +107,7 @@ public abstract class ForgeRegistryMixin<V> implements IForgeRegistry<V>, IReloa
                 this.names.put(entry.getRight(), entry.getLeft());
                 this.ids.put(entry.getMiddle(), entry.getLeft());
                 this.owners.put(entry.getRight(), entry.getLeft());
-                this.dummies.remove(entry.getRight());
+                this.hollowCore$dummies.remove(entry.getRight());
             }
             this.backups = null;
         }
@@ -122,7 +122,7 @@ public abstract class ForgeRegistryMixin<V> implements IForgeRegistry<V>, IReloa
             if (owner != null) {
                 this.owners.put(owner, dummy);
             }
-            this.dummies.add(rl);
+            this.hollowCore$dummies.add(rl);
         }
     }
 
@@ -134,7 +134,7 @@ public abstract class ForgeRegistryMixin<V> implements IForgeRegistry<V>, IReloa
             this.owners.inverse().remove(dummy);
             this.availabilityMap.clear(id);
         }
-        this.dummies.remove(rl);
+        this.hollowCore$dummies.remove(rl);
     }
 
     @Nullable
