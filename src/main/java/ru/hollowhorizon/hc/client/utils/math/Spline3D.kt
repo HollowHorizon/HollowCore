@@ -116,7 +116,7 @@ class Spline(private val xx: DoubleArray, private val yy: DoubleArray) {
     }
 }
 
-class Spline3D(points: List<Vector3d>, val rotations: List<Vector3f>) {
+class Spline3D(points: List<Vector3d>, rotations: List<Vector3f>) {
     private lateinit var t: DoubleArray
     private var splineX: Spline? = null
     private var splineY: Spline? = null
@@ -158,8 +158,10 @@ class Spline3D(points: List<Vector3d>, val rotations: List<Vector3f>) {
             length += t[i]
             t[i] += t[i - 1]
         }
-        for (i in 1 until t.size - 1) {
-            t[i] = t[i] / length
+        if(length != 0.0) {
+            for (i in 1 until t.size - 1) {
+                t[i] = t[i] / length
+            }
         }
         t[t.size - 1] = 1.0
         splineX = Spline(t, x)
@@ -173,6 +175,8 @@ class Spline3D(points: List<Vector3d>, val rotations: List<Vector3f>) {
         t = DoubleArray(x.size)
         t[0] = 0.0
 
+        length = 0.0
+
         for (i in 1 until t.size) {
             val lx = x[i] - x[i - 1]
             val ly = y[i] - y[i - 1]
@@ -185,8 +189,10 @@ class Spline3D(points: List<Vector3d>, val rotations: List<Vector3f>) {
             length += t[i]
             t[i] += t[i - 1]
         }
-        for (i in 1 until t.size - 1) {
-            t[i] = t[i] / length
+        if(length != 0.0) {
+            for (i in 1 until t.size - 1) {
+                t[i] = t[i] / length
+            }
         }
         t[t.size - 1] = 1.0
         splineXR = Spline(t, x)
@@ -199,18 +205,7 @@ class Spline3D(points: List<Vector3d>, val rotations: List<Vector3f>) {
     }
 
     fun getRotation(t: Double): Vector3f {
-        val index = ((rotations.size - 1) * t).toInt()
-        val current = rotations[index]
-        val next = if(index == rotations.size - 1) current else rotations[index + 1]
-
-        val percent = ((rotations.size - 1) * t.toFloat()) % 1.0f
-
-        return Vector3f(
-            Mth.rotLerp(percent, current.x(), next.x()),
-            Mth.rotLerp(percent, current.y(), next.y()),
-            Mth.rotLerp(percent, current.z(), next.z()),
-        )
-        //return Vector3f(splineXR!!.getValue(t).toFloat(), splineYR!!.getValue(t).toFloat(), splineZR!!.getValue(t).toFloat())
+        return Vector3f(splineXR!!.getValue(t).toFloat(), splineYR!!.getValue(t).toFloat(), splineZR!!.getValue(t).toFloat())
     }
 
     fun checkValues(): Boolean {

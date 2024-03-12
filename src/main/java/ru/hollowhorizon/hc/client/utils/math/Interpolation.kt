@@ -12,7 +12,7 @@ enum class Interpolation(private val function: (Float) -> Float) {
     LINEAR({ it }),
     SINE_IN({ 1.0f - Mth.cos(it * Mth.PI / 2) }),
     SINE_OUT({ Mth.sin(it * Mth.PI / 2) }),
-    SINE_IN_OUT({ 0.5f * (1.0f - Mth.cos(it * Mth.PI / 2)) }),
+    SINE_IN_OUT({ -(Mth.cos(Mth.PI * it) - 1f) / 2f }),
     QUAD_IN({ it * it }),
     QUAD_OUT({ 1f - (1 - it) * (1 - it) }),
     QUAD_IN_OUT({ if (it < 0.5f) 2 * it * it else 1 - (-2 * it + 2) * (-2 * it + 2) / 2 }),
