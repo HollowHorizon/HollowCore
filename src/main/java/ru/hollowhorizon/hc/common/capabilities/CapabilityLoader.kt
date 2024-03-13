@@ -53,11 +53,12 @@ fun initCapabilities(capabilityClass: Class<*>, cap: Capability<*>, targets: Lis
     CapabilityStorage.storages[cap.name] = cap
 
     targets.forEach { target ->
+        if(target.className.contains("ftbteams") && !ModList.get().isLoaded("ftbteams")) return@forEach
+
         val targetClass = Class.forName(target.className)
+
         if (targetClass == Player::class.java) CapabilityStorage.playerCapabilities.add(cap)
-        if (ModList.get()
-                .isLoaded("ftbteams") && targetClass == TeamBase::class.java
-        ) CapabilityStorage.teamCapabilities.add(cap)
+        else if (ModList.get().isLoaded("ftbteams") && targetClass == TeamBase::class.java) CapabilityStorage.teamCapabilities.add(cap)
 
         CapabilityStorage.providers.add(targetClass to { provider ->
             (capabilityClass.getDeclaredConstructor().newInstance() as CapabilityInstance).apply {

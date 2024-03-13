@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.common.ui.animations
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import ru.hollowhorizon.hc.client.handlers.TickHandler
+import ru.hollowhorizon.hc.client.screens.widget.HollowWidget
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
 
 @Serializable
@@ -26,6 +27,14 @@ class UIAnimation(
         val time = (TickHandler.clientTicks - startTime + partialTick % duration) / duration
 
         return startValue + (endValue - startTime) * interpolation(time)
+    }
+
+    fun start(widget: HollowWidget) {
+
+    }
+
+    fun loop(widget: HollowWidget) {
+
     }
 }
 

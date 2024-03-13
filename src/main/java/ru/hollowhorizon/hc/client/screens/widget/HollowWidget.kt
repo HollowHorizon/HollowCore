@@ -17,6 +17,8 @@ import net.minecraftforge.client.ForgeHooksClient
 import ru.hollowhorizon.hc.client.screens.HollowScreen
 import ru.hollowhorizon.hc.client.screens.widget.layout.ILayoutConsumer
 import ru.hollowhorizon.hc.common.ui.Alignment
+import ru.hollowhorizon.hc.common.ui.animations.AnimationTrigger
+import ru.hollowhorizon.hc.common.ui.animations.UIAnimation
 
 open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: Component) :
     AbstractWidget(x, y, width, height, text), ILayoutConsumer {
@@ -25,8 +27,26 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: Component
     protected val textureManager: TextureManager = Minecraft.getInstance().textureManager
     protected val font = Minecraft.getInstance().font
     private var isInitialized = false
+    var isCreated = false
+    var wasHovered = false
+    val animations = ArrayList<UIAnimation>()
 
     override fun renderButton(stack: PoseStack, mouseX: Int, mouseY: Int, ticks: Float) {
+        if (!isCreated) {
+            animations.filter { it.trigger == AnimationTrigger.ON_OPEN }.forEach { it.start(this) }
+            isCreated = true
+        }
+
+        animations.filter { it.trigger == AnimationTrigger.LOOP }.forEach { it.loop(this) }
+
+        if(isHovered(mouseX.toDouble(), mouseY.toDouble())) {
+            wasHovered = true
+            animations.filter { it.trigger == AnimationTrigger.ON_HOVER }.forEach { it.loop(this) }
+        } else if(wasHovered) {
+            wasHovered = false
+            animations.filter { it.trigger == AnimationTrigger.ON_UNHOVER }.forEach { it.start(this) }
+        }
+
         if (!isInitialized) {
             init()
             isInitialized = true
@@ -37,6 +57,11 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: Component
 
             renderWidget(widget, stack, mouseX, mouseY, ticks)
         }
+    }
+
+    open fun onClose() {
+        animations.filter { it.trigger == AnimationTrigger.ON_CLOSE }.forEach { it.start(this) }
+        widgets.filterIsInstance<HollowWidget>().forEach { it.onClose() }
     }
 
     open fun renderWidget(widget: AbstractWidget, stack: PoseStack, mouseX: Int, mouseY: Int, ticks: Float) {
@@ -55,6 +80,10 @@ open class HollowWidget(x: Int, y: Int, width: Int, height: Int, text: Component
 
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         if (!visible) return false
+
+        if(isHovered(mouseX, mouseY)) {
+            animations.filter { it.trigger == AnimationTrigger.ON_CLICK }.forEach { it.start(this) }
+        }
 
         var isClicked = false
         for (widget in widgets) {

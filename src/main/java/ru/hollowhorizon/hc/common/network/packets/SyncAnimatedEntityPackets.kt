@@ -24,7 +24,7 @@ class StartAnimationPacket(
 ) : HollowPacketV3<StartAnimationPacket> {
     override fun handle(player: Player, data: StartAnimationPacket) {
         player.level.getEntity(data.entityId)?.let { entity ->
-            if (entity is IAnimated) {
+            if (entity is IAnimated || entity is Player) {
                 val capability = entity[AnimatedEntityCapability::class]
                 if (capability.layers.any { it.animation == data.name }) return@let
 
@@ -49,7 +49,7 @@ class StopAnimationPacket(
 ) : HollowPacketV3<StopAnimationPacket> {
     override fun handle(player: Player, data: StopAnimationPacket) {
         player.level.getEntity(data.entityId)?.let { entity ->
-            if (entity is IAnimated) {
+            if (entity is IAnimated || entity is Player) {
                 val capability = entity[AnimatedEntityCapability::class]
 
                 capability.layers.filter { it.animation == data.name }.forEach {

@@ -959,7 +959,7 @@ object GltfTree {
             if (material.doubleSided) RenderSystem.disableCull()
             //Подключение VAO и IBO
             GL33.glBindVertexArray(vao)
-            GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
+            if (indexBuffer != -1) GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
 
             GL33.glEnableVertexAttribArray(0) // Вершины
             GL33.glEnableVertexAttribArray(2) // Текстурные координаты
@@ -981,7 +981,8 @@ object GltfTree {
             }
 
             //Отрисовка
-            GL33.glDrawElements(GL33.GL_TRIANGLES, indexCount, GL33.GL_UNSIGNED_INT, 0L)
+            if (indexBuffer != -1) GL33.glDrawElements(GL33.GL_TRIANGLES, indexCount, GL33.GL_UNSIGNED_INT, 0L)
+            else GL33.glDrawArrays(GL33.GL_TRIANGLES, 0, positionsCount)
 
             if (material.doubleSided) RenderSystem.enableCull()
 
