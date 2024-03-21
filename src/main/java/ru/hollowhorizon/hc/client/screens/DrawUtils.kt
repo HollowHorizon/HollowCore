@@ -7,9 +7,11 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.Tesselator
 import com.mojang.blaze3d.vertex.VertexFormat
 import net.minecraft.client.gui.GuiComponent.blit
+import net.minecraft.client.gui.GuiComponent.fill
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.resources.ResourceLocation
 import org.lwjgl.opengl.GL11
+import ru.hollowhorizon.hc.client.utils.ScissorUtil
 import ru.hollowhorizon.hc.client.utils.math.VertexExt
 import ru.hollowhorizon.hc.client.utils.math.plusAssign
 import ru.hollowhorizon.hc.client.utils.mc
@@ -107,31 +109,11 @@ object DrawUtils {
     fun drawBounds(stack: PoseStack, x1: Int, y1: Int, x2: Int, y2: Int, width: Int, color: Int) {
         val rgba = color.toRGBA()
 
-        stack.use {
-            RenderSystem.enableBlend()
-            RenderSystem.defaultBlendFunc()
+        fill(stack, x1, y1, x1 + 1, y2, color)
+        fill(stack, x1, y1, x2, y1 + 1, color)
+        fill(stack, x2, y2, x1 + 1, y2 - 1, color)
+        fill(stack, x2, y2, x2 - 1, y1, color)
 
-            GL11.glLineWidth(width.toFloat())
-            RenderSystem.setShader { GameRenderer.getPositionTexShader() }
-            val vb = Tesselator.getInstance().builder
-            vb.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR)
-
-            vb += VertexExt(stack, x1, y1, 0, rgba)
-            vb += VertexExt(stack, x1, y2, 0, rgba)
-
-            vb += VertexExt(stack, x1, y2, 0, rgba)
-            vb += VertexExt(stack, x2, y2, 0, rgba)
-
-            vb += VertexExt(stack, x2, y2, 0, rgba)
-            vb += VertexExt(stack, x2, y1, 0, rgba)
-
-            vb += VertexExt(stack, x2, y1, 0, rgba)
-            vb += VertexExt(stack, x1, y1, 0, rgba)
-
-            Tesselator.getInstance().end()
-
-            GL11.glLineWidth(1f)
-        }
     }
 
 }

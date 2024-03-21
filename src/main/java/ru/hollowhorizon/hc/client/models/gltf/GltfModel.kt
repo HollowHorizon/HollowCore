@@ -3,20 +3,25 @@ package ru.hollowhorizon.hc.client.models.gltf
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.math.Matrix4f
+import com.mojang.math.Quaternion
+import com.mojang.math.Vector3f
 import com.mojang.math.Vector4f
-import net.coderbot.iris.Iris
-import net.coderbot.iris.pipeline.newshader.NewWorldRenderingPipeline
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ItemInHandRenderer
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.Mth
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.phys.Vec3
 import org.lwjgl.opengl.GL33
+import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
 import ru.hollowhorizon.hc.client.utils.areShadersEnabled
-import ru.hollowhorizon.hc.client.utils.hasShaders
 import ru.hollowhorizon.hc.common.registry.ModShaders
 
 
@@ -114,6 +119,17 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
 
     fun destroy() {
         modelTree.walkNodes().mapNotNull { it.mesh }.flatMap { it.primitives }.forEach(GltfTree.Primitive::destroy)
+    }
+
+    fun findPosition(name: String, entity: LivingEntity): Matrix4f? {
+        val node = nodes[name] ?: return null
+        val lerpBodyRot = Mth.rotLerp(TickHandler.partialTicks, entity.yBodyRotO, entity.yBodyRot)
+        return Matrix4f(Vector3f.YP.rotationDegrees(-lerpBodyRot)).apply { multiply(node.globalMatrix) }
+    }
+
+    fun findRotation(name: String): Quaternion {
+        val node = nodes[name] ?: return Quaternion(0.0f, 0.0f, 0.0f, 1.0f)
+        return node.globalRotation
     }
 }
 

@@ -379,7 +379,21 @@ object GltfTree {
         val texturePath = file.images[image].uri ?: return null
 
         if (texturePath.contains(':')) {
-            if (!ResourceLocation.isValidResourceLocation(texturePath)) {
+            fun validPathChar(c: Char): Boolean {
+                return c == '_' || c == '-' || c in 'a'..'z' || c in '0'..'9' || c == '/' || c == '.'
+            }
+
+            fun isValidPath(pPath: String): Boolean {
+                for (element in pPath) {
+                    if (!validPathChar(element)) {
+                        return false
+                    }
+                }
+
+                return true
+            }
+
+            if (!isValidPath(texturePath.split(":")[1])) {
                 if (texturePath.startsWith("data:image/png;base64,")) {
                     val decoded = folder(texturePath)
                     val dynamicTexture = DynamicTexture(NativeImage.read(decoded))
@@ -661,6 +675,14 @@ object GltfTree {
                 val matrix = parent?.globalMatrix ?: return localMatrix
                 matrix.multiply(localMatrix)
                 return matrix
+            }
+        val globalRotation: Quaternion
+            get() {
+                val rotation = parent?.globalRotation ?: return transform.rotation
+                transform.apply {
+                    rotation.mulLeft(this.rotation)
+                }
+                return rotation
             }
 
         val localMatrix get() = transform.getMatrix()

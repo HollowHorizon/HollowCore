@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -19,7 +20,9 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
+import org.lwjgl.glfw.GLFW;
 import ru.hollowhorizon.hc.HollowCore;
+import ru.hollowhorizon.hc.client.screens.widget.layout.BoxExampleKt;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
 import ru.hollowhorizon.hc.common.ui.HollowMenuKt;
@@ -36,13 +39,22 @@ public class HollowEventHandler {
     }
 
 
-    @SubscribeEvent
+    //@SubscribeEvent
     public void onBlockClick(PlayerInteractEvent.RightClickBlock event) {
         if (event.getLevel().getBlockState(event.getHitVec().getBlockPos()).getBlock().equals(Blocks.BEACON) && HollowCore.DEBUG_MODE) {
             WidgetKt.main();
             event.setCanceled(true);
         }
     }
+
+    @SubscribeEvent
+    @OnlyIn(Dist.CLIENT)
+    public void onKeyPressed(InputEvent.Key event) {
+        if (event.getKey() == GLFW.GLFW_KEY_V && Screen.hasShiftDown()) {
+            BoxExampleKt.example();
+        }
+    }
+
 
     @OnlyIn(Dist.CLIENT)
     public void onClientInit(FMLClientSetupEvent event) {

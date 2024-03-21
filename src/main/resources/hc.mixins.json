@@ -14,7 +14,8 @@
     "PrimaryLevelDataMixin",
     "StructureBlockMixin",
     "ftbteams.AbstractTeamMixin",
-    "ftbteams.TeamMixin"
+    "ftbteams.TeamMixin",
+    "particles.MixinResourceLocation"
   ],
   "client": [
     "ScreenAccessor",
@@ -22,7 +23,11 @@
     "SoundManagerMixin",
     "TextureManagerMixin",
     "WindowMixin",
-    "WorldListEntryMixin"
+    "WorldListEntryMixin",
+    "particles.client.MixinGameRenderer",
+    "particles.client.MixinItemInHandRenderer",
+    "particles.client.MixinLevelRenderer",
+    "particles.client.MixinMinecraft"
   ],
   "injectors": {
     "defaultRequire": 1

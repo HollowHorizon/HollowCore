@@ -39,6 +39,7 @@ import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
 import ru.hollowhorizon.hc.common.registry.*;
+import ru.hollowhorizon.hc.particles.EffekseerParticles;
 import thedarkcolour.kotlinforforge.forge.ForgeKt;
 
 
@@ -83,6 +84,10 @@ public class HollowCore {
         forgeBus.addGenericListener(Level.class, CapabilityStorage::registerProvidersWorld);
         if (ModList.get().isLoaded("ftbteams"))
             forgeBus.addGenericListener(Team.class, CapabilityStorage::registerProvidersTeam);
+
+        /* MODULES */
+
+        var particles = EffekseerParticles.INSTANCE; //Initialization of particles
 
         RegistryLoader.registerAll();
     }
