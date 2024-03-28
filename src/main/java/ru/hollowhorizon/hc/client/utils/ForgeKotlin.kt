@@ -143,10 +143,10 @@ fun Font.drawScaled(
     y: Int,
     color: Int = 0xFFFFFF,
     scale: Float = 1.0f,
-    shadow: Boolean = false,
+    shadow: Boolean = true,
 ) {
     val drawMethod: (PoseStack, FormattedCharSequence, Float, Float, Int) -> Unit =
-        if (shadow) this::draw else this::drawShadow
+        if (!shadow) this::draw else this::drawShadow
 
     stack.pushPose()
     stack.translate((x).toDouble(), (y).toDouble(), 0.0)
@@ -169,9 +169,9 @@ fun Font.drawScaled(
     y: Int,
     color: Int = 0xFFFFFF,
     scale: Float = 1.0f,
-    shadow: Boolean = false,
+    shadow: Boolean = true,
 ) {
-    val drawMethod: (PoseStack, Component, Float, Float, Int) -> Unit = if (shadow) this::draw else this::drawShadow
+    val drawMethod: (PoseStack, Component, Float, Float, Int) -> Unit = if (!shadow) this::draw else this::drawShadow
 
     stack.pushPose()
     stack.translate((x).toDouble(), (y).toDouble(), 0.0)
