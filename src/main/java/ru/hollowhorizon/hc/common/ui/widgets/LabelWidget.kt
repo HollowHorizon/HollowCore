@@ -25,6 +25,7 @@ class LabelWidget(
 ) : Widget() {
     var textOffsetX = 0
     var textOffsetY = 0
+    var shadow = true
 
     @OnlyIn(Dist.CLIENT)
     override fun renderWidget(
@@ -45,7 +46,7 @@ class LabelWidget(
             lines.forEachIndexed { i, line ->
                 val realWidth = (anchor.factor * widgetWidth).toInt()
                 val realHeight = widgetHeight / 2 - height / 2 + (font.lineHeight / 2 * scale).toInt()
-                font.drawScaled(stack, anchor, line, x + realWidth + textOffsetX, y + realHeight + i * (font.lineHeight * scale).toInt() + textOffsetY, color, scale)
+                font.drawScaled(stack, anchor, line, x + realWidth + textOffsetX, y + realHeight + i * (font.lineHeight * scale).toInt() + textOffsetY, color, scale, shadow)
             }
         }
     }
