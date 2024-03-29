@@ -15,6 +15,7 @@ val mod_group: String by project
 val mod_version: String by project
 val mappings_version: String by project
 val mod_author: String by project
+val imguiVersion: String by project
 
 val userConfig = Properties()
 val cfg = rootProject.file("user.properties")
@@ -114,6 +115,12 @@ dependencies {
     implementation(fg.deobf("curse.maven:architectury-api-419699:4555749"))
     compileOnly(fg.deobf("curse.maven:ftb-teams-forge-404468:4611938"))
     compileOnly(fg.deobf("curse.maven:firstperson:2.3.2"))
+
+    shadow("io.github.spair:imgui-java-binding:$imguiVersion")
+    shadow("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
+    shadow("io.github.spair:imgui-java-natives-windows:$imguiVersion")
+    shadow("io.github.spair:imgui-java-natives-linux:$imguiVersion")
+    shadow("io.github.spair:imgui-java-natives-macos:$imguiVersion")
 
     shadow("com.esotericsoftware:kryo:5.4.0")
 }

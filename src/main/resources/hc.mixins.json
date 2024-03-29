@@ -18,6 +18,7 @@
     "particles.MixinResourceLocation"
   ],
   "client": [
+    "RenderSystemMixin",
     "ScreenAccessor",
     "ShaderInstanceAccessor",
     "SoundManagerMixin",

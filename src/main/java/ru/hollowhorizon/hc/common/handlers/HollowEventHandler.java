@@ -22,7 +22,9 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.lwjgl.glfw.GLFW;
 import ru.hollowhorizon.hc.HollowCore;
+import ru.hollowhorizon.hc.client.screens.ImGuiScreen;
 import ru.hollowhorizon.hc.client.screens.widget.layout.BoxExampleKt;
+import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage;
 import ru.hollowhorizon.hc.common.ui.HollowMenuKt;
@@ -51,7 +53,7 @@ public class HollowEventHandler {
     @OnlyIn(Dist.CLIENT)
     public void onKeyPressed(InputEvent.Key event) {
         if (event.getKey() == GLFW.GLFW_KEY_V && Screen.hasShiftDown()) {
-            BoxExampleKt.example();
+            ForgeKotlinKt.open(new ImGuiScreen());
         }
     }
 

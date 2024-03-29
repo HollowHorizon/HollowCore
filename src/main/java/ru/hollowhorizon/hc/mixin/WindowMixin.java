@@ -1,12 +1,17 @@
 package ru.hollowhorizon.hc.mixin;
 
+import com.mojang.blaze3d.platform.DisplayData;
+import com.mojang.blaze3d.platform.ScreenManager;
 import com.mojang.blaze3d.platform.Window;
+import com.mojang.blaze3d.platform.WindowEventHandler;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.api.IAutoScaled;
+import ru.hollowhorizon.hc.client.imgui.ImguiLoader;
 import ru.hollowhorizon.hc.client.utils.JavaHacks;
 
 @Mixin(Window.class)
