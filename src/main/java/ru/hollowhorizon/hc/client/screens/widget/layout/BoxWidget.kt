@@ -191,7 +191,7 @@ class BoxWidget(
 class BoxBuilder(val x0: Int, val y0: Int, val maxWidth: Int, val maxHeight: Int) {
     val widgets: MutableList<AbstractWidget> = ArrayList()
     var align: IPlacement = Alignment.CENTER
-    var size: SizePair = 90.pc x 90.pc
+    var size: SizePair = 100.pc x 100.pc
 
     // Pos initializing using [left x right] structure
     var pos: SizePair = 0.px x 0.px
