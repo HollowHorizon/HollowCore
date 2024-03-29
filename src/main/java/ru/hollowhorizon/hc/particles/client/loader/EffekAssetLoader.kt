@@ -56,7 +56,7 @@ class EffekAssetLoader : SimplePreparableReloadListener<EffekAssetLoader.Prepara
                             }
                         )
                     }
-                    load(manager, name, effect.modelCount(), effect::getMaterialPath, effect::loadModel)
+                    load(manager, name, effect.modelCount(), effect::getModelPath, effect::loadModel)
                     load(manager, name, effect.curveCount(), effect::getCurvePath, effect::loadCurve)
                     load(manager, name, effect.materialCount(), effect::getMaterialPath, effect::loadMaterial)
                     return Optional.of(effect)
