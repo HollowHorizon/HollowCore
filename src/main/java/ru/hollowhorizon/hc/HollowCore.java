@@ -27,10 +27,9 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import ru.hollowhorizon.hc.client.HollowCoreClient;
 import ru.hollowhorizon.hc.client.handlers.TickHandler;
-import ru.hollowhorizon.hc.client.imgui.ImGuiExampleKt;
-import ru.hollowhorizon.hc.client.imgui.ImguiLoader;
-import ru.hollowhorizon.hc.client.imgui.ImguiLoaderKt;
+import ru.hollowhorizon.hc.client.imgui.ImguiHandler;
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager;
 import ru.hollowhorizon.hc.client.render.block.GLTFBlockEntityRenderer;
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer;
@@ -42,7 +41,6 @@ import ru.hollowhorizon.hc.common.handlers.HollowEventHandler;
 import ru.hollowhorizon.hc.common.network.NetworkHandler;
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity;
 import ru.hollowhorizon.hc.common.registry.*;
-import ru.hollowhorizon.hc.particles.EffekseerParticles;
 import thedarkcolour.kotlinforforge.forge.ForgeKt;
 
 
@@ -75,7 +73,9 @@ public class HollowCore {
             modBus.register(ModShaders.INSTANCE);
             modBus.addListener(ModParticles::onRegisterParticles);
 
-            RenderSystem.recordRenderCall(() -> ImguiLoader.INSTANCE.onGlfwInit(Minecraft.getInstance().getWindow().getWindow()));
+            RenderSystem.recordRenderCall(() -> ImguiHandler.INSTANCE.onGlfwInit(Minecraft.getInstance().getWindow().getWindow()));
+
+            var CLIENT = HollowCoreClient.INSTANCE;
         }
         new HollowEventHandler().init();
         //команды
@@ -89,10 +89,6 @@ public class HollowCore {
         forgeBus.addGenericListener(Level.class, CapabilityStorage::registerProvidersWorld);
         if (ModList.get().isLoaded("ftbteams"))
             forgeBus.addGenericListener(Team.class, CapabilityStorage::registerProvidersTeam);
-
-        /* MODULES */
-
-        var particles = EffekseerParticles.INSTANCE; //Initialization of particles
 
         RegistryLoader.registerAll();
     }

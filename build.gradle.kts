@@ -1,8 +1,7 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import net.minecraftforge.gradle.common.util.RunConfig
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import net.minecraftforge.gradle.userdev.UserDevExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.ir.backend.js.compile
 import org.spongepowered.asm.gradle.plugins.MixinExtension
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -82,25 +81,23 @@ configure<UserDevExtension> {
 }
 
 repositories {
-    mavenCentral()
-    maven { url = uri("https://jitpack.io") }
-    maven { url = uri("https://cursemaven.com") }
-    maven { url = uri("https://thedarkcolour.github.io/KotlinForForge/") }
+    maven("https://jitpack.io")
+    maven("https://cursemaven.com")
+    maven("https://thedarkcolour.github.io/KotlinForForge/")
     flatDir { dir("libs") }
+    mavenCentral()
 }
 
-val shadeKotlin by configurations.creating
+val shadow = configurations["shadow"]
 val library = configurations.create("library")
 
 configurations {
     library.extendsFrom(this["shadow"])
     implementation.get().extendsFrom(library)
-    compileOnly.get().extendsFrom(shadeKotlin)
 }
 
 dependencies {
     val minecraft = configurations["minecraft"]
-    val shadow = configurations["shadow"]
 
     minecraft("net.minecraftforge:forge:$minecraft_version-$forge_version")
 
@@ -121,12 +118,6 @@ dependencies {
     shadow("io.github.spair:imgui-java-natives-windows:$imguiVersion")
     shadow("io.github.spair:imgui-java-natives-linux:$imguiVersion")
     shadow("io.github.spair:imgui-java-natives-macos:$imguiVersion")
-
-    shadow("com.esotericsoftware:kryo:5.4.0")
-}
-
-if (System.getProperty("user.name").equals(userConfig.getProperty("user"))) {
-    tasks.getByName("build").finalizedBy("copyJar")
 }
 
 fun Jar.createManifest() = manifest {
@@ -149,7 +140,7 @@ configure<MixinExtension> {
 }
 
 val jar = tasks.named<Jar>("jar") {
-    archiveClassifier.set("")
+    archiveClassifier.set("dev")
     exclude(
         "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**",
         "META-INF/*.RSA", "META-INF/*.SF", "META-INF/versions/**"
@@ -158,37 +149,34 @@ val jar = tasks.named<Jar>("jar") {
     finalizedBy("reobfJar")
 }
 
-//val shadowJar = tasks.named<ShadowJar>("shadowJar") {
-//    archiveClassifier.set("")
-//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-//    configurations = listOf(library, shadeKotlin)
-//
-//    exclude(
-//        "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**",
-//        "META-INF/*.RSA", "META-INF/*.SF", "META-INF/versions/**"
-//    )
-//
-//    dependencies {
-//        exclude(dependency("net.java.dev.jna:jna"))
-//    }
-//
-//    exclude("**/module-info.class")
-//
-//    createManifest()
-//
-//    finalizedBy("reobfShadowJar")
-//}
+val shadowJar = tasks.named<ShadowJar>("shadowJar") {
+    archiveClassifier.set("")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    configurations = listOf(shadow)
 
-//(extensions["reobf"] as NamedDomainObjectContainer<*>).create("shadowJar")
-//tasks.getByName("build").dependsOn("shadowJar")
-//
-//tasks {
-//    whenTaskAdded {
-//        if (name == "prepareRuns") dependsOn(shadowJar)
-//    }
-//}
+    exclude(
+        "LICENSE.txt", "META-INF/MANIFSET.MF", "META-INF/maven/**",
+        "META-INF/*.RSA", "META-INF/*.SF", "META-INF/versions/**"
+    )
 
-val copyJar by tasks.registering(Copy::class) {
-    from(jar.flatMap(Jar::getArchiveFile).get().asFile)
-    into("../HollowEngine/hc")
+    dependencies {
+        exclude(dependency("org.lwjgl:lwjgl"))
+        exclude(dependency("org.lwjgl:lwjgl-glfw"))
+        exclude(dependency("org.lwjgl:lwjgl-opengl"))
+    }
+
+    exclude("**/module-info.class")
+
+    createManifest()
+
+    finalizedBy("reobfShadowJar")
+}
+
+(extensions["reobf"] as NamedDomainObjectContainer<*>).create("shadowJar")
+tasks.getByName("build").dependsOn("shadowJar")
+
+tasks {
+    whenTaskAdded {
+        if (name == "prepareRuns") dependsOn(shadowJar)
+    }
 }

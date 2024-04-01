@@ -8,7 +8,7 @@ import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.modules.SerializersModule
 import net.minecraft.nbt.*
-import ru.hollowhorizon.hc.mixin.ListTagAccessor
+import ru.hollowhorizon.hc.mixins.ListTagAccessor
 
 internal fun <T> NBTFormat.writeNbt(value: T, serializer: SerializationStrategy<T>): Tag {
     lateinit var result: Tag

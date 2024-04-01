@@ -33,8 +33,8 @@ fun test() = object : Renderable {
                     ImGuiWindowFlags.NoMove or
                     ImGuiWindowFlags.HorizontalScrollbar
         ) {
-            setWindowPos(500f, 0f)
-            setWindowSize(window.width - 500f, window.height.toFloat())
+            setWindowPos(window.width / 2f, 0f)
+            setWindowSize(window.width / 2f, window.height.toFloat())
             EDITOR.render("Редактор кода")
         }
 
@@ -48,7 +48,7 @@ fun test() = object : Renderable {
             setWindowPos(0f, 0f)
             setWindowSize(window.width.toFloat(), window.height.toFloat())
 
-            setWindowSize(500f, window.height.toFloat())
+            setWindowSize(window.width / 2f, window.height.toFloat())
 
             drawTree(File("C:\\Users\\Artem\\AppData\\Roaming\\.minecraft\\hollowengine"))
         }

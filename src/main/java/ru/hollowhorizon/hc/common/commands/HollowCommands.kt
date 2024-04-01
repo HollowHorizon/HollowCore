@@ -9,8 +9,8 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import ru.hollowhorizon.hc.client.render.particles.ParticlesExample
 import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
 import ru.hollowhorizon.hc.client.utils.rl
-import ru.hollowhorizon.hc.particles.api.common.ParticleEmitterInfo
-import ru.hollowhorizon.hc.particles.api.common.ParticleHelper
+import ru.hollowhorizon.hc.common.effects.ParticleEmitterInfo
+import ru.hollowhorizon.hc.common.effects.ParticleHelper
 
 object HollowCommands {
 
@@ -43,7 +43,7 @@ object HollowCommands {
 
                     val info =
                         ParticleEmitterInfo(particle.removeSuffix(".efkefc").rl).position(pos)
-                    ParticleHelper.addParticle(source.level, true, info)
+                    ParticleHelper.addParticle(source.level, info, true)
 
                 }
 
@@ -60,7 +60,7 @@ object HollowCommands {
                             ParticleEmitterInfo(particle.removeSuffix(".efkefc").rl)
                                 .bindOnEntity(it)
                                 .apply { bindOnTarget(target) }
-                        ParticleHelper.addParticle(source.level, true, info)
+                        ParticleHelper.addParticle(source.level, info, true)
                     }
 
 

@@ -12,13 +12,11 @@ inline fun begin(text: String = "", params: Int = 0, action: () -> Unit) {
 }
 
 fun setWindowSize(width: Float, height: Float) {
-    val guiScale = Minecraft.getInstance().window.guiScale.toFloat()
-    ImGui.setWindowSize(width * guiScale, height * guiScale)
+    ImGui.setWindowSize(width, height)
 }
 
 fun setWindowPos(x: Float, y: Float) {
-    val guiScale = Minecraft.getInstance().window.guiScale.toFloat()
-    ImGui.setWindowPos(x * guiScale, y * guiScale)
+    ImGui.setWindowPos(x, y)
 }
 
 inline fun treeNode(text: String = "", params: Int = 0, action: () -> Unit) {
