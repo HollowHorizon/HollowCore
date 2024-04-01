@@ -20,10 +20,10 @@ import static org.lwjgl.opengl.GL11.*;
 
 @Mixin(GameRenderer.class)
 public class MixinGameRenderer {
-    @Shadow @Final public ItemInHandRenderer itemInHandRenderer;
-    @Shadow @Final
+    @Shadow(aliases = "f_109055_") @Final public ItemInHandRenderer itemInHandRenderer;
+    @Shadow(aliases = "f_109059_") @Final
     private Minecraft minecraft;
-    @Shadow private boolean renderHand;
+    @Shadow(aliases = "f_109070_") private boolean renderHand;
 
     @Inject(method = "renderLevel", at = @At("TAIL"))
     private void renderLevelTail(float partial, long l, PoseStack poseStack, CallbackInfo ci) {

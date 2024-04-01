@@ -28,7 +28,7 @@ import static ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.copy
 
 @Mixin(value = ItemInHandRenderer.class, priority = 1005)
 public class MixinItemInHandRenderer implements EffekFpvRenderer {
-    @Shadow
+    @Shadow(aliases = "f_109299_")
     @Final
     private Minecraft minecraft;
 

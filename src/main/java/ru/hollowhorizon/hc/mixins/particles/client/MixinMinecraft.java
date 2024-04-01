@@ -18,7 +18,7 @@ public class MixinMinecraft {
         RenderStateCapture.CAPTURED_HAND_DEPTH_BUFFER.resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
     }
 
-    @Shadow
+    @Shadow(aliases = "f_90990_")
     @Final
     private Window window;
 
