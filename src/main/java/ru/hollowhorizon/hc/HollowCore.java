@@ -1,7 +1,9 @@
 package ru.hollowhorizon.hc;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import dev.ftb.mods.ftbteams.data.Team;
 import net.minecraft.SharedConstants;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
@@ -18,16 +20,16 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
-import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import ru.hollowhorizon.hc.client.HollowCoreClient;
 import ru.hollowhorizon.hc.client.handlers.TickHandler;
+import ru.hollowhorizon.hc.client.imgui.ImguiHandler;
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager;
 import ru.hollowhorizon.hc.client.render.block.GLTFBlockEntityRenderer;
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer;
@@ -70,6 +72,10 @@ public class HollowCore {
             modBus.addListener(this::onRendererCreating);
             modBus.register(ModShaders.INSTANCE);
             modBus.addListener(ModParticles::onRegisterParticles);
+
+            RenderSystem.recordRenderCall(() -> ImguiHandler.INSTANCE.onGlfwInit(Minecraft.getInstance().getWindow().getWindow()));
+
+            var CLIENT = HollowCoreClient.INSTANCE;
         }
         new HollowEventHandler().init();
         //команды

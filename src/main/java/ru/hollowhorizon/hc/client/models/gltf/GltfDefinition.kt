@@ -188,8 +188,8 @@ data class GltfAccessor(
 
 data class GltfSparse(
     val count: Int = 0,
-    val indices: List<GltfAccessor> = emptyList(),
-    val values: List<GltfAccessor> = emptyList(),
+    val indices: GltfAccessor?,
+    val values: GltfAccessor?,
     val extensions: String? = null,
     val extras: Any? = null,
 )

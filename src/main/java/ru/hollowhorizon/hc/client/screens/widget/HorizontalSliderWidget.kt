@@ -3,16 +3,19 @@ package ru.hollowhorizon.hc.client.screens.widget
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
+import ru.hollowhorizon.hc.client.screens.widget.layout.SmoothScrolling
+import ru.hollowhorizon.hc.client.utils.math.Interpolation
 import ru.hollowhorizon.hc.client.utils.mcText
 
 
 class HorizontalSliderWidget(x: Int, y: Int, width: Int, height: Int, private val texture: ResourceLocation) :
     HollowWidget(x, y, width, height, "".mcText),
     IOriginBlackList {
-    private var maxWidth = 0
-    private var xWidth = 0
+    var maxWidth = 0
+    var xWidth = 0
     private var isClicked = false
-    private var consumer: (Float) -> Unit = {}
+    private var consumer: (Float, Float) -> Unit = { _, _ -> }
+    var smoothScrolling: SmoothScrolling? = null
 
     init {
         require(width >= height) { "Height must be less than width, it's a horizontal slider! Not a vertical one!" }
@@ -20,8 +23,10 @@ class HorizontalSliderWidget(x: Int, y: Int, width: Int, height: Int, private va
 
     override fun init() {
         super.init()
-        maxWidth = width - 20
-        xWidth = x + 10
+        if (maxWidth == 0) {
+            maxWidth = width - 20
+            xWidth = x + 10
+        }
     }
 
     override fun setWidth(p_230991_1_: Int) {
@@ -42,10 +47,12 @@ class HorizontalSliderWidget(x: Int, y: Int, width: Int, height: Int, private va
     }
 
     override fun renderButton(stack: PoseStack, mouseX: Int, mouseY: Int, ticks: Float) {
+        if (smoothScrolling?.update() == true) smoothScrolling = null
         super.renderButton(stack, mouseX, mouseY, ticks)
         if (isClicked) {
+            val old = scroll
             xWidth = clamp(mouseX)
-            consumer.invoke(scroll)
+            consumer(old, (xWidth - x - 10) / (maxWidth + 0f))
         }
         bind(texture)
 
@@ -84,11 +91,17 @@ class HorizontalSliderWidget(x: Int, y: Int, width: Int, height: Int, private va
     var scroll: Float
         get() = (xWidth - x - 10) / (maxWidth + 0f)
         set(modifier) {
-            xWidth = clamp(x + (maxWidth * modifier).toInt() + 10)
-            consumer.invoke(scroll)
+            if (isClicked) return
+            val old = scroll
+            smoothScrolling = SmoothScrolling(
+                startValue = old, endValue = modifier, duration = 5, interpolation = Interpolation.LINEAR
+            ) { float ->
+                xWidth = clamp(x + (maxWidth * float).toInt() + 10)
+            }
+            consumer.invoke(old, modifier)
         }
 
-    fun onValueChange(consumer: (Float) -> Unit) {
+    fun onValueChange(consumer: (Float, Float) -> Unit) {
         this.consumer = consumer
     }
 

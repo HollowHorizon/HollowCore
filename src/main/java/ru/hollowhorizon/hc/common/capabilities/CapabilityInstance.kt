@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.common.capabilities
 import dev.ftb.mods.ftbteams.data.Team
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
@@ -93,7 +94,18 @@ open class CapabilityInstance : ICapabilitySerializable<Tag> {
 
     override fun deserializeNBT(nbt: Tag) {
         properties.forEach { if (it.deserialize(nbt as? CompoundTag ?: return)) nbt.remove(it.defaultName) }
-        notUsedTags = nbt as? CompoundTag ?: return
+        val tag = nbt as? CompoundTag ?: return
+        notUsedTags.mergeData(tag)
+    }
+
+    fun CompoundTag.mergeData(other: CompoundTag) {
+        other.allKeys.forEach { key ->
+            when (val value = this[key]) {
+                is ListTag -> value.addAll(other[key] as ListTag)
+                is CompoundTag -> value.mergeData(other[key] as CompoundTag)
+                else -> this.put(key, other[key] ?: return)
+            }
+        }
     }
 
     inline fun <reified T : Any> syncableList(list: MutableList<T> = ArrayList()) =

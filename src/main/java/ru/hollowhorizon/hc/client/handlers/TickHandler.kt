@@ -7,14 +7,23 @@ import net.minecraftforge.event.TickEvent
 import net.minecraftforge.event.TickEvent.ClientTickEvent
 import net.minecraftforge.event.TickEvent.ServerTickEvent
 import ru.hollowhorizon.hc.client.utils.isLogicalClient
+import kotlin.time.Duration
 
 object TickHandler {
     @JvmField
     var ticksNotPaused = 0
+
     @JvmField
     var clientTicks = 0
+
     @JvmField
     var serverTicks = 0
+
+    val lazyCurrentTicks get() = lazy { currentTicks() }
+    val currentTicks get() = currentTicks()
+    val partialTicks get() = Minecraft.getInstance().partialTick
+
+    fun computeTime(startTime: Int, duration: Int): Float = (currentTicks - startTime + partialTicks) / duration
 
     @JvmStatic
     @OnlyIn(Dist.CLIENT)
@@ -30,5 +39,5 @@ object TickHandler {
         if (event.phase == TickEvent.Phase.END) serverTicks++
     }
 
-    fun currentTicks() = if(isLogicalClient) ticksNotPaused else serverTicks
+    fun currentTicks() = if (isLogicalClient) clientTicks else serverTicks
 }

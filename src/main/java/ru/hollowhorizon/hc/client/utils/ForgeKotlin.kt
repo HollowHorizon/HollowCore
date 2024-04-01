@@ -178,8 +178,8 @@ fun Font.drawScaled(
     stack.scale(scale, scale, 0F)
     when (anchor) {
         Anchor.CENTER -> drawMethod(stack, text, -this.width(text) / 2f, -this.lineHeight / 2f, color)
-        Anchor.END -> drawMethod(stack, text, -this.width(text).toFloat(), 0f, color)
-        Anchor.START -> drawMethod(stack, text, 0f, 0f, color)
+        Anchor.END -> drawMethod(stack, text, -this.width(text).toFloat(), -this.lineHeight / 2f, color)
+        Anchor.START -> drawMethod(stack, text, 0f, -this.lineHeight / 2f, color)
     }
     stack.popPose()
 }

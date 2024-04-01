@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import ru.hollowhorizon.hc.client.screens.widget.HollowWidget;
 import ru.hollowhorizon.hc.client.screens.widget.layout.ILayoutConsumer;
 import ru.hollowhorizon.hc.common.ui.Alignment;
-import ru.hollowhorizon.hc.mixin.ScreenAccessor;
+import ru.hollowhorizon.hc.mixins.ScreenAccessor;
 
 public class HollowScreen extends Screen implements ILayoutConsumer {
     private TextureManager textureManager;

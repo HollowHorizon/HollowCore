@@ -229,6 +229,7 @@ open class Widget : IWidget {
     val mouse get() = ScreenPosition.Mouse(false)
     operator fun ScreenPosition.plus(other: ScreenPosition) = ScreenPosition.Addition(this, other)
     operator fun ScreenPosition.minus(other: ScreenPosition) = ScreenPosition.Subtraction(this, other)
+    operator fun ScreenPosition.unaryMinus() = ScreenPosition.Negate(this)
 
     operator fun plusAssign(widget: Widget) {
         widgets += widget

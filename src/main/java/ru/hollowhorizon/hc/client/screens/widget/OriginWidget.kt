@@ -22,22 +22,15 @@ open class OriginWidget(x: Int, y: Int, width: Int, height: Int) : HollowWidget(
     open var canScale = true
     val maxHeight: Int
         get() {
-            var min = this.y
-            for (widget in widgets) {
-                if (widget.y < min) min = widget.y
-            }
-
-            var max = min
-            for (widget in widgets) {
-                if (widget.y + widget.height > max) max = widget.y + widget.height
-            }
-            return max - min - this.height - this.y
+            val min = widgets.minOfOrNull { it.y } ?: this.y
+            val max = widgets.maxOfOrNull { it.y + it.height } ?: min
+            return max - min
         }
     val maxWidth: Int
         get() {
             val min = widgets.minOfOrNull { it.x } ?: this.x
             val max = widgets.maxOfOrNull { it.x + it.width } ?: min
-            return max - min - this.width - this.x
+            return max - min
         }
 
 

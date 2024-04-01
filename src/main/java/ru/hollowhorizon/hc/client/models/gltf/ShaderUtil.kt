@@ -2,19 +2,11 @@ package ru.hollowhorizon.hc.client.models.gltf
 
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.math.Matrix3f
-import com.mojang.math.Vector4f
-import net.coderbot.iris.Iris
 import net.minecraft.client.renderer.GameRenderer
-import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.ShaderInstance
-import net.minecraft.client.renderer.texture.TextureManager
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL11.GL_CCW
-import org.lwjgl.opengl.GL11.GL_CW
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL33
-import ru.hollowhorizon.hc.mixin.ShaderInstanceAccessor
+import ru.hollowhorizon.hc.mixins.ShaderInstanceAccessor
 
 
 inline fun drawWithShader(
