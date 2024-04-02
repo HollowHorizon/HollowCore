@@ -28,9 +28,6 @@ import static ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.copy
 
 @Mixin(value = ItemInHandRenderer.class, priority = 1005)
 public class MixinItemInHandRenderer implements EffekFpvRenderer {
-    @Shadow(aliases = "f_109299_")
-    @Final
-    private Minecraft minecraft;
 
     @Inject(method = "renderArmWithItem", at = @At("HEAD"))
     private void resetCaptureState(AbstractClientPlayer player, float f, float g, InteractionHand hand, float h, ItemStack itemStack, float i, PoseStack poseStack, MultiBufferSource multiBufferSource, int j, CallbackInfo ci) {
@@ -68,7 +65,7 @@ public class MixinItemInHandRenderer implements EffekFpvRenderer {
     public void hollowcore$renderFpvEffek(float partial, @NotNull LocalPlayer player) {
         var oldProjection = RenderSystem.getProjectionMatrix();
 
-        var camera = minecraft.gameRenderer.getMainCamera();
+        var camera = Minecraft.getInstance().gameRenderer.getMainCamera();
         Captures.INSTANCE.getCAPTURES().forEach((hand, capture) -> {
             if (capture.hasCapture && capture.item != null) {
                 RenderSystem.setProjectionMatrix(capture.projection);
