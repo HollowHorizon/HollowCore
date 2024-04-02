@@ -29,6 +29,7 @@ import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.isPhysicalClient
 import ru.hollowhorizon.hc.common.objects.blocks.IBlockProperties
 import thedarkcolour.kotlinforforge.forge.MOD_CONTEXT
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
@@ -150,12 +151,12 @@ class RegistryHolder<T>(private val config: ObjectConfig, supplier: () -> T, val
 }
 
 object RegistryLoader {
-    private val REGISTRIES: HashMap<IForgeRegistry<*>, HashMap<String, DeferredRegister<*>>> = hashMapOf()
+    private val REGISTRIES: MutableMap<IForgeRegistry<*>, MutableMap<String, DeferredRegister<*>>> = ConcurrentHashMap()
 
     @Suppress("UNCHECKED_CAST")
     fun <B> getRegistry(registryType: IForgeRegistry<B>, modId: String): DeferredRegister<B> {
 
-        val registriesFor = REGISTRIES.computeIfAbsent(registryType) { hashMapOf() }
+        val registriesFor = REGISTRIES.computeIfAbsent(registryType) { ConcurrentHashMap() }
 
         val registry = registriesFor.computeIfAbsent(modId) {
             DeferredRegister.create(registryType, modId)
