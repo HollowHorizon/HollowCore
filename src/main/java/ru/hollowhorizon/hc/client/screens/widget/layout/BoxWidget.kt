@@ -83,7 +83,7 @@ class BoxWidget(
         super.renderButton(stack, mouseX, mouseY, ticks)
         ScissorUtil.pop()
 
-        if (!HollowCore.DEBUG_MODE) {
+        if (HollowCore.DEBUG_MODE) {
             //box
             DrawUtils.drawBounds(
                 stack, this.x, this.y, this.x + this.width, this.y + this.height, 1, 0xFFFFFFFF.toInt()
