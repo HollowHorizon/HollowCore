@@ -20,10 +20,6 @@ class EntityNodePickerScreen : HollowScreen() {
         pPoseStack.translate(width / 2.0, height / 2.0, 100.0)
         pPoseStack.scale(100f, 100f, -100f)
 
-        model.render(pPoseStack, ModelData(null, null, null, null), {
-            Minecraft.getInstance().textureManager.getTexture(it).id
-        }, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY)
-        if (clicked) model.pickColor(pPoseStack, pMouseX.toDouble(), pMouseY.toDouble())
         pPoseStack.popPose()
     }
 

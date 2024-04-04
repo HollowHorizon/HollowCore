@@ -49,6 +49,7 @@ open class ParticleEmitterInfo : Cloneable {
     open var hasBoundEntity: Boolean = false
     open var isHeadSpace: Boolean = false
     private var target = ""
+    private var target2 = ""
     open var hasTarget: Boolean = false
     open var rotateTarget: Boolean = false
     var dynamic0 = 0f
@@ -115,6 +116,11 @@ open class ParticleEmitterInfo : Cloneable {
 
     fun bindOnTarget(target: String) {
         this.target = target
+        hasTarget = true
+    }
+
+    fun bindOnTarget2(target: String) {
+        this.target2 = target
         hasTarget = true
     }
 
@@ -223,6 +229,17 @@ open class ParticleEmitterInfo : Cloneable {
                                     esY += pos.y().toDouble()
                                     esZ += pos.z().toDouble()
                                 }
+
+                                if(this.target2.isNotEmpty()) {
+                                    model.findPosition(this.target2, target as LivingEntity)?.let {
+                                        val pos = Vector4f(0f, 0f, 0f, 1f).apply { transform(it) }
+
+                                        dynamic0 = (pos.x() - esX).toFloat()
+                                        dynamic1 = (pos.y() - esY).toFloat()
+                                        dynamic2 = (pos.z() - esZ).toFloat()
+                                    }
+                                }
+
                                 if (rotateTarget) {
                                     val rot = model.findRotation(this.target).toXYZ()
                                     rotX += rot.x()

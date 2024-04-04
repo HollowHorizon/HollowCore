@@ -15,6 +15,7 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.registry.ModShaders
 import java.io.ByteArrayInputStream
@@ -318,13 +319,12 @@ object GltfTree {
 
         val textureId = material.pbrMetallicRoughness?.baseColorTexture?.index ?: -1
 
-        if (textureId == -1)
-            return if (material.name != null) Material(
-                color,
-                ResourceLocation(MODID, "textures/models/${material.name}.png".lowercase()),
-                doubleSided = material.doubleSided
-            )
-            else Material(color, doubleSided = material.doubleSided)
+        if (textureId == -1) return if (material.name != null) Material(
+            color,
+            ResourceLocation(MODID, "textures/models/${material.name}.png".lowercase()),
+            doubleSided = material.doubleSided
+        )
+        else Material(color, doubleSided = material.doubleSided)
 
         val texture =
             getTexture(file, bufferViews, location, folder, textureId) ?: ResourceLocation("hc:default_color_map")
@@ -534,10 +534,6 @@ object GltfTree {
         fun transformSkinning(stack: PoseStack) {
             nodes.forEach { it.transformSkinning(stack) }
         }
-
-        fun pickColor(stack: PoseStack, mouseX: Double, mouseY: Double) {
-            nodes.forEach { it.pickColor(stack, mouseX, mouseY) }
-        }
     }
 
     class Node(
@@ -607,8 +603,10 @@ object GltfTree {
                 }
             }
 
-            if (hasFirstPersonModel && dev.tr7zw.firstperson.api.FirstPersonAPI.isRenderingPlayer()
-                && name?.contains("head", ignoreCase = true) == true
+            if (hasFirstPersonModel && dev.tr7zw.firstperson.api.FirstPersonAPI.isRenderingPlayer() && name?.contains(
+                    "head",
+                    ignoreCase = true
+                ) == true
             ) return
 
             stack.use {
@@ -653,16 +651,6 @@ object GltfTree {
 
         fun fromLocal(transform: Transformation): Transformation {
             return baseTransform.copy().apply { add(transform) }
-        }
-
-        fun pickColor(stack: PoseStack, mouseX: Double, mouseY: Double) {
-            stack.use {
-                mulPoseMatrix(localMatrix)
-
-                mesh?.pickColor(this@Node, stack, mouseX, mouseY)
-
-                children.forEach { it.pickColor(stack, mouseX, mouseY) }
-            }
         }
 
 
@@ -725,12 +713,6 @@ object GltfTree {
         fun transformSkinning(node: Node, stack: PoseStack) {
             primitives.filter { it.hasSkinning }.forEach { it.transformSkinning(node, stack) }
         }
-
-        fun pickColor(node: Node, stack: PoseStack, mouseX: Double, mouseY: Double) {
-            primitives.forEach {
-                it.pickColor(node, stack, mouseX, mouseY)
-            }
-        }
     }
 
     data class Primitive(
@@ -740,7 +722,6 @@ object GltfTree {
         val material: Material,
     ) {
         val hasSkinning = attributes[GltfAttribute.JOINTS_0] != null && attributes[GltfAttribute.WEIGHTS_0] != null
-        val hasMidTexCoords = attributes[GltfAttribute.TEXCOORD_1] != null
         private val indexCount = indices?.get<Int>()?.size ?: 0
         private val positionsCount = (attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.size ?: 0) * 3
         var jointCount = 0
@@ -805,13 +786,15 @@ object GltfTree {
                 }
                 attributes[GltfAttribute.TANGENT]?.get<Vector4f>()?.run {
                     val tangents = BufferUtils.createFloatBuffer(this.size * 4)
-                    for (t in this) tangents.put(t.x()).put(t.y()).put(t.z()).put(t.w())
+                    for (t in this) {
+                        tangents.put(t.x()).put(t.y()).put(t.z()).put(t.w())
+                    }
                     tangents.flip()
 
                     tangentBuffer = GL33.glGenBuffers()
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, tangentBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, tangents, GL33.GL_STATIC_DRAW)
-                    GL33.glVertexAttribPointer(8, 4, GL33.GL_FLOAT, false, 0, 0)
+                    GL33.glVertexAttribPointer(9, 4, GL33.GL_FLOAT, false, 0, 0)
                 }
             } else {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
@@ -831,9 +814,15 @@ object GltfTree {
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 0, 0)
 
+                if(attributes[GltfAttribute.TEXCOORD_1] == null) {
+                    midCoordsBuffer = GL33.glGenBuffers()
+                    GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, midCoordsBuffer)
+                    GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
+                    GL33.glVertexAttribPointer(8, 2, GL33.GL_FLOAT, false, 0, 0)
+                }
             }
 
-            if (hasMidTexCoords) {
+            if (attributes[GltfAttribute.TEXCOORD_1] != null) {
                 attributes[GltfAttribute.TEXCOORD_1]?.get<Pair<Float, Float>>()?.run {
                     val texCords = BufferUtils.createFloatBuffer(this.size * 2)
                     for (t in this) texCords.put(t.first).put(t.second)
@@ -842,7 +831,7 @@ object GltfTree {
                     midCoordsBuffer = GL33.glGenBuffers()
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, midCoordsBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
-                    GL33.glVertexAttribPointer(7, 2, GL33.GL_FLOAT, false, 0, 0)
+                    GL33.glVertexAttribPointer(8, 2, GL33.GL_FLOAT, false, 0, 0)
 
                 }
             }
@@ -870,11 +859,7 @@ object GltfTree {
 
             attributes[GltfAttribute.JOINTS_0]?.get<Vector4f>()?.run {
                 val joints = BufferUtils.createIntBuffer(this.size * 4)
-                for (n in this) joints
-                    .put(n.x().toInt())
-                    .put(n.y().toInt())
-                    .put(n.z().toInt())
-                    .put(n.w().toInt())
+                for (n in this) joints.put(n.x().toInt()).put(n.y().toInt()).put(n.z().toInt()).put(n.w().toInt())
                 joints.flip()
 
                 jointBuffer = GL33.glGenBuffers()
@@ -950,11 +935,7 @@ object GltfTree {
             val texture = consumer(material.texture)
 
             if (!node.isAllHovered()) GL33.glVertexAttrib4f(
-                1,
-                material.color.x(),
-                material.color.y(),
-                material.color.z(),
-                material.color.w()
+                1, material.color.x(), material.color.y(), material.color.z(), material.color.w()
             )
             else GL33.glVertexAttrib4f(1, 0f, 0.45f, 1f, 1f)
 
@@ -975,6 +956,8 @@ object GltfTree {
                 }
             }
 
+            GL13.glActiveTexture(COLOR_MAP_INDEX + 2)
+            GL13.glBindTexture(GL33.GL_TEXTURE_2D, GltfManager.lightTexture.id)
             GL13.glActiveTexture(COLOR_MAP_INDEX)
             GL33.glBindTexture(GL33.GL_TEXTURE_2D, texture)
 
@@ -983,14 +966,13 @@ object GltfTree {
             GL33.glBindVertexArray(vao)
             if (indexBuffer != -1) GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
 
-            GL33.glEnableVertexAttribArray(0) // Вершины
+            GL33.glEnableVertexAttribArray(0) // Вершины (или цвет)
             GL33.glEnableVertexAttribArray(2) // Текстурные координаты
             GL33.glEnableVertexAttribArray(5) // Нормали
-            if (tangentBuffer != -1) GL33.glEnableVertexAttribArray(8) //Тангенты
-            if (hasMidTexCoords) GL20.glEnableVertexAttribArray(7) //координаты для глубины (pbr)
+            if (tangentBuffer != -1) GL33.glEnableVertexAttribArray(9) //Тангенты
+            if (hasShaders) GL20.glEnableVertexAttribArray(8) //координаты для глубины (pbr)
 
-            val modelView = RenderSystem.getModelViewMatrix().copy()
-                .apply { multiply(stack.last().pose()) }
+            val modelView = RenderSystem.getModelViewMatrix().copy().apply { multiply(stack.last().pose()) }
 
             //Матрица
             shader.MODEL_VIEW_MATRIX?.set(modelView)
@@ -1028,8 +1010,8 @@ object GltfTree {
             GL33.glDisableVertexAttribArray(0)
             GL33.glDisableVertexAttribArray(2)
             GL33.glDisableVertexAttribArray(5)
-            if (tangentBuffer != -1) GL33.glDisableVertexAttribArray(8)
-            if (hasMidTexCoords) GL20.glDisableVertexAttribArray(7)
+            if (tangentBuffer != -1) GL33.glDisableVertexAttribArray(9)
+            if (hasShaders) GL20.glDisableVertexAttribArray(8)
         }
 
         fun transformSkinning(node: Node, stack: PoseStack) {
@@ -1093,76 +1075,6 @@ object GltfTree {
 
             GL30.glDeleteBuffers(skinVertexBuffer)
             GL30.glDeleteBuffers(skinNormalBuffer)
-        }
-
-        fun pickColor(node: Node, stack: PoseStack, mouseX: Double, mouseY: Double) {
-            val shader = ModShaders.GLTF_ENTITY_COLOR_PICK
-            //Всякие настройки смешивания, материалы и т.п.
-
-            HollowCore.LOGGER.warn("input: {} {}", node.index, node.index / 1000f)
-            GL33.glVertexAttrib4f(1, node.index.toFloat(), 1f, 1f, 1.0f)
-            //pbr, отражения и т.п.
-//            if(hasShaders) {
-//                RenderSystem.setShaderTexture(2, material.normalTexture)
-//                RenderSystem.setShaderTexture(3, material.specularTexture)
-//
-//                GL13.glActiveTexture(GL13.GL_TEXTURE2)
-//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(2))
-//                GL13.glActiveTexture(GL13.GL_TEXTURE3)
-//                GL11.glBindTexture(GL11.GL_TEXTURE_2D, RenderSystem.getShaderTexture(3))
-//            }
-
-            GL13.glActiveTexture(GL13.GL_TEXTURE0)
-
-            if (material.doubleSided) GL11.glEnable(GL11.GL_CULL_FACE)
-
-            //Подключение VAO и IBO
-            GL33.glBindVertexArray(vao)
-            GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
-
-            GL33.glEnableVertexAttribArray(0) // Вершины
-            GL33.glEnableVertexAttribArray(2) // Текстурные координаты
-            GL33.glEnableVertexAttribArray(5) // Нормали
-            if (hasMidTexCoords) GL20.glEnableVertexAttribArray(8) //координаты для глубины (pbr)
-
-            //Матрица
-            shader.MODEL_VIEW_MATRIX?.set(
-                RenderSystem.getModelViewMatrix().copy().apply { multiply(stack.last().pose()) })
-            shader.MODEL_VIEW_MATRIX?.upload()
-
-            //Нормали
-            shader.getUniform("NormalMat")?.let {
-                it.set(stack.last().normal())
-                it.upload()
-            }
-
-            //Отрисовка
-            GL33.glDrawElements(GL33.GL_TRIANGLES, indexCount, GL33.GL_UNSIGNED_INT, 0L)
-
-            //Отключение параметров выше
-            GL33.glDisableVertexAttribArray(0)
-            GL33.glDisableVertexAttribArray(2)
-            GL33.glDisableVertexAttribArray(5)
-            if (hasMidTexCoords) GL20.glDisableVertexAttribArray(8)
-
-            val colorBuffer = BufferUtils.createByteBuffer(4) // RGBA
-            GL30.glReadPixels(
-                mouseX.toInt(),
-                mouseY.toInt(),
-                Minecraft.getInstance().window.guiScaledWidth,
-                Minecraft.getInstance().window.guiScaledHeight,
-                GL_RGBA,
-                GL33.GL_UNSIGNED_BYTE,
-                colorBuffer
-            )
-
-            HollowCore.LOGGER.warn(
-                "{} {} {} {}",
-                colorBuffer[0],
-                colorBuffer[1],
-                colorBuffer[2],
-                colorBuffer[3]
-            )
         }
     }
 

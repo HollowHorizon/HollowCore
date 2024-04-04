@@ -35,7 +35,7 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
         if (entity.isShiftKeyDown) currentSpeed *= 0.6f
         head.forEach {
             val newRot = capability.headLayer.computeRotation(entity, switchRot, partialTick)
-            it.transform.addRotation(newRot)
+            it.transform.addRotationRight(newRot)
         }
     }
 

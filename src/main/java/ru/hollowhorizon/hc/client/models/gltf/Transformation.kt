@@ -124,13 +124,21 @@ data class Transformation(
     fun addRotation(array: Quaternion) {
 
         val res = rotation
-        //Рубрика: угадай сколько часов потребовалось чтобы понять, что нужно использовать этот метод
+        //Рубрика: угадай сколько часов потребовалось, чтобы понять, что нужно использовать этот метод
         res.mulLeft(array)
         rotationX = res.i()
         rotationY = res.j()
         rotationZ = res.k()
         rotationW = res.r()
+    }
 
+    fun addRotationRight(array: Quaternion) {
+        val res = rotation
+        res.mul(array)
+        rotationX = res.i()
+        rotationY = res.j()
+        rotationZ = res.k()
+        rotationW = res.r()
     }
 
     fun setRotation(array: Quaternion?) {

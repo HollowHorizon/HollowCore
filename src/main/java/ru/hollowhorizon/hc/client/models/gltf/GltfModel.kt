@@ -107,16 +107,6 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         GL33.glDisable(GL33.GL_RASTERIZER_DISCARD)
     }
 
-    fun pickColor(stack: PoseStack, mouseX: Double, mouseY: Double) {
-        transformSkinning(stack)
-
-        ModShaders.GLTF_ENTITY_COLOR_PICK.apply()
-        GL33.glEnable(GL33.GL_RASTERIZER_DISCARD)
-        modelTree.scenes.forEach { it.pickColor(stack, mouseX, mouseY) }
-        GL33.glDisable(GL33.GL_RASTERIZER_DISCARD)
-        ModShaders.GLTF_ENTITY_COLOR_PICK.clear()
-    }
-
     fun destroy() {
         modelTree.walkNodes().mapNotNull { it.mesh }.flatMap { it.primitives }.forEach(GltfTree.Primitive::destroy)
     }
