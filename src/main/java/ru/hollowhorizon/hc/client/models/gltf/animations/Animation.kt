@@ -7,8 +7,6 @@ import kotlinx.serialization.Serializable
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.Transformation
 import ru.hollowhorizon.hc.client.models.gltf.animations.interpolations.Interpolator
-import ru.hollowhorizon.hc.client.models.gltf.animations.interpolations.QuatStep
-import ru.hollowhorizon.hc.client.models.gltf.animations.interpolations.Vec3Step
 
 class Animation(val name: String, private val animationData: Map<GltfTree.Node, AnimationData>) {
     val maxTime = animationData.values.maxOf { it.maxTime }
@@ -18,8 +16,9 @@ class Animation(val name: String, private val animationData: Map<GltfTree.Node, 
             val t = it.translation?.compute(currentTime)
             val r = it.rotation?.compute(currentTime)
             val s = it.scale?.compute(currentTime)
+            val w = it.weights?.compute(currentTime)?.toList() ?: ArrayList()
 
-            node.toLocal(Transformation(t, r, s))
+            node.toLocal(Transformation(t, r, s, weights = w))
         }
     }
 
@@ -103,11 +102,13 @@ class AnimationData(
     val translation: Interpolator<Vector3f>?,
     val rotation: Interpolator<Quaternion>?,
     val scale: Interpolator<Vector3f>?,
+    val weights: Interpolator<FloatArray>?,
 ) {
     val maxTime = maxOf(
         translation?.maxTime ?: 0f,
         rotation?.maxTime ?: 0f,
         scale?.maxTime ?: 0f,
+        weights?.maxTime ?: 0f
     )
 }
 

@@ -24,6 +24,7 @@ data class Transformation(
     var hasTranslation: Boolean = true,
     var hasRotation: Boolean = true,
     var hasScale: Boolean = true,
+    var weights: List<Float> = ArrayList(),
     @Transient
     private val matrix: Matrix4f = Matrix4f().apply(Matrix4f::setIdentity),
 ) {
@@ -55,6 +56,9 @@ data class Transformation(
             scaleX *= transform.scaleX
             scaleY *= transform.scaleY
             scaleZ *= transform.scaleZ
+        }
+        if(transform.weights.isNotEmpty()) {
+            weights = transform.weights
         }
 
         hasTranslation = transform.hasTranslation
@@ -91,6 +95,10 @@ data class Transformation(
             scaleX = transform.scaleX / scaleX
             scaleY = transform.scaleY / scaleY
             scaleZ = transform.scaleZ / scaleZ
+        }
+
+        if(transform.weights.isNotEmpty()) {
+            weights = transform.weights
         }
 
         hasTranslation = transform.hasTranslation
@@ -173,6 +181,9 @@ data class Transformation(
             scaleY = transformation.scaleY
             scaleZ = transformation.scaleZ
         }
+        if(transformation.weights.isNotEmpty()) {
+            weights = transformation.weights
+        }
     }
 
     fun set(transformationMap: Map<Transformation, Float>) {
@@ -198,12 +209,13 @@ data class Transformation(
         rotation: Quaternion? = Quaternion(0.0f, 0.0f, 0.0f, 1.0f),
         scale: Vector3f? = Vector3f(1.0f, 1.0f, 1.0f),
         matrix: Matrix4f = Matrix4f().apply(Matrix4f::setIdentity),
+        weights: List<Float> = ArrayList(),
     ) : this(
         translation?.x() ?: 0f, translation?.y() ?: 0f, translation?.z() ?: 0f,
         rotation?.i() ?: 0f, rotation?.j() ?: 0f, rotation?.k() ?: 0f, rotation?.r() ?: 1f,
         scale?.x() ?: 1f, scale?.y() ?: 1f, scale?.z() ?: 1f,
         translation != null, rotation != null, scale != null,
-        matrix
+        weights, matrix
     )
 
     fun getMatrix(): Matrix4f {

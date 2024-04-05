@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
-import com.mojang.blaze3d.platform.GlConst.GL_RGBA
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
@@ -15,6 +14,7 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.client.models.gltf.animations.array
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.registry.ModShaders
@@ -292,16 +292,52 @@ object GltfTree {
                     Pair(GltfAttribute.valueOf(k), accessors[v])
                 }.toMap()
 
+                val morphTargets = prim.targets.map { attribs ->
+                    attribs.filter { it.key in attributes }.map { (k, v) ->
+                        val attribute = GltfAttribute.valueOf(k)
+                        val buffer = accessors[v]
+                        val array = ArrayList<Float>()
+
+                        when (attribute) {
+                            GltfAttribute.POSITION, GltfAttribute.NORMAL, GltfAttribute.TANGENT -> {
+                                buffer.get<Vector3f>().forEach {
+                                    array.add(it.x())
+                                    array.add(it.y())
+                                    array.add(it.z())
+                                }
+                            }
+
+                            GltfAttribute.COLOR_0, GltfAttribute.JOINTS_0, GltfAttribute.JOINTS_1, GltfAttribute.WEIGHTS_0 -> {
+                                buffer.get<Vector4f>().forEach {
+                                    array.add(it.x())
+                                    array.add(it.y())
+                                    array.add(it.z())
+                                    array.add(it.w())
+                                }
+                            }
+
+                            GltfAttribute.TEXCOORD_0, GltfAttribute.TEXCOORD_1 -> {
+                                buffer.get<Pair<Float, Float>>().forEach {
+                                    array.add(it.first)
+                                    array.add(it.second)
+                                }
+                            }
+                        }
+
+                        Pair(attribute, array.toFloatArray())
+                    }.toMap()
+                }
+
                 val indices = prim.indices?.let { accessors[it] }
                 val mode = GltfMode.fromId(prim.mode)
 
                 val material = getMaterial(file, prim.material, bufferViews, location, folder)
                 textures += material
 
-                Primitive(attr, indices, mode, material)
+                Primitive(attr, indices, mode, material, morphTargets)
             }
 
-            Mesh(primitives)
+            Mesh(primitives, mesh.weights)
         }
     }
 
@@ -440,8 +476,10 @@ object GltfTree {
 
     private fun parseNode(file: GltfFile, nodeIndex: Int, node: GltfNode, meshes: List<Mesh>, skins: List<Skin>): Node {
         val children = node.children.map { parseNode(file, it, file.nodes[it], meshes, skins) }
-        val mesh = node.mesh?.let {
-            meshes[it].apply {
+        val weights = ArrayList<Float>()
+        val mesh = node.mesh?.let { index ->
+            meshes[index].apply {
+                weights.addAll(this.weights.map { it.toFloat() })
                 if (node.skin != null) {
                     this.primitives.forEach { p -> p.jointCount = skins[node.skin].jointsIds.size }
                 }
@@ -454,6 +492,7 @@ object GltfTree {
             translation = node.translation ?: Vector3f(),
             rotation = node.rotation ?: Quaternion(0.0f, 0.0f, 0.0f, 1.0f),
             scale = node.scale ?: Vector3f(1.0f, 1.0f, 1.0f),
+            weights = weights,
             matrix = node.matrix ?: Matrix4f().apply(Matrix4f::setIdentity)
         )
 
@@ -699,6 +738,7 @@ object GltfTree {
 
     data class Mesh(
         val primitives: List<Primitive>,
+        val weights: List<Double>,
     ) {
         fun render(
             node: Node,
@@ -720,11 +760,13 @@ object GltfTree {
         val indices: Buffer? = null,
         val mode: GltfMode,
         val material: Material,
+        val morphTargets: List<Map<GltfAttribute, FloatArray>> = ArrayList(),
     ) {
         val hasSkinning = attributes[GltfAttribute.JOINTS_0] != null && attributes[GltfAttribute.WEIGHTS_0] != null
         private val indexCount = indices?.get<Int>()?.size ?: 0
         private val positionsCount = (attributes[GltfAttribute.POSITION]?.get<Vector3f>()?.size ?: 0) * 3
         var jointCount = 0
+        val morphCommands = ArrayList<(FloatArray) -> Unit>()
 
         private var vao = -1
         private var skinningVao = -1
@@ -767,16 +809,45 @@ object GltfTree {
                     for (n in this) positions.put(n.x()).put(n.y()).put(n.z())
                     positions.flip()
 
+                    morphCommands += { array ->
+                        for (i in 0 until this.size * 3) {
+                            var value = this[i/3].array()[i % 3]
+                            array.forEachIndexed { j, shapeKey ->
+                                morphTargets[j][GltfAttribute.POSITION]?.let {
+                                    value += it[i] * shapeKey
+                                }
+                            }
+                            positions.put(i, value)
+                        }
+
+                        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
+                        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, positions, GL33.GL_STATIC_DRAW)
+                    }
+
                     vertexBuffer = GL33.glGenBuffers()
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, positions, GL33.GL_STATIC_DRAW)
                     GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0)
-
                 }
+
                 attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
                     val normals = BufferUtils.createFloatBuffer(this.size * 3)
                     for (n in this) normals.put(n.x()).put(n.y()).put(n.z())
                     normals.flip()
+
+                    morphCommands += { array ->
+                        for (i in 0 until this.size * 3) {
+                            var value = this[i/3].array()[i % 3]
+                            array.forEachIndexed { j, percent ->
+                                morphTargets[j][GltfAttribute.NORMAL]?.let {
+                                    value += it[i] * percent
+                                }
+                            }
+                            normals.put(i, value)
+                        }
+                        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
+                        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
+                    }
 
                     normalBuffer = GL33.glGenBuffers()
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
@@ -790,6 +861,20 @@ object GltfTree {
                         tangents.put(t.x()).put(t.y()).put(t.z()).put(t.w())
                     }
                     tangents.flip()
+
+                    morphCommands += { array ->
+                        for (i in 0 until this.size * 3) {
+                            var value = this[i/3].array()[i % 3]
+                            array.forEachIndexed { j, percent ->
+                                morphTargets[j][GltfAttribute.TANGENT]?.let {
+                                    value += it[i] * percent
+                                }
+                            }
+                            tangents.put(i, value)
+                        }
+                        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, tangentBuffer)
+                        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, tangents, GL33.GL_STATIC_DRAW)
+                    }
 
                     tangentBuffer = GL33.glGenBuffers()
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, tangentBuffer)
@@ -814,7 +899,7 @@ object GltfTree {
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 0, 0)
 
-                if(attributes[GltfAttribute.TEXCOORD_1] == null) {
+                if (attributes[GltfAttribute.TEXCOORD_1] == null) {
                     midCoordsBuffer = GL33.glGenBuffers()
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, midCoordsBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
@@ -929,6 +1014,8 @@ object GltfTree {
             node: Node,
             consumer: (ResourceLocation) -> Int,
         ) {
+            if (morphTargets.isNotEmpty()) updateMorphTargets(node)
+
             val hasShaders = areShadersEnabled
             val shader = if (hasShaders) ENTITY_SHADER else ModShaders.GLTF_ENTITY
             //Всякие настройки смешивания, материалы и т.п.
@@ -1012,6 +1099,12 @@ object GltfTree {
             GL33.glDisableVertexAttribArray(5)
             if (tangentBuffer != -1) GL33.glDisableVertexAttribArray(9)
             if (hasShaders) GL20.glDisableVertexAttribArray(8)
+        }
+
+        private fun updateMorphTargets(node: Node) {
+            val weights = node.transform.weights.toFloatArray()
+
+            morphCommands.forEach { it(weights) }
         }
 
         fun transformSkinning(node: Node, stack: PoseStack) {
@@ -1124,7 +1217,7 @@ object GltfTree {
 val NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE = IdentityHashMap<GltfTree.Node, Matrix4f>()
 
 fun main() {
-    val tree = GltfTree.parse("hc:models/entity/boom_box.gltf".rl)
+    val tree = GltfTree.parse("hc:models/entity/morph.gltf".rl)
 
     println(tree)
 }

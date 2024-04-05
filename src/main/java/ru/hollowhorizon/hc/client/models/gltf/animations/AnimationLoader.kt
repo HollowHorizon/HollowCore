@@ -23,10 +23,31 @@ object AnimationLoader {
             val timeKeys = channel.times.toFloatArray()
 
             val target = AnimationTarget.valueOf(channel.path.toString().uppercase())
+
+            var values = channel.values
+
+            if(target == AnimationTarget.WEIGHTS) {
+                val componentCount = model.findNodeByIndex(channel.node)?.mesh?.weights?.size ?: 0
+
+                fun splitListByN(list: List<Float>, n: Int): List<FloatArray> {
+                    val result = mutableListOf<FloatArray>()
+                    var startIndex = 0
+                    while (startIndex < list.size) {
+                        val endIndex = kotlin.math.min(startIndex + n, list.size)
+                        val subList = list.subList(startIndex, endIndex).toFloatArray()
+                        result.add(subList)
+                        startIndex = endIndex
+                    }
+                    return result
+                }
+
+                values = splitListByN(values as List<Float>, componentCount)
+            }
+
             return@map Pair(target, readAnimationData(
                 channel.interpolation,
                 target,
-                channel.values,
+                values,
                 timeKeys
             ).apply {
                 this.node = model.findNodeByIndex(channel.node)
@@ -42,7 +63,8 @@ object AnimationLoader {
                 key,
                 values.find { it.first == AnimationTarget.TRANSLATION }?.second as? Interpolator<Vector3f>,
                 values.find { it.first == AnimationTarget.ROTATION }?.second as? Interpolator<Quaternion>,
-                values.find { it.first == AnimationTarget.SCALE }?.second as? Interpolator<Vector3f>
+                values.find { it.first == AnimationTarget.SCALE }?.second as? Interpolator<Vector3f>,
+                values.find { it.first == AnimationTarget.WEIGHTS }?.second as? Interpolator<FloatArray>
             )
         }
 
@@ -67,7 +89,7 @@ object AnimationLoader {
             AnimationTarget.TRANSLATION -> Vec3Step(keys, outputData.map { it as Vector3f }.toTypedArray())
             AnimationTarget.ROTATION -> QuatStep(keys, outputData.map { (it as Vector4f).asQuaternion }.toTypedArray())
             AnimationTarget.SCALE -> Vec3Step(keys, outputData.map { it as Vector3f }.toTypedArray())
-            else -> throw UnsupportedOperationException("")
+            AnimationTarget.WEIGHTS -> LinearSingle(keys, outputData.map { it as FloatArray }.toTypedArray())
         }
     }
 
@@ -80,8 +102,7 @@ object AnimationLoader {
             AnimationTarget.TRANSLATION -> Linear(keys, outputData.map { it as Vector3f }.toTypedArray())
             AnimationTarget.ROTATION -> SphericalLinear(keys, outputData.map { (it as Vector4f).asQuaternion }.toTypedArray())
             AnimationTarget.SCALE -> Linear(keys, outputData.map { it as Vector3f }.toTypedArray())
-            AnimationTarget.WEIGHTS -> LinearSingle(keys, outputData.map { it as Float }.toTypedArray())
-            else -> throw UnsupportedOperationException("Unknown target: $target")
+            AnimationTarget.WEIGHTS -> LinearSingle(keys, outputData.map { it as FloatArray }.toTypedArray())
         }
     }
 }
