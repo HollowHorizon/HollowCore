@@ -4,6 +4,9 @@ import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.*
+import net.coderbot.iris.vertices.NormI8
+import net.coderbot.iris.vertices.NormalHelper
+import net.coderbot.iris.vertices.TriView
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
@@ -811,7 +814,7 @@ object GltfTree {
 
                     morphCommands += { array ->
                         for (i in 0 until this.size * 3) {
-                            var value = this[i/3].array()[i % 3]
+                            var value = this[i / 3].array()[i % 3]
                             array.forEachIndexed { j, shapeKey ->
                                 morphTargets[j][GltfAttribute.POSITION]?.let {
                                     value += it[i] * shapeKey
@@ -837,7 +840,7 @@ object GltfTree {
 
                     morphCommands += { array ->
                         for (i in 0 until this.size * 3) {
-                            var value = this[i/3].array()[i % 3]
+                            var value = this[i / 3].array()[i % 3]
                             array.forEachIndexed { j, percent ->
                                 morphTargets[j][GltfAttribute.NORMAL]?.let {
                                     value += it[i] * percent
@@ -853,7 +856,6 @@ object GltfTree {
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
                     GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
-
                 }
                 attributes[GltfAttribute.TANGENT]?.get<Vector4f>()?.run {
                     val tangents = BufferUtils.createFloatBuffer(this.size * 4)
@@ -864,7 +866,7 @@ object GltfTree {
 
                     morphCommands += { array ->
                         for (i in 0 until this.size * 3) {
-                            var value = this[i/3].array()[i % 3]
+                            var value = this[i / 3].array()[i % 3]
                             array.forEachIndexed { j, percent ->
                                 morphTargets[j][GltfAttribute.TANGENT]?.let {
                                     value += it[i] * percent
