@@ -52,6 +52,7 @@ object ImguiHandler {
         io.iniFilename = null
         io.addBackendFlags(ImGuiBackendFlags.HasSetMousePos)
         io.addConfigFlags(ImGuiConfigFlags.NavEnableKeyboard); // Enable Keyboard Controls
+        io.addConfigFlags(ImGuiConfigFlags.DockingEnable); // Enable Docking
         io.configViewportsNoTaskBarIcon = true
 
         val fontAtlas = io.fonts
