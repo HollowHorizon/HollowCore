@@ -1,9 +1,9 @@
 package ru.hollowhorizon.hc.client.imgui
 
+import imgui.ImGui
 import imgui.extension.texteditor.TextEditor
 import imgui.extension.texteditor.TextEditorLanguageDefinition
 import imgui.flag.ImGuiTreeNodeFlags
-import imgui.flag.ImGuiWindowFlags
 import imgui.type.ImInt
 import imgui.type.ImString
 import net.minecraft.client.Minecraft
@@ -27,31 +27,9 @@ fun test() = object : Renderable {
     override fun render() {
         val window = Minecraft.getInstance().window
 
-        begin(
-            "Редактор кода", ImGuiWindowFlags.NoCollapse or
-                    ImGuiWindowFlags.NoResize or
-                    ImGuiWindowFlags.NoMove or
-                    ImGuiWindowFlags.HorizontalScrollbar
-        ) {
-            setWindowPos(window.width / 2f, 0f)
-            setWindowSize(window.width / 2f, window.height.toFloat())
-            EDITOR.render("Редактор кода")
-        }
-
-        begin(
-            "ОКНО", ImGuiWindowFlags.NoCollapse or
-                    ImGuiWindowFlags.NoResize or
-                    ImGuiWindowFlags.NoMove or
-                    ImGuiWindowFlags.NoTitleBar or
-                    ImGuiWindowFlags.HorizontalScrollbar
-        ) {
-            setWindowPos(0f, 0f)
-            setWindowSize(window.width.toFloat(), window.height.toFloat())
-
-            setWindowSize(window.width / 2f, window.height.toFloat())
-
-            drawTree(File("C:\\Users\\Artem\\AppData\\Roaming\\.minecraft\\hollowengine"))
-        }
+        ImGui.begin("Test")
+        ImGui.text("Hello, world! 📁")
+        ImGui.end()
     }
 
     fun drawTree(file: File) {

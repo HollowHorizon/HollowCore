@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.client.screens
 
 import com.mojang.blaze3d.vertex.PoseStack
+import ru.hollowhorizon.hc.client.imgui.ImguiHandler
 
 import ru.hollowhorizon.hc.client.imgui.Renderable
 import ru.hollowhorizon.hc.client.imgui.test
@@ -9,7 +10,7 @@ import ru.hollowhorizon.hc.client.imgui.test
 class ImGuiScreen(private val renderable: Renderable = test()) : HollowScreen() {
     var mouseClicked = false
     override fun render(pPoseStack: PoseStack, pMouseX: Int, pMouseY: Int, pPartialTick: Float) {
-
+        ImguiHandler.drawFrame(renderable)
     }
 
     override fun charTyped(pCodePoint: Char, pModifiers: Int): Boolean {

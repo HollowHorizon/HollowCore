@@ -7,8 +7,8 @@ import net.minecraft.client.Minecraft
 inline fun begin(text: String = "", params: Int = 0, action: () -> Unit) {
     if(ImGui.begin(text, params)) {
         action()
-        ImGui.end()
     }
+    ImGui.end()
 }
 
 fun setWindowSize(width: Float, height: Float) {
