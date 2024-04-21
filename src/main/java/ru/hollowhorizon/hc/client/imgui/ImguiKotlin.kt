@@ -27,6 +27,8 @@ package ru.hollowhorizon.hc.client.imgui
 import imgui.ImGui
 import imgui.flag.ImGuiTreeNodeFlags
 import net.minecraft.client.Minecraft
+import net.minecraft.resources.ResourceLocation
+import ru.hollowhorizon.hc.client.utils.toTexture
 
 inline fun begin(text: String = "", params: Int = 0, action: () -> Unit) {
     if(ImGui.begin(text, params)) {
@@ -48,4 +50,8 @@ inline fun treeNode(text: String = "", params: Int = 0, action: () -> Unit) {
         action()
         if(params and ImGuiTreeNodeFlags.SpanFullWidth == 0) ImGui.treePop()
     }
+}
+
+fun image(texture: ResourceLocation, width: Float, height: Float) {
+    ImGui.image(texture.toTexture().id, width, height)
 }

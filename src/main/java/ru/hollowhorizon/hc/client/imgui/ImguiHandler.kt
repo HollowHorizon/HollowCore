@@ -24,11 +24,15 @@
 
 package ru.hollowhorizon.hc.client.imgui
 
+import imgui.ImFont
 import imgui.ImFontConfig
 import imgui.ImFontGlyphRangesBuilder
 import imgui.ImGui
 import imgui.extension.imnodes.ImNodes
-import imgui.flag.*
+import imgui.flag.ImGuiBackendFlags
+import imgui.flag.ImGuiCol
+import imgui.flag.ImGuiConfigFlags
+import imgui.flag.ImGuiFreeTypeBuilderFlags
 import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
 import net.minecraft.client.Minecraft
@@ -41,6 +45,7 @@ object ImguiHandler {
     val imGuiGlfw = ImGuiImplGlfw()
     val imGuiGl3 = ImGuiImplGl3()
     var windowHandle: Long = 0
+    val FONTS = hashMapOf<Int, ImFont>()
 
     fun onGlfwInit(handle: Long) {
         initializeImGui(handle)
@@ -61,9 +66,13 @@ object ImguiHandler {
         ImGui.newFrame()
         ImGui.setNextWindowViewport(ImGui.getMainViewport().id)
 
+        ImGui.pushFont(FONTS[Minecraft.getInstance().window.guiScale.toInt().coerceAtMost(6)])
+
         renderable.getTheme()?.preRender()
         renderable.render()
         renderable.getTheme()?.postRender()
+
+        ImGui.popFont()
 
         ImGui.render()
         endFrame()
@@ -82,17 +91,33 @@ object ImguiHandler {
         val fontAtlas = io.fonts
         val fontConfig = ImFontConfig()
         val rangesBuilder = ImFontGlyphRangesBuilder().apply {
+            addRanges(fontAtlas.glyphRangesDefault)
             addRanges(fontAtlas.glyphRangesCyrillic)
+            addRanges(fontAtlas.glyphRangesJapanese)
+            addRanges(FontAwesomeIcons._IconRange)
         }
         fontConfig.oversampleH = 1
         fontConfig.oversampleV = 1
         fontConfig.fontBuilderFlags = ImGuiFreeTypeBuilderFlags.LoadColor
-        fontAtlas.addFontFromMemoryTTF(
-            "hc:fonts/monocraft.ttf".rl.stream.readAllBytes(),
-            32f,
-            fontConfig,
-            rangesBuilder.buildRanges()
-        )
+
+        val ranges = rangesBuilder.buildRanges()
+
+        fun loadFont(i: Int, size: Float) {
+            FONTS[i] = fontAtlas.addFontFromMemoryTTF(
+                "hc:fonts/monocraft.ttf".rl.stream.readAllBytes(), size, fontConfig, ranges
+            )
+            fontConfig.mergeMode = true
+            fontAtlas.addFontFromMemoryTTF("hc:fonts/fa_regular.ttf".rl.stream.readAllBytes(), size, fontConfig, ranges)
+            fontAtlas.addFontFromMemoryTTF("hc:fonts/fa_solid.ttf".rl.stream.readAllBytes(), size, fontConfig, ranges)
+            fontConfig.mergeMode = false
+        }
+
+        loadFont(6, 64f)
+        loadFont(5, 48f)
+        loadFont(4, 40f)
+        loadFont(3, 30f)
+        loadFont(2, 20f)
+        loadFont(1, 12f)
 
         fontConfig.pixelSnapH = true
         fontConfig.destroy()

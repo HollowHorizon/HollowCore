@@ -49,11 +49,12 @@ private val EDITOR = TextEditor().apply {
 
 fun test() = object : Renderable {
     override fun render() {
-        val window = Minecraft.getInstance().window
-
-        ImGui.begin("Test")
-        ImGui.text("Hello, world! 📁")
-        ImGui.end()
+        if(ImGui.treeNodeEx(FontAwesomeIcons.Folder + " text")) {
+            if(ImGui.treeNodeEx(FontAwesomeIcons.Folder + " text2")) {
+                ImGui.treePop()
+            }
+            ImGui.treePop()
+        }
     }
 
     fun drawTree(file: File) {
