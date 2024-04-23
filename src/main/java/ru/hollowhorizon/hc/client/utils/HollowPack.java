@@ -129,8 +129,15 @@ public class HollowPack implements PackResources {
     @Override
     public <T> T getMetadataSection(MetadataSectionSerializer<T> pDeserializer) {
         if (pDeserializer.getMetadataSectionName().equals("pack")) {
-            JsonObject obj = new JsonObject();
-            obj.addProperty("pack_format", 8);
+            //var - java 16 feature
+            var obj = new JsonObject();
+            var supportedFormats = com.google.gson.JsonArray();
+            supportedFormats.add(6); // mc 1.16.2-rc1 - 1.16.5
+            supportedFormats.add(7); // mc 1.17 - 1.17.1
+            supportedFormats.add(8); // mc 1.18 - 1.18.2
+            supportedFormats.add(9); // mc 1.19.2 - 1.19.3
+            obj.addProperty("pack_format", 9);
+            obj.add("supported_formats", supportedFormats);
             obj.addProperty("description", "Generated resources for HollowCore");
             return pDeserializer.fromJson(obj);
         }
