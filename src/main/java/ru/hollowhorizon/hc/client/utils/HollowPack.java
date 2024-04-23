@@ -131,7 +131,7 @@ public class HollowPack implements PackResources {
         if (pDeserializer.getMetadataSectionName().equals("pack")) {
             //var - java 16 feature
             var obj = new JsonObject();
-            var supportedFormats = com.google.gson.JsonArray();
+            var supportedFormats = new com.google.gson.JsonArray();
             supportedFormats.add(6); // mc 1.16.2-rc1 - 1.16.5
             supportedFormats.add(7); // mc 1.17 - 1.17.1
             supportedFormats.add(8); // mc 1.18 - 1.18.2
