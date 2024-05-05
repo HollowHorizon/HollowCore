@@ -70,12 +70,18 @@ fun <T : HollowPacketV3<T>> registerPacket(packetClass: Class<T>, modId: String)
             { packet: T, buffer: FriendlyByteBuf ->
                 val tag = NBTFormat.serializeNoInline(packet, packetClass)
                 if (tag is CompoundTag) buffer.writeNbt(tag)
-                else buffer.writeNbt(CompoundTag().apply { put("%%data", tag) })
+                else buffer.writeNbt(CompoundTag().apply { put("data", tag) })
             },
             { buffer: FriendlyByteBuf ->
-                val tag = buffer.readNbt() ?: throw IllegalStateException("Can't decode ${packetClass.name} packet!")
-                if (tag.contains("%%data")) NBTFormat.deserializeNoInline(tag.get("%%data")!!, packetClass)
-                else NBTFormat.deserializeNoInline(tag, packetClass)
+                try {
+                    val tag = buffer.readNbt() ?: throw IllegalStateException("NBT is null")
+                    if (tag.contains("data")) NBTFormat.deserializeNoInline(tag.get("%%data")!!, packetClass)
+                    else NBTFormat.deserializeNoInline(tag, packetClass)
+                } catch (e: Exception) {
+                    // Без этого эта ошибка затеряется фиг пойми где, а так будет хоть какая-то информация
+                    HollowCore.LOGGER.error("Can't decode ${packetClass.name} packet!", e)
+                    throw e
+                }
             },
             { packet: T, ctx: Supplier<NetworkEvent.Context> ->
                 ctx.get().apply {

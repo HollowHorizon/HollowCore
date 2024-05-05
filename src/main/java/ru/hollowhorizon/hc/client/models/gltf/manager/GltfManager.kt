@@ -24,6 +24,8 @@
 
 package ru.hollowhorizon.hc.client.models.gltf.manager
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.AbstractTexture
 import net.minecraft.resources.ResourceLocation
@@ -37,6 +39,7 @@ import org.lwjgl.opengl.GL30
 import ru.hollowhorizon.hc.client.models.gltf.GltfModel
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.textures.GIF_TEXTURES
+import ru.hollowhorizon.hc.client.utils.stream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -53,7 +56,6 @@ object GltfManager {
     @JvmStatic
     fun onReload(event: RegisterClientReloadListenersEvent) {
         lightTexture = Minecraft.getInstance().getTextureManager().getTexture(ResourceLocation("dynamic/light_map_1"))
-
         val currentTexture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
 
         val defaultColorMap = GL11.glGenTextures()
@@ -113,6 +115,13 @@ object GltfManager {
         event.registerReloadListener(ResourceManagerReloadListener {
             models.values.forEach { it.destroy() }
             models.clear()
+
+            it.listResources("models") { it.path.endsWith(".gltf") or it.path.endsWith(".glb") }.keys.forEach {
+                getOrCreate(
+                    it
+                )
+            }
+
             GIF_TEXTURES.forEach { it.value.releaseId() }
             GIF_TEXTURES.clear()
         })

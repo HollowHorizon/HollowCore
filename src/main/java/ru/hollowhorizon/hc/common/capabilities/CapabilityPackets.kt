@@ -78,7 +78,7 @@ class SSyncEntityCapabilityPacket(
                 data.entityId,
                 data.capability,
                 data.value
-            ).send(PacketDistributor.TRACKING_ENTITY.with { entity })
+            ).send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with { entity })
         }
     }
 
