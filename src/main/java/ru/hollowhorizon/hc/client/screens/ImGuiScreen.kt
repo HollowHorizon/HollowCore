@@ -34,6 +34,7 @@ import ru.hollowhorizon.hc.client.imgui.test
 class ImGuiScreen(private val renderable: Renderable = test()) : HollowScreen() {
     var mouseClicked = false
     override fun render(pPoseStack: PoseStack, pMouseX: Int, pMouseY: Int, pPartialTick: Float) {
+        renderBackground(pPoseStack)
         ImguiHandler.drawFrame(renderable)
     }
 

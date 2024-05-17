@@ -180,3 +180,13 @@ tasks {
         if (name == "prepareRuns") dependsOn(shadowJar)
     }
 }
+
+val copyJar by tasks.registering(Copy::class) {
+    from(shadowJar.flatMap(Jar::getArchiveFile).get().asFile)
+    into("../HollowEngine/hc")
+}
+
+
+if (System.getProperty("user.name").equals(userConfig.getProperty("user"))) {
+    tasks.getByName("shadowJar").finalizedBy("copyJar")
+}

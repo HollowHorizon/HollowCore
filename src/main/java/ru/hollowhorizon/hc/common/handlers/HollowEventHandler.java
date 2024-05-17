@@ -73,7 +73,7 @@ public class HollowEventHandler {
         }
     }
 
-    //@SubscribeEvent
+    @SubscribeEvent
     @OnlyIn(Dist.CLIENT)
     public void onKeyPressed(InputEvent.Key event) {
         if (event.getKey() == GLFW.GLFW_KEY_V && Screen.hasShiftDown()) {

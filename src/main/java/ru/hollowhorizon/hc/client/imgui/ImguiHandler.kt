@@ -62,6 +62,8 @@ object ImguiHandler {
     }
 
     fun drawFrame(renderable: Renderable) {
+        imguiBuffer.clear(Minecraft.ON_OSX)
+        Minecraft.getInstance().mainRenderTarget.bindWrite(true)
         imGuiGlfw.newFrame()
         ImGui.newFrame()
         ImGui.setNextWindowViewport(ImGui.getMainViewport().id)
@@ -76,6 +78,9 @@ object ImguiHandler {
 
         ImGui.render()
         endFrame()
+
+        buffers.forEach { it.destroyBuffers() }
+        DockingHelper.DOCKING_ID = 0
     }
 
     private fun initializeImGui(glHandle: Long) {
