@@ -21,11 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package ru.hollowhorizon.hc.common.objects.tiles
 
-package ru.hollowhorizon.hc.common.registry
+import net.minecraft.core.BlockPos
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket
+import net.minecraft.world.level.block.entity.BlockEntity
+import net.minecraft.world.level.block.entity.BlockEntityType
+import net.minecraft.world.level.block.state.BlockState
 
-import ru.hollowhorizon.hc.common.objects.blocks.SaveObeliskBlock
 
-object ModBlocks : HollowRegistry() {
-    val SAVE_OBELISK_BLOCK by register("save_obelisk_block") { SaveObeliskBlock() }
+abstract class HollowTileEntity protected constructor(
+    tileEntityType: BlockEntityType<*>,
+    pos: BlockPos,
+    state: BlockState,
+) : BlockEntity(tileEntityType, pos, state) {
+    override fun getUpdateTag() = CompoundTag().apply(::saveNBT)
+
+    override fun getUpdatePacket(): ClientboundBlockEntityDataPacket = ClientboundBlockEntityDataPacket.create(this)
+
+    override fun load(nbt: CompoundTag) {
+        super.load(nbt)
+        loadNBT(nbt)
+    }
+
+    abstract fun saveNBT(nbt: CompoundTag)
+    abstract fun loadNBT(nbt: CompoundTag)
 }

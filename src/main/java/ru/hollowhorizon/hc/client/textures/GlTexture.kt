@@ -22,11 +22,14 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.common.objects.blocks;
+package ru.hollowhorizon.hc.client.textures
 
+import net.minecraft.client.renderer.texture.AbstractTexture
+import net.minecraft.server.packs.resources.ResourceManager
 
-import net.minecraft.world.item.Item;
-
-public interface IBlockProperties {
-    Item.Properties getProperties();
+class GlTexture(id: Int): AbstractTexture() {
+    init {
+        this.id = id
+    }
+    override fun load(pResourceManager: ResourceManager) {}
 }

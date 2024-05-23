@@ -21,17 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package ru.hollowhorizon.hc
 
-package ru.hollowhorizon.hc.common.registry
+import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.loading.FMLEnvironment
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
+import ru.hollowhorizon.hc.client.HollowCoreClient
+import ru.hollowhorizon.hc.common.HollowCoreCommon
+import ru.hollowhorizon.hc.common.registry.HollowModProcessor.initMod
+import ru.hollowhorizon.hc.common.registry.RegistryLoader.registerAll
 
-import net.minecraft.world.level.block.entity.BlockEntityType
-import ru.hollowhorizon.hc.common.objects.tiles.SaveObeliskTile
+@Mod(HollowCore.MODID)
+object HollowCore {
+    const val MODID: String = "hc"
 
-object ModTileEntities : HollowRegistry() {
-    val SAVE_OBELISK_TILE by register {
-        BlockEntityType.Builder.of(
-            ::SaveObeliskTile,
-            ModBlocks.SAVE_OBELISK_BLOCK.get()
-        ).build(promise())
+    @JvmField
+    val LOGGER: Logger = LogManager.getLogger()
+    const val DEBUG_MODE: Boolean = false
+
+
+    init {
+        LOGGER.info("Starting HollowCore...")
+        if (FMLEnvironment.dist.isClient) HollowCoreClient
+        HollowCoreCommon
+
+        initMod()
+        registerAll()
     }
 }

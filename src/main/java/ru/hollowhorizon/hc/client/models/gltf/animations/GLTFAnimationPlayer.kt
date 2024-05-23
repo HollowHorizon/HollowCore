@@ -83,7 +83,6 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
 
         rawPose?.update(currentTick, partialTick)
 
-        //TODO: Вот так складывать Map'ы каждый кадр не хорошо, возможно стоит сделать какое-нибудь кеширование?
         val animationOverrides = typeToAnimationMap + capability.animations.mapNotNull {
             it.key to (nameToAnimationMap[it.value] ?: return@mapNotNull null)
         }.toMap()

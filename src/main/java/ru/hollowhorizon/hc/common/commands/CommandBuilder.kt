@@ -92,6 +92,6 @@ fun <T> arg(name: String, type: ArgumentType<T>, suggests: Collection<Int>): Req
         builder.buildFuture()
     }
 
-fun CommandDispatcher<CommandSourceStack>.register(builder: CommandBuilder.() -> Unit) {
+fun CommandDispatcher<CommandSourceStack>.onRegisterCommands(builder: CommandBuilder.() -> Unit) {
     builder(CommandBuilder(this))
 }

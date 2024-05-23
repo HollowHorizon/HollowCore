@@ -36,14 +36,36 @@ import ru.hollowhorizon.hc.client.render.effekseer.EffekseerEffect
 import ru.hollowhorizon.hc.client.render.effekseer.TextureType
 import ru.hollowhorizon.hc.client.render.effekseer.EffectDefinition
 import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer
-import ru.hollowhorizon.hc.client.utils.LimitlessResourceLocation
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.util.*
 import java.util.function.BiConsumer
 import java.util.function.IntFunction
 
-class EffekAssetLoader : SimplePreparableReloadListener<EffekAssetLoader.Preparations>() {
+object EffekAssets : SimplePreparableReloadListener<EffekAssets.Preparations>() {
+    private const val DIRECTORY = "effeks"
+    private const val FILE_TYPE = ".efkefc"
+
+    private fun getResourceOrUseFallbackPath(
+        manager: ResourceManager,
+        path: ResourceLocation,
+        fallback: ResourceLocation,
+    ): Optional<Resource> {
+        return manager.getResource(path).or { manager.getResource(fallback) }
+    }
+
+    private fun createEffekName(location: ResourceLocation): ResourceLocation {
+        var filePath = location.path
+        if (filePath.startsWith("$DIRECTORY/")) filePath = filePath.substring("$DIRECTORY/".length)
+        if (filePath.endsWith(FILE_TYPE) || filePath.endsWith(".efkpkg")) filePath =
+            filePath.substring(0, filePath.length - FILE_TYPE.length)
+
+        return ResourceLocation(location.namespace, filePath)
+    }
+
+    private val LOGGER: Logger = LogManager.getLogger(
+        EffekAssets::class.java.simpleName
+    )
 
     private val loadedEffects: MutableMap<ResourceLocation, EffectDefinition> = LinkedHashMap()
 
@@ -102,8 +124,8 @@ class EffekAssetLoader : SimplePreparableReloadListener<EffekAssetLoader.Prepara
             val fallbackMcAssetPath =
                 "$DIRECTORY/${name.path.substringBeforeLast('/')}/$effekAssetPath".replace('\\', '/').replace("//", "/")
 
-            val main = LimitlessResourceLocation(modid, mcAssetPath)
-            val fallback = LimitlessResourceLocation(modid, fallbackMcAssetPath)
+            val main = ResourceLocation(modid, mcAssetPath)
+            val fallback = ResourceLocation(modid, fallbackMcAssetPath)
             val resource = getResourceOrUseFallbackPath(
                 manager,
                 main,
@@ -121,7 +143,7 @@ class EffekAssetLoader : SimplePreparableReloadListener<EffekAssetLoader.Prepara
         }
     }
 
-    fun get(id: ResourceLocation) = loadedEffects[id]
+    operator fun get(id: ResourceLocation) = loadedEffects[id]
 
     fun entries(): Set<Map.Entry<ResourceLocation, EffectDefinition>> = loadedEffects.entries
 
@@ -152,37 +174,6 @@ class EffekAssetLoader : SimplePreparableReloadListener<EffekAssetLoader.Prepara
             }
         unloadAll()
         loadedEffects.putAll(prep.loadedEffects)
-        INSTANCE = this
-    }
-
-    companion object {
-        const val DIRECTORY = "effeks"
-        const val FILE_TYPE = ".efkefc"
-        private var INSTANCE: EffekAssetLoader? = null
-
-        @JvmStatic
-        fun get() = INSTANCE ?: throw IllegalStateException("EffekAssetLoader is not initialized")
-
-        private fun getResourceOrUseFallbackPath(
-            manager: ResourceManager,
-            path: ResourceLocation,
-            fallback: ResourceLocation,
-        ): Optional<Resource> {
-            return manager.getResource(path).or { manager.getResource(fallback) }
-        }
-
-        private fun createEffekName(location: ResourceLocation): ResourceLocation {
-            var filePath = location.path
-            if (filePath.startsWith("$DIRECTORY/")) filePath = filePath.substring("$DIRECTORY/".length)
-            if (filePath.endsWith(FILE_TYPE) || filePath.endsWith(".efkpkg")) filePath =
-                filePath.substring(0, filePath.length - FILE_TYPE.length)
-
-            return ResourceLocation(location.namespace, filePath)
-        }
-
-        private val LOGGER: Logger = LogManager.getLogger(
-            EffekAssetLoader::class.java.simpleName
-        )
     }
 }
 

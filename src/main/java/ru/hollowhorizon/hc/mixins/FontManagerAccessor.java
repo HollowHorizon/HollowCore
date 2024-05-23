@@ -22,28 +22,15 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.client.render.particles
+package ru.hollowhorizon.hc.mixins;
 
-import com.mojang.serialization.Codec
-import net.minecraft.client.multiplayer.ClientLevel
-import net.minecraft.client.particle.ParticleProvider
-import net.minecraft.client.particle.SpriteSet
-import net.minecraft.core.particles.ParticleType
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.font.FontManager;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Accessor;
 
-class HollowParticleType: ParticleType<HollowParticleOptions>(false, HollowParticleOptions.DESERIALIZER) {
-    override fun codec(): Codec<HollowParticleOptions> = HollowParticleOptions.codecFor(this)
-
-    class Factory(val sprite: SpriteSet): ParticleProvider<HollowParticleOptions> {
-        override fun createParticle(
-            options: HollowParticleOptions,
-            pLevel: ClientLevel,
-            pX: Double,
-            pY: Double,
-            pZ: Double,
-            pXSpeed: Double,
-            pYSpeed: Double,
-            pZSpeed: Double
-        ) = HollowParticle(pLevel, options, sprite, pX, pY, pZ, pXSpeed, pYSpeed, pZSpeed)
-
-    }
+@Mixin(Minecraft.class)
+public interface FontManagerAccessor {
+    @Accessor("fontManager")
+    FontManager getFontManager();
 }

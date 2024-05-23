@@ -26,21 +26,12 @@ package ru.hollowhorizon.hc.client.screens
 
 
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.Tesselator
-import com.mojang.blaze3d.vertex.VertexFormat
 import net.minecraft.client.gui.GuiComponent.blit
 import net.minecraft.client.gui.GuiComponent.fill
-import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.resources.ResourceLocation
 import org.lwjgl.opengl.GL11
-import ru.hollowhorizon.hc.client.utils.ScissorUtil
-import ru.hollowhorizon.hc.client.utils.math.VertexExt
-import ru.hollowhorizon.hc.client.utils.math.plusAssign
-import ru.hollowhorizon.hc.client.utils.mc
 import ru.hollowhorizon.hc.client.utils.toRGBA
-import ru.hollowhorizon.hc.client.utils.use
 
 object DrawUtils {
     @Suppress("DEPRECATION")
@@ -52,7 +43,7 @@ object DrawUtils {
         RenderSystem.enableBlend()
         RenderSystem.defaultBlendFunc()
 
-        GL11.glColor4f(rgba.r, rgba.g, rgba.b, rgba.a)
+        RenderSystem.setShaderColor(rgba.r, rgba.g, rgba.b, rgba.a)
 
         RenderSystem.setShaderTexture(0, location)
 

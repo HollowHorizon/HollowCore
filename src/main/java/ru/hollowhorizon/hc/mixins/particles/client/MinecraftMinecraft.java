@@ -22,30 +22,23 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.common.registry
+package ru.hollowhorizon.hc.mixins.particles.client;
 
-import net.minecraft.client.particle.SpriteSet
-import net.minecraftforge.client.event.RegisterParticleProvidersEvent
-import net.minecraftforge.registries.RegistryObject
-import ru.hollowhorizon.hc.client.render.particles.HollowParticleType
+import net.minecraft.client.Minecraft;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ru.hollowhorizon.hc.client.imgui.ImGuiExtensionsKt;
+import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
 
-object ModParticles : HollowRegistry() {
-    private val CIRCLE by register("circle", ::HollowParticleType)
-    private val STAR by register("star", ::HollowParticleType)
-
-    private val GENERATED_LIST = ArrayList<RegistryObject<HollowParticleType>>()
-
-    @JvmStatic
-    fun onRegisterParticles(event: RegisterParticleProvidersEvent) {
-        event.register(CIRCLE.get()) { set: SpriteSet -> HollowParticleType.Factory(set) }
-        event.register(STAR.get()) { set: SpriteSet -> HollowParticleType.Factory(set) }
-        GENERATED_LIST.forEach {
-            event.register(it.get()) { set: SpriteSet -> HollowParticleType.Factory(set) }
-        }
-    }
-
-    fun addParticle(name: String) {
-        val particle by register(name, ::HollowParticleType)
-        GENERATED_LIST.add(particle)
+@Mixin(Minecraft.class)
+public class MinecraftMinecraft {
+    @Inject(method = "resizeDisplay", at = @At("RETURN"))
+    private void resizeCapturedDepthBuffer(CallbackInfo ci) {
+        final var window = Minecraft.getInstance().getWindow();
+        RenderStateCapture.CAPTURED_WORLD_DEPTH_BUFFER.resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+        RenderStateCapture.CAPTURED_HAND_DEPTH_BUFFER.resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+        ImGuiExtensionsKt.getImguiBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
     }
 }

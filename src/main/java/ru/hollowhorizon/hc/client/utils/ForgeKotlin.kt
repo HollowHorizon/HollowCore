@@ -47,15 +47,19 @@ import net.minecraft.world.item.ItemStack
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.common.capabilities.ICapabilityProvider
+import net.minecraftforge.eventbus.api.Event
+import net.minecraftforge.eventbus.api.IEventBus
 import net.minecraftforge.fml.ModList
 import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.fml.loading.FMLLoader
 import net.minecraftforge.fml.util.thread.SidedThreadGroups
 import net.minecraftforge.registries.IForgeRegistry
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage
 import ru.hollowhorizon.hc.common.ui.Anchor
 import java.io.InputStream
+import java.util.function.Consumer
 import kotlin.reflect.KClass
 
 
@@ -83,6 +87,8 @@ operator fun <T : CapabilityInstance> ICapabilityProvider.get(capability: Class<
 fun <T : CapabilityInstance> TeamBase.capability(capability: KClass<T>) = (this as ICapabilityProvider)[capability]
 
 val String.rl get() = ResourceLocation(this)
+
+fun resource(resource: String) = ResourceLocation(HollowCore.MODID, resource).stream
 
 @OnlyIn(Dist.CLIENT)
 fun ResourceLocation.toIS(): InputStream {
@@ -114,7 +120,7 @@ fun MutableComponent.italic(): MutableComponent = this.withStyle { it.withItalic
 fun MutableComponent.obfuscated(): MutableComponent = this.withStyle { it.withObfuscated(true) }
 fun MutableComponent.underlined(): MutableComponent = this.withStyle { it.withUnderlined(true) }
 fun MutableComponent.strikethrough(): MutableComponent = this.withStyle { it.withStrikethrough(true) }
-
+fun MutableComponent.font(font: ResourceLocation) = this.withStyle { it.withFont(font) }
 fun MutableComponent.onClickUrl(url: String): MutableComponent =
     this.withStyle { it.withClickEvent(ClickEvent(ClickEvent.Action.OPEN_URL, url)) }
 

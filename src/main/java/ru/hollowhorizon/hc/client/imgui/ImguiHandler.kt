@@ -47,9 +47,10 @@ object ImguiHandler {
     var windowHandle: Long = 0
     val FONTS = hashMapOf<Int, ImFont>()
 
-    fun onGlfwInit(handle: Long) {
-        initializeImGui(handle)
-        imGuiGlfw.init(handle, true)
+    fun initialize() {
+        val window = Minecraft.getInstance().window.window
+        initializeImGui(window)
+        imGuiGlfw.init(window, true)
         if (!Minecraft.ON_OSX) {
             imGuiGl3.init("#version 410")
         } else {
@@ -58,7 +59,7 @@ object ImguiHandler {
 
         ImNodes.createContext()
         ImGui.styleColorsDark()
-        windowHandle = handle
+        windowHandle = window
     }
 
     fun drawFrame(renderable: Renderable) {
@@ -79,7 +80,6 @@ object ImguiHandler {
         ImGui.render()
         endFrame()
 
-        buffers.forEach { it.destroyBuffers() }
         DockingHelper.DOCKING_ID = 0
     }
 

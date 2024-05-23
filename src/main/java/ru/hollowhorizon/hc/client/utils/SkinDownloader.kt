@@ -45,10 +45,11 @@ object SkinDownloader {
             Minecraft.getInstance().textureManager.getTexture(textureLocation, MissingTextureAtlasSprite.getTexture())
 
         if (original == MissingTextureAtlasSprite.getTexture()) {
-            var url = "https://skins.danielraybone.com/v1/profile/$skin"
-            var connection = URL(url).openConnection()
+            val url = "https://skins.danielraybone.com/v1/profile/$skin"
+            val connection = URL(url).openConnection()
             val text = connection.getInputStream().bufferedReader().readText()
-            val base64 = JsonParser.parseString(text).asJsonObject["assets"].asJsonObject["skin"].asJsonObject["base64"].asString
+            val base64 =
+                JsonParser.parseString(text).asJsonObject["assets"].asJsonObject["skin"].asJsonObject["base64"].asString
             val textureJson = Base64.getDecoder().decode(base64)
 
             Minecraft.getInstance().textureManager.register(
@@ -66,8 +67,4 @@ object SkinDownloader {
         }
         return textureLocation
     }
-}
-
-fun main() {
-    SkinDownloader.downloadSkin("HollowHorizon")
 }

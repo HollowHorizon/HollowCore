@@ -31,11 +31,11 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.InteractionHand
 import org.lwjgl.BufferUtils
-import ru.hollowhorizon.hc.client.utils.mc
+import ru.hollowhorizon.hc.client.render.effekseer.EffectDefinition
 import ru.hollowhorizon.hc.client.render.effekseer.Effekseer
 import ru.hollowhorizon.hc.client.render.effekseer.ParticleEmitter
-import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssetLoader.Companion.get
-import ru.hollowhorizon.hc.client.render.effekseer.EffectDefinition
+import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssets
+import ru.hollowhorizon.hc.client.utils.mc
 import java.nio.FloatBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -82,6 +82,8 @@ object EffekRenderer {
         projection: Matrix4f,
         camera: Camera,
     ) {
+        if (!EffekAssets.entries().any { it.value.emitters().anyMatch(ParticleEmitter::isVisible) }) return
+
         val minecraft = mc
         val w = minecraft.window.width
         val h = minecraft.window.height
@@ -107,7 +109,7 @@ object EffekRenderer {
         val deltaFrames = 60 * getDeltaTime(type)
 
         RenderType.PARTICLES_TARGET.setupRenderState()
-        get().forEach { _: ResourceLocation, inst: EffectDefinition ->
+        EffekAssets.forEach { _: ResourceLocation, inst: EffectDefinition ->
             inst.draw(type, w, h, CAMERA_TRANSFORM_DATA, PROJECTION_MATRIX_DATA, deltaFrames, partialTick)
         }
         RenderType.PARTICLES_TARGET.clearRenderState()

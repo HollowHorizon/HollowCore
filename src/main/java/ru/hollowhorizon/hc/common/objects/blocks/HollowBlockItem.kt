@@ -21,14 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package ru.hollowhorizon.hc.common.objects.blocks
 
-package ru.hollowhorizon.hc.common.objects.blocks;
+import net.minecraft.world.item.Item
+import net.minecraft.world.level.block.HorizontalDirectionalBlock
 
 
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+abstract class HollowBlockItem(properties: Properties) : HorizontalDirectionalBlock(properties), IBlockItemProperties
 
-public abstract class HollowBlock extends HorizontalDirectionalBlock implements IBlockProperties {
-    public HollowBlock(Properties properties) {
-        super(properties);
-    }
+interface IBlockItemProperties {
+    val properties: Item.Properties
 }

@@ -40,15 +40,15 @@ class UIAnimation(
     val interpolation: Interpolation = Interpolation.LINEAR,
 ) {
     @Transient
-    var startTime = TickHandler.clientTicks
-    val isEnd get() = trigger != AnimationTrigger.LOOP || TickHandler.clientTicks - startTime > duration
+    var startTime = TickHandler.currentTicks
+    val isEnd get() = trigger != AnimationTrigger.LOOP || TickHandler.currentTicks - startTime > duration
 
     fun reset() {
-        startTime = TickHandler.clientTicks
+        startTime = TickHandler.currentTicks
     }
 
     fun update(partialTick: Float): Float {
-        val time = (TickHandler.clientTicks - startTime + partialTick % duration) / duration
+        val time = (TickHandler.currentTicks - startTime + partialTick % duration) / duration
 
         return startValue + (endValue - startTime) * interpolation(time)
     }

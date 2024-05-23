@@ -36,7 +36,7 @@ class ParticleEmitter(private val handle: Int, private val manager: EffekseerMan
         GUI // TODO: implement
     }
 
-    private var isVisible: Boolean = true
+    var isVisible: Boolean = true
     private var isPaused: Boolean = false
     private var callback: PreDrawCallback? = null
 

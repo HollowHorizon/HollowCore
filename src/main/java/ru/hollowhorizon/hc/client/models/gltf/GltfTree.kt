@@ -723,13 +723,13 @@ object GltfTree {
         var parent: Node? = null
         val isHead: Boolean get() = name?.lowercase()?.contains("head") == true && parent?.isHead == false
 
-        //TODO: оптимизируй как-нибудь, чтобы не с нуля вычислять и желательно без рекурсии
         val globalMatrix: Matrix4f
             get() {
                 val matrix = parent?.globalMatrix ?: return localMatrix
                 matrix.multiply(localMatrix)
                 return matrix
             }
+
         val globalRotation: Quaternion
             get() {
                 val rotation = parent?.globalRotation ?: return transform.rotation

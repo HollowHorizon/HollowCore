@@ -37,8 +37,6 @@ import ru.hollowhorizon.hc.client.utils.nbt.NBT_TAGS
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
 import ru.hollowhorizon.hc.common.network.register
-import ru.hollowhorizon.hc.core.AsmReflectionMethodGenerator
-import ru.hollowhorizon.hc.core.ReflectionMethod
 import java.lang.annotation.ElementType
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -154,10 +152,6 @@ object HollowModProcessor {
                 )
 
                 ANNOTATIONS[type]?.invoke(container)
-
-                container.whenMethodTask.invoke {
-                    AsmReflectionMethodGenerator.generateMethod(method)
-                }
             }
         }
     }
@@ -194,6 +188,5 @@ class AnnotationContainer<T : Any>(
 ) {
     var whenPropertyTask: (Field) -> Unit = {}
     var whenClassTask: (Class<*>) -> Unit = {}
-    var whenMethodTask: (() -> ReflectionMethod) -> Unit = {}
 }
 

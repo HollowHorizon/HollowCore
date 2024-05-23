@@ -114,7 +114,10 @@ dependencies {
     compileOnly(fg.deobf("curse.maven:firstperson:2.3.2"))
 
     shadow("io.github.spair:imgui-java-binding:$imguiVersion")
-    shadow("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
+    shadow("io.github.spair:imgui-java-lwjgl3:$imguiVersion") {
+        exclude(group="org.lwjgl")
+        exclude(group="org.lwjgl.lwjgl")
+    }
     shadow("io.github.spair:imgui-java-natives-windows:$imguiVersion")
     shadow("io.github.spair:imgui-java-natives-linux:$imguiVersion")
     shadow("io.github.spair:imgui-java-natives-macos:$imguiVersion")
