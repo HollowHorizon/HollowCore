@@ -24,6 +24,7 @@
 
 package ru.hollowhorizon.hc.client.imgui
 
+import com.google.common.collect.Queues
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.math.Matrix4f
 import imgui.ImFont
@@ -32,6 +33,7 @@ import imgui.ImVec2
 import imgui.ImVec4
 import imgui.flag.ImGuiCol
 import imgui.flag.ImGuiDir
+import imgui.flag.ImGuiMouseCursor
 import imgui.flag.ImGuiWindowFlags
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.ResourceLocation
@@ -40,10 +42,17 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.TooltipFlag
 import org.intellij.lang.annotations.MagicConstant
 import ru.hollowhorizon.hc.client.render.render
+import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.toTexture
+import java.util.*
 import kotlin.math.min
 
 object ImGuiMethods {
+    internal val cursorStack: Deque<ImVec2> = Queues.newArrayDeque()
+
+    fun pushCursor() = cursorStack.push(ImGui.getCursorPos())
+    fun popCursor() = cursorStack.pop().apply { ImGui.setCursorPos(x, y) }
+
     fun sameLine() = ImGui.sameLine()
 
     fun sameLine(startX: Float) = ImGui.sameLine(startX)
@@ -99,10 +108,6 @@ object ImGuiMethods {
         if (ImGui.button(name, width, height)) codeBlock(ImGuiMethods)
     }
 
-    /**
-     * @param codeBlock invoke when button is released
-     * @param dir arrow direction , see [ImGuiDir]
-     */
     fun arrowButton(
         name: String,
         @MagicConstant(valuesFromClass = ImGuiDir::class) dir: Int,
@@ -323,7 +328,7 @@ object ImGuiMethods {
     /**
      * use [tableItem] in this scope
      *
-     * table use see [https://github.com/ocornut/imgui/issues/3740#issuecomment-764882290]
+     * table use see [github](https://github.com/ocornut/imgui/issues/3740#issuecomment-764882290)
      */
     inline fun table(tableID: String, coloumNum: Int, codeBlock: ImGuiMethods.() -> Unit) {
         if (ImGui.beginTable(tableID, coloumNum)) {

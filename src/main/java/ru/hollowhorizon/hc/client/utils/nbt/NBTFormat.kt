@@ -34,6 +34,8 @@ import kotlinx.serialization.modules.*
 import net.minecraft.nbt.*
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.eventbus.api.Event
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import ru.hollowhorizon.hc.HollowCore
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -78,8 +80,11 @@ open class NBTFormat(context: SerializersModule = EmptySerializersModule()) : Se
     override val serializersModule = context + TagModule
 
     companion object Default : NBTFormat() {
+        @JvmField
+        val LOGGER: Logger = LogManager.getLogger(NBTFormat::class.java)
+
         init {
-            HollowCore.LOGGER.info("Default Serializer loaded!")
+            LOGGER.info("Default Serializer loaded!")
         }
     }
 

@@ -30,10 +30,14 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraftforge.client.event.RegisterShadersEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.client.render.shaders.RegisterHollowShadersEvent
+import ru.hollowhorizon.hc.client.render.shaders.ShaderProgram
+import ru.hollowhorizon.hc.client.render.shaders.Uniform
+import ru.hollowhorizon.hc.client.utils.rl
 
 object ModShaders {
     lateinit var GLTF_ENTITY: ShaderInstance
-    lateinit var GLTF_ENTITY_COLOR_PICK: ShaderInstance
+    lateinit var GLITCH: ShaderProgram
 
     @SubscribeEvent
     fun onShaderRegistry(event: RegisterShadersEvent) {
@@ -43,12 +47,16 @@ object ModShaders {
             DefaultVertexFormat.NEW_ENTITY
         )
         event.registerShader(GLTF_ENTITY) {}
+    }
 
-        GLTF_ENTITY_COLOR_PICK = ShaderInstance(
-            event.resourceManager,
-            ResourceLocation(MODID, "gltf_entity_color_pick"),
-            DefaultVertexFormat.NEW_ENTITY
+    fun onHollowShadersRegistry(event: RegisterHollowShadersEvent) {
+        GLITCH = event.create(
+            listOf("hc:shaders/program/glitch.hollow.fsh".rl),
+            listOf(
+                Uniform("DiffuseSampler"),
+                Uniform("InSize"),
+                Uniform("Time"),
+            )
         )
-        event.registerShader(GLTF_ENTITY_COLOR_PICK) {}
     }
 }

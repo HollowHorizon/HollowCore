@@ -33,6 +33,9 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization") version "1.8.21"
     id("com.github.johnrengelman.shadow") version "8+"
     `maven-publish`
+    idea
+    java
+
 }
 
 apply(plugin = "org.spongepowered.mixin")
@@ -43,6 +46,12 @@ project.setProperty("archivesBaseName", mod_id)
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
+
+tasks {
+    test {
+        useJUnitPlatform()
+    }
 }
 
 tasks.withType<KotlinCompile> {
@@ -121,6 +130,9 @@ dependencies {
     shadow("io.github.spair:imgui-java-natives-windows:$imguiVersion")
     shadow("io.github.spair:imgui-java-natives-linux:$imguiVersion")
     shadow("io.github.spair:imgui-java-natives-macos:$imguiVersion")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
 
 fun Jar.createManifest() = manifest {
