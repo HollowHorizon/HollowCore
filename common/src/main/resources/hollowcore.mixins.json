@@ -1,0 +1,29 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "ru.hollowhorizon.hc.mixins",
+  "refmap": "${mod_id}.refmap.json",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "ListTagAccessor",
+    "StructureBlockMixin"
+  ],
+  "client": [
+    "FontManagerAccessor",
+    "GuiMixin",
+    "ScreenAccessor",
+    "ShaderInstanceAccessor",
+    "SoundManagerMixin",
+    "TextureManagerMixin",
+    "WindowMixin",
+    "particles.client.MinecraftMinecraft",
+    "particles.client.MixinGameRenderer",
+    "particles.client.MixinItemInHandRenderer",
+    "particles.client.MixinLevelRenderer"
+  ],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
+
