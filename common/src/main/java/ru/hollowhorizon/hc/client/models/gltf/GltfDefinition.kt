@@ -78,14 +78,6 @@ object GltfDefinition {
     fun parse(fileStream: InputStream): GltfFile {
         return GSON.fromJson(fileStream.reader(), GltfFile::class.java)
     }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val modelLocation = "hc:models/entity/hilda_regular.glb".rl
-        val file = GltfTree.parse(modelLocation)
-
-        println(file)
-    }
 }
 
 

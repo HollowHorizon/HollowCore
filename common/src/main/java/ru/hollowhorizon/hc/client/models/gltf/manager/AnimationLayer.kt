@@ -152,7 +152,6 @@ class DefinedLayer {
         val firstTime = time % (f?.maxTime ?: 0f)
         val secondTime = time % (s?.maxTime ?: 0f)
 
-        return f?.compute(node, firstTime)
         return Transformation.lerp(
             s?.compute(node, secondTime),
             f?.compute(node, firstTime),

@@ -26,8 +26,12 @@ package ru.hollowhorizon.hc.common.registry
 
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.MobCategory
+import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity
 
-object ModEntities {
-    val TEST_ENTITY = EntityType.Builder.of(::TestEntity, MobCategory.CREATURE).sized(1f, 2f).build("test_entity")
+object ModEntities : HollowRegistry() {
+    val TEST_ENTITY by register("$MODID:test_entity".rl) {
+        EntityType.Builder.of(::TestEntity, MobCategory.CREATURE).sized(1f, 2f).build("test_entity")
+    }
 }

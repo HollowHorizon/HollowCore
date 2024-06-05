@@ -26,6 +26,7 @@ package ru.hollowhorizon.hc.client.render.effekseer.render
 
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Camera
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.InteractionHand
@@ -106,14 +107,13 @@ object EffekRenderer {
 
         minecraft.levelRenderer.particlesTarget?.copyDepthFrom(minecraft.mainRenderTarget)
 
-        val deltaFrames = 60 * getDeltaTime(type)
+        val deltaFrames = Minecraft.getInstance().deltaFrameTime * 3f // 60FPS / 20 TPS
 
-        //TODO: Fix me
-        //RenderType.PARTICLES_TARGET.setupRenderState()
+        RenderType.PARTICLES_TARGET.setupRenderState()
         EffekAssets.forEach { _: ResourceLocation, inst: EffectDefinition ->
             inst.draw(type, w, h, CAMERA_TRANSFORM_DATA, PROJECTION_MATRIX_DATA, deltaFrames, partialTick)
         }
-        //RenderType.PARTICLES_TARGET.clearRenderState()
+        RenderType.PARTICLES_TARGET.clearRenderState()
 
         CAMERA_TRANSFORM_BUFFER.clear()
         PROJECTION_BUFFER.clear()

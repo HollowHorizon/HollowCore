@@ -202,7 +202,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             entity.isSleeping -> AnimationType.SLEEP
             entity.vehicle != null -> AnimationType.SIT
             entity.fallFlyingTicks > 4 -> AnimationType.FALL
-            entity.deltaMovement.length() > 0.1 -> {
+            entity.deltaMovement.length() > 0.075 -> {
                 when {
                     entity.isVisuallySwimming -> AnimationType.SWIM
                     entity.isShiftKeyDown -> AnimationType.WALK_SNEAKED

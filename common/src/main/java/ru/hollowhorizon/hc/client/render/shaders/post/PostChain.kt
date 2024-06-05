@@ -67,7 +67,7 @@ object PostChain : ResourceManagerReloadListener {
 @HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
 class PostChainPacket(val location: @Serializable(ForResourceLocation::class) ResourceLocation?) :
     HollowPacketV3<PostChainPacket> {
-    override fun handle(player: Player, data: PostChainPacket) {
+    override fun handle(player: Player) {
         RenderSystem.recordRenderCall {
             if (location != null) PostChain.apply(location)
             else PostChain.shutdown()

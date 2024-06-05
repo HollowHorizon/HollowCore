@@ -26,19 +26,24 @@ package ru.hollowhorizon.hc.client.handlers
 
 import net.minecraft.client.Minecraft
 import ru.hollowhorizon.hc.client.utils.isLogicalClient
+import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.events.tick.TickEvent
 
 object TickHandler {
     private var clientTicks = 0
     private var serverTicks = 0
 
     val currentTicks get() = if (isLogicalClient) clientTicks else serverTicks
-    val partialTicks get() = Minecraft.getInstance().deltaFrameTime
+    val partialTicks get() = Minecraft.getInstance().frameTime
+    val tickRate get() = (Minecraft.getInstance().level?.tickRateManager()?.tickrate()?.coerceAtLeast(20f) ?: 20f) //В deltaFrame уже учтены значения ниже 20
 
-    fun onClientTick() {
+    @SubscribeEvent
+    fun onClientTick(event: TickEvent.Client) {
         clientTicks++
     }
 
-    fun onServerTick() {
+    @SubscribeEvent
+    fun onServerTick(event: TickEvent.Server) {
         serverTicks++
     }
 }

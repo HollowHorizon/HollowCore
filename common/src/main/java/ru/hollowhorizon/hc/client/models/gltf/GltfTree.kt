@@ -117,7 +117,7 @@ object GltfTree {
     }
 
     fun parse(resource: ResourceLocation): GLTFTree {
-        val location = if (!resource.exists()) "hc:models/error.gltf".rl else resource
+        val location = if (!resource.exists()) "$MODID:models/error.gltf".rl else resource
 
         val file = if (location.path.endsWith(".glb")) {
             val bytes = location.toIS().readBytes()
@@ -380,14 +380,14 @@ object GltfTree {
         else Material(color, doubleSided = material.doubleSided)
 
         val texture =
-            getTexture(file, bufferViews, location, folder, textureId) ?: ResourceLocation("hc:default_color_map")
-        var normalTexture = ResourceLocation("hc:default_normal_map")
+            getTexture(file, bufferViews, location, folder, textureId) ?: ResourceLocation("$MODID:default_color_map")
+        var normalTexture = ResourceLocation("$MODID:default_normal_map")
         material.normalTexture?.index?.let {
             getTexture(file, bufferViews, location, folder, it)?.let { texture ->
                 normalTexture = texture
             }
         }
-        var occlusionTexture = ResourceLocation("hc:default_specular_map")
+        var occlusionTexture = ResourceLocation("$MODID:default_specular_map")
         material.pbrMetallicRoughness?.metallicRoughnessTexture?.index?.let {
             getTexture(file, bufferViews, location, folder, it)?.let { texture ->
                 occlusionTexture = texture
@@ -568,9 +568,9 @@ object GltfTree {
 
     data class Material(
         val color: Vector4f = Vector4f(1f, 1f, 1f, 1f),
-        val texture: ResourceLocation = ResourceLocation("hc:default_color_map"),
-        val normalTexture: ResourceLocation = ResourceLocation("hc:default_normal_map"),
-        val specularTexture: ResourceLocation = ResourceLocation("hc:default_specular_map"),
+        val texture: ResourceLocation = ResourceLocation("$MODID:default_color_map"),
+        val normalTexture: ResourceLocation = ResourceLocation("$MODID:default_normal_map"),
+        val specularTexture: ResourceLocation = ResourceLocation("$MODID:default_specular_map"),
         val doubleSided: Boolean = false,
     )
 
@@ -1230,12 +1230,6 @@ object GltfTree {
 }
 
 val NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE = IdentityHashMap<GltfTree.Node, Matrix4f>()
-
-fun main() {
-    val tree = GltfTree.parse("hc:models/entity/morph.gltf".rl)
-
-    println(tree)
-}
 
 fun putFloatBuffer(value: FloatArray): FloatBuffer {
     val buffer = BufferUtils.createFloatBuffer(value.size)

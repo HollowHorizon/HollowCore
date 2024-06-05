@@ -124,8 +124,8 @@ object EffekAssets : SimplePreparableReloadListener<EffekAssets.Preparations>() 
             val fallbackMcAssetPath =
                 "$DIRECTORY/${name.path.substringBeforeLast('/')}/$effekAssetPath".replace('\\', '/').replace("//", "/")
 
-            val main = ResourceLocation(modid, mcAssetPath)
-            val fallback = ResourceLocation(modid, fallbackMcAssetPath)
+            val main = ResourceLocation(modid, mcAssetPath.lowercase().replace('-', '_'))
+            val fallback = ResourceLocation(modid, fallbackMcAssetPath.lowercase().replace('-', '_'))
             val resource = getResourceOrUseFallbackPath(
                 manager,
                 main,

@@ -14,6 +14,8 @@ authors = "${mod_author}" #optional
 description = '''${description}''' #mandatory (Supports multiline text)
 [[mixins]]
 config = "${mod_id}.mixins.json"
+[[accessTransformers]]
+file="accesstransformer.cfg"
 [[dependencies.${mod_id}]] #optional
 modId = "neoforge" #mandatory
 type="required" #mandatory (Can be one of "required", "optional", "incompatible" or "discouraged")

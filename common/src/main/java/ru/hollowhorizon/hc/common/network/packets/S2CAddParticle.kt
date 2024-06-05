@@ -38,7 +38,7 @@ class S2CAddParticle(private val info: ParticleEmitterInfo) : HollowPacketV3<S2C
 
     fun position() = info.position()
 
-    override fun handle(player: Player, data: S2CAddParticle) {
-        data.info.spawnInWorld(player.level(), player)
+    override fun handle(player: Player) {
+        info.spawnInWorld(player.level(), player)
     }
 }

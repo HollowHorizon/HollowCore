@@ -72,13 +72,22 @@ minecraft {
 }
 
 sourceSets.main.get().resources.srcDir("src/generated/resources")
-
+repositories {
+    mavenCentral()
+    maven {
+        name = "Kotlin for Forge"
+        url = uri("https://thedarkcolour.github.io/KotlinForForge/")
+        content { includeGroup("thedarkcolour") }
+    }
+}
 dependencies {
     minecraft("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
     annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT:processor")
 
     // Hack fix for now, force jopt-simple to be exactly 5.0.4 because Mojang ships that version, but some transtive dependencies request 6.0+
     implementation("net.sf.jopt-simple:jopt-simple:5.0.4") { version { strictly("5.0.4") } }
+
+    implementation("thedarkcolour:kotlinforforge:4.10.0")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")

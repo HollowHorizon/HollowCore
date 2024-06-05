@@ -15,7 +15,7 @@ dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
     mappings(loom.officialMojangMappings())
 
-    modImplementation("net.fabricmc:fabric-language-kotlin:1.10.18+kotlin.1.9.22")
+    modImplementation("net.fabricmc:fabric-language-kotlin:1.11.0+kotlin.2.0.0")
     modImplementation("net.fabricmc:fabric-loader:$fabric_loader_version")
     modImplementation("net.fabricmc.fabric-api:fabric-api:$fabric_version")
 

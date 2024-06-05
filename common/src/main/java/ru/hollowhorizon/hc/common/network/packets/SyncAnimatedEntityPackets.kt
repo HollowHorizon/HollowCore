@@ -24,6 +24,7 @@
 
 package ru.hollowhorizon.hc.common.network.packets
 
+import com.mojang.blaze3d.systems.RenderSystem
 import kotlinx.serialization.Serializable
 import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationState
@@ -46,17 +47,17 @@ class StartAnimationPacket(
     private val playType: PlayMode,
     private val speed: Float = 1.0f,
 ) : HollowPacketV3<StartAnimationPacket> {
-    override fun handle(player: Player, data: StartAnimationPacket) {
-        player.level().getEntity(data.entityId)?.let { entity ->
+    override fun handle(player: Player) {
+        player.level().getEntity(entityId)?.let { entity ->
             if (entity is IAnimated || entity is Player) {
                 val capability = entity[AnimatedEntityCapability::class]
-                if (capability.layers.any { it.animation == data.name }) return@let
+                if (capability.layers.any { it.animation == name }) return@let
 
                 capability.layers += AnimationLayer(
-                    data.name,
-                    data.layerMode,
-                    data.playType,
-                    data.speed,
+                    name,
+                    layerMode,
+                    playType,
+                    speed,
                     0
                 )
             }
@@ -71,12 +72,12 @@ class StopAnimationPacket(
     private val entityId: Int,
     val name: String,
 ) : HollowPacketV3<StopAnimationPacket> {
-    override fun handle(player: Player, data: StopAnimationPacket) {
-        player.level().getEntity(data.entityId)?.let { entity ->
+    override fun handle(player: Player) {
+        player.level().getEntity(entityId)?.let { entity ->
             if (entity is IAnimated || entity is Player) {
                 val capability = entity[AnimatedEntityCapability::class]
 
-                capability.layers.filter { it.animation == data.name }.forEach {
+                capability.layers.filter { it.animation == name }.forEach {
                     it.state = AnimationState.FINISHED
                 }
             }

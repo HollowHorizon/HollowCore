@@ -26,33 +26,16 @@ package ru.hollowhorizon.hc.common
 
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.world.entity.npc.Villager
-import ru.hollowhorizon.hc.HollowCoreEvents.registerAttributesEvent
+import net.minecraft.world.entity.Mob
+import net.minecraft.world.entity.ai.attributes.Attributes
 import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterEntityAttributesEvent
 import ru.hollowhorizon.hc.common.registry.ModEntities
 
 object HollowCoreCommon {
-    init {
-        Registry.register(BuiltInRegistries.ENTITY_TYPE, "hollowcore:test_entity".rl, ModEntities.TEST_ENTITY)
-        registerAttributesEvent(ModEntities.TEST_ENTITY, Villager.createAttributes().build())
-        //TODO: Fix registry
-//        MOD_BUS.addListener(::onSetup)
-//        MOD_BUS.addListener(::onRegisterAttributes)
-//        FORGE_BUS.addListener(HollowCommands::onRegisterCommands)
-//
-//        FORGE_BUS.register(HollowEventHandler)
-//
-//        FORGE_BUS.addGenericListener(CapabilityStorage::registerProvidersEntity)
-//        FORGE_BUS.addGenericListener(CapabilityStorage::registerProvidersBlockEntity)
-//        FORGE_BUS.addGenericListener(CapabilityStorage::registerProvidersWorld)
-//        if (ModList.get().isLoaded("ftbteams")) FORGE_BUS.addGenericListener(CapabilityStorage::registerProvidersTeam)
+    @SubscribeEvent
+    fun onRegisterAttributes(event: RegisterEntityAttributesEvent) {
+        event.register(ModEntities.TEST_ENTITY.get(), Mob.createMobAttributes().add(Attributes.MOVEMENT_SPEED, 0.2).build())
     }
-
-//    private fun onSetup(event: FMLCommonSetupEvent) {
-//        NetworkHandler.register()
-//    }
-//
-//    private fun onRegisterAttributes(event: EntityAttributeCreationEvent) {
-//        event.put(ModEntities.TEST_ENTITY.get(), Mob.createMobAttributes().add(Attributes.MOVEMENT_SPEED, 0.2).build())
-//    }
 }

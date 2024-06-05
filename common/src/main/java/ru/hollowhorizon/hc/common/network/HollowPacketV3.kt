@@ -24,21 +24,31 @@
 
 package ru.hollowhorizon.hc.common.network
 
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.player.Player
-import ru.hollowhorizon.hc.client.utils.JavaHacks
+import ru.hollowhorizon.hc.HollowCore.MODID
 
-interface HollowPacketV3<T> {
-    fun handle(player: Player, data: T)
+interface HollowPacketV3<T: HollowPacketV3<T>> : CustomPacketPayload {
+    fun handle(player: Player)
 
 
     fun send() {
-        NetworkHandler.sendMessageToServer(this)
+        sendPacketToServer(this)
     }
 
     fun send(vararg players: ServerPlayer) {
+        players.forEach {
+            sendPacketToClient(it, this)
+        }
     }
+
+    override fun type() =
+        CustomPacketPayload.Type<T>(ResourceLocation(MODID, javaClass.name.lowercase()))
 }
 
-fun <T> Class<T>.register(modId: String) = JavaHacks.registerPacket(this, modId)
-
+lateinit var sendPacketToServer: (HollowPacketV3<*>) -> Unit
+lateinit var sendPacketToClient: (ServerPlayer, HollowPacketV3<*>) -> Unit
+lateinit var registerPacket: (Class<*>) -> Unit
+lateinit var registerPackets: () -> Unit

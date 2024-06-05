@@ -24,22 +24,18 @@
 package ru.hollowhorizon.hc
 
 
-import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import ru.hollowhorizon.hc.api.HollowMod
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.common.HollowCoreCommon
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor.initMod
 
-//TODO: Система Событий
-//TODO: Система аннотаций и регистрации
-//TODO: Система Пакетов
-//TODO: Система Capability
 
 object HollowCore {
-    const val MODID: String = "hc"
+    const val MODID: String = "hollowcore"
 
     @JvmField
-    val LOGGER: Logger = LogManager.getLogger()
+    val LOGGER: Logger = ru.hollowhorizon.hc.LOGGER
     const val DEBUG_MODE: Boolean = false
 
 
@@ -50,5 +46,12 @@ object HollowCore {
 
         HollowSoundHandler.MODS.add("hc")
         HollowSoundHandler.MODS.add("hollowengine")
+    }
+}
+
+@HollowMod
+object HCTest {
+    init {
+        HollowCore.LOGGER.info("Some mod loading")
     }
 }

@@ -28,33 +28,17 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.client.render.shaders.RegisterHollowShadersEvent
 import ru.hollowhorizon.hc.client.render.shaders.ShaderProgram
-import ru.hollowhorizon.hc.client.render.shaders.Uniform
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterShadersEvent
 
-object ModShaders { //TODO Fix Shaders
+object ModShaders {
     lateinit var GLTF_ENTITY: ShaderInstance
-    lateinit var GLITCH: ShaderProgram
 
-//    @SubscribeEvent
-//    fun onShaderRegistry(event: RegisterShadersEvent) {
-//        GLTF_ENTITY = ShaderInstance(
-//            event.resourceManager,
-//            ResourceLocation(MODID, "gltf_entity"),
-//            DefaultVertexFormat.NEW_ENTITY
-//        )
-//        event.registerShader(GLTF_ENTITY) {}
-//    }
-//
-//    fun onHollowShadersRegistry(event: RegisterHollowShadersEvent) {
-//        GLITCH = event.create(
-//            listOf("hc:shaders/program/glitch.hollow.fsh".rl),
-//            listOf(
-//                Uniform("DiffuseSampler"),
-//                Uniform("InSize"),
-//                Uniform("Time"),
-//            )
-//        )
-//    }
+    @SubscribeEvent
+    fun onShaderRegistry(event: RegisterShadersEvent) {
+        event.register(ResourceLocation(MODID, "gltf_entity"), DefaultVertexFormat.NEW_ENTITY) {
+            GLTF_ENTITY = it
+        }
+    }
 }

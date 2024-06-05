@@ -30,10 +30,13 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.PackLocationInfo
 import net.minecraft.server.packs.PackResources
+import net.minecraft.server.packs.PackSelectionConfig
 import net.minecraft.server.packs.PackType
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection
 import net.minecraft.server.packs.repository.KnownPack
+import net.minecraft.server.packs.repository.Pack
+import net.minecraft.server.packs.repository.Pack.ResourcesSupplier
 import net.minecraft.server.packs.repository.PackSource
 import net.minecraft.server.packs.resources.IoSupplier
 import java.io.ByteArrayInputStream
@@ -135,4 +138,24 @@ object HollowPack : PackResources {
         genBlockData.forEach(::addBlockModel)
         genSounds.forEach(::addSoundJson)
     }
+
+    val resources = object: ResourcesSupplier {
+        override fun openPrimary(p0: PackLocationInfo): PackResources = HollowPack
+
+        override fun openFull(p0: PackLocationInfo, p1: Pack.Metadata) = HollowPack
+    }
+}
+
+fun PackResources.asPack(): Pack {
+    val resources = object: ResourcesSupplier {
+        override fun openPrimary(p0: PackLocationInfo): PackResources = this@asPack
+
+        override fun openFull(p0: PackLocationInfo, p1: Pack.Metadata) = this@asPack
+    }
+    return Pack.readMetaAndCreate(
+        this.location(),
+        resources,
+        PackType.CLIENT_RESOURCES,
+        PackSelectionConfig(true, Pack.Position.TOP, true)
+    ) ?: throw FileNotFoundException("Could not find the pack resource $this")
 }

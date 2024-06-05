@@ -29,6 +29,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer
 import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
@@ -43,12 +44,12 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.levelgen.feature.Feature
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.HollowCoreEvents
 import ru.hollowhorizon.hc.client.render.entity.RenderFactoryBuilder
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.isPhysicalClient
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.objects.blocks.IBlockItemProperties
+import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
@@ -62,91 +63,18 @@ open class HollowRegistry {
     fun <T> promise(): T = null as T
 
     inline fun <reified T : Any> register(
-        config: ObjectConfig = ObjectConfig(),
+        location: ResourceLocation,
+        autoModel: Boolean = true,
         noinline registry: () -> T,
-    ): RegistryHolder<T> {
-        HollowCore.LOGGER.info("Registering: {}", config.name)
-        return RegistryHolder(config, registry, T::class.java)
-    }
-
-    inline fun <reified T : Any> register(objName: String, noinline registry: () -> T): RegistryHolder<T> {
-        return register(ObjectConfig(name = objName), registry)
+    ): IRegistryHolder<T> {
+        HollowCore.LOGGER.info("Registering: {}", location)
+        return createRegistry(location, autoModel, registry, T::class.java) as IRegistryHolder<T>
     }
 }
 
-data class ObjectConfig(
-    var name: String = "",
-    val autoModel: Boolean = true,
-    val entityRenderer: String? = null,
-    val blockEntityRenderer: KClass<*>? = null,
-    val attributeSupplier: (() -> AttributeSupplier)? = null,
-)
+lateinit var createRegistry: (ResourceLocation, Boolean, () -> Any, Class<*>) -> IRegistryHolder<*>
 
-@Suppress("UNCHECKED_CAST")
-class RegistryHolder<T : Any>(config: ObjectConfig, supplier: () -> T, val target: Class<T>) {
-    val registryType: Registry<T> = with(target) {
-        when {
-            Block::class.java.isAssignableFrom(this) -> BuiltInRegistries.BLOCK
-            Item::class.java.isAssignableFrom(this) -> BuiltInRegistries.ITEM
-            EntityType::class.java.isAssignableFrom(this) -> BuiltInRegistries.ENTITY_TYPE
-            BlockEntityType::class.java.isAssignableFrom(this) -> BuiltInRegistries.BLOCK_ENTITY_TYPE
-            SoundEvent::class.java.isAssignableFrom(this) -> BuiltInRegistries.SOUND_EVENT
-            Feature::class.java.isAssignableFrom(this) -> BuiltInRegistries.FEATURE
-            RecipeSerializer::class.java.isAssignableFrom(this) -> BuiltInRegistries.RECIPE_SERIALIZER
-
-            MenuType::class.java.isAssignableFrom(this) -> BuiltInRegistries.MENU
-            ParticleType::class.java.isAssignableFrom(this) -> BuiltInRegistries.PARTICLE_TYPE
-
-            else -> throw UnsupportedOperationException("Unsupported registry object: ${target.simpleName}")
-        }
-    } as Registry<T>
-
-    private val result: T = Registry.register(registryType, config.name.rl, supplier()).apply {
-        when {
-            Block::class.java.isAssignableFrom(target) -> {
-                if (config.autoModel) HollowPack.genBlockData.add(config.name.rl)
-
-                if (IBlockItemProperties::class.java.isAssignableFrom(target)) {
-                    Registry.register(
-                        BuiltInRegistries.ITEM,
-                        config.name.rl,
-                        BlockItem(this as Block, (this as IBlockItemProperties).properties)
-                    )
-                }
-            }
-
-            Item::class.java.isAssignableFrom(target) -> {
-                if (config.autoModel) HollowPack.genItemModels.add(config.name.rl)
-            }
-
-            EntityType::class.java.isAssignableFrom(target) -> {
-                if (config.entityRenderer != null && isPhysicalClient) {
-                    RenderFactoryBuilder.buildEntity(
-                        { this as EntityType<Entity> },
-                        Class.forName(config.entityRenderer) as Class<EntityRenderer<Entity>>
-                    )
-                }
-                val attributes = config.attributeSupplier
-                if (attributes != null) {
-                    HollowCoreEvents.registerAttributesEvent(this as EntityType<LivingEntity>, attributes())
-                }
-            }
-
-            BlockEntityType::class.java.isAssignableFrom(target) -> {
-                if (config.blockEntityRenderer != null) {
-                    RenderFactoryBuilder.buildTileEntity(
-                        { this as BlockEntityType<BlockEntity> },
-                        config.blockEntityRenderer.java as Class<BlockEntityRenderer<BlockEntity>>
-                    )
-                }
-            }
-        }
-    }
-
-    operator fun getValue(thisRef: Any?, property: KProperty<*>): RegistryObject<T> {
-        return RegistryObject { result }
-    }
-}
+interface IRegistryHolder<T>: ReadOnlyProperty<Any?, RegistryObject<T>>
 
 fun interface RegistryObject<T> {
     fun get(): T

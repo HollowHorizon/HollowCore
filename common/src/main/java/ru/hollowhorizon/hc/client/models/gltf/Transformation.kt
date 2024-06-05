@@ -325,8 +325,8 @@ private fun Quaternionf?.lerp(other: Quaternionf?, factor: Float): Quaternionf? 
     if (other == null) return this.apply { mul(1f - factor) }
 
     val r = Quaternionf(this)
-    r.sphericalLerp(other, factor)
-    return r
+    //r.sphericalLerp(other, factor)
+    return r.slerp(other, factor)
 }
 
 private fun Map<Transformation, Float>.sumComponent(component: (Transformation) -> Float): Float {

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.utils.extendsFrom
+
 plugins {
     id("multiloader-loader")
     id("net.neoforged.gradle.userdev").version("7.0.133")
@@ -12,9 +14,17 @@ val imguiVersion: String by project
 val at = file("src/main/resources/META-INF/accesstransformer.cfg")
 if (at.exists()) minecraft.accessTransformers.file(at)
 
+val library by configurations.creating
+configurations {
+    implementation.get().extendsFrom(library)
+}
+
 runs {
     configureEach {
         modSource(project.sourceSets.main.get())
+        dependencies {
+            runtime(library)
+        }
     }
     create("client") {
         systemProperty("neoforge.enabledGameTestNamespaces", mod_id)
@@ -39,18 +49,27 @@ runs {
 
 sourceSets.main.get().resources { srcDir("src/generated/resources") }
 
+repositories {
+    mavenCentral()
+    maven {
+        name = "Kotlin for Forge"
+        url = uri("https://thedarkcolour.github.io/KotlinForForge/")
+        content { includeGroup("thedarkcolour") }
+    }
+}
+
 dependencies {
     implementation("net.neoforged:neoforge:$neoforge_version")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-    implementation("org.ow2.asm:asm:9.7")
-    implementation("org.reflections:reflections:0.10.2")
+    implementation("thedarkcolour:kotlinforforge-neoforge:5.2.0")
 
-    implementation("io.github.spair:imgui-java-binding:$imguiVersion")
-    implementation("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
-    implementation("io.github.spair:imgui-java-natives-windows:$imguiVersion")
-    implementation("io.github.spair:imgui-java-natives-linux:$imguiVersion")
-    implementation("io.github.spair:imgui-java-natives-macos:$imguiVersion")
+    compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")
+    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    library("org.reflections:reflections:0.10.2")
+
+    library("io.github.spair:imgui-java-binding:$imguiVersion")
+    library("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
+    library("io.github.spair:imgui-java-natives-windows:$imguiVersion")
+    library("io.github.spair:imgui-java-natives-linux:$imguiVersion")
+    library("io.github.spair:imgui-java-natives-macos:$imguiVersion")
 }

@@ -35,6 +35,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.serializer
 import net.minecraft.nbt.Tag
+import ru.hollowhorizon.hc.client.utils.nbt.INBTSerializable
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 
 class SyncableMapImpl<K : Any, V : Any>(
@@ -42,7 +43,7 @@ class SyncableMapImpl<K : Any, V : Any>(
     keyType: Class<K>? = null,
     valueType: Class<V>? = null,
     val syncMethod: () -> Unit = {},
-) : MutableMap<K, V> {
+) : MutableMap<K, V>, INBTSerializable {
     companion object {
         inline fun <reified K : Any, reified V : Any> create(
             map: MutableMap<K, V> = HashMap(),
@@ -86,11 +87,11 @@ class SyncableMapImpl<K : Any, V : Any>(
     override fun containsValue(value: V) = map.containsValue(value)
 
     override fun containsKey(key: K) = map.containsKey(key)
-    fun serializeNBT(): Tag {
+    override fun serialize(): Tag {
         return NBTFormat.serialize(serializer, this)
     }
 
-    fun deserializeNBT(nbt: Tag) {
+    override fun deserialize(nbt: Tag) {
         val map = NBTFormat.deserialize(serializer, nbt)
         this.map.clear()
         this.map.putAll(map)
@@ -120,19 +121,4 @@ class SyncableMapSerializer<K : Any, V : Any>(val keyType: Class<K>, val valueTy
         val l = decoder.decodeSerializableValue(delegatedSerializer)
         return SyncableMapImpl(l.toMutableMap(), keyType, valueType)
     }
-}
-
-fun main() {
-    val map = SyncableMapImpl.create<String, Long>(HashMap()) { println("Update") }
-    map["1"] = 1
-    map["2"] = 20L
-    println(map)
-
-    val tag = map.serializeNBT()
-
-    println(tag)
-    val map2 = SyncableMapImpl.create<String, Long>()
-    map2.deserializeNBT(tag)
-
-    println(map2)
 }

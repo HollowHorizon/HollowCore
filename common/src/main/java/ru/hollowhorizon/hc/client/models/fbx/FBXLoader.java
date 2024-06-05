@@ -26,6 +26,7 @@ package ru.hollowhorizon.hc.client.models.fbx;
 
 import net.minecraft.resources.ResourceLocation;
 import org.lwjgl.opengl.GL11;
+import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.client.models.fbx.raw.FBXElement;
 import ru.hollowhorizon.hc.client.models.fbx.raw.FBXProperty;
 import ru.hollowhorizon.hc.client.models.fbx.raw.HollowByteStream;
@@ -39,7 +40,7 @@ import java.util.List;
 public class FBXLoader {
 
     public static void main(String[] args) {
-        var model = createModel(new ResourceLocation("hc:models/entity/player_model.fbx"));
+        var model = createModel(new ResourceLocation(HollowCore.MODID, "models/entity/player_model.fbx"));
 
         System.out.println(model);
     }

@@ -16,12 +16,17 @@ minecraft {
     if (aw.exists()) accessWideners(aw)
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     compileOnly("org.spongepowered:mixin:0.8.5")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.0")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.0-RC")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
     implementation("org.ow2.asm:asm:9.7")
     implementation("org.reflections:reflections:0.10.2")
 

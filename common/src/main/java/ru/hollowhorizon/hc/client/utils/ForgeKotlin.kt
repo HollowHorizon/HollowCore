@@ -42,7 +42,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemStack
 import org.joml.Quaternionf
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import java.io.InputStream
 import kotlin.reflect.KClass
@@ -82,9 +82,10 @@ lateinit var isModLoaded: (modid: String) -> Boolean
 
 fun fromJava(clazz: Class<*>) = clazz.kotlin
 
-val example = AnimatedEntityCapability()
-operator fun <O, T : CapabilityInstance> O.get(capability: KClass<T>): T = example as T // TODO("Fix capabilities")
-operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T = TODO("Fix capabilities")
+operator fun <O, T : CapabilityInstance> O.get(capability: KClass<T>): T = get(capability.java)
+
+operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T =
+    (this as ICapabilityDispatcher).capabilities.first { it.javaClass == capability } as T
 
 val String.rl get() = ResourceLocation(this)
 

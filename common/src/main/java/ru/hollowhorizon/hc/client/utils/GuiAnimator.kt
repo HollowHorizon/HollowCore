@@ -80,7 +80,7 @@ open class GuiAnimator protected constructor(
         GuiAnimator(begin, end, time, interpolation)
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): Int {
-        update(mc.deltaFrameTime)
+        update(mc.frameTime)
         return value.toInt()
     }
 }

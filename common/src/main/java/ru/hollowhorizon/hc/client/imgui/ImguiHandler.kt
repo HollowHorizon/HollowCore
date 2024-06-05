@@ -34,6 +34,7 @@ import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
 import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
 
@@ -108,11 +109,11 @@ object ImguiHandler {
 
         fun loadFont(i: Int, size: Float) {
             FONTS[i] = fontAtlas.addFontFromMemoryTTF(
-                "hc:fonts/monocraft.ttf".rl.stream.readAllBytes(), size, fontConfig, ranges
+                "${HollowCore.MODID}:fonts/monocraft.ttf".rl.stream.readAllBytes(), size, fontConfig, ranges
             )
             fontConfig.mergeMode = true
-            fontAtlas.addFontFromMemoryTTF("hc:fonts/fa_regular.ttf".rl.stream.readAllBytes(), size, fontConfig, ranges)
-            fontAtlas.addFontFromMemoryTTF("hc:fonts/fa_solid.ttf".rl.stream.readAllBytes(), size, fontConfig, ranges)
+            fontAtlas.addFontFromMemoryTTF("${HollowCore.MODID}:fonts/fa_regular.ttf".rl.stream.readAllBytes(), size, fontConfig, ranges)
+            fontAtlas.addFontFromMemoryTTF("${HollowCore.MODID}:fonts/fa_solid.ttf".rl.stream.readAllBytes(), size, fontConfig, ranges)
             fontConfig.mergeMode = false
         }
 

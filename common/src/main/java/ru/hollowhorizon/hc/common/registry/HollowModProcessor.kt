@@ -24,13 +24,19 @@
 
 package ru.hollowhorizon.hc.common.registry
 
-import org.reflections.Reflections
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.api.HollowMod
 import ru.hollowhorizon.hc.api.utils.Polymorphic
 import ru.hollowhorizon.hc.client.utils.nbt.NBT_TAGS
+import ru.hollowhorizon.hc.common.capabilities.CAPABILITIES
+import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
+import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
+import ru.hollowhorizon.hc.common.events.*
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
-import ru.hollowhorizon.hc.common.network.register
+import ru.hollowhorizon.hc.common.network.registerPacket
+import ru.hollowhorizon.hc.common.network.registerPackets
+import java.lang.invoke.MethodHandles
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -43,24 +49,75 @@ object HollowModProcessor {
     fun initMod() {
         if (isInitialized) return
         isInitialized = true
-        registerHandler<HollowPacketV2> { type, _ ->
-            if (HollowPacketV3::class.java in type.interfaces) type.register("hollowcore")
+
+        val handles = MethodHandles.lookup()
+
+        val runnables = arrayListOf<Runnable>()
+
+        registerClassHandler<HollowPacketV2> { type, _ ->
+            if (HollowPacketV3::class.java in type.interfaces) runnables += Runnable { registerPacket(type) }
             else HollowCore.LOGGER.warn("Unsupported packet: ${type.simpleName}")
         }
 
-        registerHandler<Polymorphic> { type, annotation ->
+        registerPackets = {
+            runnables.forEach(Runnable::run)
+        }
+
+        registerClassHandler<HollowCapabilityV2> { clazz, annotation ->
+            val generator: () -> CapabilityInstance = {
+                clazz.getDeclaredConstructor().newInstance() as CapabilityInstance
+            }
+            annotation.value.forEach {
+                CAPABILITIES.computeIfAbsent(it.java) { ArrayList() }.add(generator)
+            }
+        }
+
+        registerClassHandler<Polymorphic> { type, annotation ->
             NBT_TAGS.computeIfAbsent(annotation.baseClass) { ArrayList() }.add(type.kotlin)
+        }
+
+        registerClassHandler<HollowMod> { type, _ ->
+            type.kotlin.objectInstance ?: throw IllegalArgumentException("${type.simpleName} must be an object!")
+        }
+
+        registerMethodHandler<SubscribeEvent> { method, _ ->
+            val listener = if (method.isStatic()) {
+                handles.createStaticEventListener(method)
+            } else {
+                val obj = method.declaringClass.kotlin.objectInstance
+                    ?: throw IllegalArgumentException("${method.declaringClass.simpleName} must be an object!")
+                handles.createEventListener(method, obj)
+            }
+            EventBus.registerNoInline(method.parameterTypes[0] as Class<Event>, listener)
+        }
+
+        registerClassInitializers<HollowRegistry>()
+    }
+
+    private inline fun <reified T : Annotation> registerClassHandler(noinline task: (Class<*>, T) -> Unit) {
+        getAnnotatedClasses(T::class.java).forEach {
+            val annotation = it.getAnnotation(T::class.java)
+            task(it, annotation)
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    private inline fun <reified T : Annotation> registerHandler(noinline task: (Class<*>, T) -> Unit) {
-        Reflections("ru.hollowhorizon").getTypesAnnotatedWith(T::class.java).parallelStream().forEach {
+    private inline fun <reified T> registerClassInitializers() {
+        getSubTypes(T::class.java).forEach {
+            it.kotlin.objectInstance ?: throw IllegalArgumentException("${T::class.java.simpleName} must be an object!")
+        }
+    }
+
+    private inline fun <reified T : Annotation> registerMethodHandler(noinline task: (Method, T) -> Unit) {
+        getAnnotatedMethods(T::class.java).forEach {
             val annotation = it.getAnnotation(T::class.java)
             task(it, annotation)
         }
     }
 }
+
+lateinit var getAnnotatedClasses: (Class<*>) -> Set<Class<*>>
+lateinit var getSubTypes: (Class<*>) -> Set<Class<*>>
+lateinit var getAnnotatedMethods: (Class<*>) -> Set<Method>
 
 private fun Field.isStatic(): Boolean {
     return Modifier.isStatic(this.modifiers)

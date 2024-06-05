@@ -32,53 +32,55 @@ import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.effects.ParticleEmitterInfo
 import ru.hollowhorizon.hc.common.effects.ParticleHelper
+import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterCommandsEvent
 
 object HollowCommands {
-    fun onRegisterCommands() {
-        //TODO: Fix
-//        event.dispatcher.onRegisterCommands {
-//            "hollowcore" {
-//
-//                "stop-post" {
-//                    PostChain.shutdown()
-//                }
-//
-//                "start-post"(
-//                    arg("name", ResourceLocationArgument.id())
-//                ) {
-//                    PostChain.apply(ResourceLocationArgument.getId(this, "name"))
-//                }
-//
-//                "particle"(
-//                    arg("pos", Vec3Argument.vec3()),
-//                    arg("name", StringArgumentType.greedyString())
-//                ) {
-//                    val particle = StringArgumentType.getString(this, "name")
-//                    val pos = Vec3Argument.getVec3(this, "pos")
-//
-//                    val info = ParticleEmitterInfo(particle.rl)
-//                        .position(pos)
-//                    ParticleHelper.addParticle(source.level, info, true)
-//
-//                }
-//
-//                "particle"(
-//                    arg("entities", EntityArgument.entities()),
-//                    arg("target", StringArgumentType.word()),
-//                    arg("name", StringArgumentType.greedyString())
-//                ) {
-//                    val particle = StringArgumentType.getString(this, "name")
-//                    val target = StringArgumentType.getString(this, "target")
-//                    val entities = EntityArgument.getEntities(this, "entities")
-//                    entities.forEach {
-//                        val info =
-//                            ParticleEmitterInfo(particle.removeSuffix(".efkefc").rl)
-//                                .bindOnEntity(it)
-//                                .apply { bindOnTarget(target) }
-//                        ParticleHelper.addParticle(source.level, info, true)
-//                    }
-//                }
-//            }
-//        }
+    @SubscribeEvent
+    fun onRegisterCommands(event: RegisterCommandsEvent) {
+        event.dispatcher.onRegisterCommands {
+            "hollowcore" {
+
+                "stop-post" {
+                    PostChain.shutdown()
+                }
+
+                "start-post"(
+                    arg("name", ResourceLocationArgument.id())
+                ) {
+                    PostChain.apply(ResourceLocationArgument.getId(this, "name"))
+                }
+
+                "particle"(
+                    arg("pos", Vec3Argument.vec3()),
+                    arg("name", StringArgumentType.greedyString())
+                ) {
+                    val particle = StringArgumentType.getString(this, "name")
+                    val pos = Vec3Argument.getVec3(this, "pos")
+
+                    val info = ParticleEmitterInfo(particle.rl)
+                        .position(pos)
+                    ParticleHelper.addParticle(source.level, info, true)
+
+                }
+
+                "particle"(
+                    arg("entities", EntityArgument.entities()),
+                    arg("target", StringArgumentType.word()),
+                    arg("name", StringArgumentType.greedyString())
+                ) {
+                    val particle = StringArgumentType.getString(this, "name")
+                    val target = StringArgumentType.getString(this, "target")
+                    val entities = EntityArgument.getEntities(this, "entities")
+                    entities.forEach {
+                        val info =
+                            ParticleEmitterInfo(particle.removeSuffix(".efkefc").rl)
+                                .bindOnEntity(it)
+                                .apply { bindOnTarget(target) }
+                        ParticleHelper.addParticle(source.level, info, true)
+                    }
+                }
+            }
+        }
     }
 }

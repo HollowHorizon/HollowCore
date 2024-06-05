@@ -26,9 +26,9 @@ package ru.hollowhorizon.hc.common.capabilities
 
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.EndTag
-import net.minecraft.nbt.Tag
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.JavaHacks
+import ru.hollowhorizon.hc.client.utils.nbt.INBTSerializable
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
@@ -44,8 +44,8 @@ open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : 
     override fun getValue(thisRef: T, property: KProperty<*>): V {
         if (defaultName.isEmpty()) {
             defaultName = property.name
-            defaultType = if(value == null) property.returnType.javaType as Class<out V> else value!!.javaClass
-            if(property.name !in thisRef.notUsedTags) return value
+            defaultType = if (value == null) property.returnType.javaType as Class<out V> else value!!.javaClass
+            if (property.name !in thisRef.notUsedTags) return value
 
             val tag = thisRef.notUsedTags.get(property.name) ?: return value
             if (tag is EndTag) return value
@@ -59,7 +59,8 @@ open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : 
     override fun setValue(thisRef: T, property: KProperty<*>, value: V) {
         if (defaultName.isEmpty()) defaultName = property.name
         this.value = value
-        if (defaultType == null) defaultType = if(this.value == null) property.returnType.javaType as Class<out V> else this.value!!.javaClass
+        if (defaultType == null) defaultType =
+            if (this.value == null) property.returnType.javaType as Class<out V> else this.value!!.javaClass
         thisRef.sync()
     }
 
@@ -67,6 +68,7 @@ open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : 
         if (defaultName.isNotEmpty() && defaultType != null) {
             when (value) {
                 null -> tag.put(defaultName, EndTag.INSTANCE)
+                is INBTSerializable -> tag.put(defaultName, (value as INBTSerializable).serialize())
                 else -> tag.put(
                     defaultName,
                     NBTFormat.serializeNoInline(JavaHacks.forceCast(value), this.defaultType!!)
@@ -79,6 +81,7 @@ open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : 
         if (defaultName.isNotEmpty() && defaultType != null && defaultName in tag) {
             try {
                 if (tag[defaultName] is EndTag) value = null as V
+                else if (value is INBTSerializable) (value as INBTSerializable).deserialize(tag[defaultName]!!)
                 else value = NBTFormat.deserializeNoInline(tag[defaultName]!!, this.defaultType!!)
                 return true
             } catch (e: Exception) {

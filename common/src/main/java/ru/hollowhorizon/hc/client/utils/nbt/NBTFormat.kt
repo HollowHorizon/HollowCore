@@ -161,4 +161,3 @@ internal fun compoundTagInvalidKeyKind(keyDescriptor: SerialDescriptor) = Illega
     "Value of type ${keyDescriptor.serialName} can't be used in a compound tag as map key. " +
             "It should have either primitive or enum kind, but its kind is ${keyDescriptor.kind}."
 )
-

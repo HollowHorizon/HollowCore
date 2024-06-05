@@ -6,7 +6,9 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "ListTagAccessor",
-    "StructureBlockMixin"
+    "PackRepositoryMixin",
+    "StructureBlockMixin",
+    "capabilities.EntityMixin"
   ],
   "client": [
     "FontManagerAccessor",
@@ -16,10 +18,10 @@
     "SoundManagerMixin",
     "TextureManagerMixin",
     "WindowMixin",
-    "particles.client.MinecraftMinecraft",
-    "particles.client.MixinGameRenderer",
-    "particles.client.MixinItemInHandRenderer",
-    "particles.client.MixinLevelRenderer"
+    "particles.MinecraftMinecraft",
+    "particles.MixinGameRenderer",
+    "particles.MixinItemInHandRenderer",
+    "particles.MixinLevelRenderer"
   ],
   "server": [],
   "injectors": {

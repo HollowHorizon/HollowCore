@@ -24,17 +24,12 @@
 
 package ru.hollowhorizon.hc.common.capabilities
 
-import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
-import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.entity.BlockEntity
-import net.minecraft.world.level.chunk.LevelChunk
-import ru.hollowhorizon.hc.api.ICapabilityProvider
+import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 
 @Suppress("API_STATUS_INTERNAL")
 open class CapabilityInstance {
@@ -42,7 +37,7 @@ open class CapabilityInstance {
     var notUsedTags = CompoundTag()
     open val consumeOnServer: Boolean = false
     open val canOtherPlayersAccess: Boolean = true
-    lateinit var provider: ICapabilityProvider //Будет инициализированно инжектом
+    lateinit var provider: ICapabilityDispatcher //Будет инициализированно инжектом
 
     fun <T> syncable(default: T) = CapabilityProperty<CapabilityInstance, T>(default).apply {
         properties += this
@@ -50,22 +45,22 @@ open class CapabilityInstance {
 
 
     fun sync() {
+        when (val target = provider) {
+            is Entity -> {
+                //val isPlayer = target is Player
+                if (target.level().isClientSide) {
+                    if (consumeOnServer) SSyncEntityCapabilityPacket(
+                        target.id,
+                        javaClass.name,
+                        serializeNBT()
+                    ).send()
+                } else CSyncEntityCapabilityPacket(target.id, javaClass.name, serializeNBT()).send(
+                    *target.server!!.playerList.players.toTypedArray()
+                )
+
+            }
+        }
         //TODO Fix
-//        when (val target = provider) {
-//            is Entity -> {
-//                val isPlayer = target is Player
-//                if (target.level().isClientSide) {
-//                    if (consumeOnServer) SSyncEntityCapabilityPacket(target.id, capability.name, serializeNBT()).send()
-//                } else CSyncEntityCapabilityPacket(target.id, capability.name, serializeNBT()).send(
-//                    when {
-//                        !isPlayer -> PacketDistributor.TRACKING_ENTITY.with { target }
-//                        canOtherPlayersAccess -> PacketDistributor.TRACKING_ENTITY_AND_SELF.with { target }
-//                        else -> PacketDistributor.PLAYER.with { target as ServerPlayer }
-//                    }
-//                )
-//
-//            }
-//
 //            is BlockEntity -> {
 //                target.setChanged()
 //            }

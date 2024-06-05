@@ -35,6 +35,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.serializer
 import net.minecraft.nbt.Tag
+import ru.hollowhorizon.hc.client.utils.nbt.INBTSerializable
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import java.util.function.Predicate
 
@@ -42,7 +43,7 @@ class SyncableListImpl<T : Any>(
     val list: MutableList<T>,
     type: Class<T>? = null,
     private val updateMethod: () -> Unit = {},
-) : MutableList<T> {
+) : MutableList<T>, INBTSerializable {
     private val serializer = SyncableListSerializer(type ?: throw IllegalStateException("Type must be not null"))
 
     companion object {
@@ -215,11 +216,11 @@ class SyncableListImpl<T : Any>(
 
     }
 
-    fun serializeNBT(): Tag {
+    override fun serialize(): Tag {
         return NBTFormat.serialize(serializer, this)
     }
 
-    fun deserializeNBT(nbt: Tag) {
+    override fun deserialize(nbt: Tag) {
         val list = NBTFormat.deserialize(serializer, nbt)
         this.list.clear()
         this.list.addAll(list)

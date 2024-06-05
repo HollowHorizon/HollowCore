@@ -25,58 +25,64 @@
 package ru.hollowhorizon.hc.client
 
 import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.client.KeyMapping
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.entity.EntityRenderers
+import org.lwjgl.glfw.GLFW
+import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.render.RenderLoader
 import ru.hollowhorizon.hc.client.render.effekseer.EffekseerNatives
+import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssets
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
+import ru.hollowhorizon.hc.client.render.shaders.ShadersLoader
+import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
+import ru.hollowhorizon.hc.client.screens.ImGuiScreen
+import ru.hollowhorizon.hc.client.utils.HollowPack
+import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterClientReloadListenersEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterKeyBindingsEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterResourcePacksEvent
+import ru.hollowhorizon.hc.common.events.tick.TickEvent
+import ru.hollowhorizon.hc.common.registry.HollowModProcessor
 import ru.hollowhorizon.hc.common.registry.ModEntities
 
 object HollowCoreClient {
 
     init {
-        EntityRenderers.register(ModEntities.TEST_ENTITY, ::GLTFEntityRenderer)
-
-        //TODO Register it
-//        MOD_BUS.addListener(::onRegisterReloadListener)
-//        MOD_BUS.addListener(::onRegisterResourcePacks)
-//        MOD_BUS.addListener(::onCreatingRenderers)
-//        MOD_BUS.addListener(::onCreatingMenus)
-//
-//        MOD_BUS.register(ModShaders)
-//        FORGE_BUS.addListener(ModShaders::onHollowShadersRegistry)
-//
-//        FORGE_BUS.register(TickHandler)
+        HollowModProcessor.initMod()
 
         EffekseerNatives.install()
         RenderSystem.recordRenderCall(RenderLoader::onInitialize)
     }
-//
-//    private fun onRegisterReloadListener(event: RegisterClientReloadListenersEvent) {
-//        event.registerReloadListener(EffekAssets)
-//        event.registerReloadListener(GltfManager)
-//        event.registerReloadListener(PostChain)
-//        event.registerReloadListener(ShadersLoader)
-//    }
 
-//    private fun onRegisterResourcePacks(event: AddPackFindersEvent) {
-//        event.addRepositorySource { adder, creator ->
-//            adder.accept(
-//                creator.create(
-//                    HollowPack.name, HollowPack.name.mcText, true, { HollowPack },
-//                    HollowPack.section, Pack.Position.TOP, PackSource.BUILT_IN, HollowPack.isHidden
-//                )
-//            )
-//        }
-//    }
+    @SubscribeEvent
+    fun onRegisterReloadListener(event: RegisterClientReloadListenersEvent) {
+        event.register(EffekAssets)
+        event.register(GltfManager)
+        event.register(PostChain)
+        event.register(ShadersLoader)
+    }
 
-//    @OnlyIn(Dist.CLIENT)
-//    private fun onCreatingRenderers(event: EntityRenderersEvent.RegisterRenderers) {
-//        event.registerEntityRenderer(ModEntities.TEST_ENTITY.get(), ::GLTFEntityRenderer)
-//    }
+    @SubscribeEvent
+    fun onRegisterResourcePacks(event: RegisterResourcePacksEvent) {
+        event.addPack(HollowPack)
+    }
 
-//    private fun onCreatingMenus(event: FMLClientSetupEvent) {
-//        event.enqueueWork {
-//            MenuScreens.register(ModMenus.HOLLOW_MENU.get(), ::HollowMenuScreen)
-//        }
-//    }
+    val KEY_V = KeyMapping("key.v", GLFW.GLFW_KEY_V, "key.v1")
+
+    @SubscribeEvent
+    fun onRegisterKeys(event: RegisterKeyBindingsEvent) {
+        event.registerKeyMapping(KEY_V)
+    }
+
+    @SubscribeEvent
+    fun onClientTick(event: TickEvent.Client) {
+        if (KEY_V.isDown) Minecraft.getInstance().setScreen(ImGuiScreen())
+    }
+
+    @SubscribeEvent
+    fun onEntityRegister(event: RegisterEntityRenderersEvent) {
+        event.registerEntity(ModEntities.TEST_ENTITY.get(), ::GLTFEntityRenderer)
+    }
 }

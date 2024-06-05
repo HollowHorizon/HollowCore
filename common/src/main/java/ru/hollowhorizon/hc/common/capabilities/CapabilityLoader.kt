@@ -26,10 +26,7 @@
 
 package ru.hollowhorizon.hc.common.capabilities
 
-import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.Level
 import org.objectweb.asm.Type
-import ru.hollowhorizon.hc.HollowCore
 import kotlin.reflect.KClass
 
 
@@ -46,3 +43,5 @@ annotation class HollowCapabilityV2(vararg val value: KClass<*>) {
 
     }
 }
+
+val CAPABILITIES = HashMap<Class<*>, MutableList<() -> CapabilityInstance>>()

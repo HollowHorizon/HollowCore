@@ -59,7 +59,7 @@ class GifTexture(location: ResourceLocation) : SimpleTexture(location) {
 
     override fun getId(): Int {
         val id = super.getId()
-        val time = (TickHandler.currentTicks + Minecraft.getInstance().deltaFrameTime) % fullTime
+        val time = (TickHandler.currentTicks + Minecraft.getInstance().frameTime) % fullTime
 
         val frame = frames[keys[time.animIndex]]
 

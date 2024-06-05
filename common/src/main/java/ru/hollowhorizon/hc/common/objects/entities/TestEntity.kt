@@ -34,6 +34,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.pathfinder.PathType
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.gltf.Transform
 import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
@@ -45,7 +46,7 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
 
     init {
         this[AnimatedEntityCapability::class].apply {
-            model = "hc:models/entity/player_model.gltf"
+            model = "${HollowCore.MODID}:models/entity/player_model.gltf"
             animations[AnimationType.IDLE] = "hello"
             transform = Transform.create {}
         }
