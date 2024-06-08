@@ -11,6 +11,10 @@ plugins {
     id("fabric-loom").version("1.6-SNAPSHOT")
 }
 
+repositories {
+    maven("https://maven.cleanroommc.com")
+}
+
 dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
     mappings(loom.officialMojangMappings())
@@ -19,17 +23,23 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:$fabric_loader_version")
     modImplementation("net.fabricmc.fabric-api:fabric-api:$fabric_version")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
     implementation("org.ow2.asm:asm:9.7")
-    implementation("org.reflections:reflections:0.10.2")
 
-    implementation("io.github.spair:imgui-java-binding:$imguiVersion")
-    implementation("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
-    implementation("io.github.spair:imgui-java-natives-windows:$imguiVersion")
-    implementation("io.github.spair:imgui-java-natives-linux:$imguiVersion")
-    implementation("io.github.spair:imgui-java-natives-macos:$imguiVersion")
+    fun shadow(dependency: String) {
+        include(dependency)
+        implementation(dependency)
+    }
+
+    shadow("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22")
+    shadow("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")
+    shadow("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    shadow("io.github.classgraph:classgraph:4.8.173")
+    shadow("javassist:javassist:3.12.1.GA")
+    shadow("io.github.spair:imgui-java-binding:$imguiVersion")
+    shadow("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
+    shadow("io.github.spair:imgui-java-natives-windows:$imguiVersion")
+    shadow("io.github.spair:imgui-java-natives-linux:$imguiVersion")
+    shadow("io.github.spair:imgui-java-natives-macos:$imguiVersion")
 }
 
 loom {

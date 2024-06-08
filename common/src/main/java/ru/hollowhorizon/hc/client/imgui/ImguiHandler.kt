@@ -32,6 +32,7 @@ import imgui.flag.ImGuiConfigFlags
 import imgui.flag.ImGuiFreeTypeBuilderFlags
 import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
+import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore

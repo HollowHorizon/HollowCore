@@ -28,6 +28,7 @@ import net.minecraft.core.Registry
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.ai.attributes.Attributes
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityAttributesEvent
@@ -36,6 +37,7 @@ import ru.hollowhorizon.hc.common.registry.ModEntities
 object HollowCoreCommon {
     @SubscribeEvent
     fun onRegisterAttributes(event: RegisterEntityAttributesEvent) {
+        HollowCore.LOGGER.info("Registered attributes")
         event.register(ModEntities.TEST_ENTITY.get(), Mob.createMobAttributes().add(Attributes.MOVEMENT_SPEED, 0.2).build())
     }
 }

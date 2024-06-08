@@ -22,6 +22,7 @@
             "ru.hollowhorizon.hc.HollowCoreClientFabric"
         ]
     },
+    "accessWidener": "${mod_id}.accesswidener",
     "mixins": [
         "${mod_id}.mixins.json"
     ],

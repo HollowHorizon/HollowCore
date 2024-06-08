@@ -103,6 +103,7 @@ object HollowModProcessor {
 
     private inline fun <reified T> registerClassInitializers() {
         getSubTypes(T::class.java).forEach {
+            HollowCore.LOGGER.info("Registering initializer: ${it.simpleName}")
             it.kotlin.objectInstance ?: throw IllegalArgumentException("${T::class.java.simpleName} must be an object!")
         }
     }
@@ -119,20 +120,6 @@ lateinit var getAnnotatedClasses: (Class<*>) -> Set<Class<*>>
 lateinit var getSubTypes: (Class<*>) -> Set<Class<*>>
 lateinit var getAnnotatedMethods: (Class<*>) -> Set<Method>
 
-private fun Field.isStatic(): Boolean {
-    return Modifier.isStatic(this.modifiers)
-}
-
 private fun Method.isStatic(): Boolean {
     return Modifier.isStatic(this.modifiers)
 }
-
-class AnnotationContainer<T : Any>(
-    val modId: String,
-    val annotation: T,
-    val targetName: String,
-) {
-    var whenPropertyTask: (Field) -> Unit = {}
-    var whenClassTask: (Class<*>) -> Unit = {}
-}
-

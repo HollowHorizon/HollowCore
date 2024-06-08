@@ -12,15 +12,20 @@ import ru.hollowhorizon.hc.internal.RegistryHolderFabric;
 
 import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.isModLoaded;
 
+//TODO: Переорганизовать все эти классы, оставить только Kotlin и сделать более понятную инициализацию.
 public class HollowCoreFabric implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        var core = CoreInitialization.INSTANCE;
+
         HollowRegistryKt.createRegistry = ((resourceLocation, aBoolean, function0, aClass) -> new RegistryHolderFabric<>(resourceLocation, aBoolean, JavaHacks.forceCast(function0), aClass));
         isModLoaded = FabricLoader.getInstance()::isModLoaded;
-        NetworkHelper.register();
+
         var init = HollowCore.INSTANCE; // Loading Main Class
         var events = FabricEvents.INSTANCE;
+
+        NetworkHelper.register();
 
         ServerTickEvents.END_SERVER_TICK.register(s -> {
             EventBus.post(new TickEvent.Server(s));
