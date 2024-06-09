@@ -33,8 +33,10 @@ import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.client.utils.nbt.ForTag
+import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
+import ru.hollowhorizon.hc.common.network.sendAllInDimension
 
 @HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
 @Serializable
@@ -83,10 +85,12 @@ class CSyncLevelCapabilityPacket(
     val value: @Serializable(ForTag::class) Tag,
 ) : HollowPacketV3<CSyncLevelCapabilityPacket> {
     override fun handle(player: Player) {
-//        val level = player.level
-//        val cap = level.getCapability(CapabilityStorage.storages[data.capability] as Capability<CapabilityInstance>)
-//            .orElseThrow { IllegalStateException("Unknown capability: $data".apply(HollowCore.LOGGER::warn)) }
-//        cap.deserializeNBT(data.value)
+        val level = player.level() as ICapabilityDispatcher
+        val cap = level.capabilities.first { it.javaClass.name == capability }
+
+        if ((value as? CompoundTag)?.isEmpty == false) {
+            cap.deserializeNBT(value)
+        }
     }
 
 }
@@ -99,36 +103,20 @@ class SSyncLevelCapabilityPacket(
     val value: @Serializable(ForTag::class) Tag,
 ) : HollowPacketV3<SSyncLevelCapabilityPacket> {
     override fun handle(player: Player) {
-//        val server = player.server ?: throw IllegalStateException("Server not found".apply(HollowCore.LOGGER::warn))
-//        val levelKey = server.levelKeys().find { it.location() == data.level.rl }
-//            ?: throw IllegalStateException("Unknown level: $data".apply(HollowCore.LOGGER::warn))
-//        val level = server.getLevel(levelKey)
-//            ?: throw IllegalStateException("Level not found: $data".apply(HollowCore.LOGGER::warn))
-//        val cap = level.getCapability(CapabilityStorage.storages[data.capability] as Capability<CapabilityInstance>)
-//            .orElseThrow { IllegalStateException("Unknown capability: $data".apply(HollowCore.LOGGER::warn)) }
-//
-//        if (cap.consumeOnServer) {
-//            cap.deserializeNBT(data.value)
-//            CSyncLevelCapabilityPacket(
-//                data.capability,
-//                data.value
-//            ).send(PacketDistributor.DIMENSION.with { player.level.dimension() })
-//        }
+        val server = player.server ?: throw IllegalStateException("Server not found".apply(HollowCore.LOGGER::warn))
+        val levelKey = server.levelKeys().find { it.location() == level.rl }
+            ?: throw IllegalStateException("Unknown level: $level".apply(HollowCore.LOGGER::warn))
+        val level = server.getLevel(levelKey)
+            ?: throw IllegalStateException("Level not found: $level".apply(HollowCore.LOGGER::warn))
+        val cap = (level as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
+
+        if (cap.consumeOnServer) {
+            cap.deserializeNBT(value)
+            CSyncLevelCapabilityPacket(
+                capability,
+                value
+            ).sendAllInDimension(level)
+        }
     }
 
-}
-
-@HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
-@Serializable
-class CSyncTeamCapabilityPacket(
-    val capability: String,
-    val value: @Serializable(ForTag::class) Tag,
-) : HollowPacketV3<CSyncTeamCapabilityPacket> {
-    override fun handle(player: Player) {
-//        val updater = FTBTeamsAPI.getClientManager().selfTeam as ICapabilityProvider
-//
-//        updater.getCapability(CapabilityStorage.storages[data.capability] as Capability<CapabilityInstance>)
-//            .orElseThrow { IllegalStateException("Unknown capability: $data".apply(HollowCore.LOGGER::warn)) }
-//            .deserializeNBT(value)
-    }
 }

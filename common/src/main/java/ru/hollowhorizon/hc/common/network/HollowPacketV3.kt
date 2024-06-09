@@ -24,13 +24,17 @@
 
 package ru.hollowhorizon.hc.common.network
 
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.level.ServerChunkCache
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
 import ru.hollowhorizon.hc.HollowCore.MODID
 
-interface HollowPacketV3<T: HollowPacketV3<T>> : CustomPacketPayload {
+interface HollowPacketV3<T : HollowPacketV3<T>> : CustomPacketPayload {
     fun handle(player: Player)
 
 
@@ -46,6 +50,23 @@ interface HollowPacketV3<T: HollowPacketV3<T>> : CustomPacketPayload {
 
     override fun type() =
         CustomPacketPayload.Type<T>(ResourceLocation(MODID, javaClass.name.lowercase()))
+}
+
+fun HollowPacketV3<*>.sendTrackingEntity(entity: Entity) {
+    val chunkCache = entity.level().chunkSource
+    if (chunkCache is ServerChunkCache) {
+        chunkCache.broadcastAndSend(
+            entity,
+            ClientboundCustomPayloadPacket(this)
+        )
+    } else {
+        throw IllegalStateException("Cannot send clientbound payloads on the client")
+    }
+}
+
+fun HollowPacketV3<*>.sendAllInDimension(level: Level) {
+    val server = level.server ?: return
+    server.playerList.broadcastAll(ClientboundCustomPayloadPacket(this), level.dimension())
 }
 
 lateinit var sendPacketToServer: (HollowPacketV3<*>) -> Unit

@@ -1,10 +1,12 @@
 package ru.hollowhorizon.hc
 
+import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper
 import net.minecraft.client.renderer.entity.EntityRenderers
 import net.minecraft.server.packs.PackType
 import ru.hollowhorizon.hc.common.events.EventBus
+import ru.hollowhorizon.hc.common.events.client.ItemTooltipEvent
 import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.registry.RegisterClientReloadListenersEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent
@@ -18,6 +20,7 @@ object FabricClientEvents {
         RegisterEntityRenderersEvent { entity, renderer ->
             EntityRenderers.register(entity, renderer)
         }.post()
+        renderTooltips()
     }
 
     private fun registerReloadListeners() {
@@ -30,14 +33,18 @@ object FabricClientEvents {
     }
 
     private fun registerShaders() {
-        CoreShaderRegistrationCallback.EVENT.register(
-            CoreShaderRegistrationCallback { ctx: CoreShaderRegistrationCallback.RegistrationContext ->
-                val event = RegisterShadersEvent()
-                EventBus.post(event)
-                event.shaders.forEach {
-                    ctx.register(it.key, it.value.first, it.value.second)
-                }
+        CoreShaderRegistrationCallback.EVENT.register(CoreShaderRegistrationCallback { ctx: CoreShaderRegistrationCallback.RegistrationContext ->
+            val event = RegisterShadersEvent()
+            EventBus.post(event)
+            event.shaders.forEach {
+                ctx.register(it.key, it.value.first, it.value.second)
             }
-        )
+        })
+    }
+
+    private fun renderTooltips() {
+        ItemTooltipCallback.EVENT.register(ItemTooltipCallback { stack, tooltipContext, tooltipType, lines ->
+            ItemTooltipEvent(tooltipType, stack, lines, tooltipContext).post()
+        })
     }
 }

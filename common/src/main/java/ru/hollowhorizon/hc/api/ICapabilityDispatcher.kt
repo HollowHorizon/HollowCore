@@ -25,7 +25,6 @@
 package ru.hollowhorizon.hc.api
 
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.ListTag
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.events.capabilities.LoadCapabilitiesEvent
 import ru.hollowhorizon.hc.common.events.post
@@ -35,16 +34,17 @@ interface ICapabilityDispatcher {
 }
 
 fun ICapabilityDispatcher.serializeCapabilities(tag: CompoundTag) {
-    val list = ListTag()
+    val nbt = CompoundTag()
     capabilities.forEach {
-        list.add(it.serializeNBT())
+        nbt.put(it.javaClass.name, it.serializeNBT())
     }
-    tag.put("hc_capabilities", list)
+    tag.put("hc_capabilities", nbt)
 }
 
 fun ICapabilityDispatcher.deserializeCapabilities(tag: CompoundTag) {
-    tag.getList("hc_capabilities", 10).forEachIndexed { index, tag ->
-        capabilities[index].deserializeNBT(tag)
+    val capabilities = tag.getCompound("hc_capabilities")
+    for (key in capabilities.allKeys) {
+        this.capabilities.find { it.javaClass.name == key }?.deserializeNBT(capabilities.getCompound(key))
     }
 }
 

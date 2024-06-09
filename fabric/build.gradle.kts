@@ -13,6 +13,10 @@ plugins {
 
 repositories {
     maven("https://maven.cleanroommc.com")
+    maven("https://cursemaven.com")
+    flatDir {
+        dirs("libs")
+    }
 }
 
 dependencies {
@@ -22,7 +26,11 @@ dependencies {
     modImplementation("net.fabricmc:fabric-language-kotlin:1.11.0+kotlin.2.0.0")
     modImplementation("net.fabricmc:fabric-loader:$fabric_loader_version")
     modImplementation("net.fabricmc.fabric-api:fabric-api:$fabric_version")
+    modImplementation("sodium:sodium-fabric:0.5.8+mc1.20.6")
+    modImplementation("iris:iris:1.7.0+mc1.20.6")
 
+    implementation("org.anarres:jcpp:1.4.14")
+    implementation("io.github.douira:glsl-transformer:2.0.1")
     implementation("org.ow2.asm:asm:9.7")
 
     fun shadow(dependency: String) {

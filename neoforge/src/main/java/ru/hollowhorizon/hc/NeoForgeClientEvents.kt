@@ -6,6 +6,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent
 import net.neoforged.neoforge.client.event.EntityRenderersEvent
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent
 import net.neoforged.neoforge.common.NeoForge
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent
 import ru.hollowhorizon.hc.common.events.EventBus
 import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.registry.RegisterClientReloadListenersEvent
@@ -20,6 +21,7 @@ object NeoForgeClientEvents {
         HollowCoreNeoForge.MOD_BUS.addListener(::onEntityRenderers)
         HollowCoreNeoForge.MOD_BUS.addListener(::registerReloadListeners)
         NeoForge.EVENT_BUS.addListener(::onClientTick)
+        NeoForge.EVENT_BUS.addListener(::onRenderTooltips)
     }
 
     private fun registerReloadListeners(event: net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent) {
@@ -50,5 +52,14 @@ object NeoForgeClientEvents {
 
     private fun onEntityRenderers(event: EntityRenderersEvent.RegisterRenderers) {
         RegisterEntityRenderersEvent(event::registerEntityRenderer).post()
+    }
+
+    private fun onRenderTooltips(event: ItemTooltipEvent) {
+        ru.hollowhorizon.hc.common.events.client.ItemTooltipEvent(
+            event.flags,
+            event.itemStack,
+            event.toolTip,
+            event.context
+        ).post()
     }
 }

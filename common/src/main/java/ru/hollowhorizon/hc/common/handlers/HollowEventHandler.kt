@@ -23,55 +23,91 @@
  */
 package ru.hollowhorizon.hc.common.handlers
 
-object HollowEventHandler { //TODO: Fix
-//    @OnlyIn(Dist.CLIENT)
-//    fun onTooltip(event: ItemTooltipEvent) {
-//        val desc = event.itemStack.item.descriptionId + ".hc_desc"
-//        val shiftDesc = event.itemStack.item.descriptionId + ".hc_shift_desc"
-//        val lang = Language.getInstance()
-//
-//        if (lang.has(desc)) event.toolTip.add(Component.translatable(desc))
-//
-//        if (Screen.hasShiftDown() && lang.has(shiftDesc)) event.toolTip.add(Component.translatable(desc))
-//    }
-//
-//    fun onStartTracking(event: StartTracking) {
-//        providers.filter { it.first.isInstance(event.target) }.forEach {
-//            event.target
-//                .getCapability(it.second.invoke(event.target).capability)
-//                .ifPresent(CapabilityInstance::sync)
-//        }
-//    }
-//
-//    fun onPlayerClone(event: Clone) {
-//        if (event.isWasDeath) {
-//            for (cap in getCapabilitiesForPlayer()) {
-//                val origCap = event.original.getCapability(cap)
-//                if (!origCap.isPresent) continue
-//                val newCap = event.entity.getCapability(cap)
-//                    .orElseThrow { IllegalStateException("Capability not present!") } as CapabilityInstance
-//
-//                origCap.ifPresent { newCap.deserializeNBT(it.serializeNBT()) }
-//            }
-//        }
-//    }
-//
-//    @Suppress("UNCHECKED_CAST")
-//    fun onPlayerLoggedIn(event: PlayerLoggedInEvent) {
-//        val player = event.entity as ServerPlayer
-//
-//        for (cap in getCapabilitiesForPlayer()) player.getCapability(cap).ifPresent(CapabilityInstance::sync)
-//        for (cap in getCapabilitiesForLevel()) player.level.getCapability(cap).ifPresent(CapabilityInstance::sync)
-//
-//        if (ModList.get().isLoaded("ftbteams")) {
-//            for (cap in teamCapabilities) (FTBTeamsAPI.getPlayerTeam(player) as ICapabilityProvider)
-//                .getCapability(cap as Capability<CapabilityInstance>).ifPresent(CapabilityInstance::sync)
-//        }
-//    }
-//
-//    fun onPlayerChangeDimension(event: PlayerChangedDimensionEvent) {
-//        for (cap in getCapabilitiesForLevel()) {
-//            event.entity.server?.getLevel(event.to)?.getCapability(cap)?.ifPresent(CapabilityInstance::sync)
-//        }
-//    }
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.locale.Language
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.level.ServerLevel
+import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.api.ICapabilityDispatcher
+import ru.hollowhorizon.hc.api.deserializeCapabilities
+import ru.hollowhorizon.hc.api.serializeCapabilities
+import ru.hollowhorizon.hc.client.utils.mcTranslate
+import ru.hollowhorizon.hc.client.utils.nbt.loadAsNBT
+import ru.hollowhorizon.hc.client.utils.nbt.save
+import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
+import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.events.client.ItemTooltipEvent
+import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
+import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
+import ru.hollowhorizon.hc.common.events.level.LevelEvent
+import ru.hollowhorizon.hc.mixins.DimensionDataStorageAccessor
+import java.io.DataInputStream
+
+object HollowEventHandler {
+    @SubscribeEvent
+    fun onTooltip(event: ItemTooltipEvent) {
+        val desc = event.itemStack.item.descriptionId + ".hc_desc"
+        val shiftDesc = event.itemStack.item.descriptionId + ".hc_shift_desc"
+        val lang = Language.getInstance()
+
+        if (lang.has(desc)) event.toolTip.add(desc.mcTranslate)
+
+        if (Screen.hasShiftDown() && lang.has(shiftDesc)) event.toolTip.add(desc.mcTranslate)
+    }
+
+    @SubscribeEvent
+    fun onStartTracking(event: EntityTrackingEvent) {
+        (event.entity as ICapabilityDispatcher).capabilities.forEach(CapabilityInstance::sync)
+    }
+
+    @SubscribeEvent
+    fun onPlayerClone(event: PlayerEvent.Clone) {
+        if (event.wasDeath) {
+            val oldCapabilities = (event.oldPlayer as ICapabilityDispatcher).capabilities
+            val newCapabilities = (event.player as ICapabilityDispatcher).capabilities
+            newCapabilities.clear()
+            newCapabilities.addAll(oldCapabilities)
+        }
+    }
+
+    @SubscribeEvent
+    fun onPlayerLoggedIn(event: PlayerEvent.Join) {
+        val player = event.player as ICapabilityDispatcher
+
+        player.capabilities.forEach(CapabilityInstance::sync)
+    }
+
+    @SubscribeEvent
+    fun onLevelSave(event: LevelEvent.Save) {
+        val level = event.level as ServerLevel
+        val folder = (level.chunkSource.dataStorage as DimensionDataStorageAccessor).dataFolder
+
+        val tag = CompoundTag()
+        (level as ICapabilityDispatcher).serializeCapabilities(tag)
+        tag.save(folder.resolve("hc_capabilities.dat").outputStream())
+    }
+
+    @SubscribeEvent
+    fun onLevelLoad(event: LevelEvent.Load) {
+        val level = event.level as ServerLevel
+        val folder = (level.chunkSource.dataStorage as DimensionDataStorageAccessor).dataFolder
+        val capabilities = folder.resolve("hc_capabilities.dat")
+        if (capabilities.exists()) {
+            try {
+                val tag = DataInputStream(capabilities.inputStream()).loadAsNBT() as CompoundTag
+                (level as ICapabilityDispatcher).deserializeCapabilities(tag)
+            } catch (e: Exception) {
+                HollowCore.LOGGER.warn(
+                    "Exception, while loading capabilities for level {}: ",
+                    level.dimension().location(),
+                    e
+                )
+            }
+        }
+    }
+
+    @SubscribeEvent
+    fun onChangeDimension(event: PlayerEvent.ChangeDimension) {
+        (event.to as ICapabilityDispatcher).capabilities.forEach(CapabilityInstance::sync)
+    }
 }

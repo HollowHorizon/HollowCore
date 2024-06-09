@@ -4,7 +4,6 @@ import kotlin.reflect.KClass
 
 object EventBus {
     val listeners = hashMapOf<KClass<out Event>, MutableList<EventListener<out Event>>>()
-    val cachedListeners = hashMapOf<KClass<out Event>, MutableList<EventListener<out Event>>>()
 
     inline fun <reified T : Event> register(listener: EventListener<T>) {
         val list = listeners.getOrPut(T::class) { mutableListOf() }

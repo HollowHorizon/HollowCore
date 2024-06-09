@@ -28,8 +28,10 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
+import ru.hollowhorizon.hc.common.network.sendAllInDimension
+import ru.hollowhorizon.hc.common.network.sendTrackingEntity
 
 @Suppress("API_STATUS_INTERNAL")
 open class CapabilityInstance {
@@ -47,41 +49,20 @@ open class CapabilityInstance {
     fun sync() {
         when (val target = provider) {
             is Entity -> {
-                //val isPlayer = target is Player
                 if (target.level().isClientSide) {
-                    if (consumeOnServer) SSyncEntityCapabilityPacket(
-                        target.id,
-                        javaClass.name,
-                        serializeNBT()
-                    ).send()
-                } else CSyncEntityCapabilityPacket(target.id, javaClass.name, serializeNBT()).send(
-                    *target.server!!.playerList.players.toTypedArray()
-                )
+                    if (consumeOnServer) SSyncEntityCapabilityPacket(target.id, javaClass.name, serializeNBT()).send()
+                } else CSyncEntityCapabilityPacket(target.id, javaClass.name, serializeNBT()).sendTrackingEntity(target)
+            }
 
+            is Level -> {
+                if (target.isClientSide) {
+                    if (consumeOnServer) SSyncLevelCapabilityPacket(
+                        target.dimension().location().toString(),
+                        javaClass.name, serializeNBT()
+                    ).send()
+                } else CSyncLevelCapabilityPacket(javaClass.name, serializeNBT()).sendAllInDimension(target)
             }
         }
-        //TODO Fix
-//            is BlockEntity -> {
-//                target.setChanged()
-//            }
-//
-//            is LevelChunk -> {
-//                target.isUnsaved = true
-//            }
-//
-//            is Level -> {
-//                if (target.isClientSide) {
-//                    if (consumeOnServer) SSyncLevelCapabilityPacket(
-//                        target.dimension().location().toString(),
-//                        capability.name,
-//                        serializeNBT()
-//                    ).send()
-//                } else CSyncLevelCapabilityPacket(
-//                    capability.name,
-//                    serializeNBT()
-//                ).send(PacketDistributor.DIMENSION.with { target.dimension() })
-//            }
-//        }
     }
 
     fun serializeNBT() = notUsedTags.copy().apply {
