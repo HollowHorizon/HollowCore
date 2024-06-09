@@ -20,7 +20,13 @@ import ru.hollowhorizon.hc.common.registry.RegistryObject
 import kotlin.reflect.KProperty
 
 @Suppress("UNCHECKED_CAST")
-class RegistryHolderFabric<T : Any>(val location: ResourceLocation, val autoModel: Boolean, supplier: () -> T, val target: Class<T>):
+class RegistryHolderFabric<T : Any>(
+    val location: ResourceLocation,
+    val registry: Registry<T>? = null,
+    val autoModel: Boolean,
+    supplier: () -> T,
+    val target: Class<T>,
+) :
     IRegistryHolder<T> {
     val registryType: Registry<T> = with(target) {
         when {
@@ -34,6 +40,8 @@ class RegistryHolderFabric<T : Any>(val location: ResourceLocation, val autoMode
 
             MenuType::class.java.isAssignableFrom(this) -> BuiltInRegistries.MENU
             ParticleType::class.java.isAssignableFrom(this) -> BuiltInRegistries.PARTICLE_TYPE
+
+            registry != null -> registry
 
             else -> throw UnsupportedOperationException("Unsupported registry object: ${target.simpleName}")
         }

@@ -19,7 +19,7 @@ public class HollowCoreFabric implements ModInitializer {
     public void onInitialize() {
         var core = CoreInitialization.INSTANCE;
 
-        HollowRegistryKt.createRegistry = ((resourceLocation, aBoolean, function0, aClass) -> new RegistryHolderFabric<>(resourceLocation, aBoolean, JavaHacks.forceCast(function0), aClass));
+        HollowRegistryKt.createRegistry = ((resourceLocation, registry, aBoolean, function0, aClass) -> new RegistryHolderFabric<>(resourceLocation, JavaHacks.forceCast(registry), aBoolean, JavaHacks.forceCast(function0), aClass));
         isModLoaded = FabricLoader.getInstance()::isModLoaded;
 
         var init = HollowCore.INSTANCE; // Loading Main Class

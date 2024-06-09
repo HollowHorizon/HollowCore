@@ -1,7 +1,9 @@
 package ru.hollowhorizon.hc.internal
 
+import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.world.entity.EntityType
@@ -24,6 +26,7 @@ import kotlin.reflect.KProperty
 @Suppress("UNCHECKED_CAST")
 class RegistryHolderNeoForge<T : Any>(
     val location: ResourceLocation,
+    val registry: Registry<T>? = null,
     val autoModel: Boolean,
     supplier: () -> T,
     val target: Class<T>,
@@ -67,6 +70,8 @@ class RegistryHolderNeoForge<T : Any>(
                 BuiltInRegistries.PARTICLE_TYPE,
                 location.namespace
             )
+
+            ResourceKey::class.java.isAssignableFrom(this) -> DeferredRegister.create(registry ?: throw IllegalStateException("Registry is null!"), location.namespace)
 
             else -> throw UnsupportedOperationException("Unsupported registry object: ${target.simpleName}")
         }

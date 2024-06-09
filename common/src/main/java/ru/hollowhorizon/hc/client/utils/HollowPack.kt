@@ -25,16 +25,12 @@ package ru.hollowhorizon.hc.client.utils
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import net.minecraft.SharedConstants
-import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.PackLocationInfo
 import net.minecraft.server.packs.PackResources
 import net.minecraft.server.packs.PackSelectionConfig
 import net.minecraft.server.packs.PackType
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer
-import net.minecraft.server.packs.metadata.pack.PackMetadataSection
-import net.minecraft.server.packs.repository.KnownPack
 import net.minecraft.server.packs.repository.Pack
 import net.minecraft.server.packs.repository.Pack.ResourcesSupplier
 import net.minecraft.server.packs.repository.PackSource
@@ -44,9 +40,6 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
 import java.util.*
-import java.util.function.Predicate
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 object HollowPack : PackResources {
     private val genSounds = HashMap<String, JsonObject>()
@@ -104,8 +97,13 @@ object HollowPack : PackResources {
         return resourceMap[pLocation]
     }
 
-    override fun listResources(p0: PackType, p1: String, p2: String, output: PackResources.ResourceOutput) {
-        resourceMap.forEach(output::accept)
+    override fun listResources(
+        packType: PackType,
+        namespace: String,
+        prefix: String,
+        output: PackResources.ResourceOutput,
+    ) {
+        resourceMap.filter { it.key.namespace == namespace && it.key.path.startsWith(prefix) }.forEach(output::accept)
     }
 
     override fun getNamespaces(pType: PackType) = resourceMap.keys.map { it.namespace }.toSet()
@@ -139,7 +137,7 @@ object HollowPack : PackResources {
         genSounds.forEach(::addSoundJson)
     }
 
-    val resources = object: ResourcesSupplier {
+    val resources = object : ResourcesSupplier {
         override fun openPrimary(p0: PackLocationInfo): PackResources = HollowPack
 
         override fun openFull(p0: PackLocationInfo, p1: Pack.Metadata) = HollowPack
@@ -147,7 +145,7 @@ object HollowPack : PackResources {
 }
 
 fun PackResources.asPack(): Pack {
-    val resources = object: ResourcesSupplier {
+    val resources = object : ResourcesSupplier {
         override fun openPrimary(p0: PackLocationInfo): PackResources = this@asPack
 
         override fun openFull(p0: PackLocationInfo, p1: Pack.Metadata) = this@asPack

@@ -24,6 +24,9 @@
 
 package ru.hollowhorizon.hc.common.registry
 
+import net.minecraft.core.Registry
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore
 import kotlin.properties.ReadOnlyProperty
@@ -37,14 +40,17 @@ open class HollowRegistry {
     inline fun <reified T : Any> register(
         location: ResourceLocation,
         autoModel: Boolean = true,
-        noinline registry: () -> T,
+        registry: Registry<in T>? = null,
+        noinline registryEntry: () -> T,
     ): IRegistryHolder<T> {
         HollowCore.LOGGER.info("Registering: {}", location)
-        return createRegistry(location, autoModel, registry, T::class.java) as IRegistryHolder<T>
+        return createRegistry(location, registry, autoModel, registryEntry, T::class.java) as IRegistryHolder<T>
     }
+
+    
 }
 
-lateinit var createRegistry: (ResourceLocation, Boolean, () -> Any, Class<*>) -> IRegistryHolder<*>
+lateinit var createRegistry: (ResourceLocation, Registry<*>?, Boolean, () -> Any, Class<*>) -> IRegistryHolder<*>
 
 interface IRegistryHolder<T> : ReadOnlyProperty<Any?, RegistryObject<T>>
 
