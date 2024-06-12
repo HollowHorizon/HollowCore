@@ -45,7 +45,6 @@ open class CapabilityInstance {
         properties += this
     }
 
-
     fun sync() {
         when (val target = provider) {
             is Entity -> {

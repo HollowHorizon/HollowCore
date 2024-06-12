@@ -29,7 +29,6 @@ package ru.hollowhorizon.hc.common.capabilities
 import org.objectweb.asm.Type
 import kotlin.reflect.KClass
 
-
 @Target(AnnotationTarget.CLASS)
 annotation class HollowCapabilityV2(vararg val value: KClass<*>) {
     companion object {

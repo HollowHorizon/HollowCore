@@ -24,19 +24,25 @@
 
 package ru.hollowhorizon.hc.client.imgui
 
+import imgui.ImGui
+import net.minecraft.client.Minecraft
 import net.minecraft.world.item.ItemStack
 import ru.hollowhorizon.hc.client.imgui.addons.inventory
+import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
 
 val first = ImGuiAnimator(0..100, 2f, ImGuiAnimator.Type.FREEZE, Interpolation.SINE_OUT)
 val second by ImGuiAnimator(0..100, 2f, ImGuiAnimator.Type.LOOP, Interpolation.SINE_OUT)
 val thrid by ImGuiAnimator(0..100, 2f, ImGuiAnimator.Type.REVERSE, Interpolation.SINE_OUT)
+
+
 var stack = ItemStack.EMPTY
 
 fun test() = Renderable {
     with(ImGuiMethods) {
+        Minecraft.getInstance().frameTime
         val itemStack = inventory()
         if (!itemStack.isEmpty) stack = itemStack
-        item(stack, 320f, 320f, border = true)
+        item(stack, 512f, 512f, border = true)
     }
 }

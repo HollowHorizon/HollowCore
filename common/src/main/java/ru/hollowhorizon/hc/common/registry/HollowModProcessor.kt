@@ -40,7 +40,6 @@ import java.lang.invoke.MethodHandles
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
-
 object HollowModProcessor {
     private var isInitialized = false
 

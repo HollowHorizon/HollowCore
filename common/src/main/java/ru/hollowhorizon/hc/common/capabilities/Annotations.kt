@@ -30,7 +30,6 @@ fun interface ICapabilityUpdater {
     fun updateCapability(capability: CapabilityInstance, value: Tag)
 }
 
-
 fun interface ICapabilitySyncer {
     fun onCapabilitySync(capability: CapabilityInstance)
 }
