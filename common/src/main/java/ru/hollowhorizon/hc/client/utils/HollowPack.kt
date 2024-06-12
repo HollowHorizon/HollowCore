@@ -66,7 +66,7 @@ object HollowPack : PackResources {
     private fun addItemModel(location: ResourceLocation) {
         val modelLocation = ResourceLocation(location.namespace, "models/item/" + location.path + ".json")
         resourceMap[modelLocation] =
-            ofText("{\"parent\":\"item/handheld\",\"textures\":{\"layer0\":\"" + location.namespace + ":items/" + location.path + "\"}}")
+            ofText("{\"parent\":\"item/handheld\",\"textures\":{\"layer0\":\"" + location.namespace + ":item/" + location.path + "\"}}")
     }
 
     private fun addParticleModel(location: ResourceLocation) {

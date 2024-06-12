@@ -12,6 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher;
 import ru.hollowhorizon.hc.api.ICapabilityDispatcherKt;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
+import ru.hollowhorizon.hc.common.events.EventBus;
+import ru.hollowhorizon.hc.common.events.tick.TickEvent;
 
 import java.util.ArrayList;
 import java.util.List;

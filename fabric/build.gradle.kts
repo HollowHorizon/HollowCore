@@ -38,6 +38,7 @@ dependencies {
         implementation(dependency)
     }
 
+    shadow("com.akuleshov7:ktoml-core:0.5.1")
     shadow("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22")
     shadow("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")
     shadow("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
@@ -62,12 +63,14 @@ loom {
             client()
             configName = "Fabric Client"
             ideConfigGenerated(true)
+            vmArgs("-XX:+AllowEnhancedClassRedefinition")
             runDir("runs/client")
         }
         named("server") {
             server()
             configName = "Fabric Server"
             ideConfigGenerated(true)
+            vmArgs("-XX:+AllowEnhancedClassRedefinition")
             runDir("runs/server")
         }
     }

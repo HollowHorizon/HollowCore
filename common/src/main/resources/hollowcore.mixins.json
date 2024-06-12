@@ -5,8 +5,10 @@
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "CreativeModeTabMixin",
     "DimensionDataStorageAccessor",
     "ListTagAccessor",
+    "LivingEntityMixin",
     "MinecraftServerMixin",
     "PackRepositoryMixin",
     "ServerLevelMixin",

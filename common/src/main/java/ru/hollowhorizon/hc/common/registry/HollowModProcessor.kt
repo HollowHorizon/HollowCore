@@ -37,7 +37,6 @@ import ru.hollowhorizon.hc.common.network.HollowPacketV3
 import ru.hollowhorizon.hc.common.network.registerPacket
 import ru.hollowhorizon.hc.common.network.registerPackets
 import java.lang.invoke.MethodHandles
-import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 
@@ -51,6 +50,19 @@ object HollowModProcessor {
         isInitialized = true
 
         val handles = MethodHandles.lookup()
+
+        registerMethodHandler<SubscribeEvent> { method, _ ->
+            val listener = if (method.isStatic()) {
+                handles.createStaticEventListener(method)
+            } else {
+                val obj = method.declaringClass.kotlin.objectInstance
+                    ?: throw IllegalArgumentException("${method.declaringClass.simpleName} must be an object!")
+                handles.createEventListener(method, obj)
+            }
+            EventBus.registerNoInline(method.parameterTypes[0] as Class<Event>, listener)
+        }
+
+        AnnotationProcessorEvent(getAnnotatedClasses, getSubTypes, getAnnotatedMethods).post()
 
         val runnables = arrayListOf<Runnable>()
 
@@ -78,17 +90,6 @@ object HollowModProcessor {
 
         registerClassHandler<HollowMod> { type, _ ->
             type.kotlin.objectInstance ?: throw IllegalArgumentException("${type.simpleName} must be an object!")
-        }
-
-        registerMethodHandler<SubscribeEvent> { method, _ ->
-            val listener = if (method.isStatic()) {
-                handles.createStaticEventListener(method)
-            } else {
-                val obj = method.declaringClass.kotlin.objectInstance
-                    ?: throw IllegalArgumentException("${method.declaringClass.simpleName} must be an object!")
-                handles.createEventListener(method, obj)
-            }
-            EventBus.registerNoInline(method.parameterTypes[0] as Class<Event>, listener)
         }
 
         registerClassInitializers<HollowRegistry>()

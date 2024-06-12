@@ -24,14 +24,20 @@
 
 package ru.hollowhorizon.hc.client.render
 
+import com.mojang.blaze3d.platform.Lighting
+import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.BufferBuilder
-import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.gui.screens.inventory.InventoryScreen
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.LightTexture
+import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.ItemDisplayContext
+import net.minecraft.world.item.ItemStack
 import org.joml.Matrix4f
-import org.joml.Quaternionf
 import org.joml.Vector3d
-import org.joml.Vector3f
+import kotlin.math.atan
+import kotlin.math.min
 
 object OpenGLUtils {
     fun drawLine(
@@ -52,21 +58,79 @@ object OpenGLUtils {
 
 
 fun LivingEntity.render(
-    guiGraphics: GuiGraphics,
     x: Float,
     y: Float,
+    width: Float,
+    height: Float,
     scale: Float,
     mouseX: Float,
     mouseY: Float,
+    offsetX: Float,
+    offsetY: Float,
 ) {
-    InventoryScreen.renderEntityInInventory(
-        guiGraphics,
-        x,
-        y,
-        scale,
-        Vector3f(),
-        Quaternionf(),
-        Quaternionf(),
-        this
+    val stack = PoseStack()
+    val xOffset = x + width / 2 + offsetX
+    val yOffset = y + height + offsetY
+    stack.translate(xOffset, yOffset, 0f)
+    val newScale = min(width / bbWidth, height / bbHeight) * 0.95f * scale
+    stack.scale(newScale, -newScale, newScale)
+
+    val rotationX = atan((xOffset - mouseX) / 150.0f)
+    val rotationY = atan((yOffset - height / 2 - mouseY) / 150.0f)
+
+    Lighting.setupForEntityInInventory()
+    val renderDispatcher = Minecraft.getInstance().entityRenderDispatcher
+
+    val yBodyRotOld: Float = yBodyRot
+    val yRotOld: Float = yRot
+    val xRotOld: Float = xRot
+    val yHeadRotOOld: Float = yHeadRotO
+    val yHeadRotOld: Float = yHeadRot
+    yBodyRot = rotationX * 20f
+    yRot = rotationX * 40f
+    xRot = -rotationY * 20f
+    yHeadRot = yRot
+    yHeadRotO = yRot
+    renderDispatcher.setRenderShadow(false)
+    RenderSystem.runAsFancy {
+        renderDispatcher.render(
+            this, 0.0, 0.0, 0.0, 0.0f, 1.0f,
+            stack, Minecraft.getInstance().renderBuffers().bufferSource(),
+            15728880
+        )
+    }
+    RenderSystem.disableDepthTest()
+    Minecraft.getInstance().renderBuffers().bufferSource().endBatch()
+    RenderSystem.enableDepthTest()
+    renderDispatcher.setRenderShadow(true)
+    yBodyRot = yBodyRotOld
+    yRot = yRotOld
+    xRot = xRotOld
+    yHeadRot = yHeadRotOld
+    yHeadRotO = yHeadRotOOld
+    Lighting.setupFor3DItems()
+}
+
+fun ItemStack.render(x: Float, y: Float, width: Float, height: Float) {
+    val stack = PoseStack()
+    val xOffset = x + width / 2
+    val yOffset = y + height / 2
+    stack.translate(xOffset, yOffset, 0f)
+    val newScale = min(width, height) * 0.95f
+    stack.scale(newScale, -newScale, newScale)
+
+    val src = Minecraft.getInstance().renderBuffers().bufferSource()
+    Minecraft.getInstance().itemRenderer.renderStatic(
+        null,
+        this,
+        ItemDisplayContext.GUI,
+        false,
+        stack,
+        src,
+        Minecraft.getInstance().level,
+        LightTexture.FULL_BRIGHT,
+        OverlayTexture.NO_OVERLAY,
+        0
     )
+    src.endBatch()
 }

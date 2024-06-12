@@ -8,6 +8,7 @@ import net.minecraft.sounds.SoundEvent
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.inventory.MenuType
 import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.CreativeModeTab
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.crafting.RecipeSerializer
 import net.minecraft.world.level.block.Block
@@ -37,7 +38,7 @@ class RegistryHolderFabric<T : Any>(
             SoundEvent::class.java.isAssignableFrom(this) -> BuiltInRegistries.SOUND_EVENT
             Feature::class.java.isAssignableFrom(this) -> BuiltInRegistries.FEATURE
             RecipeSerializer::class.java.isAssignableFrom(this) -> BuiltInRegistries.RECIPE_SERIALIZER
-
+            CreativeModeTab::class.java.isAssignableFrom(this) -> BuiltInRegistries.CREATIVE_MODE_TAB
             MenuType::class.java.isAssignableFrom(this) -> BuiltInRegistries.MENU
             ParticleType::class.java.isAssignableFrom(this) -> BuiltInRegistries.PARTICLE_TYPE
 

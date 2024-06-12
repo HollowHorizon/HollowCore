@@ -9,6 +9,7 @@ import net.minecraft.sounds.SoundEvent
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.inventory.MenuType
 import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.CreativeModeTab
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.crafting.RecipeSerializer
 import net.minecraft.world.level.block.Block
@@ -66,12 +67,18 @@ class RegistryHolderNeoForge<T : Any>(
                 location.namespace
             )
 
+            CreativeModeTab::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+                BuiltInRegistries.CREATIVE_MODE_TAB, location.namespace
+            )
+
             ParticleType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 BuiltInRegistries.PARTICLE_TYPE,
                 location.namespace
             )
 
-            ResourceKey::class.java.isAssignableFrom(this) -> DeferredRegister.create(registry ?: throw IllegalStateException("Registry is null!"), location.namespace)
+            ResourceKey::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+                registry ?: throw IllegalStateException("Registry is null!"), location.namespace
+            )
 
             else -> throw UnsupportedOperationException("Unsupported registry object: ${target.simpleName}")
         }

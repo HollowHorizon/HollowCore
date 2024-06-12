@@ -89,6 +89,7 @@ dependencies {
 
     implementation("thedarkcolour:kotlinforforge:4.10.0")
 
+    implementation("com.akuleshov7:ktoml-core:0.5.1")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")

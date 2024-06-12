@@ -26,6 +26,7 @@ package ru.hollowhorizon.hc.common.handlers
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.locale.Language
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.Tag
 import net.minecraft.server.level.ServerLevel
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
@@ -40,10 +41,13 @@ import ru.hollowhorizon.hc.common.events.client.ItemTooltipEvent
 import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
 import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
 import ru.hollowhorizon.hc.common.events.level.LevelEvent
+import ru.hollowhorizon.hc.common.events.tick.TickEvent
 import ru.hollowhorizon.hc.mixins.DimensionDataStorageAccessor
 import java.io.DataInputStream
 
 object HollowEventHandler {
+    val ENTITY_TAGS = hashMapOf<Int, MutableMap<String, Tag>>()
+
     @SubscribeEvent
     fun onTooltip(event: ItemTooltipEvent) {
         val desc = event.itemStack.item.descriptionId + ".hc_desc"
@@ -109,5 +113,18 @@ object HollowEventHandler {
     @SubscribeEvent
     fun onChangeDimension(event: PlayerEvent.ChangeDimension) {
         (event.to as ICapabilityDispatcher).capabilities.forEach(CapabilityInstance::sync)
+    }
+
+    @SubscribeEvent
+    fun onEntityTick(event: TickEvent.Entity) {
+        if (event.entity.level().isClientSide) {
+            ENTITY_TAGS[event.entity.id]?.let { map ->
+                val capabilities = (event.entity as ICapabilityDispatcher).capabilities
+                map.forEach { (name, tag) ->
+                    capabilities.find { it.javaClass.name == name }?.deserializeNBT(tag)
+                }
+                ENTITY_TAGS.remove(event.entity.id)
+            }
+        }
     }
 }

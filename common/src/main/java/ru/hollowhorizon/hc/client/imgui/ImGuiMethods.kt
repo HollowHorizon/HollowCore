@@ -25,8 +25,8 @@
 package ru.hollowhorizon.hc.client.imgui
 
 import com.google.common.collect.Queues
+import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexSorting
 import imgui.ImFont
 import imgui.ImGui
@@ -36,21 +36,24 @@ import imgui.flag.ImGuiCol
 import imgui.flag.ImGuiDir
 import imgui.flag.ImGuiWindowFlags
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.renderer.LightTexture
-import net.minecraft.client.renderer.texture.OverlayTexture
+import net.minecraft.locale.Language
+import net.minecraft.network.chat.ClickEvent
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.HoverEvent
+import net.minecraft.network.chat.contents.PlainTextContents
+import net.minecraft.network.chat.contents.TranslatableContents
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.FastColor.ARGB32
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.Item
-import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.TooltipFlag
 import org.intellij.lang.annotations.MagicConstant
 import org.joml.Matrix4f
 import ru.hollowhorizon.hc.client.render.render
 import ru.hollowhorizon.hc.client.utils.toTexture
+import java.io.File
 import java.util.*
-import kotlin.math.min
 
 object ImGuiMethods {
     internal val cursorStack: Deque<ImVec2> = Queues.newArrayDeque()
@@ -203,14 +206,12 @@ object ImGuiMethods {
         hoverColor: Int,
         codeBlock: ImGuiMethods.() -> Unit,
     ) {
-        pushColorStyle(ImGuiCol.CheckMark, innerColor) {
-            pushColorStyle(ImGuiCol.FrameBg, outerColor) {
-                pushColorStyle(ImGuiCol.FrameBgHovered, hoverColor) {
-                    radioButton(name, isActive) {
-                        codeBlock(ImGuiMethods)
-                    }
-                }
-            }
+        pushColorStyles(
+            ImGuiCol.CheckMark to innerColor,
+            ImGuiCol.FrameBg to outerColor,
+            ImGuiCol.FrameBgHovered to hoverColor
+        ) {
+            codeBlock(ImGuiMethods)
         }
     }
 
@@ -428,6 +429,15 @@ object ImGuiMethods {
         ImGui.popStyleColor()
     }
 
+    inline fun pushColorStyles(
+        vararg pairs: Pair<Int, Int>,
+        codeBlock: ImGuiMethods.() -> Unit,
+    ) {
+        pairs.forEach { ImGui.pushStyleColor(it.first, it.second) }
+        codeBlock(ImGuiMethods)
+        ImGui.popStyleColor(pairs.count())
+    }
+
     inline fun pushFont(font: ImFont, codeBlock: ImGuiMethods.() -> Unit) {
         ImGui.pushFont(font)
         codeBlock(ImGuiMethods)
@@ -450,7 +460,7 @@ object ImGuiMethods {
         imguiBuffer.bindWrite(true)
 
         val cursor = ImGui.getCursorScreenPos()
-        ImGui.getMousePos()
+
         RenderSystem.backupProjectionMatrix()
         RenderSystem.setProjectionMatrix(
             Matrix4f().setOrtho(
@@ -463,6 +473,10 @@ object ImGuiMethods {
             ),
             VertexSorting.ORTHOGRAPHIC_Z
         )
+        val matrix4fstack = RenderSystem.getModelViewStack()
+        matrix4fstack.pushMatrix()
+        matrix4fstack.translation(0.0f, 0.0f, -2000.0f)
+        RenderSystem.applyModelViewMatrix()
 
         RenderSystem.enableScissor(
             cursor.x.toInt(), (imguiBuffer.height - cursor.y - height).toInt(),
@@ -475,6 +489,9 @@ object ImGuiMethods {
         RenderSystem.disableScissor()
         RenderSystem.restoreProjectionMatrix()
 
+        matrix4fstack.popMatrix()
+        RenderSystem.applyModelViewMatrix()
+
         imguiBuffer.unbindWrite()
         mcBuffer.bindWrite(true)
 
@@ -486,6 +503,17 @@ object ImGuiMethods {
         else ImGui.image(imguiBuffer.colorTextureId, width, height, u0, v0, u1, v1, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f)
     }
 
+    fun exportFramebuffer() {
+        NativeImage(imguiBuffer.width, imguiBuffer.height, Minecraft.ON_OSX).apply {
+            RenderSystem.setShaderTexture(
+                0,
+                imguiBuffer.colorTextureId
+            ); downloadTexture(0, true)
+        }.writeToFile(
+            File("example.png")
+        )
+    }
+
     fun entity(
         entity: LivingEntity,
         width: Float,
@@ -493,18 +521,12 @@ object ImGuiMethods {
         offsetX: Float = 0f,
         offsetY: Float = 0f,
         scale: Float = 1f,
+        border: Boolean = false,
     ) {
-        opengl(width, height) { cursor ->
+        opengl(width, height, border) { cursor ->
             val mouse = ImGui.getMousePos()
-            val size = min(width / entity.bbWidth, height / entity.bbHeight)
-            entity.render(
-                GuiGraphics(Minecraft.getInstance(), Minecraft.getInstance().renderBuffers().bufferSource()),
-                (cursor.x + width / 2 + offsetX),
-                (cursor.y + height + offsetY),
-                size * scale * 0.9f,
-                (cursor.x + width / 2 + offsetX - mouse.x) / 10,
-                (cursor.y + height / 2 - offsetY - mouse.y) / 10
-            )
+
+            entity.render(cursor.x, cursor.y, width, height, scale, mouse.x, mouse.y, offsetX, offsetY)
         }
 
 
@@ -512,40 +534,100 @@ object ImGuiMethods {
 
     fun item(item: ItemStack, width: Float, height: Float, border: Boolean = false) {
         opengl(width, height, border) { cursor ->
-            val minecraft = Minecraft.getInstance()
-            val itemRenderer = minecraft.itemRenderer
-            val font = minecraft.font
-
-
-            val modelView = RenderSystem.getModelViewStack()
-            modelView.pushMatrix()
-            modelView.translate(cursor.x + width / 2.0f, cursor.y + height / 2.0f, 0.0f)
-
-            val scale = min(width / 16, height / 16)
-            modelView.scale(scale, scale, 0f)
-            itemRenderer.renderStatic(
-                item,
-                ItemDisplayContext.GUI,
-                LightTexture.FULL_BRIGHT,
-                OverlayTexture.NO_OVERLAY,
-                PoseStack(),
-                Minecraft.getInstance().renderBuffers().bufferSource(),
-                Minecraft.getInstance().level!!,
-                0
-            )
-            modelView.popMatrix()
-
+            item.render(cursor.x, cursor.y, width, height)
         }
 
         val player = Minecraft.getInstance().player ?: return
         //val advanced = player::isShiftKeyDown
         if (ImGui.isItemHovered()) {
-            ImGui.setTooltip(
+            tooltip {
                 item.getTooltipLines(
                     Item.TooltipContext.of(player.level()),
                     player,
                     TooltipFlag.Default.NORMAL
-                ).joinToString("\n") { it.string })
+                ).forEach(::text)
+            }
+        }
+    }
+
+    fun text(text: Component, alpha: Float = 1f) {
+        val content = text.contents
+        val color = text.style.color?.value ?: 0xFFFFFFFF.toInt()
+        val r = ARGB32.red(color)
+        val g = ARGB32.green(color)
+        val b = ARGB32.blue(color)
+
+        pushColorStyle(ImGuiCol.Text, ImGui.colorConvertFloat4ToU32(r / 255f, g / 255f, b / 255f, alpha)) {
+            when (content) {
+                is PlainTextContents -> {
+                    text(content.text())
+                }
+
+                is TranslatableContents -> {
+                    val decomposed = String.format(
+                        Language.getInstance().getOrDefault(content.key),
+                        *content.args.map { if (it is Component) it.string else it }.toTypedArray()
+                    )
+                    text(decomposed)
+                }
+            }
+        }
+
+        text.style.clickEvent?.let {
+            when (it.action) {
+                ClickEvent.Action.OPEN_URL -> TODO()
+                ClickEvent.Action.OPEN_FILE -> TODO()
+                ClickEvent.Action.RUN_COMMAND -> TODO()
+                ClickEvent.Action.SUGGEST_COMMAND -> TODO()
+                ClickEvent.Action.CHANGE_PAGE -> TODO()
+                ClickEvent.Action.COPY_TO_CLIPBOARD -> TODO()
+                else -> {}
+            }
+        }
+
+        if (ImGui.isItemHovered()) text.style.hoverEvent?.let {
+            when (it.action.serializedName) {
+                "show_text" -> {
+                    ImGui.beginTooltip()
+                    text(it.getValue(HoverEvent.Action.SHOW_TEXT) ?: Component.empty())
+                    ImGui.endTooltip()
+                }
+
+                "show_item" -> {
+                    ImGui.beginTooltip()
+                    it.getValue(HoverEvent.Action.SHOW_ITEM)?.let {
+                        item(it.itemStack, 128f, 128f)
+                        it.itemStack.getTooltipLines(
+                            Item.TooltipContext.of(Minecraft.getInstance().level),
+                            Minecraft.getInstance().player,
+                            TooltipFlag.Default.NORMAL
+                        ).forEach(::text)
+                    }
+                    ImGui.sameLine()
+                    ImGui.endTooltip()
+                }
+
+                "show_entity" -> {
+                    ImGui.beginTooltip()
+                    it.getValue(HoverEvent.Action.SHOW_ENTITY)?.let {
+                        val entity = Minecraft.getInstance().level?.entitiesForRendering()
+                            ?.find { a -> a.uuid == it.id } as? LivingEntity
+                        if (it.name.isPresent) text(it.name.get())
+                        if (entity != null) entity(entity, 128f, 128f)
+                    }
+                    ImGui.endTooltip()
+                }
+            }
+        }
+
+        text.siblings.forEach {
+            val old = ImGui.getStyle().itemSpacing
+            ImGui.getStyle().setItemSpacing(0f, old.y)
+            sameLine()
+
+            text(it, alpha)
+
+            ImGui.getStyle().setItemSpacing(old.x, old.y)
         }
     }
 }

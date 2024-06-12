@@ -30,6 +30,8 @@ dependencies {
     implementation("org.ow2.asm:asm:9.7")
     implementation("org.reflections:reflections:0.10.2")
 
+    implementation("com.akuleshov7:ktoml-core:0.5.1")
+
     implementation("io.github.spair:imgui-java-binding:$imguiVersion")
     implementation("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
     implementation("io.github.spair:imgui-java-natives-windows:$imguiVersion")

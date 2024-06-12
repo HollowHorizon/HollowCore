@@ -34,6 +34,7 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.client.utils.nbt.ForTag
 import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.handlers.HollowEventHandler
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
 import ru.hollowhorizon.hc.common.network.sendAllInDimension
@@ -47,7 +48,10 @@ class CSyncEntityCapabilityPacket(
 ) : HollowPacketV3<CSyncEntityCapabilityPacket> {
     override fun handle(player: Player) {
         val entity = player.level().getEntity(entityId)
-            ?: throw IllegalStateException("Entity with id $entityId not found: $this".apply(HollowCore.LOGGER::warn))
+        if(entity == null) {
+            HollowEventHandler.ENTITY_TAGS.computeIfAbsent(entityId) { mutableMapOf() }[capability] = value
+            return
+        }
         val cap = (entity as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
 
         if ((value as? CompoundTag)?.isEmpty == false) {

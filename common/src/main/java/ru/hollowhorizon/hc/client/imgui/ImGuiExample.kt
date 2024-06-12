@@ -24,12 +24,25 @@
 
 package ru.hollowhorizon.hc.client.imgui
 
+import imgui.ImGui
 import net.minecraft.client.Minecraft
+import ru.hollowhorizon.hc.client.utils.*
+import ru.hollowhorizon.hc.client.utils.math.Interpolation
+
+val first = ImGuiAnimator(0..100, 2f, ImGuiAnimator.Type.FREEZE, Interpolation.SINE_OUT)
+val second by ImGuiAnimator(0..100, 2f, ImGuiAnimator.Type.LOOP, Interpolation.SINE_OUT)
+val thrid by ImGuiAnimator(0..100, 2f, ImGuiAnimator.Type.REVERSE, Interpolation.SINE_OUT)
 
 
 fun test() = Renderable {
     with(ImGuiMethods) {
         text("partialTick: " + Minecraft.getInstance().frameTime)
         text("deltaTime: " + Minecraft.getInstance().deltaFrameTime)
+
+        ImGui.setCursorPosY(ImGui.getCursorPosY() + thrid)
+
+        button("Reset") {
+            first.reset()
+        }
     }
 }
