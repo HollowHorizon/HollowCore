@@ -35,6 +35,7 @@ import imgui.ImVec4
 import imgui.flag.ImGuiCol
 import imgui.flag.ImGuiDir
 import imgui.flag.ImGuiWindowFlags
+import net.minecraft.Util
 import net.minecraft.client.Minecraft
 import net.minecraft.locale.Language
 import net.minecraft.network.chat.ClickEvent
@@ -453,13 +454,16 @@ object ImGuiMethods {
         return container
     }
 
-    fun opengl(width: Float, height: Float, border: Boolean = false, renderable: (ImVec2) -> Unit) {
+    fun opengl(width: Float, height: Float, border: Boolean = false, renderable: (ImVec2, Boolean) -> Unit): Boolean {
         val mcBuffer = Minecraft.getInstance().mainRenderTarget
 
         mcBuffer.unbindWrite()
         imguiBuffer.bindWrite(true)
 
         val cursor = ImGui.getCursorScreenPos()
+        val isClicked = ImGui.invisibleButton("##opengl_context", width, height) or ImGui.isItemClicked()
+        val isHovered = ImGui.isItemHovered()
+        ImGui.setCursorScreenPos(cursor.x, cursor.y)
 
         RenderSystem.backupProjectionMatrix()
         RenderSystem.setProjectionMatrix(
@@ -484,7 +488,7 @@ object ImGuiMethods {
         )
         RenderSystem.enableDepthTest()
 
-        renderable(cursor)
+        renderable(cursor, isHovered)
 
         RenderSystem.disableScissor()
         RenderSystem.restoreProjectionMatrix()
@@ -499,8 +503,38 @@ object ImGuiMethods {
         val u1 = (cursor.x + width) / imguiBuffer.width
         val v0 = 1f - cursor.y / imguiBuffer.height
         val v1 = 1f - (cursor.y + height) / imguiBuffer.height
-        if (!border) ImGui.image(imguiBuffer.colorTextureId, width, height, u0, v0, u1, v1)
-        else ImGui.image(imguiBuffer.colorTextureId, width, height, u0, v0, u1, v1, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f)
+        return if (!border) ImGui.imageButton(
+            imguiBuffer.colorTextureId,
+            width,
+            height,
+            u0,
+            v0,
+            u1,
+            v1,
+            0,
+            0f,
+            0f,
+            0f,
+            0f
+        ) or isClicked
+        else ImGui.imageButton(
+            imguiBuffer.colorTextureId,
+            width,
+            height,
+            u0,
+            v0,
+            u1,
+            v1,
+            0,
+            0f,
+            0f,
+            0f,
+            0f,
+            1f,
+            1f,
+            1f,
+            1f
+        ) or isClicked
     }
 
     fun exportFramebuffer() {
@@ -523,7 +557,7 @@ object ImGuiMethods {
         scale: Float = 1f,
         border: Boolean = false,
     ) {
-        opengl(width, height, border) { cursor ->
+        opengl(width, height, border) { cursor, hovered ->
             val mouse = ImGui.getMousePos()
 
             entity.render(cursor.x, cursor.y, width, height, scale, mouse.x, mouse.y, offsetX, offsetY)
@@ -532,14 +566,21 @@ object ImGuiMethods {
 
     }
 
-    fun item(item: ItemStack, width: Float, height: Float, border: Boolean = false) {
-        opengl(width, height, border) { cursor ->
-            item.render(cursor.x, cursor.y, width, height)
+    fun item(
+        item: ItemStack,
+        width: Float,
+        height: Float,
+        border: Boolean = false,
+        disableResize: Boolean = false,
+    ): Boolean {
+        val cPos = ImGui.getCursorPos()
+        val clicked = opengl(width, height, border) { cursor, hovered ->
+            item.render(cursor.x, cursor.y, width, height, if (hovered || disableResize) 1.0f else 0.9f)
         }
 
-        val player = Minecraft.getInstance().player ?: return
-        //val advanced = player::isShiftKeyDown
-        if (ImGui.isItemHovered()) {
+        val player = Minecraft.getInstance().player ?: return false
+
+        if (ImGui.isItemHovered() && !item.isEmpty) {
             tooltip {
                 item.getTooltipLines(
                     Item.TooltipContext.of(player.level()),
@@ -548,44 +589,74 @@ object ImGuiMethods {
                 ).forEach(::text)
             }
         }
+
+        if (item.count > 1) {
+            val size = ImGui.calcTextSize(item.count.toString())
+            ImGui.setCursorPos(
+                cPos.x + width - size.x - 1,
+                cPos.y + height - size.y - 1
+            )
+            text(item.count.toString())
+        }
+        ImGui.setCursorPos(cPos.x, cPos.y)
+        return clicked or ImGui.invisibleButton("##item", width, height)
     }
 
     fun text(text: Component, alpha: Float = 1f) {
-        val content = text.contents
-        val color = text.style.color?.value ?: 0xFFFFFFFF.toInt()
-        val r = ARGB32.red(color)
-        val g = ARGB32.green(color)
-        val b = ARGB32.blue(color)
+        val color = text.style.color?.value
+        if (color != null) {
+            val r = ARGB32.red(color)
+            val g = ARGB32.green(color)
+            val b = ARGB32.blue(color)
 
-        pushColorStyle(ImGuiCol.Text, ImGui.colorConvertFloat4ToU32(r / 255f, g / 255f, b / 255f, alpha)) {
-            when (content) {
-                is PlainTextContents -> {
-                    text(content.text())
-                }
+            pushColorStyle(ImGuiCol.Text, ImGui.colorConvertFloat4ToU32(r / 255f, g / 255f, b / 255f, alpha)) {
+                drawText(text, alpha)
+            }
+        } else {
+            drawText(text, alpha)
+        }
+    }
 
-                is TranslatableContents -> {
-                    val decomposed = String.format(
-                        Language.getInstance().getOrDefault(content.key),
-                        *content.args.map { if (it is Component) it.string else it }.toTypedArray()
-                    )
-                    text(decomposed)
-                }
+    private fun drawText(text: Component, alpha: Float = 1f) {
+        when (val content = text.contents) {
+            is PlainTextContents -> {
+                text(content.text())
+            }
+
+            is TranslatableContents -> {
+                val decomposed = String.format(
+                    Language.getInstance().getOrDefault(content.key),
+                    *content.args.map { if (it is Component) it.string else it }.toTypedArray()
+                )
+                text(decomposed)
             }
         }
+
 
         text.style.clickEvent?.let {
             when (it.action) {
-                ClickEvent.Action.OPEN_URL -> TODO()
-                ClickEvent.Action.OPEN_FILE -> TODO()
-                ClickEvent.Action.RUN_COMMAND -> TODO()
-                ClickEvent.Action.SUGGEST_COMMAND -> TODO()
-                ClickEvent.Action.CHANGE_PAGE -> TODO()
-                ClickEvent.Action.COPY_TO_CLIPBOARD -> TODO()
-                else -> {}
+                ClickEvent.Action.OPEN_URL -> Util.getPlatform().openUri(it.value)
+                ClickEvent.Action.OPEN_FILE -> Util.getPlatform().openFile(File(it.value))
+                ClickEvent.Action.RUN_COMMAND -> Minecraft.getInstance().connection?.sendCommand(it.value)
+                ClickEvent.Action.COPY_TO_CLIPBOARD -> Minecraft.getInstance().keyboardHandler.clipboard = it.value
+                else -> throw UnsupportedOperationException("Unsupported click action: ${it.action}")
             }
         }
 
-        if (ImGui.isItemHovered()) text.style.hoverEvent?.let {
+        val isHovered = ImGui.isItemHovered()
+
+
+        text.siblings.forEach {
+            val old = ImGui.getStyle().itemSpacing
+            ImGui.getStyle().setItemSpacing(0f, old.y)
+            sameLine()
+
+            text(it, alpha)
+
+            ImGui.getStyle().setItemSpacing(old.x, old.y)
+        }
+
+        if (isHovered) text.style.hoverEvent?.let {
             when (it.action.serializedName) {
                 "show_text" -> {
                     ImGui.beginTooltip()
@@ -618,16 +689,6 @@ object ImGuiMethods {
                     ImGui.endTooltip()
                 }
             }
-        }
-
-        text.siblings.forEach {
-            val old = ImGui.getStyle().itemSpacing
-            ImGui.getStyle().setItemSpacing(0f, old.y)
-            sameLine()
-
-            text(it, alpha)
-
-            ImGui.getStyle().setItemSpacing(old.x, old.y)
         }
     }
 }

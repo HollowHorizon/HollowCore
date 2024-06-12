@@ -111,26 +111,29 @@ fun LivingEntity.render(
     Lighting.setupFor3DItems()
 }
 
-fun ItemStack.render(x: Float, y: Float, width: Float, height: Float) {
+fun ItemStack.render(x: Float, y: Float, width: Float, height: Float, scale: Float) {
     val stack = PoseStack()
     val xOffset = x + width / 2
     val yOffset = y + height / 2
     stack.translate(xOffset, yOffset, 0f)
-    val newScale = min(width, height) * 0.95f
+    val newScale = min(width, height) * 0.95f * scale
     stack.scale(newScale, -newScale, newScale)
 
     val src = Minecraft.getInstance().renderBuffers().bufferSource()
-    Minecraft.getInstance().itemRenderer.renderStatic(
-        null,
+    val model = Minecraft.getInstance().itemRenderer.getModel(this, Minecraft.getInstance().level, null, 0)
+    val flat = !model.usesBlockLight()
+
+    if (flat) Lighting.setupForFlatItems()
+    Minecraft.getInstance().itemRenderer.render(
         this,
         ItemDisplayContext.GUI,
         false,
         stack,
         src,
-        Minecraft.getInstance().level,
         LightTexture.FULL_BRIGHT,
         OverlayTexture.NO_OVERLAY,
-        0
+        model
     )
     src.endBatch()
+    if (flat) Lighting.setupFor3DItems()
 }
