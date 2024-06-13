@@ -28,6 +28,10 @@ base {
     archivesName.set("${archivesName.get()}-fabric")
 }
 
+repositories {
+    flatDir { dirs("libs") }
+}
+
 configurations {
     compileClasspath { extendsFrom(common) }
     runtimeClasspath { extendsFrom(common) }
@@ -37,6 +41,9 @@ configurations {
 dependencies {
     modImplementation("net.fabricmc:fabric-loader:$fabric_loader_version") { include(this) }
     modImplementation("net.fabricmc.fabric-api:fabric-api:$fabric_version") { include(this) }
+
+    modImplementation("mods:sodium-fabric:0.5.8+mc1.20.6")
+    modImplementation("mods:iris:1.7.0+mc1.20.6")
 
     common(project(path = ":common", configuration = "namedElements")) { isTransitive = false }
     shadowBundle(project(path = ":common", configuration = "transformProductionFabric"))

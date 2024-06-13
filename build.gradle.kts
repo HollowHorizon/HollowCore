@@ -60,7 +60,7 @@ subprojects {
         })
 
         if (project != findProject(":common")) {
-            "include"("team._0mods:KotlinExtras:$kotlinVersion") {
+            "include"("team._0mods:KotlinExtras:kotlin-$kotlinVersion") {
                 /*exclude(mapOf(
                     /*
                     Вшитые библиотеки: 

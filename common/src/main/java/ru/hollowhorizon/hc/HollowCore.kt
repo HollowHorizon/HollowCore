@@ -28,6 +28,8 @@ import org.apache.logging.log4j.Logger
 import ru.hollowhorizon.hc.api.HollowMod
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.common.HollowCoreCommon
+import ru.hollowhorizon.hc.common.config.HollowCoreConfig
+import ru.hollowhorizon.hc.common.config.hollowConfig
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor.initMod
 
 
@@ -36,10 +38,11 @@ object HollowCore {
 
     @JvmField
     val LOGGER: Logger = ru.hollowhorizon.hc.LOGGER
-    const val DEBUG_MODE: Boolean = false
+    val config by hollowConfig(::HollowCoreConfig, "hollowcore")
 
 
     init {
+        config.save()
         HollowCoreCommon
 
         initMod()
