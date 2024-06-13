@@ -6,6 +6,8 @@ import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.fabricmc.fabric.api.`object`.builder.v1.entity.FabricDefaultAttributeRegistry
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper
+import net.minecraft.server.packs.PackType
 import net.minecraft.world.item.CreativeModeTabs
 import ru.hollowhorizon.hc.common.events.EventBus
 import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
@@ -13,13 +15,26 @@ import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
 import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.registry.RegisterCommandsEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityAttributesEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
+import ru.hollowhorizon.hc.internal.DelegatedReloadListener
 
 object FabricEvents {
     init {
+        registerReloadListeners()
         registerAttributes()
         registerCommands()
         onEntityTracking()
         onPlayerEvents()
+    }
+
+    private fun registerReloadListeners() {
+        val event = RegisterReloadListenersEvent.Server()
+        EventBus.post(event)
+        val helper = ResourceManagerHelper.get(PackType.SERVER_DATA)
+
+        event.listeners.forEach {
+            helper.registerReloadListener(DelegatedReloadListener(it))
+        }
     }
 
     private fun registerAttributes() {

@@ -35,7 +35,7 @@ import ru.hollowhorizon.hc.common.events.registry.RegisterShadersEvent
 object ModShaders {
     lateinit var GLTF_ENTITY: ShaderInstance
 
-    @SubscribeEvent
+    @SubscribeEvent(clientSideOnly = true)
     fun onShaderRegistry(event: RegisterShadersEvent) {
         event.register(ResourceLocation(MODID, "gltf_entity"), DefaultVertexFormat.NEW_ENTITY) {
             GLTF_ENTITY = it

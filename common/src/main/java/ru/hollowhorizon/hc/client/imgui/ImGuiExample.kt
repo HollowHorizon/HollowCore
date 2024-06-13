@@ -24,21 +24,13 @@
 
 package ru.hollowhorizon.hc.client.imgui
 
-import net.minecraft.client.Minecraft
 import net.minecraft.world.item.ItemStack
-import ru.hollowhorizon.hc.client.imgui.addons.inventory
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
+import ru.hollowhorizon.hc.common.registry.ModItems
 
-val first by ImGuiAnimator(0..100, 2f, ImGuiAnimator.Type.FREEZE, Interpolation.SINE_OUT)
-
-
-var stack = ItemStack.EMPTY
-
+var first by ImGuiAnimator(0..360, 1.5f, ImGuiAnimator.Type.FREEZE, Interpolation.BACK_OUT)
 fun test() = Renderable {
     with(ImGuiMethods) {
-        Minecraft.getInstance().frameTime
-        val itemStack = inventory()
-        if (!itemStack.isEmpty) stack = itemStack
-        item(stack, 512f, 512f, border = true)
+        if (item(ItemStack(ModItems.JOKE.get()), 512f, 512f, border = true, rotation = first)) first = 0f
     }
 }

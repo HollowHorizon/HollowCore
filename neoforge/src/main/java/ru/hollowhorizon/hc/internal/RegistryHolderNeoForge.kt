@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.internal
 import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.world.entity.EntityType
@@ -76,9 +75,7 @@ class RegistryHolderNeoForge<T : Any>(
                 location.namespace
             )
 
-            ResourceKey::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                registry ?: throw IllegalStateException("Registry is null!"), location.namespace
-            )
+            registry != null -> DeferredRegister.create(registry, location.namespace)
 
             else -> throw UnsupportedOperationException("Unsupported registry object: ${target.simpleName}")
         }

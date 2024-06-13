@@ -13,11 +13,6 @@ public class HollowCoreClientFabric implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         var events = FabricClientEvents.INSTANCE;
-
-        EventBus.post(new RegisterKeyBindingsEvent(KeyBindingHelper::registerKeyBinding));
-        ClientTickEvents.END_CLIENT_TICK.register(c -> EventBus.post(new TickEvent.Client(c)));
-
-
         var init = HollowCoreClient.INSTANCE; // Loading Main Class
     }
 }

@@ -9,7 +9,7 @@ import net.neoforged.neoforge.common.NeoForge
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent
 import ru.hollowhorizon.hc.common.events.EventBus
 import ru.hollowhorizon.hc.common.events.post
-import ru.hollowhorizon.hc.common.events.registry.RegisterClientReloadListenersEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterKeyBindingsEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterShadersEvent
@@ -25,7 +25,7 @@ object NeoForgeClientEvents {
     }
 
     private fun registerReloadListeners(event: net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent) {
-        val hcevent = RegisterClientReloadListenersEvent()
+        val hcevent = RegisterReloadListenersEvent()
         EventBus.post(hcevent)
         hcevent.listeners.forEach(event::registerReloadListener)
     }

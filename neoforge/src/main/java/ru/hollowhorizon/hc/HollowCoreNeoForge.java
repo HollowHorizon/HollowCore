@@ -15,11 +15,15 @@ public class HollowCoreNeoForge {
     public static IEventBus MOD_BUS;
 
     public HollowCoreNeoForge(IEventBus modBus) {
+        var core = CoreInitializationNeoForge.INSTANCE;
+
         MOD_BUS = modBus;
         isModLoaded = ModList.get()::isLoaded;
         HollowRegistryKt.createRegistry = ((resourceLocation, registry, aBoolean, function0, aClass) -> new RegistryHolderNeoForge<>(resourceLocation, JavaHacks.forceCast(registry), aBoolean, JavaHacks.forceCast(function0), aClass));
-        var events = NeoForgeEvents.INSTANCE;
+
         var init = HollowCore.INSTANCE; // Loading Main Class
+        var events = NeoForgeEvents.INSTANCE;
+
         if (FMLEnvironment.dist.isClient()) new HollowCoreClientNeoForge();
     }
 }

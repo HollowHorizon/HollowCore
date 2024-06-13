@@ -63,7 +63,6 @@ tasks {
     }
 }
 
-@Suppress("WeakerAccess")
 object ForgeFixer : RemapperExtensionHolder(object : RemapperParameters {}) {
     override fun getRemapperExtensionClass(): Property<Class<out RemapperExtension<*>>> {
         throw UnsupportedOperationException("How did you call this method?")

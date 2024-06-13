@@ -1,36 +1,37 @@
 modLoader = "javafml" #mandatory
-loaderVersion = "${neoforge_loader_version_range}" #mandatory
-license = "${license}" # Review your options at https://choosealicense.com/.
+loaderVersion = "[2,)" #mandatory
+license = "CC0-1.0" # Review your options at https://choosealicense.com/.
 #issueTrackerURL="https://change.me.to.your.issue.tracker.example.invalid/" #optional
 [[mods]] #mandatory
-modId = "${mod_id}" #mandatory
-version = "${version}" #mandatory
-displayName = "${mod_name}" #mandatory
+modId = "hollowcore" #mandatory
+version = "1.20.6-1.0.0" #mandatory
+displayName = "HollowCore" #mandatory
 #updateJSONURL="https://change.me.example.invalid/updates.json" #optional (see https://docs.neoforged.net/docs/misc/updatechecker/)
 #displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional (displayed in the mod UI)
-logoFile="${mod_id}.png" #optional
-credits="${credits}" #optional
-authors = "${mod_author}" #optional
-description = '''${description}''' #mandatory (Supports multiline text)
+logoFile="hollowcore.png" #optional
+credits="" #optional
+authors = "HollowHorizon" #optional
+description = '''The description of your mod.
+Accepts multilines.''' #mandatory (Supports multiline text)
 [[mixins]]
-config = "${mod_id}.mixins.json"
+config = "hollowcore.mixins.json"
 [[accessTransformers]]
 file="accesstransformer.cfg"
-[[dependencies.${mod_id}]] #optional
+[[dependencies.hollowcore]] #optional
 modId = "neoforge" #mandatory
 type="required" #mandatory (Can be one of "required", "optional", "incompatible" or "discouraged")
-versionRange = "${neoforge_loader_version_range}" #mandatory
+versionRange = "[2,)" #mandatory
 ordering = "NONE" # The order that this dependency should load in relation to your mod, required to be either 'BEFORE' or 'AFTER' if the dependency is not mandatory
 side = "BOTH" # Side this dependency is applied on - 'BOTH', 'CLIENT' or 'SERVER'
-[[dependencies.${mod_id}]]
+[[dependencies.hollowcore]]
 modId = "minecraft"
 type="required" #mandatory (Can be one of "required", "optional", "incompatible" or "discouraged")
-versionRange = "${minecraft_version_range}"
+versionRange = "[1.20.6, 1.21)"
 ordering = "NONE"
 side = "BOTH"
 
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
 # that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't
 # stop your mod loading on the server for example.
-#[features.${mod_id}]
+#[features.hollowcore]
 #openGLVersion="[3.2,)"

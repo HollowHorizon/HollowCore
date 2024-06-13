@@ -34,7 +34,7 @@ class ImGuiAnimator(
                     if (cycleTime > time) (2 * time - cycleTime) / time else cycleTime / time
                 }
             }
-            return range.first + (range.last - range.first + 1) * interpolation(percent)
+            return range.first + (range.last - range.first) * interpolation(percent)
         }
 
     override fun setValue(thisRef: Any?, property: KProperty<*>, value: Float) {

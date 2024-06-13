@@ -31,10 +31,12 @@ import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.texture.OverlayTexture
+import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import org.joml.Matrix4f
+import org.joml.Quaternionf
 import org.joml.Vector3d
 import kotlin.math.atan
 import kotlin.math.min
@@ -111,13 +113,14 @@ fun LivingEntity.render(
     Lighting.setupFor3DItems()
 }
 
-fun ItemStack.render(x: Float, y: Float, width: Float, height: Float, scale: Float) {
+fun ItemStack.render(x: Float, y: Float, width: Float, height: Float, scale: Float = 1f, rotation: Float = 0f) {
     val stack = PoseStack()
     val xOffset = x + width / 2
     val yOffset = y + height / 2
     stack.translate(xOffset, yOffset, 0f)
     val newScale = min(width, height) * 0.95f * scale
     stack.scale(newScale, -newScale, newScale)
+    stack.mulPose(Quaternionf().rotateZ(rotation* Mth.DEG_TO_RAD))
 
     val src = Minecraft.getInstance().renderBuffers().bufferSource()
     val model = Minecraft.getInstance().itemRenderer.getModel(this, Minecraft.getInstance().level, null, 0)

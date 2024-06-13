@@ -9,7 +9,7 @@ import net.minecraftforge.event.TickEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import ru.hollowhorizon.hc.common.events.EventBus
 import ru.hollowhorizon.hc.common.events.post
-import ru.hollowhorizon.hc.common.events.registry.RegisterClientReloadListenersEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterKeyBindingsEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterShadersEvent
 
@@ -22,7 +22,7 @@ object ForgeClientEvents {
     }
 
     private fun registerReloadListeners(event: AddReloadListenerEvent) {
-        val hcevent = RegisterClientReloadListenersEvent()
+        val hcevent = RegisterReloadListenersEvent()
         EventBus.post(hcevent)
         hcevent.listeners.forEach {
             event.addListener(it)

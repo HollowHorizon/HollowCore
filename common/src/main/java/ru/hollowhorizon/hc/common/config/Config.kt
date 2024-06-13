@@ -2,23 +2,33 @@ package ru.hollowhorizon.hc.common.config
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
+private val CONFIGS = HashSet<Config<*>>()
+
 class Config<T : Saveable>(
-    creator: () -> T,
-    name: String,
+    val creator: () -> T,
+    val name: String,
     val decoder: (InputStream) -> T,
     val encoder: (T) -> String,
 ) : ReadOnlyProperty<Any?, T> {
     val file = File("").resolve("config/$name.toml")
-    var value: T
+    lateinit var value: T
 
     init {
+        CONFIGS.add(this)
+        reload()
+    }
+
+    fun reload() {
         var save = false
         if (file.exists()) {
             HollowCore.LOGGER.info("Loading config: $name.toml")
@@ -35,7 +45,6 @@ class Config<T : Saveable>(
             value = creator()
             save = true
         }
-
         value.save = {
             if (!file.exists()) {
                 file.parentFile.mkdirs()
@@ -49,6 +58,13 @@ class Config<T : Saveable>(
     override fun getValue(thisRef: Any?, property: KProperty<*>): T {
         return value
     }
+}
+
+@SubscribeEvent
+fun registerReloadListeners(event: RegisterReloadListenersEvent.Server) {
+    event.register(ResourceManagerReloadListener {
+        CONFIGS.forEach { it.reload() }
+    })
 }
 
 inline fun <reified T : Saveable> hollowConfig(noinline value: () -> T, name: String): ReadOnlyProperty<Any?, T> {

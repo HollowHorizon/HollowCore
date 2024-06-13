@@ -27,8 +27,8 @@ package ru.hollowhorizon.hc.client
 import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.entity.EntityRenderers
 import org.lwjgl.glfw.GLFW
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.render.RenderLoader
 import ru.hollowhorizon.hc.client.render.effekseer.EffekseerNatives
@@ -39,9 +39,9 @@ import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
 import ru.hollowhorizon.hc.client.screens.ImGuiScreen
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
-import ru.hollowhorizon.hc.common.events.registry.RegisterClientReloadListenersEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterKeyBindingsEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterResourcePacksEvent
 import ru.hollowhorizon.hc.common.events.tick.TickEvent
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor
@@ -57,7 +57,7 @@ object HollowCoreClient {
     }
 
     @SubscribeEvent
-    fun onRegisterReloadListener(event: RegisterClientReloadListenersEvent) {
+    fun onRegisterReloadListener(event: RegisterReloadListenersEvent.Client) {
         event.register(EffekAssets)
         event.register(GltfManager)
         event.register(PostChain)
@@ -73,12 +73,12 @@ object HollowCoreClient {
 
     @SubscribeEvent
     fun onRegisterKeys(event: RegisterKeyBindingsEvent) {
-        event.registerKeyMapping(KEY_V)
+        if (HollowCore.config.debugMode) event.registerKeyMapping(KEY_V)
     }
 
     @SubscribeEvent
     fun onClientTick(event: TickEvent.Client) {
-        if (KEY_V.isDown) Minecraft.getInstance().setScreen(ImGuiScreen())
+        if (HollowCore.config.debugMode && KEY_V.isDown) Minecraft.getInstance().setScreen(ImGuiScreen())
     }
 
     @SubscribeEvent
