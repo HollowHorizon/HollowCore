@@ -24,6 +24,7 @@
 
 package ru.hollowhorizon.hc.client.models.gltf.manager
 
+import com.mojang.blaze3d.Blaze3D
 import com.mojang.math.Quaternion
 import com.mojang.math.Vector3f
 import kotlinx.serialization.Serializable
@@ -124,14 +125,18 @@ class DefinedLayer {
     private var priority = 0f
 
     fun update(animationType: AnimationType, currentSpeed: Float, currentTick: Int, partialTick: Float) {
-        priority = ((currentTick - currentStartTime + partialTick) / 10f * currentSpeed).coerceAtMost(1f)
+        val currentTime = Blaze3D.getTime()
+
+        val difference = (currentTime - currentStartTime).coerceAtMost(0.5)
+        priority = (difference * 2).toFloat()
+        
         if (animationType == currentAnimation) return
+        
         lastAnimation = currentAnimation
         currentAnimation = animationType
 
-        //грубо говоря, как песочные часы, если перевернуть до полного перехода, то приоритет будет обратно пропорционален
+        currentStartTime = currentTime - (0.5 - difference)
         priority = 1f - priority
-        currentStartTime = currentTick
     }
 
     fun computeTransform(
