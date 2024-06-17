@@ -48,13 +48,11 @@ object OpenGLUtils {
         r: Float, g: Float, b: Float, a: Float,
     ) {
         bufferbuilder
-            .vertex(matrix, from.x.toFloat(), from.y.toFloat() - 0.1f, from.z.toFloat())
-            .color(r, g, b, a)
-            .endVertex()
+            .addVertex(matrix, from.x.toFloat(), from.y.toFloat() - 0.1f, from.z.toFloat())
+            .setColor(r, g, b, a)
         bufferbuilder
-            .vertex(matrix, to.x.toFloat(), to.y.toFloat() - 0.1f, to.z.toFloat())
-            .color(r, g, b, a)
-            .endVertex()
+            .addVertex(matrix, to.x.toFloat(), to.y.toFloat() - 0.1f, to.z.toFloat())
+            .setColor(r, g, b, a)
     }
 }
 

@@ -55,8 +55,7 @@ open class GLTFAnimationPlayer(val model: GltfModel) {
 
     fun updateEntity(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
         val switchRot = capability.switchHeadRot
-        val modifier = if (entity is Player) 0.1f else 0.2f
-        currentSpeed = entity.attributes.getValue(Attributes.MOVEMENT_SPEED).toFloat() / modifier
+        currentSpeed = entity.attributes.getValue(Attributes.MOVEMENT_SPEED).toFloat() * 5f
         if (entity.isShiftKeyDown) currentSpeed *= 0.6f
         head.forEach {
             val newRot = capability.headLayer.computeRotation(entity, switchRot, partialTick)

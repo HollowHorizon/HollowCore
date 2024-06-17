@@ -19,7 +19,7 @@ val imguiVersion: String by project
 val kotlinVersion: String by project
 
 architectury {
-    minecraft = "1.20.6"
+    minecraft = minecraftVersion
 }
 
 subprojects {
@@ -56,50 +56,29 @@ subprojects {
         @Suppress("unstableapiusage")
         "mappings"(loom.layered {
             officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-$minecraftVersion:$parchmentVersion") //бля парчмент нужен
+            parchment("org.parchmentmc.data:parchment-1.20.6:$parchmentVersion")
         })
 
         if (project != findProject(":common")) {
-            "include"("team._0mods:KotlinExtras:kotlin-$kotlinVersion") {
-                /*exclude(mapOf(
-                    /*
-                    Вшитые библиотеки: 
-                        "reflect"
-                        "stdlib"
-                        "stdlib-common"
-                        "coroutines-core"
-                        "coroutines-core-jvm"
-                        "coroutines-jdk8"
-                        "serialization-core"
-                        "serialization-json"
-                        "serialization-json-jvm"
-                        "serialization-json-okio"
-                        "serialization-hocon"
-                        "serialization-protobuf"
-                        "serialization-cbor"
-                        "serialization-properties"
-                     */
-                    kxExcludeRule("coroutines-jdk8"),
-                    kxExcludeRule("serialization-json-okio"),
-                    kxExcludeRule("serialization-hocon"),
-                    kxExcludeRule("serialization-protobuf"),
-                    kxExcludeRule("serialization-cbor"),
-                    kxExcludeRule("serialization-properties")
-                ))*/
-            }
-
-            "include"("com.akuleshov7:ktoml-core:0.5.1")
-            "include"("effekseer.swig:Swig:1.0")
-            "include"("io.github.classgraph:classgraph:4.8.173")
-            "include"("javassist:javassist:3.12.1.GA")
-            "include"("io.github.spair:imgui-java-binding:$imguiVersion")
-            "include"("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
-            "include"("io.github.spair:imgui-java-natives-windows:$imguiVersion")
-            "include"("io.github.spair:imgui-java-natives-linux:$imguiVersion")
-            "include"("io.github.spair:imgui-java-natives-macos:$imguiVersion")
+            includes(
+                "team._0mods:KotlinExtras:kotlin-$kotlinVersion",
+                "org.jetbrains.kotlin:kotlin-scripting-jvm:2.0.0",
+                "org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.0.0",
+                "org.jetbrains.kotlin:kotlin-script-runtime:2.0.0",
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.0",
+                "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.0.0",
+                "com.akuleshov7:ktoml-core:0.5.1",
+                "io.github.classgraph:classgraph:4.8.173",
+                "javassist:javassist:3.12.1.GA",
+                "io.github.spair:imgui-java-binding:$imguiVersion",
+                "io.github.spair:imgui-java-lwjgl3:$imguiVersion",
+                "io.github.spair:imgui-java-natives-windows:$imguiVersion",
+                "io.github.spair:imgui-java-natives-linux:$imguiVersion",
+                "io.github.spair:imgui-java-natives-macos:$imguiVersion"
+            )
         }
     }
-    
+
     tasks.processResources {
         val replace = mapOf(
             "version" to version,
@@ -151,6 +130,8 @@ allprojects {
         mavenCentral()
         maven("https://repo.spongepowered.org/repository/maven-public/")
         maven("https://maven.0mods.team/releases")
+        maven("https://oss.sonatype.org/content/repositories/snapshots/")
+        maven("https://oss.sonatype.org/content/repositories/releases/")
     }
 
     dependencies {
@@ -160,7 +141,14 @@ allprojects {
         implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.0-RC")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
+        implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:2.0.0")
+        implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.0.0")
+        implementation("org.jetbrains.kotlin:kotlin-script-runtime:2.0.0")
+        implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.0")
+        implementation("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.0.0")
+
         implementation("org.ow2.asm:asm:9.7")
+        implementation("org.ow2.asm:asm-tree:9.7")
 
         implementation("com.akuleshov7:ktoml-core:0.5.1")
 
@@ -174,7 +162,6 @@ allprojects {
         implementation("io.github.douira:glsl-transformer:2.0.1")
         implementation("org.ow2.asm:asm:9.7")
         implementation("io.github.classgraph:classgraph:4.8.173")
-        implementation("javassist:javassist:3.12.1.GA")
 
         implementation("effekseer.swig:Swig:1.0") // версия меняться не будет..
     }
@@ -195,6 +182,12 @@ allprojects {
             useDaemonFallbackStrategy.set(false)
             compilerOptions.freeCompilerArgs.add("-Xjvm-default=all")
         }
+    }
+}
+
+fun DependencyHandlerScope.includes(vararg libraries: String) {
+    for (library in libraries) {
+        "include"(library)
     }
 }
 

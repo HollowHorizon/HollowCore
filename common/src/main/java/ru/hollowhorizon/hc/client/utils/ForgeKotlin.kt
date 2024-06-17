@@ -56,16 +56,6 @@ enum class Axis(val x: Float, val y: Float, val z: Float) {
     Z(0f, 0f, 1f);
 }
 
-fun rotate(axis: Axis, degrees: Float): Quaternionf {
-    val float3 = Mth.sin(degrees * 0.017453292f / 2.0f)
-    return Quaternionf(
-        axis.x * float3,
-        axis.y * float3,
-        axis.z * float3,
-        Mth.cos(degrees / 2.0f)
-    )
-}
-
 val isProduction get() = isProduction_()
 val isLogicalClient get() = isPhysicalClient && RenderSystem.isOnRenderThread()
 val isLogicalServer get() = !isLogicalClient
@@ -87,9 +77,9 @@ operator fun <O, T : CapabilityInstance> O.get(capability: KClass<T>): T = get(c
 operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T =
     (this as ICapabilityDispatcher).capabilities.first { it.javaClass == capability } as T
 
-val String.rl get() = ResourceLocation(this)
+val String.rl get() = ResourceLocation.parse(this)
 
-fun resource(resource: String) = ResourceLocation(HollowCore.MODID, resource).stream
+fun resource(resource: String) = ResourceLocation.fromNamespaceAndPath(HollowCore.MODID, resource).stream
 
 fun ResourceLocation.toIS(): InputStream {
     return HollowJavaUtils.getResource(this)

@@ -33,6 +33,7 @@ import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.nbt.ForResourceLocation
+import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
 
@@ -58,7 +59,7 @@ object PostChain : ResourceManagerReloadListener {
         }.forEach {
             val namespace = it.key.namespace
             val path = it.key.path.substringAfterLast("/").removeSuffix(".fsh")
-            HollowPack.generatePostShader(ResourceLocation(namespace, path))
+            HollowPack.generatePostShader("$namespace:$path".rl)
         }
     }
 }

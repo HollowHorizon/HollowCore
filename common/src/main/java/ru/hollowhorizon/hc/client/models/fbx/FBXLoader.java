@@ -40,7 +40,7 @@ import java.util.List;
 public class FBXLoader {
 
     public static void main(String[] args) {
-        var model = createModel(new ResourceLocation(HollowCore.MODID, "models/entity/player_model.fbx"));
+        var model = createModel(ResourceLocation.fromNamespaceAndPath(HollowCore.MODID, "models/entity/player_model.fbx"));
 
         System.out.println(model);
     }

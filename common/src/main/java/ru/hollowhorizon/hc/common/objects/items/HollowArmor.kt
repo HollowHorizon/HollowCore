@@ -54,10 +54,10 @@ class HollowArmor<T : ArmorItem>(
     }
 
     fun registerModels(modid: String, name: String) {
-        HollowPack.genItemModels.add(ResourceLocation(modid, name + "_helmet"))
-        HollowPack.genItemModels.add(ResourceLocation(modid, name + "_chest"))
-        HollowPack.genItemModels.add(ResourceLocation(modid, name + "_legs"))
-        HollowPack.genItemModels.add(ResourceLocation(modid, name + "_boots"))
+        HollowPack.genItemModels.add(ResourceLocation.fromNamespaceAndPath(modid, name + "_helmet"))
+        HollowPack.genItemModels.add(ResourceLocation.fromNamespaceAndPath(modid, name + "_chest"))
+        HollowPack.genItemModels.add(ResourceLocation.fromNamespaceAndPath(modid, name + "_legs"))
+        HollowPack.genItemModels.add(ResourceLocation.fromNamespaceAndPath(modid, name + "_boots"))
     }
 
     companion object {

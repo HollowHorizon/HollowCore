@@ -54,9 +54,9 @@ object HollowPack : PackResources {
 
     private fun ofText(text: String) = IoSupplier<InputStream> { ByteArrayInputStream(text.toByteArray()) }
     fun generatePostShader(location: ResourceLocation) {
-        resourceMap[ResourceLocation(location.namespace, "shaders/post/" + location.path + ".json")] =
+        resourceMap[ResourceLocation.fromNamespaceAndPath(location.namespace, "shaders/post/" + location.path + ".json")] =
             ofText("{\"targets\": [\"swap\"],\"passes\": [{\"name\": \"$location\",\"intarget\": \"minecraft:main\",\"outtarget\": \"swap\",\"uniforms\": []},{\"name\": \"$location\",\"intarget\": \"swap\",\"outtarget\": \"minecraft:main\",\"uniforms\": []}]}")
-        resourceMap[ResourceLocation(
+        resourceMap[ResourceLocation.fromNamespaceAndPath(
             location.namespace,
             "shaders/program/" + location.path + ".json"
         )] =
@@ -64,19 +64,19 @@ object HollowPack : PackResources {
     }
 
     private fun addItemModel(location: ResourceLocation) {
-        val modelLocation = ResourceLocation(location.namespace, "models/item/" + location.path + ".json")
+        val modelLocation = ResourceLocation.fromNamespaceAndPath(location.namespace, "models/item/" + location.path + ".json")
         resourceMap[modelLocation] =
             ofText("{\"parent\":\"item/handheld\",\"textures\":{\"layer0\":\"" + location.namespace + ":item/" + location.path + "\"}}")
     }
 
     private fun addParticleModel(location: ResourceLocation) {
-        val particle = ResourceLocation(location.namespace, "particles/" + location.path + ".json")
+        val particle = ResourceLocation.fromNamespaceAndPath(location.namespace, "particles/" + location.path + ".json")
         resourceMap[particle] = ofText("{\"textures\":[\"$location\"]}")
     }
 
     private fun addBlockModel(location: ResourceLocation) {
-        val blockstate = ResourceLocation(location.namespace, "blockstates/" + location.path + ".json")
-        val model = ResourceLocation(location.namespace, "models/item/" + location.path + ".json")
+        val blockstate = ResourceLocation.fromNamespaceAndPath(location.namespace, "blockstates/" + location.path + ".json")
+        val model = ResourceLocation.fromNamespaceAndPath(location.namespace, "models/item/" + location.path + ".json")
         resourceMap[blockstate] =
             ofText("{\"variants\":{\"\":{\"model\":\"" + location.namespace + ":item/" + location.path + "\"}}}")
         resourceMap[model] =
@@ -84,7 +84,7 @@ object HollowPack : PackResources {
     }
 
     private fun addSoundJson(modid: String, sound: JsonObject) {
-        resourceMap[ResourceLocation(modid, "sounds.json")] =
+        resourceMap[ResourceLocation.fromNamespaceAndPath(modid, "sounds.json")] =
             ofText(sound.toString())
     }
 

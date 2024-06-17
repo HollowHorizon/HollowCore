@@ -37,7 +37,6 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.client.models.gltf.animations.array
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.registry.ModShaders
@@ -161,7 +160,7 @@ object GltfTree {
             }
 
             val basePath = location.path.substringBeforeLast('/', "")
-            val loc = ResourceLocation(location.namespace, if (basePath.isEmpty()) path else "$basePath/$path")
+            val loc = (location.namespace + ":" + if (basePath.isEmpty()) path else "$basePath/$path").rl
 
             return loc.toIS()
         }
@@ -374,20 +373,20 @@ object GltfTree {
 
         if (textureId == -1) return if (material.name != null) Material(
             color,
-            ResourceLocation(MODID, "textures/models/${material.name}.png".lowercase()),
+            "$MODID:textures/models/${material.name}.png".lowercase().rl,
             doubleSided = material.doubleSided
         )
         else Material(color, doubleSided = material.doubleSided)
 
         val texture =
-            getTexture(file, bufferViews, location, folder, textureId) ?: ResourceLocation("$MODID:default_color_map")
-        var normalTexture = ResourceLocation("$MODID:default_normal_map")
+            getTexture(file, bufferViews, location, folder, textureId) ?: "$MODID:default_color_map".rl
+        var normalTexture = "$MODID:default_normal_map".rl
         material.normalTexture?.index?.let {
             getTexture(file, bufferViews, location, folder, it)?.let { texture ->
                 normalTexture = texture
             }
         }
-        var occlusionTexture = ResourceLocation("$MODID:default_specular_map")
+        var occlusionTexture = "$MODID:default_specular_map".rl
         material.pbrMetallicRoughness?.metallicRoughnessTexture?.index?.let {
             getTexture(file, bufferViews, location, folder, it)?.let { texture ->
                 occlusionTexture = texture
@@ -419,7 +418,7 @@ object GltfTree {
             var textureName = texture.name?.substringBefore(".png") ?: ""
             if (textureName.isEmpty()) textureName = generatedTextureName
 
-            val textureLocation = ResourceLocation(MODID, textureName.lowercase())
+            val textureLocation = "$MODID:textureName.lowercase()".rl
 
             if (!TEXTURE_MAP.contains(textureLocation)) {
                 TEXTURE_MAP[textureLocation] = dynamicTexture
@@ -453,7 +452,7 @@ object GltfTree {
                     var textureName = texture.name?.substringBefore(".png")
                         ?: "" //Название изначально может быть пустым, а не только null, так что строчка ниже не просто так
                     if (textureName.isEmpty()) textureName = "gltf_texture_${model.path.replace("/", ".")}_$index"
-                    val textureLocation = ResourceLocation(MODID, textureName.lowercase())
+                    val textureLocation = (MODID + ":" + textureName.lowercase()).rl
 
                     if (!TEXTURE_MAP.contains(textureLocation)) {
                         TEXTURE_MAP[textureLocation] = dynamicTexture
@@ -465,7 +464,7 @@ object GltfTree {
                 return null
             }
 
-            return ResourceLocation(texturePath)
+            return texturePath.rl
         }
 
         val relativeModelPath = model.path.substringAfter("models/")
@@ -479,7 +478,7 @@ object GltfTree {
             append(texturePath)
         }
 
-        return ResourceLocation(model.namespace, "models/" + finalPath.lowercase())
+        return (model.namespace + ":models/" + finalPath.lowercase()).rl
     }
 
     private fun parseScenes(file: GltfFile, meshes: List<Mesh>, skins: List<Skin>): List<Scene> {
@@ -568,9 +567,9 @@ object GltfTree {
 
     data class Material(
         val color: Vector4f = Vector4f(1f, 1f, 1f, 1f),
-        val texture: ResourceLocation = ResourceLocation("$MODID:default_color_map"),
-        val normalTexture: ResourceLocation = ResourceLocation("$MODID:default_normal_map"),
-        val specularTexture: ResourceLocation = ResourceLocation("$MODID:default_specular_map"),
+        val texture: ResourceLocation = "$MODID:default_color_map".rl,
+        val normalTexture: ResourceLocation = "$MODID:default_normal_map".rl,
+        val specularTexture: ResourceLocation = "$MODID:default_specular_map".rl,
         val doubleSided: Boolean = false,
     )
 

@@ -34,7 +34,6 @@ import kotlinx.serialization.modules.*
 import net.minecraft.nbt.*
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import ru.hollowhorizon.hc.HollowCore
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.InputStream
@@ -129,7 +128,9 @@ fun Tag.save(stream: DataOutputStream) {
 fun Tag.save(stream: OutputStream) = this.save(DataOutputStream(stream))
 
 fun DataInputStream.loadAsNBT(): Tag {
-    return NbtIo.read(this)
+    return NbtIo.read(this).apply {
+        this@loadAsNBT.close()
+    }
 }
 
 fun InputStream.loadAsNBT() = DataInputStream(this).loadAsNBT()
@@ -139,7 +140,6 @@ inline fun <reified T> NBTFormat.serialize(value: T): Tag {
 }
 
 @Suppress("UnstableApiUsage")
-@OptIn(ExperimentalSerializationApi::class)
 fun <T : Any> NBTFormat.serializeNoInline(value: T, cl: Class<T>): Tag {
     val typeToken = TypeToken.of(cl)
     return serialize(serializersModule.serializer(typeToken.type), value)

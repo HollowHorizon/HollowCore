@@ -47,7 +47,7 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
     init {
         this[AnimatedEntityCapability::class].apply {
             model = "${HollowCore.MODID}:models/entity/player_model.gltf"
-            animations[AnimationType.IDLE] = "hello"
+            //animations[AnimationType.IDLE] = "hello"
             transform = Transform.create {}
         }
         setPathfindingMalus(PathType.WATER, -1.0f)
@@ -62,7 +62,7 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
 
     override fun registerGoals() {
         super.registerGoals()
-        this.goalSelector.addGoal(0, RandomLookAroundGoal(this))
-        this.goalSelector.addGoal(1, RandomStrollGoal(this, 1.0, 10))
+        //this.goalSelector.addGoal(0, RandomLookAroundGoal(this))
+        //this.goalSelector.addGoal(1, RandomStrollGoal(this, 1.0, 10))
     }
 }

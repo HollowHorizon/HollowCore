@@ -25,6 +25,7 @@
 package ru.hollowhorizon.hc.mixins.particles;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -46,7 +47,7 @@ public class MixinGameRenderer {
     @Shadow private boolean renderHand;
 
     @Inject(method = "renderLevel", at = @At("TAIL"))
-    private void renderLevelTail(float partial, long l, CallbackInfo ci) {
+    private void renderLevelTail(DeltaTracker deltaTracker, CallbackInfo ci) {
         glDepthMask(true);
         glDepthFunc(GL_LEQUAL);
 
@@ -55,7 +56,7 @@ public class MixinGameRenderer {
 
             pasteToCurrentDepthFrom(RenderStateCapture.CAPTURED_WORLD_DEPTH_BUFFER);
             assert RenderStateCapture.LEVEL.camera != null;
-            EffekRenderer.onRenderWorldLast(partial, RenderStateCapture.LEVEL.pose, RenderStateCapture.LEVEL.projection, RenderStateCapture.LEVEL.camera);
+            EffekRenderer.onRenderWorldLast(deltaTracker.getRealtimeDeltaTicks(), RenderStateCapture.LEVEL.pose, RenderStateCapture.LEVEL.projection, RenderStateCapture.LEVEL.camera);
         }
         final var minecraft = Minecraft.getInstance();
         if (RenderContext.renderHandDeferred() && renderHand) {
@@ -64,7 +65,7 @@ public class MixinGameRenderer {
             }
 
             assert minecraft.player != null;
-            ((EffekFpvRenderer) minecraft.gameRenderer.itemInHandRenderer).hollowcore$renderFpvEffek(partial, minecraft.player);
+            ((EffekFpvRenderer) minecraft.gameRenderer.itemInHandRenderer).hollowcore$renderFpvEffek(deltaTracker.getRealtimeDeltaTicks(), minecraft.player);
         }
     }
 }

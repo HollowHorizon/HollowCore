@@ -24,18 +24,19 @@
 
 package ru.hollowhorizon.hc.client.models.gltf.manager
 
+import com.mojang.blaze3d.Blaze3D
 import kotlinx.serialization.Serializable
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import org.joml.Quaternionf
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.Transformation
 import ru.hollowhorizon.hc.client.models.gltf.animations.Animation
 import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationState
 import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.gltf.animations.PlayMode
-import ru.hollowhorizon.hc.client.utils.Axis
-import ru.hollowhorizon.hc.client.utils.rotate
+import kotlin.math.sin
 
 
 @Serializable
@@ -121,18 +122,23 @@ data class AnimationLayer(
 class DefinedLayer {
     private var currentAnimation = AnimationType.IDLE
     private var lastAnimation = AnimationType.IDLE
-    private var currentStartTime = 0
+    private var currentStartTime = 0.0
     private var priority = 0f
+    private var direction = false
 
     fun update(animationType: AnimationType, currentSpeed: Float, currentTick: Int, partialTick: Float) {
-        priority = ((currentTick - currentStartTime + partialTick) / 10f * currentSpeed).coerceAtMost(1f)
+        val currentTime = Blaze3D.getTime()
+
+        val difference = (currentTime - currentStartTime).coerceAtMost(0.5)
+        priority = (difference * 2).toFloat()
+        if(priority < 1f) HollowCore.LOGGER.info("Defined layer $priority")
         if (animationType == currentAnimation) return
+        HollowCore.LOGGER.info("changed: {}", difference)
         lastAnimation = currentAnimation
         currentAnimation = animationType
 
-        //грубо говоря, как песочные часы, если перевернуть до полного перехода, то приоритет будет обратно пропорционален
+        currentStartTime = currentTime - (0.5 - difference)
         priority = 1f - priority
-        currentStartTime = currentTick
     }
 
     fun computeTransform(

@@ -37,7 +37,7 @@ object ModShaders {
 
     @SubscribeEvent(clientSideOnly = true)
     fun onShaderRegistry(event: RegisterShadersEvent) {
-        event.register(ResourceLocation(MODID, "gltf_entity"), DefaultVertexFormat.NEW_ENTITY) {
+        event.register(ResourceLocation.fromNamespaceAndPath(MODID, "gltf_entity"), DefaultVertexFormat.NEW_ENTITY) {
             GLTF_ENTITY = it
         }
     }

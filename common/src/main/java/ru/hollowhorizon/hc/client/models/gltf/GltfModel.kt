@@ -35,17 +35,13 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ItemInHandRenderer
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
-import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.phys.Vec3
-import org.joml.AxisAngle4f
 import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
-import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
 import ru.hollowhorizon.hc.client.utils.areShadersEnabled
 import ru.hollowhorizon.hc.common.registry.ModShaders
 
@@ -138,7 +134,7 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
 
     fun findPosition(name: String, entity: LivingEntity): Matrix4f? {
         val node = nodes[name] ?: return null
-        var lerpBodyRot = -Mth.rotLerp(TickHandler.partialTicks, entity.yBodyRotO, entity.yBodyRot)
+        var lerpBodyRot = -Mth.rotLerp(TickHandler.partialTick, entity.yBodyRotO, entity.yBodyRot)
         val YP = Vector3f(0.0f, 1.0f, 0.0f)
 
         lerpBodyRot *= 0.017453292f

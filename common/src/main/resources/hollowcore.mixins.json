@@ -15,7 +15,8 @@
     "ServerPlayerMixin",
     "StructureBlockMixin",
     "capabilities.EntityMixin",
-    "capabilities.LevelMixin"
+    "capabilities.LevelMixin",
+    "scripting.BinaryJavaClassMixin"
   ],
   "client": [
     "FontManagerAccessor",

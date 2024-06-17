@@ -84,7 +84,7 @@ open class ParticleEmitterInfo : Cloneable {
 
     @JvmOverloads
     constructor(effek: ResourceLocation, emitter: ResourceLocation? = null) {
-        this.effek = ResourceLocation(effek.namespace, effek.path.removeSuffix(".efkefc"))
+        this.effek = ResourceLocation.fromNamespaceAndPath(effek.namespace, effek.path.removeSuffix(".efkefc"))
         this.emitter = emitter
         if (emitter != null) hasEmitter = true
     }

@@ -24,39 +24,39 @@
 
 package ru.hollowhorizon.hc.mixins.particles;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
-import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderContext;
-import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
-import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer;
 import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderContext;
+import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
+import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer;
 
 import static ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.copyCurrentDepthTo;
 
 @Mixin(LevelRenderer.class)
 public class MixinLevelRenderer {
     @Inject(method = "renderLevel", at = @At("RETURN"))
-    private void onRenderLevelLast(float pPartialTick, long pNanoTime, boolean pRenderBlockOutline, Camera pCamera, GameRenderer pGameRenderer, LightTexture pLightTexture, Matrix4f cameraMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
+    private void onRenderLevelLast(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f cameraMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         var capture = RenderStateCapture.LEVEL;
         var capturedPose = capture.pose.last();
         capturedPose.pose().set(cameraMatrix);
         capturedPose.normal().set(new Matrix3f(cameraMatrix));
         capture.projection.set(projectionMatrix);
-        capture.camera = pCamera;
+        capture.camera = camera;
         capture.hasCapture = true;
 
         if (RenderContext.renderLevelDeferred()) {
             copyCurrentDepthTo(RenderStateCapture.CAPTURED_WORLD_DEPTH_BUFFER);
         } else {
-            EffekRenderer.onRenderWorldLast(pPartialTick, capture.pose, capture.projection, capture.camera);
+            EffekRenderer.onRenderWorldLast(deltaTracker.getRealtimeDeltaTicks(), capture.pose, capture.projection, capture.camera);
         }
     }
 }

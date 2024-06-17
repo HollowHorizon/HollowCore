@@ -27,9 +27,6 @@ package ru.hollowhorizon.hc.client.textures
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.platform.TextureUtil
-import com.mojang.blaze3d.systems.RenderSystem
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.renderer.texture.SimpleTexture
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.resources.ResourceManager
@@ -59,7 +56,7 @@ class GifTexture(location: ResourceLocation) : SimpleTexture(location) {
 
     override fun getId(): Int {
         val id = super.getId()
-        val time = (TickHandler.currentTicks + Minecraft.getInstance().frameTime) % fullTime
+        val time = (TickHandler.currentTicks + TickHandler.partialTick) % fullTime
 
         val frame = frames[keys[time.animIndex]]
 

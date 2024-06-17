@@ -88,7 +88,9 @@ object HollowEventHandler {
 
         val tag = CompoundTag()
         (level as ICapabilityDispatcher).serializeCapabilities(tag)
-        tag.save(folder.resolve("hc_capabilities.dat").outputStream())
+        val stream = folder.resolve("hc_capabilities.dat").outputStream()
+        tag.save(stream)
+        stream.close()
     }
 
     @SubscribeEvent

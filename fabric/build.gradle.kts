@@ -42,8 +42,8 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:$fabric_loader_version") { include(this) }
     modImplementation("net.fabricmc.fabric-api:fabric-api:$fabric_version") { include(this) }
 
-    modImplementation("mods:sodium-fabric:0.5.8+mc1.20.6")
-    modImplementation("mods:iris:1.7.0+mc1.20.6")
+    modImplementation("mods:sodium-fabric:0.5.9+mc${minecraft_version}")
+    modImplementation("mods:iris:1.7.1+mc${minecraft_version}")
 
     common(project(path = ":common", configuration = "namedElements")) { isTransitive = false }
     shadowBundle(project(path = ":common", configuration = "transformProductionFabric"))

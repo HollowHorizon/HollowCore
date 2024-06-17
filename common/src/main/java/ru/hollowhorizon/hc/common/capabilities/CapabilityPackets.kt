@@ -48,7 +48,7 @@ class CSyncEntityCapabilityPacket(
 ) : HollowPacketV3<CSyncEntityCapabilityPacket> {
     override fun handle(player: Player) {
         val entity = player.level().getEntity(entityId)
-        if(entity == null) {
+        if (entity == null) {
             HollowEventHandler.ENTITY_TAGS.computeIfAbsent(entityId) { mutableMapOf() }[capability] = value
             return
         }
@@ -72,7 +72,7 @@ class SSyncEntityCapabilityPacket(
             ?: throw IllegalStateException("Entity with id $entityId not found: $this".apply(HollowCore.LOGGER::warn))
         val cap = (entity as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
 
-        if (cap.consumeOnServer) {
+        if (cap.canAcceptFromClient(player)) {
             cap.deserializeNBT(value)
             CSyncEntityCapabilityPacket(
                 entityId, capability, value
@@ -114,12 +114,9 @@ class SSyncLevelCapabilityPacket(
             ?: throw IllegalStateException("Level not found: $level".apply(HollowCore.LOGGER::warn))
         val cap = (level as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
 
-        if (cap.consumeOnServer) {
+        if (cap.canAcceptFromClient(player)) {
             cap.deserializeNBT(value)
-            CSyncLevelCapabilityPacket(
-                capability,
-                value
-            ).sendAllInDimension(level)
+            CSyncLevelCapabilityPacket(capability, value).sendAllInDimension(level)
         }
     }
 

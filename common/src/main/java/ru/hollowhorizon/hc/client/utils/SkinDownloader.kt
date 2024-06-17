@@ -39,7 +39,7 @@ object SkinDownloader {
     fun downloadSkin(skin: String): ResourceLocation {
         val hasHollowEngine = isModLoaded("hollowengine")
         val mod = if (hasHollowEngine) "hollowengine" else MODID
-        val textureLocation = ResourceLocation(mod, "skins/${skin.lowercase()}.png")
+        val textureLocation = ResourceLocation.fromNamespaceAndPath(mod, "skins/${skin.lowercase()}.png")
         val original =
             Minecraft.getInstance().textureManager.getTexture(textureLocation, MissingTextureAtlasSprite.getTexture())
 

@@ -25,6 +25,7 @@
 package ru.hollowhorizon.hc.client.utils.math
 
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.BufferUploader
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.Tesselator
@@ -251,9 +252,8 @@ class Spline3D(points: List<Vector3d>, rotations: List<Vector3f>) {
     fun draw(stack: PoseStack) {
         RenderSystem.setShader { GameRenderer.getPositionTexShader() }
         val tessellator = Tesselator.getInstance()
-        val bufferbuilder = tessellator.builder
 
-        bufferbuilder.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR)
+        val bufferbuilder = tessellator.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR)
 
         var last: Vector3d? = null
         for (i in 0..100) {
@@ -266,7 +266,7 @@ class Spline3D(points: List<Vector3d>, rotations: List<Vector3f>) {
 
             last = pos
         }
-
-        tessellator.end()
+        BufferUploader.drawWithShader(bufferbuilder.build() ?: throw IllegalStateException("Mesh is null"))
+        tessellator.clear()
     }
 }

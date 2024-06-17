@@ -572,11 +572,19 @@ object ImGuiMethods {
         height: Float,
         border: Boolean = false,
         disableResize: Boolean = false,
-        rotation: Float = 0f
+        rotation: Float = 0f,
+        scale: Float = 1f,
     ): Boolean {
         val cPos = ImGui.getCursorPos()
         val clicked = opengl(width, height, border) { cursor, hovered ->
-            item.render(cursor.x, cursor.y, width, height, if (hovered || disableResize) 1.0f else 0.9f, rotation)
+            item.render(
+                cursor.x,
+                cursor.y,
+                width,
+                height,
+                (if (hovered || disableResize) 1.0f else 0.9f) * scale,
+                rotation
+            )
         }
 
         val player = Minecraft.getInstance().player ?: return false

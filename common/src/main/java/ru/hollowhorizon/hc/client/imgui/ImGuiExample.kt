@@ -24,13 +24,29 @@
 
 package ru.hollowhorizon.hc.client.imgui
 
+import net.minecraft.util.Mth
 import net.minecraft.world.item.ItemStack
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
 import ru.hollowhorizon.hc.common.registry.ModItems
+import kotlin.math.sin
 
-var first by ImGuiAnimator(0..360, 1.5f, ImGuiAnimator.Type.FREEZE, Interpolation.BACK_OUT)
+var first by ImGuiAnimator(0..100, 1.5f, ImGuiAnimator.Type.FREEZE, Interpolation.BACK_OUT)
+var count = 0
 fun test() = Renderable {
     with(ImGuiMethods) {
-        if (item(ItemStack(ModItems.JOKE.get()), 512f, 512f, border = true, rotation = first)) first = 0f
+        if (item(
+                ItemStack(ModItems.JOKE.get()),
+                512f,
+                512f,
+                disableResize = true,
+                scale = 1f + sin(first / 100f * Mth.PI / 2)
+            )
+        ) {
+            count++
+            first = 0f
+        }
+
+        text(count.toString())
+        button("Вывести деньги") {}
     }
 }

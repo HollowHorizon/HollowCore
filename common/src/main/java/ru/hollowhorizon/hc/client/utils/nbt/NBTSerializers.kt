@@ -70,7 +70,7 @@ object ForBlockPos : KSerializer<BlockPos> {
 object ForResourceLocation : KSerializer<ResourceLocation> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Identifier", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: ResourceLocation) = encoder.encodeString(value.toString())
-    override fun deserialize(decoder: Decoder): ResourceLocation = ResourceLocation(decoder.decodeString())
+    override fun deserialize(decoder: Decoder): ResourceLocation = ResourceLocation.parse(decoder.decodeString())
 }
 
 

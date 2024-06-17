@@ -32,10 +32,11 @@ import net.minecraft.util.profiling.ProfilerFiller
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.render.effekseer.EffectDefinition
 import ru.hollowhorizon.hc.client.render.effekseer.EffekseerEffect
 import ru.hollowhorizon.hc.client.render.effekseer.TextureType
-import ru.hollowhorizon.hc.client.render.effekseer.EffectDefinition
 import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer
+import ru.hollowhorizon.hc.client.utils.rl
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.util.*
@@ -60,7 +61,7 @@ object EffekAssets : SimplePreparableReloadListener<EffekAssets.Preparations>() 
         if (filePath.endsWith(FILE_TYPE) || filePath.endsWith(".efkpkg")) filePath =
             filePath.substring(0, filePath.length - FILE_TYPE.length)
 
-        return ResourceLocation(location.namespace, filePath)
+        return (location.namespace + ":" + filePath).rl
     }
 
     private val LOGGER: Logger = LogManager.getLogger(
@@ -124,8 +125,8 @@ object EffekAssets : SimplePreparableReloadListener<EffekAssets.Preparations>() 
             val fallbackMcAssetPath =
                 "$DIRECTORY/${name.path.substringBeforeLast('/')}/$effekAssetPath".replace('\\', '/').replace("//", "/")
 
-            val main = ResourceLocation(modid, mcAssetPath.lowercase().replace('-', '_'))
-            val fallback = ResourceLocation(modid, fallbackMcAssetPath.lowercase().replace('-', '_'))
+            val main = "$modid:${mcAssetPath.lowercase().replace('-', '_')}".rl
+            val fallback = "$modid:${fallbackMcAssetPath.lowercase().replace('-', '_')}".rl
             val resource = getResourceOrUseFallbackPath(
                 manager,
                 main,

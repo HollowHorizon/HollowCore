@@ -30,7 +30,6 @@ import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import ru.hollowhorizon.hc.client.models.gltf.animations.interpolations.sphericalLerp
 import kotlin.math.abs
 
 @Serializable
@@ -66,8 +65,7 @@ data class Transformation(
 
         if (transform.hasRotation) {
             val res = rotation
-            //Рубрика: угадай сколько часов потребовалось, чтобы понять, что нужно использовать этот метод
-            if (!simpleRot) res.mulLeft(transform.rotation)
+            if (!simpleRot) res.mul(transform.rotation)
             else res.mul(transform.rotation)
 
             rotationX = res.x()
@@ -130,7 +128,7 @@ data class Transformation(
         hasScale = transform.hasScale
     }
 
-    fun mul(factor: Float) {
+    fun mul(factor: Float): Transformation {
         translationX *= factor
         translationY *= factor
         translationZ *= factor
@@ -144,6 +142,7 @@ data class Transformation(
         scaleX = scaleX * factor + 1f * (1f - factor)
         scaleY = scaleY * factor + 1f * (1f - factor)
         scaleZ = scaleZ * factor + 1f * (1f - factor)
+        return this
     }
 
     fun setTranslation(array: Vector3f?) {
@@ -210,23 +209,6 @@ data class Transformation(
         }
     }
 
-    fun set(transformationMap: Map<Transformation, Float>) {
-        if (transformationMap.isEmpty()) return
-        translationX = transformationMap.sumComponent { it.translationX }
-        translationY = transformationMap.sumComponent { it.translationY }
-        translationZ = transformationMap.sumComponent { it.translationZ }
-
-
-        rotationX = transformationMap.sumComponent { it.rotationX }
-        rotationY = transformationMap.sumComponent { it.rotationY }
-        rotationZ = transformationMap.sumComponent { it.rotationZ }
-        rotationW = transformationMap.sumComponent { it.rotationW }
-
-        scaleX = transformationMap.sumComponent { it.scaleX }
-        scaleY = transformationMap.sumComponent { it.scaleY }
-        scaleZ = transformationMap.sumComponent { it.scaleZ }
-    }
-
     @JvmOverloads
     constructor(
         translation: Vector3f? = Vector3f(),
@@ -245,14 +227,14 @@ data class Transformation(
     fun getMatrix(): Matrix4f {
         return Matrix4f()
             .translate(translation)
-            .rotate(rotation)
+            .rotate(rotation.normalize())
             .scale(scale)
             .mul(matrix)
     }
 
     fun getNormalMatrix(): Matrix3f {
         return Matrix3f()
-            .rotate(rotation)
+            .rotate(rotation.normalize())
             .scale(scale)
     }
 
@@ -281,10 +263,9 @@ data class Transformation(
     }
 
     companion object {
-        val IDENTITY: Transformation = Transformation()
 
         fun lerp(first: Transformation?, second: Transformation?, step: Float): Transformation? {
-            if (first == null) return second?.apply { mul(step) }
+            if (first == null) return second?.mul(step)
             if (second == null) return first.apply { mul(1f - step) }
 
             val tF = if (first.hasTranslation) first.translation else null
@@ -303,44 +284,17 @@ data class Transformation(
     }
 }
 
-private fun Quaternionf.invert() {
-    val factor = x() * x() + y() * y() + z() * z() + w() * w()
-    set(
-        -x() / factor,
-        -y() / factor,
-        -z() / factor,
-        w() / factor
-    )
-}
-
 private fun Vector3f?.lerp(other: Vector3f?, factor: Float): Vector3f? {
-    if (this == null) return other?.apply { mul(factor) }
-    if (other == null) return this.apply { mul(1f - factor) }
-    this.lerp(other, factor)
-    return this
+    if (this == null) return other?.mul(factor)
+    if (other == null) return this.mul(1f - factor)
+    return this.lerp(other, factor)
 }
 
 private fun Quaternionf?.lerp(other: Quaternionf?, factor: Float): Quaternionf? {
-    if (this == null) return other?.apply { mul(factor) }
-    if (other == null) return this.apply { mul(1f - factor) }
-
-    val r = Quaternionf(this)
-    //r.sphericalLerp(other, factor)
-    return r.slerp(other, factor)
-}
-
-private fun Map<Transformation, Float>.sumComponent(component: (Transformation) -> Float): Float {
-    var sum = 0f
-    this.entries.forEach { (transformation, value) ->
-        sum += value * component(transformation)
+    return when {
+        this == null && other == null -> null
+        this == null -> Quaternionf().slerp(other, factor)
+        other == null -> Quaternionf().slerp(this, 1f - factor)
+        else -> Quaternionf(this).slerp(other, factor)
     }
-    return sum / this.values.sum()
-}
-
-private fun Vector3f.interpolated(other: Vector3f, step: Float): Vector3f {
-    return Vector3f(
-        this.x() + (other.x() - this.x()) * step,
-        this.y() + (other.y() - this.y()) * step,
-        this.z() + (other.z() - this.z()) * step,
-    )
 }

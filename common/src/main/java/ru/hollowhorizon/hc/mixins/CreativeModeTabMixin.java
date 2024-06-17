@@ -23,7 +23,7 @@ public class CreativeModeTabMixin {
     @Shadow
     private Set<ItemStack> displayItemsSearchTab;
 
-    @Inject(method = "buildContents", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/CreativeModeTab;rebuildSearchTree()V"))
+    @Inject(method = "buildContents", at = @At("TAIL"))
     private void onUpdateContents(CreativeModeTab.ItemDisplayParameters parameters, CallbackInfo ci) {
         var mutableDisplayStacks = new LinkedHashSet<>(displayItems);
         var mutableSearchTabStacks = new LinkedHashSet<>(displayItemsSearchTab);

@@ -21,7 +21,7 @@ import ru.hollowhorizon.hc.common.network.packets.S2CAddParticle
 
 fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
     val annotation = type.getAnnotation(HollowPacketV2::class.java)
-    val location = CustomPacketPayload.Type<T>(ResourceLocation(MODID, type.name.lowercase()))
+    val location = CustomPacketPayload.Type<T>(ResourceLocation.fromNamespaceAndPath(MODID, type.name.lowercase()))
 
     val codec: StreamCodec<RegistryFriendlyByteBuf, T> = CustomPacketPayload.codec(
         { packet, buffer ->

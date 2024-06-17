@@ -83,7 +83,7 @@ object GltfManager : ResourceManagerReloadListener {
     fun initialize() {
         val textureManager = Minecraft.getInstance().getTextureManager()
         
-        lightTexture = textureManager.getTexture(ResourceLocation("dynamic/light_map_1"))
+        lightTexture = textureManager.getTexture("dynamic/light_map_1".rl)
 
         val currentTexture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
 

@@ -24,10 +24,12 @@
 
 package ru.hollowhorizon.hc.common.capabilities
 
+import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
 import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.network.sendAllInDimension
@@ -37,7 +39,6 @@ import ru.hollowhorizon.hc.common.network.sendTrackingEntity
 open class CapabilityInstance {
     val properties = ArrayList<CapabilityProperty<CapabilityInstance, *>>()
     var notUsedTags = CompoundTag()
-    open val consumeOnServer: Boolean = false
     open val canOtherPlayersAccess: Boolean = true
     lateinit var provider: ICapabilityDispatcher //Будет инициализированно инжектом
 
@@ -49,13 +50,13 @@ open class CapabilityInstance {
         when (val target = provider) {
             is Entity -> {
                 if (target.level().isClientSide) {
-                    if (consumeOnServer) SSyncEntityCapabilityPacket(target.id, javaClass.name, serializeNBT()).send()
+                    if(canAcceptFromClient(Minecraft.getInstance().player!!)) SSyncEntityCapabilityPacket(target.id, javaClass.name, serializeNBT()).send()
                 } else CSyncEntityCapabilityPacket(target.id, javaClass.name, serializeNBT()).sendTrackingEntity(target)
             }
 
             is Level -> {
                 if (target.isClientSide) {
-                    if (consumeOnServer) SSyncLevelCapabilityPacket(
+                    if(canAcceptFromClient(Minecraft.getInstance().player!!)) SSyncLevelCapabilityPacket(
                         target.dimension().location().toString(),
                         javaClass.name, serializeNBT()
                     ).send()
@@ -82,6 +83,10 @@ open class CapabilityInstance {
                 else -> this.put(key, other[key] ?: return)
             }
         }
+    }
+
+    open fun canAcceptFromClient(player: Player): Boolean {
+        return false
     }
 
     inline fun <reified T : Any> syncableList(list: MutableList<T> = ArrayList()) =

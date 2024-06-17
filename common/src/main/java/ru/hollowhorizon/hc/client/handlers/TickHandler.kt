@@ -34,7 +34,7 @@ object TickHandler {
     private var serverTicks = 0
 
     val currentTicks get() = if (isLogicalClient) clientTicks else serverTicks
-    val partialTicks get() = Minecraft.getInstance().frameTime
+    val partialTick get() = Minecraft.getInstance().timer.realtimeDeltaTicks
     val tickRate get() = (Minecraft.getInstance().level?.tickRateManager()?.tickrate()?.coerceAtLeast(20f) ?: 20f) //В deltaFrame уже учтены значения ниже 20
 
     @SubscribeEvent

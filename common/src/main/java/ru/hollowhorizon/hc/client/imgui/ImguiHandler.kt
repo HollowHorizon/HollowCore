@@ -32,7 +32,6 @@ import imgui.flag.ImGuiConfigFlags
 import imgui.flag.ImGuiFreeTypeBuilderFlags
 import imgui.gl3.ImGuiImplGl3
 import imgui.glfw.ImGuiImplGlfw
-import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
@@ -44,7 +43,6 @@ object ImguiHandler {
     val imGuiGlfw = ImGuiImplGlfw()
     val imGuiGl3 = ImGuiImplGl3()
     var windowHandle: Long = 0
-    val FONTS = hashMapOf<Int, ImFont>()
 
     fun initialize() {
         val window = Minecraft.getInstance().window.window
@@ -68,15 +66,11 @@ object ImguiHandler {
         ImGui.newFrame()
         ImGui.setNextWindowViewport(ImGui.getMainViewport().id)
 
-        ImGui.pushFont(FONTS[Minecraft.getInstance().window.guiScale.toInt().coerceAtMost(6)])
-
         renderable.getTheme()?.preRender()
         renderable.render()
         renderable.getTheme()?.postRender()
 
         if (ImGuiMethods.cursorStack.isNotEmpty()) throw StackOverflowError("Cursor stack must be empty!")
-
-        ImGui.popFont()
 
         ImGui.render()
         endFrame()
@@ -108,22 +102,24 @@ object ImguiHandler {
 
         val ranges = rangesBuilder.buildRanges()
 
-        fun loadFont(i: Int, size: Float) {
-            FONTS[i] = fontAtlas.addFontFromMemoryTTF(
-                "${HollowCore.MODID}:fonts/monocraft.ttf".rl.stream.readAllBytes(), size, fontConfig, ranges
-            )
-            fontConfig.mergeMode = true
-            fontAtlas.addFontFromMemoryTTF("${HollowCore.MODID}:fonts/fa_regular.ttf".rl.stream.readAllBytes(), size, fontConfig, ranges)
-            fontAtlas.addFontFromMemoryTTF("${HollowCore.MODID}:fonts/fa_solid.ttf".rl.stream.readAllBytes(), size, fontConfig, ranges)
-            fontConfig.mergeMode = false
-        }
 
-        loadFont(6, 64f)
-        loadFont(5, 48f)
-        loadFont(4, 40f)
-        loadFont(3, 30f)
-        loadFont(2, 20f)
-        loadFont(1, 12f)
+
+        fontAtlas.addFontFromMemoryTTF(
+            "${HollowCore.MODID}:fonts/monocraft.ttf".rl.stream.readAllBytes(), 30f, fontConfig, ranges
+        )
+        fontConfig.mergeMode = true
+        fontAtlas.addFontFromMemoryTTF(
+            "${HollowCore.MODID}:fonts/fa_regular.ttf".rl.stream.readAllBytes(),
+            26f,
+            fontConfig,
+            ranges
+        )
+        fontAtlas.addFontFromMemoryTTF(
+            "${HollowCore.MODID}:fonts/fa_solid.ttf".rl.stream.readAllBytes(),
+            26f,
+            fontConfig,
+            ranges
+        )
 
         fontConfig.pixelSnapH = true
         fontConfig.destroy()

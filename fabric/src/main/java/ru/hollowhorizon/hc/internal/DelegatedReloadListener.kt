@@ -6,6 +6,6 @@ import net.minecraft.server.packs.resources.PreparableReloadListener
 
 class DelegatedReloadListener(private val eventListener: PreparableReloadListener): PreparableReloadListener by eventListener, IdentifiableResourceReloadListener {
     override fun getFabricId(): ResourceLocation {
-        return ResourceLocation("hollowcore_generated", eventListener.javaClass.name.lowercase().replace("$", "."))
+        return ResourceLocation.fromNamespaceAndPath("hollowcore_generated", eventListener.javaClass.name.lowercase().replace("$", "."))
     }
 }
