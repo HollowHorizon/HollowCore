@@ -121,7 +121,7 @@ data class AnimationLayer(
 class DefinedLayer {
     private var currentAnimation = AnimationType.IDLE
     private var lastAnimation = AnimationType.IDLE
-    private var currentStartTime = 0
+    private var currentStartTime = 0.0
     private var priority = 0f
 
     fun update(animationType: AnimationType, currentSpeed: Float, currentTick: Int, partialTick: Float) {
