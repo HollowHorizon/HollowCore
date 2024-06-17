@@ -122,7 +122,7 @@ object ScriptingCompiler {
         ) {}
 
         return runBlocking {
-            val compiledJar = script.parentFile.resolve(script.name + ".jar")
+            val compiledJar = script.absoluteFile.parentFile.resolve(script.name + ".jar")
             val hashcode = script.readText().hashCode().toString()
 
             if (compiledJar.exists() && compiledJar.loadScriptHashCode() == hashcode) {
@@ -172,7 +172,7 @@ object ScriptingCompiler {
     }
 
     fun KJvmCompiledScript.saveScriptToJar(outputJar: File, hash: String) {
-        HollowCore.LOGGER.info("Saving script jar to: {}", outputJar.absolutePath)
+        ru.hollowhorizon.hc.LOGGER.info("Saving script jar to: {}", outputJar.absolutePath)
         // Get the compiled module, which contains the output files
         val module = getCompiledModule().let { module ->
             // Ensure the module is of the correct type

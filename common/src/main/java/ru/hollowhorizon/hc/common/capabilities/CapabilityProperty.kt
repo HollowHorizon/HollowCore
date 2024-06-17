@@ -27,6 +27,7 @@ package ru.hollowhorizon.hc.common.capabilities
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.EndTag
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.utils.JavaHacks
 import ru.hollowhorizon.hc.client.utils.nbt.INBTSerializable
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
@@ -34,7 +35,9 @@ import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.javaType
+import kotlin.reflect.jvm.jvmErasure
 
 @Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalStdlibApi::class)
@@ -44,7 +47,7 @@ open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : 
     override fun getValue(thisRef: T, property: KProperty<*>): V {
         if (defaultName.isEmpty()) {
             defaultName = property.name
-            defaultType = if (value == null) property.returnType.javaType as Class<out V> else value!!.javaClass
+            defaultType = if (value == null) property.returnType.jvmErasure.java as Class<out V> else value!!.javaClass
             if (property.name !in thisRef.notUsedTags) return value
 
             val tag = thisRef.notUsedTags.get(property.name) ?: return value
@@ -89,5 +92,11 @@ open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : 
             }
         }
         return false
+    }
+}
+
+fun main() {
+    AnimatedEntityCapability::class.declaredMemberProperties.forEach { property: KProperty<*> ->
+        println(property)
     }
 }

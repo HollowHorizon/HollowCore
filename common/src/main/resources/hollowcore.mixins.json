@@ -16,7 +16,8 @@
     "StructureBlockMixin",
     "capabilities.EntityMixin",
     "capabilities.LevelMixin",
-    "scripting.BinaryJavaClassMixin"
+    "scripting.BinaryJavaClassMixin",
+    "scripting.JvmCompilationUtilMixin"
   ],
   "client": [
     "FontManagerAccessor",

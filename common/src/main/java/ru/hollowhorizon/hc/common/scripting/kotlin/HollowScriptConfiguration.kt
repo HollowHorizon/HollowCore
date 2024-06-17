@@ -60,7 +60,7 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
         )
 
         //Скорее всего в этом случае этот класс был загружен через IDE, поэтому получить моды и classpath автоматически нельзя
-        if (!isProduction) {
+        if (isProduction) {
             dependenciesFromCurrentContext(wholeClasspath = true)
             return@jvm
         }

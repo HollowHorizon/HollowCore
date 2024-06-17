@@ -119,7 +119,8 @@ logs/
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
 
-!fabric/libs/*
+!*/libs/*
+!libs/*
 !libs/trove-1.0.2.jar
 !libs/firstperson-2.3.2.jar
 user.properties

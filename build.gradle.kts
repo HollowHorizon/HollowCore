@@ -46,8 +46,10 @@ subprojects {
         maven("https://maven.shedaniel.me/")
         maven("https://maven.architectury.dev/")
         maven("https://maven.terraformersmc.com/releases/")
+        maven("https://maven.0mods.team/releases")
         maven("https://jitpack.io")
         maven("https://maven.neoforged.net/releases")
+        flatDir { dir("libs") }
     }
 
     dependencies {
@@ -70,11 +72,10 @@ subprojects {
                 "com.akuleshov7:ktoml-core:0.5.1",
                 "io.github.classgraph:classgraph:4.8.173",
                 "javassist:javassist:3.12.1.GA",
-                "io.github.spair:imgui-java-binding:$imguiVersion",
-                "io.github.spair:imgui-java-lwjgl3:$imguiVersion",
-                "io.github.spair:imgui-java-natives-windows:$imguiVersion",
-                "io.github.spair:imgui-java-natives-linux:$imguiVersion",
-                "io.github.spair:imgui-java-natives-macos:$imguiVersion"
+                "team.0mods:imgui-app:$imguiVersion",
+                "team.0mods:imgui-binding:$imguiVersion",
+                "team.0mods:imgui-lwjgl3:$imguiVersion",
+                "team.0mods:imgui-binding-natives:$imguiVersion"
             )
         }
     }
@@ -132,6 +133,7 @@ allprojects {
         maven("https://maven.0mods.team/releases")
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
         maven("https://oss.sonatype.org/content/repositories/releases/")
+        flatDir { dir("libs") }
     }
 
     dependencies {
@@ -152,11 +154,10 @@ allprojects {
 
         implementation("com.akuleshov7:ktoml-core:0.5.1")
 
-        implementation("io.github.spair:imgui-java-binding:$imguiVersion")
-        implementation("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
-        implementation("io.github.spair:imgui-java-natives-windows:$imguiVersion")
-        implementation("io.github.spair:imgui-java-natives-linux:$imguiVersion")
-        implementation("io.github.spair:imgui-java-natives-macos:$imguiVersion")
+        implementation("team.0mods:imgui-app:$imguiVersion")
+        implementation("team.0mods:imgui-binding:$imguiVersion")
+        implementation("team.0mods:imgui-lwjgl3:$imguiVersion")
+        implementation("team.0mods:imgui-binding-natives:$imguiVersion")
 
         implementation("org.anarres:jcpp:1.4.14")
         implementation("io.github.douira:glsl-transformer:2.0.1")

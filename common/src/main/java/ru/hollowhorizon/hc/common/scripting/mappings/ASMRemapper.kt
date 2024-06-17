@@ -40,13 +40,14 @@ object ASMRemapper {
         remapMethods(node)
         remapFields(node)
 
+        HollowMappings.MAPPINGS.classObf(node)
+
         return node.writeClass()
     }
 
     private fun remapMethods(node: ClassNode) {
         node.methods.forEach { method ->
             remapMethod(node, method)
-
             method.instructions.forEach { insn ->
                 when (insn) {
                     is FieldInsnNode -> {

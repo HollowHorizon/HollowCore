@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.internal
 
 import net.minecraft.client.Minecraft
+import net.minecraft.core.Direction.Axis
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.codec.StreamCodec
@@ -17,7 +18,7 @@ import ru.hollowhorizon.hc.common.network.HollowPacketV3
 
 fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
     val annotation = type.getAnnotation(HollowPacketV2::class.java)
-    val location = CustomPacketPayload.Type<T>(ResourceLocation(MODID, type.name.lowercase()))
+    val location = CustomPacketPayload.Type<T>(ResourceLocation.fromNamespaceAndPath(MODID, type.name.lowercase()))
 
     val codec: StreamCodec<FriendlyByteBuf, T> = CustomPacketPayload.codec(
         { packet, buffer ->

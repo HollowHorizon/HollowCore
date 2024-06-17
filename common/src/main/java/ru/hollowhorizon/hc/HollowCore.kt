@@ -47,7 +47,7 @@ object HollowCore {
 
         initMod()
 
-        HollowSoundHandler.MODS.add("hc")
+        HollowSoundHandler.MODS.add("hollowcore")
         HollowSoundHandler.MODS.add("hollowengine")
     }
 }
