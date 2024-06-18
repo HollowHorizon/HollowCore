@@ -2,20 +2,21 @@ package ru.hollowhorizon.hc
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.fabricmc.fabric.api.`object`.builder.v1.entity.FabricDefaultAttributeRegistry
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper
 import net.minecraft.server.packs.PackType
-import net.minecraft.world.item.CreativeModeTabs
 import ru.hollowhorizon.hc.common.events.EventBus
+import ru.hollowhorizon.hc.common.events.EventBus.post
 import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
 import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
 import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.registry.RegisterCommandsEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityAttributesEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
+import ru.hollowhorizon.hc.common.events.tick.TickEvent
 import ru.hollowhorizon.hc.internal.DelegatedReloadListener
 
 object FabricEvents {
@@ -25,6 +26,13 @@ object FabricEvents {
         registerCommands()
         onEntityTracking()
         onPlayerEvents()
+        onServerEvents()
+    }
+
+    private fun onServerEvents() {
+        ServerTickEvents.END_SERVER_TICK.register(ServerTickEvents.EndTick { s ->
+            post(TickEvent.Server(s))
+        })
     }
 
     private fun registerReloadListeners() {

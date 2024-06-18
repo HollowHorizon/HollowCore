@@ -2,6 +2,8 @@ package ru.hollowhorizon.hc
 
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ShaderInstance
+import net.minecraft.world.item.Item
+import net.minecraftforge.client.event.EntityRenderersEvent
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.AddReloadListenerEvent
@@ -9,20 +11,27 @@ import net.minecraftforge.event.TickEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import ru.hollowhorizon.hc.common.events.EventBus
 import ru.hollowhorizon.hc.common.events.post
-import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterKeyBindingsEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterShadersEvent
 
 object ForgeClientEvents {
     init {
         FMLJavaModLoadingContext.get().modEventBus.addListener(::registerShaders)
         FMLJavaModLoadingContext.get().modEventBus.addListener(::onRegisterKeys)
+        FMLJavaModLoadingContext.get().modEventBus.addListener(::onEntityRenderers)
         MinecraftForge.EVENT_BUS.addListener(::registerReloadListeners)
         MinecraftForge.EVENT_BUS.addListener(::onClientTick)
+        MinecraftForge.EVENT_BUS.addListener(::onRenderTooltips)
+    }
+
+    private fun onEntityRenderers(event: EntityRenderersEvent.RegisterRenderers) {
+        RegisterEntityRenderersEvent(event::registerEntityRenderer).post()
     }
 
     private fun registerReloadListeners(event: AddReloadListenerEvent) {
-        val hcevent = RegisterReloadListenersEvent()
+        val hcevent = RegisterReloadListenersEvent.Client()
         EventBus.post(hcevent)
         hcevent.listeners.forEach {
             event.addListener(it)
@@ -38,7 +47,7 @@ object ForgeClientEvents {
     }
 
     private fun onClientTick(event: TickEvent.ClientTickEvent) {
-        if(event.phase != TickEvent.Phase.END) return
+        if (event.phase != TickEvent.Phase.END) return
 
         EventBus.post(
             ru.hollowhorizon.hc.common.events.tick.TickEvent.Client(
@@ -49,5 +58,14 @@ object ForgeClientEvents {
 
     private fun onRegisterKeys(event: RegisterKeyMappingsEvent) {
         RegisterKeyBindingsEvent(event::register).post()
+    }
+
+    private fun onRenderTooltips(event: net.minecraftforge.event.entity.player.ItemTooltipEvent) {
+        ru.hollowhorizon.hc.common.events.client.ItemTooltipEvent(
+            event.flags,
+            event.itemStack,
+            event.toolTip,
+            Item.TooltipContext.of(Minecraft.getInstance().level)
+        ).post()
     }
 }

@@ -1,3 +1,5 @@
+import groovy.lang.Closure
+import io.github.pacifistmc.forgix.plugin.ForgixMergeExtension.*
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
 
 plugins {
@@ -5,6 +7,7 @@ plugins {
     `maven-publish`
     id("architectury-plugin") version "3.4-SNAPSHOT"
     id("dev.architectury.loom") version "1.6-SNAPSHOT" apply false
+    id("io.github.pacifistmc.forgix") version "1.2.9"
     kotlin("jvm")
     kotlin("plugin.serialization")
 }
@@ -21,6 +24,51 @@ val kotlinVersion: String by project
 architectury {
     minecraft = minecraftVersion
 }
+
+forgix {
+    val fullPath = "${fromProperties("group")}.$modId"
+    group = fullPath
+    mergedJarName = "$modId-${minecraftVersion}-$modVersion.jar"
+
+    outputDir = "build/libs"
+
+    when (project) {
+        findProject(":fabric") -> {
+            val proj = findProject(":fabric")!!
+
+            val fabricClosure = closureOf<FabricContainer> {
+                jarLocation = "build/libs/${proj.base.archivesName.get()}.jar"
+            } as Closure<FabricContainer>
+            fabric(fabricClosure)
+        }
+
+        findProject(":forge") -> {
+            val proj = findProject(":forge")!!
+
+            val forgeClosure = closureOf<ForgeContainer> {
+                jarLocation = "build/libs/${proj.base.archivesName.get()}.jar"
+            } as Closure<ForgeContainer>
+            forge(forgeClosure)
+        }
+
+        findProject(":neoforge") -> {
+            val proj = findProject(":neoforge")!!
+
+            val neoClosure = closureOf<NeoForgeContainer> {
+                jarLocation = "build/libs/${proj.base.archivesName.get()}.jar"
+            } as Closure<NeoForgeContainer>
+
+            neoforge(neoClosure)
+        }
+    }
+}
+
+tasks.register("doMerge") {
+    dependsOn(":fabric:build", ":forge:build", ":neoforge:build")
+    finalizedBy("mergeJars")
+}
+tasks.build.get().dependsOn("doMerge")
+
 
 subprojects {
     apply(plugin = "architectury-plugin")
@@ -63,13 +111,14 @@ subprojects {
 
         if (project != findProject(":common")) {
             includes(
-                "team._0mods:KotlinExtras:kotlin-$kotlinVersion",
-                "org.jetbrains.kotlin:kotlin-scripting-jvm:2.0.0",
-                "org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.0.0",
-                "org.jetbrains.kotlin:kotlin-script-runtime:2.0.0",
-                "org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.0",
-                "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.0.0",
-                "com.akuleshov7:ktoml-core:0.5.1",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.0",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.0",
+                "org.jetbrains.kotlin:kotlin-stdlib:2.0.0",
+                "org.jetbrains.kotlin:kotlin-reflect:1.9.22",
+                "org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.0-RC",
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC",
+                "com.akuleshov7:ktoml-core-jvm:0.5.1",
+                "org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.4.0", // For KToml
                 "io.github.classgraph:classgraph:4.8.173",
                 "javassist:javassist:3.12.1.GA",
                 "team.0mods:imgui-app:$imguiVersion",
@@ -143,23 +192,18 @@ allprojects {
         implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.0-RC")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
-        implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:2.0.0")
-        implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.0.0")
-        implementation("org.jetbrains.kotlin:kotlin-script-runtime:2.0.0")
-        implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.0")
-        implementation("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.0.0")
 
         implementation("org.ow2.asm:asm:9.7")
         implementation("org.ow2.asm:asm-tree:9.7")
 
-        implementation("com.akuleshov7:ktoml-core:0.5.1")
+        implementation("com.akuleshov7:ktoml-core-jvm:0.5.1")
 
         implementation("team.0mods:imgui-app:$imguiVersion")
         implementation("team.0mods:imgui-binding:$imguiVersion")
         implementation("team.0mods:imgui-lwjgl3:$imguiVersion")
         implementation("team.0mods:imgui-binding-natives:$imguiVersion")
 
-        implementation("org.anarres:jcpp:1.4.14")
+        //implementation("org.anarres:jcpp:1.4.14")
         implementation("io.github.douira:glsl-transformer:2.0.1")
         implementation("org.ow2.asm:asm:9.7")
         implementation("io.github.classgraph:classgraph:4.8.173")
@@ -183,6 +227,10 @@ allprojects {
             useDaemonFallbackStrategy.set(false)
             compilerOptions.freeCompilerArgs.add("-Xjvm-default=all")
         }
+    }
+
+    java {
+        withSourcesJar()
     }
 }
 

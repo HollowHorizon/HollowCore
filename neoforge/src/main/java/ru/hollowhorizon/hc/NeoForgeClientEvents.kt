@@ -25,7 +25,7 @@ object NeoForgeClientEvents {
     }
 
     private fun registerReloadListeners(event: net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent) {
-        val hcevent = RegisterReloadListenersEvent()
+        val hcevent = RegisterReloadListenersEvent.Client()
         EventBus.post(hcevent)
         hcevent.listeners.forEach(event::registerReloadListener)
     }

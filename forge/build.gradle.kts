@@ -20,7 +20,6 @@ loom {
         convertAccessWideners = true
         extraAccessWideners.add(loom.accessWidenerPath.get().asFile.name)
         mixinConfig("$mod_id.mixins.json")
-        mixinConfig("$mod_id.forge.mixins.json")
         (loom as LoomGradleExtensionImpl).remapperExtensions.add(ForgeFixer)
     }
 }
@@ -36,15 +35,19 @@ configurations {
     named("developmentForge").get().extendsFrom(common)
 }
 
+configurations.configureEach {
+    // Fix that can be found in Forge MDK too
+    resolutionStrategy {
+        force("net.sf.jopt-simple:jopt-simple:5.0.4")
+    }
+}
+
 base {
     archivesName = "$mod_name-forge-$minecraft_version"
 }
 
 dependencies {
     forge("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
-
-    // Hack fix for now, force jopt-simple to be exactly 5.0.4 because Mojang ships that version, but some transtive dependencies request 6.0+
-    implementation("net.sf.jopt-simple:jopt-simple:5.0.4")
 
     common(project(path = ":common", configuration = "namedElements")) { isTransitive = false }
     shadowCommon(project(path = ":common", configuration = "transformProductionForge")) { isTransitive = false }

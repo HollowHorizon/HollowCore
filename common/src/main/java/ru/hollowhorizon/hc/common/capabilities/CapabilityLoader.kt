@@ -32,11 +32,6 @@ import kotlin.reflect.KClass
 @Target(AnnotationTarget.CLASS)
 annotation class HollowCapabilityV2(vararg val value: KClass<*>) {
     companion object {
-
-        fun <T> get(clazz: Class<T>): T {
-            return TODO()
-        }
-
         @JvmField
         val TYPE: Type = Type.getType(HollowCapabilityV2::class.java)
 

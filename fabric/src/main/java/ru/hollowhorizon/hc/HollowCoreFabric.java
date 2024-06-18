@@ -28,9 +28,5 @@ public class HollowCoreFabric implements ModInitializer {
         var events = FabricEvents.INSTANCE;
 
         NetworkHelper.register();
-
-        ServerTickEvents.END_SERVER_TICK.register(s -> {
-            EventBus.post(new TickEvent.Server(s));
-        });
     }
 }
