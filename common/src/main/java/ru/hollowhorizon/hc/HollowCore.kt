@@ -35,6 +35,7 @@ import ru.hollowhorizon.hc.common.registry.HollowModProcessor.initMod
 
 object HollowCore {
     const val MODID: String = "hollowcore"
+    lateinit var platform: Platform
 
     @JvmField
     val LOGGER: Logger = ru.hollowhorizon.hc.LOGGER
@@ -49,6 +50,10 @@ object HollowCore {
 
         HollowSoundHandler.MODS.add("hollowcore")
         HollowSoundHandler.MODS.add("hollowengine")
+    }
+
+    enum class Platform {
+        FABRIC, FORGE, NEOFORGE
     }
 }
 

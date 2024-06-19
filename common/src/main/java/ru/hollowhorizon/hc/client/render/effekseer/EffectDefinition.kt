@@ -135,7 +135,7 @@ class EffectDefinition : Closeable {
     }
 
     private fun initManager() {
-        for (type in ParticleEmitter.Type.values()) {
+        for (type in ParticleEmitter.Type.entries) {
             val old = managers.put(type, EffekseerManager())
             Optional.ofNullable(old).ifPresent { obj: EffekseerManager -> obj.close() }
         }

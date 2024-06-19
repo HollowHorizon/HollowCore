@@ -48,9 +48,6 @@ public class MixinGameRenderer {
 
     @Inject(method = "renderLevel", at = @At("TAIL"))
     private void renderLevelTail(DeltaTracker deltaTracker, CallbackInfo ci) {
-        glDepthMask(true);
-        glDepthFunc(GL_LEQUAL);
-
         if (RenderContext.renderLevelDeferred() && RenderStateCapture.LEVEL.hasCapture) {
             RenderStateCapture.LEVEL.hasCapture = false;
 

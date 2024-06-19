@@ -25,6 +25,7 @@ public class HollowCoreNeoForge {
         isProduction_ = FMLLoader::isProduction;
 
         var init = HollowCore.INSTANCE; // Loading Main Class
+        HollowCore.platform = HollowCore.Platform.NEOFORGE;
         var events = NeoForgeEvents.INSTANCE;
 
         if (FMLEnvironment.dist.isClient()) new HollowCoreClientNeoForge();

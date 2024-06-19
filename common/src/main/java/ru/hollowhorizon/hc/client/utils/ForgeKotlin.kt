@@ -64,10 +64,11 @@ val isPhysicalServer get() = !isPhysicalClient
 
 val hasShaders get() = isModLoaded("oculus") || isModLoaded("iris") || isModLoaded("optifine")
 
-val areShadersEnabled get() = hasShaders //TODO: && IrisApi.getInstance().config.areShadersEnabled()
+val areShadersEnabled get() = hasShaders && areShadersEnabled_()
 
 lateinit var isProduction_: () -> Boolean
 lateinit var isPhysicalClient_: () -> Boolean
+lateinit var areShadersEnabled_: () -> Boolean
 lateinit var isModLoaded: (modid: String) -> Boolean
 
 fun fromJava(clazz: Class<*>) = clazz.kotlin

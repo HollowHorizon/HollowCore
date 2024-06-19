@@ -25,6 +25,7 @@ public class HollowCoreForge {
 
         var events = ForgeEvents.INSTANCE;
         var init = HollowCore.INSTANCE; // Loading Main Class
+        HollowCore.platform = HollowCore.Platform.FORGE;
 
         if (FMLEnvironment.dist.isClient()) new HollowCoreClientForge();
     }

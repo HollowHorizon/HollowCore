@@ -13,7 +13,6 @@ import ru.hollowhorizon.hc.internal.RegistryHolderFabric;
 import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.isModLoaded;
 import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.isProduction_;
 
-//TODO: Переорганизовать все эти классы, оставить только Kotlin и сделать более понятную инициализацию.
 public class HollowCoreFabric implements ModInitializer {
 
     @Override
@@ -25,6 +24,7 @@ public class HollowCoreFabric implements ModInitializer {
         isProduction_ = () -> !FabricLoader.getInstance().isDevelopmentEnvironment();
 
         var init = HollowCore.INSTANCE; // Loading Main Class
+        HollowCore.platform = HollowCore.Platform.FABRIC;
         var events = FabricEvents.INSTANCE;
 
         NetworkHelper.register();

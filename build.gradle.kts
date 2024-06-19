@@ -115,8 +115,8 @@ subprojects {
                 "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.0",
                 "org.jetbrains.kotlin:kotlin-stdlib:2.0.0",
                 "org.jetbrains.kotlin:kotlin-reflect:1.9.22",
-                "org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.0-RC",
-                "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC",
+                "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.7.0-RC",
+                "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.9.0-RC",
                 "com.akuleshov7:ktoml-core-jvm:0.5.1",
                 "org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.4.0", // For KToml
                 "io.github.classgraph:classgraph:4.8.173",
@@ -203,7 +203,7 @@ allprojects {
         implementation("team.0mods:imgui-lwjgl3:$imguiVersion")
         implementation("team.0mods:imgui-binding-natives:$imguiVersion")
 
-        //implementation("org.anarres:jcpp:1.4.14")
+        implementation("org.anarres:jcpp:1.4.14")
         implementation("io.github.douira:glsl-transformer:2.0.1")
         implementation("org.ow2.asm:asm:9.7")
         implementation("io.github.classgraph:classgraph:4.8.173")

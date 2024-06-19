@@ -24,17 +24,20 @@
 
 package ru.hollowhorizon.hc.client.render.effekseer.internal
 
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.areShadersEnabled
 import ru.hollowhorizon.hc.client.utils.hasShaders
 
 object RenderContext {
     private val IRIS_MODE = hasShaders
 
-    @JvmStatic
-    fun renderLevelDeferred() = !IRIS_MODE
+    private val isFabric = HollowCore.platform == HollowCore.Platform.FABRIC
 
     @JvmStatic
-    fun renderHandDeferred() = !IRIS_MODE || (isIrisShaderEnabled)
+    fun renderLevelDeferred() = !IRIS_MODE || isFabric
+
+    @JvmStatic
+    fun renderHandDeferred() = !IRIS_MODE || (isFabric || isIrisShaderEnabled)
 
     @JvmStatic
     fun captureHandDepth() = !IRIS_MODE || !isIrisShaderEnabled

@@ -85,7 +85,7 @@ object EffekAssets : SimplePreparableReloadListener<EffekAssets.Preparations>() 
                     return Optional.empty()
                 }
                 try {
-                    for (texType in TextureType.values()) {
+                    for (texType in TextureType.entries) {
                         val count = effect.textureCount(texType)
                         load(manager,
                             name,
