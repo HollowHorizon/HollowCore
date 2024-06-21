@@ -45,7 +45,7 @@ object Inventory {
 fun test() = Renderable {
     inventory()
 
-    if(ImGui.button("Запустить вверх")) {
+    if(ImGui.button("Не нажимать :)")) {
         Minecraft.getInstance().player?.setDeltaMovement(0.0, 10.0, 0.0)
         Minecraft.getInstance().screen?.onClose()
     }
