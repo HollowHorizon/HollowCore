@@ -29,7 +29,7 @@ fun interface Renderable {
 
     fun getTheme(): Theme? = null
 
-    fun render()
+    fun ImGuiMethods.render()
 }
 
 interface Theme {

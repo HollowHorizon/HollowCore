@@ -24,28 +24,29 @@
 
 package ru.hollowhorizon.hc.client.imgui
 
-import imgui.extension.nodeditor.NodeEditor
+import imgui.ImGui
 import imgui.extension.nodeditor.NodeEditorContext
-import imgui.type.ImLong
-import ru.hollowhorizon.hc.HollowCore
+import net.minecraft.client.Minecraft
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import ru.hollowhorizon.hc.client.imgui.ImGuiInventory.slot
+import ru.hollowhorizon.hc.client.imgui.addons.inventory
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
 
 var first by ImGuiAnimator(0..100, 1.5f, ImGuiAnimator.Type.FREEZE, Interpolation.BACK_OUT)
 var count = 0
 val ctx = NodeEditorContext()
+
+object Inventory {
+    var left = ItemStack(Items.MACE)
+    var right = ItemStack.EMPTY
+}
+
 fun test() = Renderable {
-    with(ImGuiMethods) {
-        NodeEditor.setCurrentEditor(ctx)
-        NodeEditor.begin("Editor")
+    inventory()
 
-        if (NodeEditor.beginCreate()) {
-            val f = ImLong()
-            if (NodeEditor.queryNewNode(f)) {
-                HollowCore.LOGGER.info("New Node $f")
-            }
-        }
-        NodeEditor.endCreate()
-
-        NodeEditor.end()
+    if(ImGui.button("Запустить вверх")) {
+        Minecraft.getInstance().player?.setDeltaMovement(0.0, 10.0, 0.0)
+        Minecraft.getInstance().screen?.onClose()
     }
 }

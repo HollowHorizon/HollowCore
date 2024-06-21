@@ -27,6 +27,7 @@ package ru.hollowhorizon.hc.client.imgui
 import com.google.common.collect.Queues
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexSorting
 import imgui.ImFont
 import imgui.ImGui
@@ -34,6 +35,7 @@ import imgui.ImVec2
 import imgui.ImVec4
 import imgui.flag.ImGuiCol
 import imgui.flag.ImGuiDir
+import imgui.flag.ImGuiStyleVar
 import imgui.flag.ImGuiWindowFlags
 import net.minecraft.Util
 import net.minecraft.client.Minecraft
@@ -51,13 +53,23 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.TooltipFlag
 import org.intellij.lang.annotations.MagicConstant
 import org.joml.Matrix4f
+import ru.hollowhorizon.hc.client.imgui.addons.ItemProperties
 import ru.hollowhorizon.hc.client.render.render
 import ru.hollowhorizon.hc.client.utils.toTexture
 import java.io.File
 import java.util.*
 
+
 object ImGuiMethods {
     internal val cursorStack: Deque<ImVec2> = Queues.newArrayDeque()
+    val FONT_SIZES = HashMap<Int, ImFont>()
+
+    var cursor: ImVec2
+        get() = ImGui.getCursorPos()
+        set(value) {
+            ImGui.setCursorPos(value.x, value.y)
+        }
+
 
     fun pushCursor() = cursorStack.push(ImGui.getCursorPos())
     fun popCursor() = cursorStack.pop().apply { ImGui.setCursorPos(x, y) }
@@ -139,17 +151,7 @@ object ImGuiMethods {
         val id = texture.toTexture().id
 
         ImGui.image(
-            id,
-            width,
-            height,
-            u0 / imageWidth,
-            v0 / imageHeight,
-            u1 / imageWidth,
-            v1 / imageHeight,
-            1f,
-            1f,
-            1f,
-            1f
+            id, width, height, u0 / imageWidth, v0 / imageHeight, u1 / imageWidth, v1 / imageHeight, 1f, 1f, 1f, 1f
         )
     }
 
@@ -208,20 +210,16 @@ object ImGuiMethods {
         codeBlock: ImGuiMethods.() -> Unit,
     ) {
         pushColorStyles(
-            ImGuiCol.CheckMark to innerColor,
-            ImGuiCol.FrameBg to outerColor,
-            ImGuiCol.FrameBgHovered to hoverColor
+            ImGuiCol.CheckMark to innerColor, ImGuiCol.FrameBg to outerColor, ImGuiCol.FrameBgHovered to hoverColor
         ) {
             codeBlock(ImGuiMethods)
         }
     }
 
-    fun progressBar(friction: Float) =
-        ImGui.progressBar(friction)
+    fun progressBar(friction: Float) = ImGui.progressBar(friction)
 
 
-    fun progressBar(friction: Float, sizeArgX: Float, sizeArgY: Float) =
-        ImGui.progressBar(friction, sizeArgX, sizeArgY)
+    fun progressBar(friction: Float, sizeArgX: Float, sizeArgY: Float) = ImGui.progressBar(friction, sizeArgX, sizeArgY)
 
 
     fun progressBar(friction: Float, sizeArgX: Float, sizeArgY: Float, overlay: String) =
@@ -445,8 +443,11 @@ object ImGuiMethods {
         ImGui.popFont()
     }
 
-    fun ImVec4.toFloatArray(): FloatArray =
-        floatArrayOf(x, y, z, w)
+    inline fun pushFontSize(size: Int, codeBlock: ImGuiMethods.() -> Unit) {
+        pushFont(FONT_SIZES[size - size % 10] ?: return, codeBlock)
+    }
+
+    fun ImVec4.toFloatArray(): FloatArray = floatArrayOf(x, y, z, w)
 
     fun ImVec4.toRGB(): FloatArray {
         val container = floatArrayOf(0f, 0f, 0f)
@@ -454,28 +455,33 @@ object ImGuiMethods {
         return container
     }
 
-    fun opengl(width: Float, height: Float, border: Boolean = false, renderable: (ImVec2, Boolean) -> Unit): Boolean {
+    fun opengl(
+        name: String,
+        width: Float,
+        height: Float,
+        border: Boolean = false,
+        red: Float = 1f,
+        green: Float = 1f,
+        blue: Float = 1f,
+        alpha: Float = 1f,
+        alwaysOnTop: Boolean,
+        renderable: (ImVec2, Boolean) -> Unit,
+    ): Boolean {
         val mcBuffer = Minecraft.getInstance().mainRenderTarget
 
         mcBuffer.unbindWrite()
         imguiBuffer.bindWrite(true)
 
         val cursor = ImGui.getCursorScreenPos()
-        val isClicked = ImGui.invisibleButton("##opengl_context", width, height) or ImGui.isItemClicked()
+        val isClicked = ImGui.invisibleButton("##opengl_context_$name", width, height)
         val isHovered = ImGui.isItemHovered()
         ImGui.setCursorScreenPos(cursor.x, cursor.y)
 
         RenderSystem.backupProjectionMatrix()
         RenderSystem.setProjectionMatrix(
             Matrix4f().setOrtho(
-                0.0F,
-                imguiBuffer.width.toFloat(),
-                imguiBuffer.height.toFloat(),
-                0.0F,
-                1000.0F,
-                3000.0F
-            ),
-            VertexSorting.ORTHOGRAPHIC_Z
+                0.0F, imguiBuffer.width.toFloat(), imguiBuffer.height.toFloat(), 0.0F, 1000.0F, 3000.0F
+            ), VertexSorting.ORTHOGRAPHIC_Z
         )
         val matrix4fstack = RenderSystem.getModelViewStack()
         matrix4fstack.pushMatrix()
@@ -503,45 +509,35 @@ object ImGuiMethods {
         val u1 = (cursor.x + width) / imguiBuffer.width
         val v0 = 1f - cursor.y / imguiBuffer.height
         val v1 = 1f - (cursor.y + height) / imguiBuffer.height
-        return if (!border) ImGui.imageButton(
-            imguiBuffer.colorTextureId,
-            width,
-            height,
-            u0,
-            v0,
-            u1,
-            v1,
-            0,
-            0f,
-            0f,
-            0f,
-            0f
-        ) or isClicked
-        else ImGui.imageButton(
-            imguiBuffer.colorTextureId,
-            width,
-            height,
-            u0,
-            v0,
-            u1,
-            v1,
-            0,
-            0f,
-            0f,
-            0f,
-            0f,
-            1f,
-            1f,
-            1f,
-            1f
-        ) or isClicked
+        pushColorStyles(
+            ImGuiCol.Button to ImGui.colorConvertFloat4ToU32(0f, 0f, 0f, 0f),
+            ImGuiCol.ButtonActive to ImGui.colorConvertFloat4ToU32(0f, 0f, 0f, 0f),
+            ImGuiCol.ButtonHovered to ImGui.colorConvertFloat4ToU32(0f, 0f, 0f, 0f),
+        ) {
+            if (alwaysOnTop) {
+                ImGui.getForegroundDrawList()
+                    .addImage(
+                        imguiBuffer.colorTextureId, cursor.x, cursor.y,
+                        cursor.x + width, cursor.y + height, u0, v0, u1, v1,
+                        ImGui.colorConvertFloat4ToU32(red, green, blue, alpha)
+                    )
+            } else {
+                if (!border) ImGui.image(
+                    imguiBuffer.colorTextureId, width, height, u0, v0, u1, v1, red, green, blue, alpha
+                )
+                else ImGui.image(
+                    imguiBuffer.colorTextureId, width, height, u0, v0, u1, v1, red, green, blue, alpha, 1f, 1f, 1f, 1f
+                )
+            }
+        }
+
+        return isClicked
     }
 
     fun exportFramebuffer() {
         NativeImage(imguiBuffer.width, imguiBuffer.height, Minecraft.ON_OSX).apply {
             RenderSystem.setShaderTexture(
-                0,
-                imguiBuffer.colorTextureId
+                0, imguiBuffer.colorTextureId
             ); downloadTexture(0, true)
         }.writeToFile(
             File("example.png")
@@ -556,8 +552,12 @@ object ImGuiMethods {
         offsetY: Float = 0f,
         scale: Float = 1f,
         border: Boolean = false,
+        red: Float = 1f,
+        green: Float = 1f,
+        blue: Float = 1f,
+        alpha: Float = 1f,
     ) {
-        opengl(width, height, border) { cursor, hovered ->
+        opengl("entity", width, height, border, red, green, blue, alpha, false) { cursor, hovered ->
             val mouse = ImGui.getMousePos()
 
             entity.render(cursor.x, cursor.y, width, height, scale, mouse.x, mouse.y, offsetX, offsetY)
@@ -570,48 +570,127 @@ object ImGuiMethods {
         item: ItemStack,
         width: Float,
         height: Float,
+        name: String = item.hashCode().toString(),
         border: Boolean = false,
-        disableResize: Boolean = false,
-        rotation: Float = 0f,
-        scale: Float = 1f,
+        properties: ItemProperties = ItemProperties(),
     ): Boolean {
         val cPos = ImGui.getCursorPos()
-        val clicked = opengl(width, height, border) { cursor, hovered ->
+        val clicked = opengl(
+            name,
+            width,
+            height,
+            border,
+            properties.red,
+            properties.green,
+            properties.blue,
+            properties.alpha,
+            properties.alwaysOnTop
+        ) { cursor, hovered ->
+            properties.update(hovered)
+            var weight = item.count / item.maxStackSize.toFloat()
+            if (item.maxStackSize == 1) weight = 0f
+            val stack = PoseStack()
+            if (properties.alwaysOnTop) stack.translate(0f, 0f, 200f)
+
+            if (weight > 0.3f) {
+                stack.pushPose()
+                stack.translate(0f, 0f, -100f)
+                item.render(
+                    cursor.x + width / 5f, cursor.y, width, height,
+                    (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale * 0.9f,
+                    properties.rotation - 30f, stack
+                )
+                stack.popPose()
+            }
+
+            if (weight > 0.6f) {
+                stack.pushPose()
+                stack.translate(0f, 0f, -100f)
+                item.render(
+                    cursor.x - width / 5, cursor.y - height / 10, width, height,
+                    (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale * 0.85f,
+                    properties.rotation + 25f, stack
+                )
+                stack.popPose()
+            }
+
             item.render(
-                cursor.x,
-                cursor.y,
-                width,
-                height,
-                (if (hovered || disableResize) 1.0f else 0.9f) * scale,
-                rotation
+                cursor.x, cursor.y, width, height,
+                (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale, properties.rotation, stack
             )
         }
 
         val player = Minecraft.getInstance().player ?: return false
 
-        if (ImGui.isItemHovered() && !item.isEmpty) {
+        if (ImGui.isItemHovered() && !item.isEmpty && properties.tooltip) {
+            ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0f, 0f)
+            ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 0f)
+            ImGui.pushStyleVar(ImGuiStyleVar.PopupBorderSize, 0f)
+            ImGui.pushStyleColor(ImGuiCol.Border, 1f, 1f, 1f, 1f)
+            ImGui.pushStyleColor(ImGuiCol.PopupBg, 0f, 0f, 0f, 0f)
             tooltip {
+                val borderSize = 5f
+                val min = ImGui.getWindowPos()
+                val max = min.clone() + ImGui.getWindowSize()
+                var top = ImGui.colorConvertFloat4ToU32(0.19215688f, 0.09607843f, 0.35882354f, 1f).toLong()
+                var bottom = ImGui.colorConvertFloat4ToU32(0.13725491f, 0.07058824f, 0.23921569f, 1f).toLong()
+
+                ImGui.getForegroundDrawList().addRectFilled(min.x, min.y, max.x, min.y + borderSize, top.toInt())
+                ImGui.getForegroundDrawList()
+                    .addRectFilledMultiColor(min.x, min.y, min.x + borderSize, max.y, top, top, bottom, bottom)
+                ImGui.getForegroundDrawList().addRectFilled(min.x, max.y - borderSize, max.x, max.y, bottom.toInt())
+                ImGui.getForegroundDrawList()
+                    .addRectFilledMultiColor(max.x - borderSize, min.y, max.x, max.y, top, top, bottom, bottom)
+
+                top = ImGui.colorConvertFloat4ToU32(0.06f, 0.06f, 0.06f, 0.75f).toLong()
+                bottom = ImGui.colorConvertFloat4ToU32(0.12f, 0.12f, 0.12f, 0.4f).toLong()
+                ImGui.getWindowDrawList().addRectFilledMultiColor(
+                    min.x + borderSize, min.y + borderSize, max.x - borderSize, max.y - borderSize,
+                    top, top, top, top
+                )
+
+                ImGui.dummy(0f, borderSize / 2)
                 item.getTooltipLines(
-                    Item.TooltipContext.of(player.level()),
-                    player,
-                    TooltipFlag.Default.NORMAL
-                ).forEach(::text)
+                    Item.TooltipContext.of(player.level()), player, TooltipFlag.Default.NORMAL
+                ).forEach {
+                    ImGui.setCursorPosX(ImGui.getCursorPosX() + borderSize * 2)
+                    text(it)
+                }
+                ImGui.dummy(borderSize, borderSize)
             }
+            ImGui.popStyleColor(2)
+            ImGui.popStyleVar(3)
         }
 
         if (item.count > 1) {
             val size = ImGui.calcTextSize(item.count.toString())
-            ImGui.setCursorPos(
-                cPos.x + width - size.x - 1,
-                cPos.y + height - size.y - 1
-            )
-            text(item.count.toString())
+            if (!properties.alwaysOnTop) {
+                ImGui.setCursorPos(
+                    cPos.x + width - size.x - 1, cPos.y + height - size.y - 1
+                )
+                textShadow(item.count.toString())
+            } else {
+                val cursor = ImGui.getWindowPos() + ImVec2(cPos.x + width - size.x - 1, cPos.y + height - size.y - 1)
+                val color = ImGui.getStyle().getColor(ImGuiCol.Text)
+                ImGui.getForegroundDrawList().addText(
+                    cursor.x + 2.5f,
+                    cursor.y + 2.5f,
+                    ImGui.colorConvertFloat4ToU32(color.x * 0.5f, color.y * 0.5f, color.z * 0.5f, color.w * 0.5f),
+                    item.count.toString()
+                )
+                ImGui.getForegroundDrawList().addText(
+                    cursor.x, cursor.y,
+                    ImGui.colorConvertFloat4ToU32(color.x, color.y, color.z, color.w),
+                    item.count.toString()
+                )
+            }
         }
         ImGui.setCursorPos(cPos.x, cPos.y)
-        return clicked or ImGui.invisibleButton("##item", width, height)
+        ImGui.dummy(width, height)
+        return clicked
     }
 
-    fun text(text: Component, alpha: Float = 1f) {
+    fun text(text: Component, alpha: Float = 1f, shadow: Boolean = true) {
         val color = text.style.color?.value
         if (color != null) {
             val r = ARGB32.red(color)
@@ -619,17 +698,18 @@ object ImGuiMethods {
             val b = ARGB32.blue(color)
 
             pushColorStyle(ImGuiCol.Text, ImGui.colorConvertFloat4ToU32(r / 255f, g / 255f, b / 255f, alpha)) {
-                drawText(text, alpha)
+                drawText(text, alpha, shadow)
             }
         } else {
-            drawText(text, alpha)
+            drawText(text, alpha, shadow)
         }
     }
 
-    private fun drawText(text: Component, alpha: Float = 1f) {
+    private fun drawText(text: Component, alpha: Float = 1f, shadow: Boolean) {
         when (val content = text.contents) {
             is PlainTextContents -> {
-                text(content.text())
+                if (shadow) textShadow(content.text())
+                else text(content.text())
             }
 
             is TranslatableContents -> {
@@ -637,7 +717,8 @@ object ImGuiMethods {
                     Language.getInstance().getOrDefault(content.key),
                     *content.args.map { if (it is Component) it.string else it }.toTypedArray()
                 )
-                text(decomposed)
+                if (shadow) textShadow(decomposed)
+                else text(decomposed)
             }
         }
 
@@ -699,5 +780,16 @@ object ImGuiMethods {
                 }
             }
         }
+    }
+
+    fun textShadow(text: String) {
+        val cursor = ImGui.getCursorPos()
+        ImGui.setCursorPos(cursor.x + 2.5f, cursor.y + 2.5f)
+        val color = ImGui.getStyle().getColor(ImGuiCol.Text)
+        ImGui.pushStyleColor(ImGuiCol.Text, color.x * 0.5f, color.y * 0.5f, color.z * 0.5f, color.w * 0.5f)
+        text(text)
+        ImGui.popStyleColor()
+        ImGui.setCursorPos(cursor.x, cursor.y)
+        text(text)
     }
 }

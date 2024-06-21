@@ -37,9 +37,11 @@ import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
+import ru.hollowhorizon.hc.common.events.Event
+import ru.hollowhorizon.hc.common.events.post
 
 
-object ImguiHandler {
+object ImGuiHandler {
     val imGuiGlfw = ImGuiImplGlfw()
     val imGuiGl3 = ImGuiImplGl3()
     var windowHandle: Long = 0
@@ -61,14 +63,17 @@ object ImguiHandler {
 
     fun drawFrame(renderable: Renderable) {
         imguiBuffer.clear(Minecraft.ON_OSX)
+
         Minecraft.getInstance().mainRenderTarget.bindWrite(true)
         imGuiGlfw.newFrame()
         ImGui.newFrame()
         ImGui.setNextWindowViewport(ImGui.getMainViewport().id)
 
         renderable.getTheme()?.preRender()
-        renderable.render()
+        ImGuiMethods.apply { with(renderable) { render() } }
         renderable.getTheme()?.postRender()
+
+        ImGuiInventory.renderHoldItem()
 
         if (ImGuiMethods.cursorStack.isNotEmpty()) throw StackOverflowError("Cursor stack must be empty!")
 
@@ -88,7 +93,19 @@ object ImguiHandler {
         io.addConfigFlags(ImGuiConfigFlags.DockingEnable); // Enable Docking
         io.configViewportsNoTaskBarIcon = true
 
-        val fontAtlas = io.fonts
+        loadFont(30) { ImGuiMethods.FONT_SIZES[30] = it }
+        LoadFontEvent { size -> loadFont(size) { ImGuiMethods.FONT_SIZES[size] = it } }.post()
+
+        if (io.hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
+            val style = ImGui.getStyle()
+            style.windowRounding = 0.0f
+            style.setColor(ImGuiCol.WindowBg, ImGui.getColorU32(ImGuiCol.WindowBg, 1f))
+        }
+    }
+
+    fun loadFont(size: Int = 30, font: String = "monocraft", imFont: (ImFont) -> Unit) {
+
+        val fontAtlas = ImGui.getIO().fonts
         val fontConfig = ImFontConfig()
         val rangesBuilder = ImFontGlyphRangesBuilder().apply {
             addRanges(fontAtlas.glyphRangesDefault)
@@ -103,32 +120,31 @@ object ImguiHandler {
         val ranges = rangesBuilder.buildRanges()
 
 
-
-        fontAtlas.addFontFromMemoryTTF(
-            "${HollowCore.MODID}:fonts/monocraft.ttf".rl.stream.readAllBytes(), 30f, fontConfig, ranges
+        val monoFont = fontAtlas.addFontFromMemoryTTF(
+            "${HollowCore.MODID}:fonts/$font.ttf".rl.stream.readAllBytes(), size.toFloat(), fontConfig, ranges
         )
-        fontConfig.mergeMode = true
+        //fontConfig.mergeMode = true
+
+        //emoji
         fontAtlas.addFontFromMemoryTTF(
             "${HollowCore.MODID}:fonts/fa_regular.ttf".rl.stream.readAllBytes(),
-            26f,
+            size.toFloat() - 4,
             fontConfig,
             ranges
         )
         fontAtlas.addFontFromMemoryTTF(
             "${HollowCore.MODID}:fonts/fa_solid.ttf".rl.stream.readAllBytes(),
-            26f,
+            size.toFloat() - 4,
             fontConfig,
             ranges
         )
+        fontAtlas.build()
 
         fontConfig.pixelSnapH = true
         fontConfig.destroy()
 
-        if (io.hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
-            val style = ImGui.getStyle()
-            style.windowRounding = 0.0f
-            style.setColor(ImGuiCol.WindowBg, ImGui.getColorU32(ImGuiCol.WindowBg, 1f))
-        }
+        imFont(monoFont)
+
     }
 
     fun endFrame() {
@@ -193,4 +209,8 @@ object ImguiHandler {
         val style = ImGui.getStyle()
         style.setColor(colorIndex, color.x, color.y, color.z, color.w)
     }
+}
+
+class LoadFontEvent(val loader: (Int) -> Unit) : Event {
+    fun loadFont(fontSize: Int) = loader(fontSize)
 }

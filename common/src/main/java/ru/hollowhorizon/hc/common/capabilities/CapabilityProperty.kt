@@ -53,7 +53,7 @@ open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : 
             val tag = thisRef.notUsedTags.get(property.name) ?: return value
             if (tag is EndTag) return value
 
-            value = NBTFormat.deserializeNoInline(tag, property.returnType.javaType as Class<out V>) as V
+            deserialize(thisRef.notUsedTags)
         }
 
         return value
@@ -84,7 +84,9 @@ open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : 
         if (defaultName.isNotEmpty() && defaultType != null && defaultName in tag) {
             try {
                 if (tag[defaultName] is EndTag) value = null as V
-                else if (value is INBTSerializable) (value as INBTSerializable).deserialize(tag[defaultName]!!)
+                else if (INBTSerializable::class.java.isAssignableFrom(defaultType!!)) (value as INBTSerializable).deserialize(
+                    tag[defaultName]!!
+                )
                 else value = NBTFormat.deserializeNoInline(tag[defaultName]!!, this.defaultType!!)
                 return true
             } catch (e: Exception) {

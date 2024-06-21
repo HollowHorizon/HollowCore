@@ -111,8 +111,7 @@ fun LivingEntity.render(
     Lighting.setupFor3DItems()
 }
 
-fun ItemStack.render(x: Float, y: Float, width: Float, height: Float, scale: Float = 1f, rotation: Float = 0f) {
-    val stack = PoseStack()
+fun ItemStack.render(x: Float, y: Float, width: Float, height: Float, scale: Float = 1f, rotation: Float = 0f, stack: PoseStack = PoseStack()) {
     val xOffset = x + width / 2
     val yOffset = y + height / 2
     stack.translate(xOffset, yOffset, 0f)

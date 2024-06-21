@@ -24,12 +24,12 @@
 
 package ru.hollowhorizon.hc.client.render
 
-import ru.hollowhorizon.hc.client.imgui.ImguiHandler
+import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 
 object RenderLoader {
     fun onInitialize() {
-        ImguiHandler.initialize()
+        ImGuiHandler.initialize()
         GltfManager.initialize()
     }
 }

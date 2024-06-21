@@ -27,6 +27,7 @@ package ru.hollowhorizon.hc.client
 import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.screens.Screen
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
@@ -79,6 +80,11 @@ object HollowCoreClient {
     @SubscribeEvent
     fun onClientTick(event: TickEvent.Client) {
         if (HollowCore.config.debugMode && KEY_V.isDown) Minecraft.getInstance().setScreen(ImGuiScreen())
+
+        if(Screen.hasAltDown()) {
+            val move = event.minecraft.player!!.lookAngle.multiply(2.0, 1.5, 2.0)
+            event.minecraft.player?.setDeltaMovement(move.x, move.y, move.z)
+        }
     }
 
     @SubscribeEvent
