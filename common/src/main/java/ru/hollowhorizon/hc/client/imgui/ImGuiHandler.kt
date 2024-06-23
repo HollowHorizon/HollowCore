@@ -35,6 +35,7 @@ import imgui.glfw.ImGuiImplGlfw
 import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.imgui.addons.ImGuiInventory
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
 import ru.hollowhorizon.hc.common.events.Event
@@ -62,7 +63,9 @@ object ImGuiHandler {
     }
 
     fun drawFrame(renderable: Renderable) {
-        imguiBuffer.clear(Minecraft.ON_OSX)
+        imguiWindowBuffer.clear(Minecraft.ON_OSX)
+        imguiBackgroundBuffer.clear(Minecraft.ON_OSX)
+        imguiForegroundBuffer.clear(Minecraft.ON_OSX)
 
         Minecraft.getInstance().mainRenderTarget.bindWrite(true)
         imGuiGlfw.newFrame()

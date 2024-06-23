@@ -28,7 +28,7 @@
     "SoundManagerMixin",
     "TextureManagerMixin",
     "WindowMixin",
-    "particles.MinecraftMinecraft",
+    "particles.MinecraftMixin",
     "particles.MixinGameRenderer",
     "particles.MixinItemInHandRenderer",
     "particles.MixinLevelRenderer"

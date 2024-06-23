@@ -28,9 +28,12 @@ import com.mojang.blaze3d.platform.Lighting
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.BufferBuilder
 import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.LightTexture
+import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.texture.OverlayTexture
+import net.minecraft.util.FastColor.ARGB32
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemDisplayContext
@@ -47,12 +50,9 @@ object OpenGLUtils {
         from: Vector3d, to: Vector3d,
         r: Float, g: Float, b: Float, a: Float,
     ) {
-        bufferbuilder
-            .addVertex(matrix, from.x.toFloat(), from.y.toFloat() - 0.1f, from.z.toFloat())
+        bufferbuilder.addVertex(matrix, from.x.toFloat(), from.y.toFloat() - 0.1f, from.z.toFloat())
             .setColor(r, g, b, a)
-        bufferbuilder
-            .addVertex(matrix, to.x.toFloat(), to.y.toFloat() - 0.1f, to.z.toFloat())
-            .setColor(r, g, b, a)
+        bufferbuilder.addVertex(matrix, to.x.toFloat(), to.y.toFloat() - 0.1f, to.z.toFloat()).setColor(r, g, b, a)
     }
 }
 
@@ -67,7 +67,10 @@ fun LivingEntity.render(
     mouseY: Float,
     offsetX: Float,
     offsetY: Float,
+    rotation: Boolean,
 ) {
+    val rotationFactor = if (rotation) 1f else 0f
+
     val stack = PoseStack()
     val xOffset = x + width / 2 + offsetX
     val yOffset = y + height + offsetY
@@ -75,8 +78,8 @@ fun LivingEntity.render(
     val newScale = min(width / bbWidth, height / bbHeight) * 0.95f * scale
     stack.scale(newScale, -newScale, newScale)
 
-    val rotationX = atan((xOffset - mouseX) / 150.0f)
-    val rotationY = atan((yOffset - height / 2 - mouseY) / 150.0f)
+    val rotationX = atan((xOffset - mouseX) / 150.0f) * rotationFactor
+    val rotationY = atan((yOffset - height / 2 - mouseY) / 150.0f) * rotationFactor
 
     Lighting.setupForEntityInInventory()
     val renderDispatcher = Minecraft.getInstance().entityRenderDispatcher
@@ -94,9 +97,7 @@ fun LivingEntity.render(
     renderDispatcher.setRenderShadow(false)
     RenderSystem.runAsFancy {
         renderDispatcher.render(
-            this, 0.0, 0.0, 0.0, 0.0f, 1.0f,
-            stack, Minecraft.getInstance().renderBuffers().bufferSource(),
-            15728880
+            this, 0.0, 0.0, 0.0, 0.0f, 1.0f, stack, Minecraft.getInstance().renderBuffers().bufferSource(), 15728880
         )
     }
     RenderSystem.disableDepthTest()
@@ -111,13 +112,21 @@ fun LivingEntity.render(
     Lighting.setupFor3DItems()
 }
 
-fun ItemStack.render(x: Float, y: Float, width: Float, height: Float, scale: Float = 1f, rotation: Float = 0f, stack: PoseStack = PoseStack()) {
+fun ItemStack.render(
+    x: Float,
+    y: Float,
+    width: Float,
+    height: Float,
+    scale: Float = 1f,
+    rotation: Float = 0f,
+    stack: PoseStack = PoseStack(),
+) {
     val xOffset = x + width / 2
     val yOffset = y + height / 2
     stack.translate(xOffset, yOffset, 0f)
     val newScale = min(width, height) * 0.95f * scale
     stack.scale(newScale, -newScale, newScale)
-    stack.mulPose(Quaternionf().rotateZ(rotation* Mth.DEG_TO_RAD))
+    stack.mulPose(Quaternionf().rotateZ(rotation * Mth.DEG_TO_RAD))
 
     val src = Minecraft.getInstance().renderBuffers().bufferSource()
     val model = Minecraft.getInstance().itemRenderer.getModel(this, Minecraft.getInstance().level, null, 0)
@@ -125,15 +134,58 @@ fun ItemStack.render(x: Float, y: Float, width: Float, height: Float, scale: Flo
 
     if (flat) Lighting.setupForFlatItems()
     Minecraft.getInstance().itemRenderer.render(
-        this,
-        ItemDisplayContext.GUI,
-        false,
-        stack,
-        src,
-        LightTexture.FULL_BRIGHT,
-        OverlayTexture.NO_OVERLAY,
-        model
+        this, ItemDisplayContext.GUI, false, stack, src, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, model
     )
+
     src.endBatch()
     if (flat) Lighting.setupFor3DItems()
+}
+
+fun renderItemDecorations(stack: ItemStack, poseStack: PoseStack, x: Int, y: Int, width: Float, height: Float) {
+    if (stack.isBarVisible) {
+        val i = stack.barWidth / 16f
+        val j = stack.barColor
+        val k = (x + width * 0.125f).toInt()
+        val l = (y + height * 0.8125f).toInt()
+        fill(poseStack,RenderType.guiOverlay(),k,l,(k + width * 0.8125f).toInt(),(l + height * 0.125f).toInt(), 0,-16777216)
+        fill(poseStack, RenderType.guiOverlay(), k, l, (k + i * width).toInt(),
+            (l + height * 0.0625f).toInt(), 10, ARGB32.opaque(j))
+    }
+    Minecraft.getInstance().player?.cooldowns?.getCooldownPercent(
+        stack.item, Minecraft.getInstance().timer.getGameTimeDeltaPartialTick(true)
+    )?.let { f ->
+        if (f > 0) {
+            val k = y + width * (Mth.floor(16.0f * (1.0f - f)) / 16f)
+            val l = k + height * Mth.ceil(16.0f * f) / 16f
+            fill(poseStack, RenderType.guiOverlay(), x, k.toInt(), (x + width).toInt(), l.toInt(), 0, Int.MAX_VALUE)
+        }
+    }
+}
+
+fun fill(stack: PoseStack, renderType: RenderType, minX: Int, minY: Int, maxX: Int, maxY: Int, z: Int, color: Int) {
+    var minX = minX
+    var minY = minY
+    var maxX = maxX
+    var maxY = maxY
+    var i: Int
+    val matrix4f: Matrix4f = stack.last().pose()
+    if (minX < maxX) {
+        i = minX
+        minX = maxX
+        maxX = i
+    }
+    if (minY < maxY) {
+        i = minY
+        minY = maxY
+        maxY = i
+    }
+    val src = Minecraft.getInstance().renderBuffers().bufferSource()
+    val vertexConsumer: VertexConsumer = src.getBuffer(renderType)
+    vertexConsumer.addVertex(matrix4f, minX.toFloat(), minY.toFloat(), z.toFloat()).setColor(color)
+    vertexConsumer.addVertex(matrix4f, minX.toFloat(), maxY.toFloat(), z.toFloat()).setColor(color)
+    vertexConsumer.addVertex(matrix4f, maxX.toFloat(), maxY.toFloat(), z.toFloat()).setColor(color)
+    vertexConsumer.addVertex(matrix4f, maxX.toFloat(), minY.toFloat(), z.toFloat()).setColor(color)
+    RenderSystem.disableDepthTest()
+    src.endBatch()
+    RenderSystem.enableDepthTest()
 }

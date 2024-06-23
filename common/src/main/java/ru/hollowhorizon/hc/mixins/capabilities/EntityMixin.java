@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.mixins.capabilities;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,7 +14,7 @@ import ru.hollowhorizon.hc.api.ICapabilityDispatcher;
 import ru.hollowhorizon.hc.api.ICapabilityDispatcherKt;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.events.EventBus;
-import ru.hollowhorizon.hc.common.events.tick.TickEvent;
+import ru.hollowhorizon.hc.common.events.entity.EntityHurtEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,5 +43,12 @@ public class EntityMixin implements ICapabilityDispatcher {
     @Inject(method = "load", at = @At("TAIL"))
     private void deserializeExtra(CompoundTag tag, CallbackInfo ci) {
         ICapabilityDispatcherKt.deserializeCapabilities(this, tag);
+    }
+
+    @Inject(method = "hurt", at = @At("HEAD"))
+    public void onHurt(DamageSource damageSource, float amount, CallbackInfoReturnable<Boolean> cir) {
+        var event = new EntityHurtEvent((Entity) (Object) this, damageSource, amount);
+        EventBus.post(event);
+        if (event.isCanceled()) cir.setReturnValue(false);
     }
 }

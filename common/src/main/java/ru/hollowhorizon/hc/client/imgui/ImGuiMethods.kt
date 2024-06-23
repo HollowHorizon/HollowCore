@@ -53,8 +53,10 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.TooltipFlag
 import org.intellij.lang.annotations.MagicConstant
 import org.joml.Matrix4f
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.imgui.addons.ItemProperties
 import ru.hollowhorizon.hc.client.render.render
+import ru.hollowhorizon.hc.client.render.renderItemDecorations
 import ru.hollowhorizon.hc.client.utils.toTexture
 import java.io.File
 import java.util.*
@@ -456,7 +458,6 @@ object ImGuiMethods {
     }
 
     fun opengl(
-        name: String,
         width: Float,
         height: Float,
         border: Boolean = false,
@@ -465,22 +466,23 @@ object ImGuiMethods {
         blue: Float = 1f,
         alpha: Float = 1f,
         alwaysOnTop: Boolean,
+        enableScissor: Boolean = true,
         renderable: (ImVec2, Boolean) -> Unit,
     ): Boolean {
         val mcBuffer = Minecraft.getInstance().mainRenderTarget
 
         mcBuffer.unbindWrite()
-        imguiBuffer.bindWrite(true)
+        val buffer = currentBufferType.buffer
+        buffer.bindWrite(true)
 
         val cursor = ImGui.getCursorScreenPos()
-        val isClicked = ImGui.invisibleButton("##opengl_context_$name", width, height)
-        val isHovered = ImGui.isItemHovered()
-        ImGui.setCursorScreenPos(cursor.x, cursor.y)
+        val isHovered = ImGui.isMouseHoveringRect(cursor.x, cursor.y, cursor.x + width, cursor.y + height)
+        val isClicked = isHovered && ImGui.isMouseClicked(0)
 
         RenderSystem.backupProjectionMatrix()
         RenderSystem.setProjectionMatrix(
             Matrix4f().setOrtho(
-                0.0F, imguiBuffer.width.toFloat(), imguiBuffer.height.toFloat(), 0.0F, 1000.0F, 3000.0F
+                0.0F, buffer.width.toFloat(), buffer.height.toFloat(), 0.0F, 1000.0F, 3000.0F
             ), VertexSorting.ORTHOGRAPHIC_Z
         )
         val matrix4fstack = RenderSystem.getModelViewStack()
@@ -488,56 +490,53 @@ object ImGuiMethods {
         matrix4fstack.translation(0.0f, 0.0f, -2000.0f)
         RenderSystem.applyModelViewMatrix()
 
-        RenderSystem.enableScissor(
-            cursor.x.toInt(), (imguiBuffer.height - cursor.y - height).toInt(),
+        if (enableScissor) RenderSystem.enableScissor(
+            cursor.x.toInt(), (buffer.height - cursor.y - height).toInt(),
             width.toInt(), (height).toInt(),
         )
         RenderSystem.enableDepthTest()
 
         renderable(cursor, isHovered)
 
-        RenderSystem.disableScissor()
+        if (enableScissor) RenderSystem.disableScissor()
         RenderSystem.restoreProjectionMatrix()
 
         matrix4fstack.popMatrix()
         RenderSystem.applyModelViewMatrix()
 
-        imguiBuffer.unbindWrite()
+        buffer.unbindWrite()
         mcBuffer.bindWrite(true)
 
-        val u0 = cursor.x / imguiBuffer.width
-        val u1 = (cursor.x + width) / imguiBuffer.width
-        val v0 = 1f - cursor.y / imguiBuffer.height
-        val v1 = 1f - (cursor.y + height) / imguiBuffer.height
+        val u0 = cursor.x / buffer.width
+        val u1 = (cursor.x + width) / buffer.width
+        val v0 = 1f - cursor.y / buffer.height
+        val v1 = 1f - (cursor.y + height) / buffer.height
         pushColorStyles(
             ImGuiCol.Button to ImGui.colorConvertFloat4ToU32(0f, 0f, 0f, 0f),
             ImGuiCol.ButtonActive to ImGui.colorConvertFloat4ToU32(0f, 0f, 0f, 0f),
             ImGuiCol.ButtonHovered to ImGui.colorConvertFloat4ToU32(0f, 0f, 0f, 0f),
         ) {
-            if (alwaysOnTop) {
-                ImGui.getForegroundDrawList()
-                    .addImage(
-                        imguiBuffer.colorTextureId, cursor.x, cursor.y,
-                        cursor.x + width, cursor.y + height, u0, v0, u1, v1,
-                        ImGui.colorConvertFloat4ToU32(red, green, blue, alpha)
-                    )
-            } else {
-                if (!border) ImGui.image(
-                    imguiBuffer.colorTextureId, width, height, u0, v0, u1, v1, red, green, blue, alpha
-                )
-                else ImGui.image(
-                    imguiBuffer.colorTextureId, width, height, u0, v0, u1, v1, red, green, blue, alpha, 1f, 1f, 1f, 1f
-                )
-            }
+            val list = if (alwaysOnTop) ImGui.getForegroundDrawList() else ImGui.getWindowDrawList()
+
+            list.addImage(
+                buffer.colorTextureId, cursor.x, cursor.y,
+                cursor.x + width, cursor.y + height, u0, v0, u1, v1,
+                ImGui.colorConvertFloat4ToU32(red, green, blue, alpha)
+            )
+            if (border) list.addRect(
+                cursor.x, cursor.y,
+                cursor.x + width, cursor.y + height, -1
+            )
         }
 
         return isClicked
     }
 
     fun exportFramebuffer() {
-        NativeImage(imguiBuffer.width, imguiBuffer.height, Minecraft.ON_OSX).apply {
+        val buffer = currentBufferType.buffer
+        NativeImage(buffer.width, buffer.height, Minecraft.ON_OSX).apply {
             RenderSystem.setShaderTexture(
-                0, imguiBuffer.colorTextureId
+                0, buffer.colorTextureId
             ); downloadTexture(0, true)
         }.writeToFile(
             File("example.png")
@@ -552,15 +551,16 @@ object ImGuiMethods {
         offsetY: Float = 0f,
         scale: Float = 1f,
         border: Boolean = false,
+        rotation: Boolean = true,
         red: Float = 1f,
         green: Float = 1f,
         blue: Float = 1f,
         alpha: Float = 1f,
     ) {
-        opengl("entity", width, height, border, red, green, blue, alpha, false) { cursor, hovered ->
+        opengl(width, height, border, red, green, blue, alpha, false) { cursor, hovered ->
             val mouse = ImGui.getMousePos()
 
-            entity.render(cursor.x, cursor.y, width, height, scale, mouse.x, mouse.y, offsetX, offsetY)
+            entity.render(cursor.x, cursor.y, width, height, scale, mouse.x, mouse.y, offsetX, offsetY, rotation)
         }
 
 
@@ -574,9 +574,9 @@ object ImGuiMethods {
         border: Boolean = false,
         properties: ItemProperties = ItemProperties(),
     ): Boolean {
+        ImGui.pushID(name)
         val cPos = ImGui.getCursorPos()
         val clicked = opengl(
-            name,
             width,
             height,
             border,
@@ -592,37 +592,49 @@ object ImGuiMethods {
             val stack = PoseStack()
             if (properties.alwaysOnTop) stack.translate(0f, 0f, 200f)
 
-            if (weight > 0.3f) {
+            val enableCounts = HollowCore.config.inventory.enableItemCounts
+
+            if (weight > 0.3f && enableCounts) {
                 stack.pushPose()
                 stack.translate(0f, 0f, -100f)
                 item.render(
                     cursor.x + width / 5f, cursor.y, width, height,
-                    (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale * 0.9f,
+                    (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale * 0.65f,
                     properties.rotation - 30f, stack
                 )
                 stack.popPose()
             }
 
-            if (weight > 0.6f) {
+            if (weight > 0.6f && enableCounts) {
                 stack.pushPose()
                 stack.translate(0f, 0f, -100f)
                 item.render(
                     cursor.x - width / 5, cursor.y - height / 10, width, height,
-                    (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale * 0.85f,
+                    (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale * 0.75f,
                     properties.rotation + 25f, stack
                 )
                 stack.popPose()
             }
-
+            stack.pushPose()
             item.render(
                 cursor.x, cursor.y, width, height,
                 (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale, properties.rotation, stack
             )
+            stack.popPose()
+            renderItemDecorations(item, stack, cursor.x.toInt(), cursor.y.toInt(), width, height)
         }
 
         val player = Minecraft.getInstance().player ?: return false
 
-        if (ImGui.isItemHovered() && !item.isEmpty && properties.tooltip) {
+        val pos = ImGui.getCursorScreenPos()
+
+        if (ImGui.isMouseHoveringRect(
+                pos.x,
+                pos.y,
+                pos.x + width,
+                pos.y + height
+            ) && !item.isEmpty && properties.tooltip
+        ) {
             ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0f, 0f)
             ImGui.pushStyleVar(ImGuiStyleVar.WindowRounding, 0f)
             ImGui.pushStyleVar(ImGuiStyleVar.PopupBorderSize, 0f)
@@ -632,7 +644,7 @@ object ImGuiMethods {
                 val borderSize = 5f
                 val min = ImGui.getWindowPos()
                 val max = min.clone() + ImGui.getWindowSize()
-                var top = ImGui.colorConvertFloat4ToU32(0.19215688f, 0.09607843f, 0.35882354f, 1f).toLong()
+                var top = ImGui.colorConvertFloat4ToU32(0.19215688f, 0.09607843f, 0.45882353f, 1f).toLong()
                 var bottom = ImGui.colorConvertFloat4ToU32(0.13725491f, 0.07058824f, 0.23921569f, 1f).toLong()
 
                 ImGui.getForegroundDrawList().addRectFilled(min.x, min.y, max.x, min.y + borderSize, top.toInt())
@@ -664,29 +676,29 @@ object ImGuiMethods {
 
         if (item.count > 1) {
             val size = ImGui.calcTextSize(item.count.toString())
-            if (!properties.alwaysOnTop) {
-                ImGui.setCursorPos(
-                    cPos.x + width - size.x - 1, cPos.y + height - size.y - 1
-                )
-                textShadow(item.count.toString())
-            } else {
-                val cursor = ImGui.getWindowPos() + ImVec2(cPos.x + width - size.x - 1, cPos.y + height - size.y - 1)
-                val color = ImGui.getStyle().getColor(ImGuiCol.Text)
-                ImGui.getForegroundDrawList().addText(
-                    cursor.x + 2.5f,
-                    cursor.y + 2.5f,
-                    ImGui.colorConvertFloat4ToU32(color.x * 0.5f, color.y * 0.5f, color.z * 0.5f, color.w * 0.5f),
-                    item.count.toString()
-                )
-                ImGui.getForegroundDrawList().addText(
-                    cursor.x, cursor.y,
-                    ImGui.colorConvertFloat4ToU32(color.x, color.y, color.z, color.w),
-                    item.count.toString()
-                )
-            }
+
+            val list = if (properties.alwaysOnTop) ImGui.getForegroundDrawList() else ImGui.getWindowDrawList()
+
+            val cursor = ImGui.getCursorScreenPos() + ImVec2(width - size.x - 1, height - size.y - 1)
+            val color = ImGui.getStyle().getColor(ImGuiCol.Text)
+            list.addText(
+                cursor.x + 2.5f,
+                cursor.y + 2.5f,
+                ImGui.colorConvertFloat4ToU32(color.x * 0.5f, color.y * 0.5f, color.z * 0.5f, color.w * 0.5f),
+                item.count.toString()
+            )
+            list.addText(
+                cursor.x, cursor.y,
+                ImGui.colorConvertFloat4ToU32(color.x, color.y, color.z, color.w),
+                item.count.toString()
+            )
+
         }
-        ImGui.setCursorPos(cPos.x, cPos.y)
-        ImGui.dummy(width, height)
+        if (!properties.alwaysOnTop) {
+            ImGui.setCursorPos(cPos.x, cPos.y)
+            ImGui.dummy(width, height)
+        }
+        ImGui.popID()
         return clicked
     }
 

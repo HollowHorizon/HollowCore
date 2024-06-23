@@ -24,9 +24,24 @@
 
 package ru.hollowhorizon.hc.client.imgui
 
+import com.mojang.blaze3d.pipeline.RenderTarget
 import com.mojang.blaze3d.pipeline.TextureTarget
 import net.minecraft.client.Minecraft
 
-val imguiBuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
+internal val imguiWindowBuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
+internal val imguiBackgroundBuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
+internal val imguiForegroundBuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
+
+var currentBufferType = BufferType.WINDOW
 
 
+enum class BufferType {
+    WINDOW, BACKGROUND, FOREGROUND;
+
+    val buffer: RenderTarget
+        get() = when (this) {
+            WINDOW -> imguiWindowBuffer
+            BACKGROUND -> imguiBackgroundBuffer
+            FOREGROUND -> imguiForegroundBuffer
+        }
+}

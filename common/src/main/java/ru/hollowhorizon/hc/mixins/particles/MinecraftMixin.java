@@ -33,12 +33,14 @@ import ru.hollowhorizon.hc.client.imgui.ImGuiExtensionsKt;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
 
 @Mixin(Minecraft.class)
-public class MinecraftMinecraft {
+public class MinecraftMixin {
     @Inject(method = "resizeDisplay", at = @At("RETURN"))
     private void resizeCapturedDepthBuffer(CallbackInfo ci) {
         final var window = Minecraft.getInstance().getWindow();
         RenderStateCapture.CAPTURED_WORLD_DEPTH_BUFFER.resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
         RenderStateCapture.CAPTURED_HAND_DEPTH_BUFFER.resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
-        ImGuiExtensionsKt.getImguiBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+        ImGuiExtensionsKt.getImguiWindowBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+        ImGuiExtensionsKt.getImguiBackgroundBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+        ImGuiExtensionsKt.getImguiForegroundBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
     }
 }
