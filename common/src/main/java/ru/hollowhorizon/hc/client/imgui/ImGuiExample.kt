@@ -28,8 +28,10 @@ import imgui.ImGui
 import imgui.extension.nodeditor.NodeEditorContext
 import imgui.flag.ImGuiWindowFlags
 import net.minecraft.client.Minecraft
+import net.minecraft.world.Container
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
+import ru.hollowhorizon.hc.client.imgui.addons.defaultProvider
 import ru.hollowhorizon.hc.client.imgui.addons.inventoryProvider
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
 
@@ -43,8 +45,13 @@ object Inventory {
 }
 
 fun test() = Renderable {
-    if (ImGui.begin("##fafa", ImGuiWindowFlags.NoMove)) {
-        Minecraft.getInstance().player?.inventory?.inventoryProvider?.draw()
+    val player = Minecraft.getInstance().player ?: return@Renderable
+
+    if (ImGui.begin("##example", ImGuiWindowFlags.NoMove)) {
+
+        player.inventory.inventoryProvider.draw()
+
+
         if (ImGui.button("Не нажимать :)")) {
             Minecraft.getInstance().player?.setDeltaMovement(0.0, 10.0, 0.0)
             Minecraft.getInstance().screen?.onClose()

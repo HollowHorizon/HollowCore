@@ -43,7 +43,7 @@ import kotlin.reflect.jvm.jvmErasure
 @OptIn(ExperimentalStdlibApi::class)
 open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : ReadWriteProperty<T, V> {
     var defaultName = ""
-    private var defaultType: Class<out V>? = null
+    var defaultType: Class<out V>? = null
     override fun getValue(thisRef: T, property: KProperty<*>): V {
         if (defaultName.isEmpty()) {
             defaultName = property.name

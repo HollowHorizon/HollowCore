@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.client.imgui.addons
 import com.mojang.blaze3d.Blaze3D
 import imgui.ImGui
 import imgui.flag.*
+import net.minecraft.client.gui.screens.Screen
 import net.minecraft.world.Container
 import net.minecraft.world.item.ItemStack
 import ru.hollowhorizon.hc.HollowCore
@@ -42,7 +43,7 @@ class ItemAnimation(var progress: Float = 0f) : ItemProperties() {
 object ImGuiInventory {
     private var holdStackX = 0f
     private var holdStackY = 0f
-    val ITEM_SIZES = HashMap<Int, ItemAnimation>()
+    val ITEM_SIZES = HashMap<Container, HashMap<Int, ItemAnimation>>()
 
     fun ImGuiMethods.slot(
         id: Int,
@@ -52,20 +53,22 @@ object ImGuiInventory {
         green: Float = 1f,
         blue: Float = 1f,
         alpha: Float = 1f,
-        container: Container
+        container: Container,
     ) {
 
-        val animation = ITEM_SIZES.computeIfAbsent(id) { ItemAnimation(0f) }.apply {
-            this.red = red
-            this.green = green
-            this.blue = blue
-            this.alpha = alpha
-        }
+        val animation = ITEM_SIZES
+            .computeIfAbsent(container) { HashMap() }
+            .computeIfAbsent(id) { ItemAnimation(0f) }.apply {
+                this.red = red
+                this.green = green
+                this.blue = blue
+                this.alpha = alpha
+            }
 
         val pos = ImGui.getCursorScreenPos()
         val isHovering = ImGui.isMouseHoveringRect(pos.x, pos.y, pos.x + size, pos.y + size)
         val light = if (isHovering) 1f else 0f
-        val selection = if(animation.isPlaced) 0.35f else 0.15f * light + 0.2f * animation.progress
+        val selection = if (animation.isPlaced) 0.35f else 0.15f * light + 0.2f * animation.progress
 
         ImGui.getWindowDrawList()
             .addRectFilled(
@@ -75,17 +78,23 @@ object ImGuiInventory {
 
         item(stack, size, size, id.toString(), false, animation)
 
-        //TODO: SHIFT+ЛКМ - Переместить в соседний контейнер
-
-        val isLeftClicked =  ImGui.isMouseDown(ImGuiMouseButton.Left)
+        val isLeftClicked = ImGui.isMouseDown(ImGuiMouseButton.Left)
         val isRightClicked = ImGui.isMouseDown(ImGuiMouseButton.Right)
 
 
-        if(isHovering && (isRightClicked or isLeftClicked) && !animation.isPlaced) {
-            animation.isPlaced = ClientContainerManager.clickSlot(container, id, isLeftClicked)
+        if (isHovering && (isRightClicked or isLeftClicked) && !animation.isPlaced) {
+            val hasShift = Screen.hasShiftDown()
+            animation.isPlaced = ClientContainerManager.clickSlot(
+                container,
+                if (hasShift) ContainerProvider.previousContainer ?: container else container,
+                id,
+                isLeftClicked,
+                hasShift
+            )
         }
 
-        if(ImGui.isMouseReleased(ImGuiMouseButton.Left) || ImGui.isMouseReleased(ImGuiMouseButton.Right)) {
+        if (ImGui.isMouseReleased(ImGuiMouseButton.Left) || ImGui.isMouseReleased(ImGuiMouseButton.Right)) {
+            if (animation.isPlaced) animation.time = Blaze3D.getTime()
             animation.isPlaced = false
         }
     }

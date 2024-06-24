@@ -25,13 +25,16 @@
 package ru.hollowhorizon.hc.common.capabilities
 
 import net.minecraft.client.Minecraft
+import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.entity.BlockEntity
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
+import ru.hollowhorizon.hc.common.capabilities.containers.HollowContainer
 import ru.hollowhorizon.hc.common.network.sendAllInDimension
 import ru.hollowhorizon.hc.common.network.sendTrackingEntity
 
@@ -41,6 +44,15 @@ open class CapabilityInstance {
     var notUsedTags = CompoundTag()
     open val canOtherPlayersAccess: Boolean = true
     lateinit var provider: ICapabilityDispatcher //Будет инициализированно инжектом
+    val containers = ArrayList<HollowContainer>()
+
+    val providerLookup: HolderLookup.Provider
+        get() = when (val provider = provider) {
+            is Entity -> provider.level().registryAccess()
+            is Level -> provider.registryAccess()
+            is BlockEntity -> provider.level!!.registryAccess()
+            else -> throw IllegalStateException("Unsupported instance type: ${provider::class.qualifiedName}")
+        }
 
     fun <T> syncable(default: T) = CapabilityProperty<CapabilityInstance, T>(default).apply {
         properties += this
@@ -50,13 +62,17 @@ open class CapabilityInstance {
         when (val target = provider) {
             is Entity -> {
                 if (target.level().isClientSide) {
-                    if(canAcceptFromClient(Minecraft.getInstance().player!!)) SSyncEntityCapabilityPacket(target.id, javaClass.name, serializeNBT()).send()
+                    if (canAcceptFromClient(Minecraft.getInstance().player!!)) SSyncEntityCapabilityPacket(
+                        target.id,
+                        javaClass.name,
+                        serializeNBT()
+                    ).send()
                 } else CSyncEntityCapabilityPacket(target.id, javaClass.name, serializeNBT()).sendTrackingEntity(target)
             }
 
             is Level -> {
                 if (target.isClientSide) {
-                    if(canAcceptFromClient(Minecraft.getInstance().player!!)) SSyncLevelCapabilityPacket(
+                    if (canAcceptFromClient(Minecraft.getInstance().player!!)) SSyncLevelCapabilityPacket(
                         target.dimension().location().toString(),
                         javaClass.name, serializeNBT()
                     ).send()

@@ -24,22 +24,33 @@
 
 package ru.hollowhorizon.hc.common.objects.entities
 
+import imgui.ImGui
+import imgui.flag.ImGuiWindowFlags
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.screens.Screen
+import net.minecraft.network.chat.Component
 import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResult
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.PathfinderMob
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal
-import net.minecraft.world.entity.ai.goal.RandomStrollGoal
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.pathfinder.PathType
+import net.minecraft.world.phys.Vec3
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
+import ru.hollowhorizon.hc.client.imgui.addons.defaultProvider
+import ru.hollowhorizon.hc.client.imgui.addons.inventoryProvider
 import ru.hollowhorizon.hc.client.models.gltf.Transform
-import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
 import ru.hollowhorizon.hc.client.utils.get
+import ru.hollowhorizon.hc.client.utils.open
+import ru.hollowhorizon.hc.common.capabilities.containers.TestEntityCapability
 
 
 class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(type, world), IAnimated {
@@ -64,5 +75,47 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
         super.registerGoals()
         //this.goalSelector.addGoal(0, RandomLookAroundGoal(this))
         //this.goalSelector.addGoal(1, RandomStrollGoal(this, 1.0, 10))
+    }
+
+    override fun tick() {
+        super.tick()
+
+        if (!level().isClientSide) {
+            val container = this[TestEntityCapability::class].slots
+            val isValid = container.getItem(0).item == Items.DIRT &&
+                    container.getItem(1).item == Items.DIRT &&
+                    container.getItem(2).item == Items.OAK_PLANKS &&
+                    container.getItem(3).item == Items.STICK
+
+            if (isValid) {
+                container.getItem(0).shrink(1)
+                container.getItem(1).shrink(1)
+                container.getItem(2).shrink(1)
+                container.getItem(3).shrink(1)
+                if (container.getItem(4) == ItemStack.EMPTY) {
+                    container.setItem(4, ItemStack(Items.DIAMOND_BLOCK))
+                } else {
+                    container.setItem(4, container.getItem(4).apply { grow(1) })
+                }
+            }
+        }
+    }
+
+    override fun interactAt(player: Player, vec: Vec3, hand: InteractionHand): InteractionResult {
+        if (level().isClientSide) {
+            object : Screen(Component.empty()) {
+                override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+                    renderBackground(guiGraphics, mouseX, mouseY, partialTick)
+                    ImGuiHandler.drawFrame {
+                        ImGui.begin("Inventory", ImGuiWindowFlags.NoMove or ImGuiWindowFlags.NoCollapse)
+                        this@TestEntity[TestEntityCapability::class].slots.defaultProvider.draw()
+                        ImGui.separator()
+                        Minecraft.getInstance().player?.inventory?.inventoryProvider?.draw()
+                        ImGui.end()
+                    }
+                }
+            }.open()
+        }
+        return super.interactAt(player, vec, hand)
     }
 }
