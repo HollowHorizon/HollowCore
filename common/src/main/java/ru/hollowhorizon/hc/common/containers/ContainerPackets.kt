@@ -22,7 +22,7 @@ class SyncEntityContainerPacket(
         val to = getContainer(serverPlayer, entityId, capability, toId)
 
 
-        ServerContainerManager.clickSlot(from, to, id, leftButton, hasShift)
+        ServerContainerManager.clickSlot(player, from, to, id, leftButton, hasShift)
 
         from.setChanged()
         to.setChanged()

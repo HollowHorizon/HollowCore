@@ -5,7 +5,9 @@ import net.minecraftforge.event.AddReloadListenerEvent
 import net.minecraftforge.event.RegisterCommandsEvent
 import net.minecraftforge.event.TickEvent
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent
+import net.minecraftforge.event.server.ServerAboutToStartEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
+import ru.hollowhorizon.hc.client.utils.currentServer
 import ru.hollowhorizon.hc.common.events.EventBus.post
 import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
 import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
@@ -17,6 +19,7 @@ object ForgeEvents {
     init {
         FMLJavaModLoadingContext.get().modEventBus.addListener(::registerAttributes)
         MinecraftForge.EVENT_BUS.addListener(::registerReloadListeners)
+        MinecraftForge.EVENT_BUS.addListener(::onServerStart)
         MinecraftForge.EVENT_BUS.addListener(::registerCommands)
         MinecraftForge.EVENT_BUS.addListener(::onServerTick)
         MinecraftForge.EVENT_BUS.addListener(::onEntityTracking)
@@ -65,5 +68,9 @@ object ForgeEvents {
         val from = server.getLevel(event.from) ?: return
         val to = server.getLevel(event.to) ?: return
         PlayerEvent.ChangeDimension(event.entity, from, to).post()
+    }
+
+    private fun onServerStart(event: ServerAboutToStartEvent) {
+        currentServer = event.server
     }
 }

@@ -31,16 +31,17 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.renderer.texture.AbstractTexture
+import net.minecraft.client.server.IntegratedServer
+import net.minecraft.core.RegistryAccess
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.MinecraftServer
 import net.minecraft.util.FormattedCharSequence
-import net.minecraft.util.Mth
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemStack
-import org.joml.Quaternionf
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
@@ -70,6 +71,12 @@ lateinit var isProduction_: () -> Boolean
 lateinit var isPhysicalClient_: () -> Boolean
 lateinit var areShadersEnabled_: () -> Boolean
 lateinit var isModLoaded: (modid: String) -> Boolean
+lateinit var currentServer: MinecraftServer
+
+val registryAccess: RegistryAccess
+    get() = if (currentServer is IntegratedServer) Minecraft.getInstance().connection!!.registryAccess()
+    else currentServer.registryAccess()
+
 
 fun fromJava(clazz: Class<*>) = clazz.kotlin
 

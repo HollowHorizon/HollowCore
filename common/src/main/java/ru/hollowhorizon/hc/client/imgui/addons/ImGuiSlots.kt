@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.client.imgui.addons
 import com.mojang.blaze3d.Blaze3D
 import imgui.ImGui
 import imgui.flag.*
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.world.Container
 import net.minecraft.world.item.ItemStack
@@ -85,6 +86,7 @@ object ImGuiInventory {
         if (isHovering && (isRightClicked or isLeftClicked) && !animation.isPlaced) {
             val hasShift = Screen.hasShiftDown()
             animation.isPlaced = ClientContainerManager.clickSlot(
+                Minecraft.getInstance().player!!,
                 container,
                 if (hasShift) ContainerProvider.previousContainer ?: container else container,
                 id,
@@ -100,10 +102,14 @@ object ImGuiInventory {
     }
 
     internal fun renderHoldItem() {
+        val player = Minecraft.getInstance().player ?: return
+
         val old = currentBufferType
         currentBufferType = BufferType.FOREGROUND
 
-        if (!ClientContainerManager.holdStack.isEmpty) {
+        val holdItem = ClientContainerManager.PLAYERS_HOLD_STACKS.computeIfAbsent(player.uuid) { ItemStack.EMPTY }
+
+        if (!holdItem.isEmpty) {
             // Если не создавать новое окно, то ImGui сам создаст Debug Window, поэтому создадим невидимое окно.
             ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0f, 0f)
             ImGui.pushStyleVar(ImGuiStyleVar.WindowBorderSize, 0f)
@@ -121,7 +127,7 @@ object ImGuiInventory {
             val modifier = if (HollowCore.config.inventory.enableItemRotation) 1f else 0f
 
             ImGuiMethods.item(
-                ClientContainerManager.holdStack,
+                holdItem,
                 80f,
                 80f,
                 properties = ItemProperties().apply {

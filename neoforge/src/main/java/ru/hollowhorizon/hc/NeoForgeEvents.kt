@@ -5,7 +5,9 @@ import net.neoforged.neoforge.event.AddReloadListenerEvent
 import net.neoforged.neoforge.event.RegisterCommandsEvent
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent
 import net.neoforged.neoforge.event.entity.player.PlayerEvent
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent
 import net.neoforged.neoforge.event.tick.ServerTickEvent
+import ru.hollowhorizon.hc.client.utils.currentServer
 import ru.hollowhorizon.hc.common.events.EventBus.post
 import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
 import ru.hollowhorizon.hc.common.events.post
@@ -23,6 +25,7 @@ object NeoForgeEvents {
         NeoForge.EVENT_BUS.addListener(::onEntityTracking)
         NeoForge.EVENT_BUS.addListener(::onPlayerJoin)
         NeoForge.EVENT_BUS.addListener(::onPlayerChangeDimension)
+        NeoForge.EVENT_BUS.addListener(::onServerStart)
     }
 
     private fun registerReloadListeners(event: AddReloadListenerEvent) {
@@ -64,5 +67,9 @@ object NeoForgeEvents {
         val from = server.getLevel(event.from) ?: return
         val to = server.getLevel(event.to) ?: return
         ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent.ChangeDimension(event.entity, from, to).post()
+    }
+
+    private fun onServerStart(event: ServerAboutToStartEvent) {
+        currentServer = event.server
     }
 }

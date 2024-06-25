@@ -2,12 +2,14 @@ package ru.hollowhorizon.hc
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.fabricmc.fabric.api.`object`.builder.v1.entity.FabricDefaultAttributeRegistry
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper
 import net.minecraft.server.packs.PackType
+import ru.hollowhorizon.hc.client.utils.currentServer
 import ru.hollowhorizon.hc.common.events.EventBus
 import ru.hollowhorizon.hc.common.events.EventBus.post
 import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
@@ -32,6 +34,9 @@ object FabricEvents {
     private fun onServerEvents() {
         ServerTickEvents.END_SERVER_TICK.register(ServerTickEvents.EndTick { s ->
             post(TickEvent.Server(s))
+        })
+        ServerLifecycleEvents.SERVER_STARTING.register(ServerLifecycleEvents.ServerStarting {
+            currentServer = it
         })
     }
 

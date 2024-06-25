@@ -6,12 +6,13 @@ import net.minecraft.nbt.Tag
 import net.minecraft.world.SimpleContainer
 import net.minecraft.world.item.ItemStack
 import ru.hollowhorizon.hc.client.utils.nbt.INBTSerializable
+import ru.hollowhorizon.hc.client.utils.registryAccess
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.CapabilityProperty
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity
 
-class HollowContainer(val capability: CapabilityInstance, val size: Int, private val outputSlots: IntArray) :
+open class HollowContainer(val capability: CapabilityInstance, val size: Int, private val outputSlots: IntArray) :
     SimpleContainer(size), INBTSerializable {
     override fun setChanged() {
         capability.sync()
@@ -22,14 +23,14 @@ class HollowContainer(val capability: CapabilityInstance, val size: Int, private
     }
 
     override fun serialize() =
-        ListTag().apply { addAll(items.map { if (!it.isEmpty) it.save(capability.providerLookup) else CompoundTag() }) }
+        ListTag().apply { addAll(items.map { if (!it.isEmpty) it.save(registryAccess) else CompoundTag() }) }
 
     override fun deserialize(tag: Tag) {
         items.clear()
         (tag as ListTag).forEachIndexed { index, tag ->
             if ((tag as CompoundTag).isEmpty) return@forEachIndexed
 
-            ItemStack.parse(capability.providerLookup, tag).ifPresent {
+            ItemStack.parse(registryAccess, tag).ifPresent {
                 items[index] = it
             }
         }

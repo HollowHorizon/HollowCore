@@ -45,15 +45,6 @@ open class CapabilityInstance {
     open val canOtherPlayersAccess: Boolean = true
     lateinit var provider: ICapabilityDispatcher //Будет инициализированно инжектом
     val containers = ArrayList<HollowContainer>()
-
-    val providerLookup: HolderLookup.Provider
-        get() = when (val provider = provider) {
-            is Entity -> provider.level().registryAccess()
-            is Level -> provider.registryAccess()
-            is BlockEntity -> provider.level!!.registryAccess()
-            else -> throw IllegalStateException("Unsupported instance type: ${provider::class.qualifiedName}")
-        }
-
     fun <T> syncable(default: T) = CapabilityProperty<CapabilityInstance, T>(default).apply {
         properties += this
     }

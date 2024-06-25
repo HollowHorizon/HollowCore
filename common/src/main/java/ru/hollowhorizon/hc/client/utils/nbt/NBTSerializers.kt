@@ -50,9 +50,12 @@ import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.utils.currentServer
 import ru.hollowhorizon.hc.client.utils.mcText
+import ru.hollowhorizon.hc.client.utils.registryAccess
 import ru.hollowhorizon.hc.client.utils.rl
 import java.util.*
+import kotlin.jvm.optionals.getOrDefault
 
 private inline fun <T> missingField(missingField: String, deserializing: String, defaultValue: () -> T): T {
     HollowCore.LOGGER.warn("Missing $missingField while deserializing $deserializing")
@@ -287,7 +290,13 @@ object ForItemStack : KSerializer<ItemStack> {
 
     override fun serialize(encoder: Encoder, value: ItemStack) {
         encoder.encodeStructure(descriptor) {
-            encodeSerializableElement(descriptor, 0, ForCompoundNBT, CompoundTag().apply { value.save(RegistryAccess.EMPTY, this) })
+            encodeSerializableElement(
+                descriptor,
+                0,
+                ForCompoundNBT,
+                if (value.isEmpty) CompoundTag() // ЕndTag не используется поскольку ListTag не поддерживает полиморфизм для Tag, из-за этого будут проблемы при сохранении
+                else value.save(registryAccess) as CompoundTag
+            )
         }
     }
 
@@ -309,7 +318,11 @@ object ForItemStack : KSerializer<ItemStack> {
             }
         }
         dec.endStructure(descriptor)
-        return ItemStack.parse(RegistryAccess.EMPTY, tag!!).get()
+        return if (tag?.isEmpty == true) ItemStack.EMPTY
+        else ItemStack.parse(
+            registryAccess,
+            tag ?: throw IllegalStateException("ItemStack tag is null!")
+        ).getOrDefault(ItemStack.EMPTY)
 
     }
 }

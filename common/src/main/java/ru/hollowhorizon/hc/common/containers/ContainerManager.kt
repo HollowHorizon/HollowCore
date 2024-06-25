@@ -5,30 +5,41 @@ import imgui.flag.ImGuiMouseButton
 import net.minecraft.world.Container
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import ru.hollowhorizon.hc.client.imgui.addons.ImGuiInventory.ITEM_SIZES
 import ru.hollowhorizon.hc.common.capabilities.containers.HollowContainer
 import ru.hollowhorizon.hc.common.events.container.ContainerEvent
 import ru.hollowhorizon.hc.common.events.post
+import java.util.*
+import kotlin.collections.HashMap
 
 interface ContainerManager {
-    var holdStack: ItemStack
-    val isClient: Boolean
+    val PLAYERS_HOLD_STACKS: HashMap<UUID, ItemStack>
 
     fun clickSlot(
+        player: Player,
         fromContainer: Container,
         toContainer: Container,
         id: Int,
         leftButton: Boolean,
         hasShift: Boolean,
     ): Boolean {
+        if (fromContainer is HollowContainer) {
+            val event = ContainerEvent.OnClick(player, fromContainer, id)
+            event.post()
+            if (event.isCanceled) return false
+        }
+
         val item = fromContainer.getItem(id)
+
+        val holdStack = PLAYERS_HOLD_STACKS.computeIfAbsent(player.uuid) { ItemStack.EMPTY }
 
         if (holdStack.isEmpty && !item.isEmpty) {
             if (!fromContainer.canTakeItem(toContainer, id, item)) return false
 
             if (fromContainer is HollowContainer) {
-                val event = ContainerEvent.OnTake(fromContainer, id)
+                val event = ContainerEvent.OnTake(player, fromContainer, id)
                 event.post()
                 if (event.isCanceled) return false
             }
@@ -97,18 +108,19 @@ interface ContainerManager {
                         fromContainer.setItem(id, original)
                     }
                 } else {
-                    holdStack = item.copy()
+                    PLAYERS_HOLD_STACKS[player.uuid] = item.copy()
                     //Взять целиком
                     fromContainer.setItem(id, ItemStack.EMPTY)
                     return true
                 }
             } else {
-                holdStack = item.copy()
+                val newStack = item.copy()
                 // взять половину
-                if (holdStack.count > 1) {
+                if (newStack.count > 1) {
                     val newItem = item.copy().apply { count /= 2 }
                     fromContainer.setItem(id, newItem)
-                    holdStack.count -= newItem.count
+                    newStack.count -= newItem.count
+                    PLAYERS_HOLD_STACKS[player.uuid] = newStack
                 } else {
                     fromContainer.setItem(id, ItemStack.EMPTY)
                 }
@@ -141,34 +153,59 @@ interface ContainerManager {
 
                                 i++
                             }
-                            holdStack = result
+                            PLAYERS_HOLD_STACKS[player.uuid] = result
                         } else {
+                            if (fromContainer is HollowContainer) {
+                                val event = ContainerEvent.OnPlace(player, fromContainer, id)
+                                event.post()
+                                if (event.isCanceled) return false
+                            }
                             if (!fromContainer.canPlaceItem(id, holdStack.copy())) return false
                             fromContainer.setItem(id, holdStack.copy())
-                            holdStack = ItemStack.EMPTY
+                            PLAYERS_HOLD_STACKS[player.uuid] = ItemStack.EMPTY
                         }
                         return true
                     }
                 } else {
+                    if (fromContainer is HollowContainer) {
+                        val event = ContainerEvent.OnPlace(player, fromContainer, id)
+                        event.post()
+                        if (event.isCanceled) return false
+                    }
+
                     if (ItemStack.isSameItemSameComponents(holdStack, item)) {
                         if (item.count != item.maxStackSize) {
-                            val count = holdStack.count
-                            val remain = item.maxStackSize - item.count
-                            val itemToPlace =
-                                item.copy().apply { this.count = (this.count + count).coerceAtMost(maxStackSize) }
-                            if (!fromContainer.canPlaceItem(id, itemToPlace)) return false
-                            fromContainer.setItem(id, itemToPlace)
-                            holdStack.shrink(remain)
-                            return true
+
+                            if (fromContainer.canPlaceItem(id, item)) {
+                                val count = holdStack.count
+                                val remain = item.maxStackSize - item.count
+                                val itemToPlace =
+                                    item.copy().apply { this.count = (this.count + count).coerceAtMost(maxStackSize) }
+                                fromContainer.setItem(id, itemToPlace)
+                                holdStack.shrink(remain)
+                                return true
+                            } else {
+                                val count = item.count
+                                val remain = holdStack.maxStackSize - holdStack.count
+                                PLAYERS_HOLD_STACKS[player.uuid] =
+                                    item.copy().apply { this.count = (this.count + count).coerceAtMost(maxStackSize) }
+                                fromContainer.setItem(id, item.copy().apply { shrink(remain) })
+                                return true
+                            }
                         }
                     } else {
                         if (!fromContainer.canPlaceItem(id, holdStack.copy())) return false
                         fromContainer.setItem(id, holdStack.copy())
-                        holdStack = item
+                        PLAYERS_HOLD_STACKS[player.uuid] = item
                         return true
                     }
                 }
             } else {
+                if (fromContainer is HollowContainer) {
+                    val event = ContainerEvent.OnPlace(player, fromContainer, id)
+                    event.post()
+                    if (event.isCanceled) return false
+                }
                 if (!fromContainer.canPlaceItem(id, holdStack)) return false
 
                 if (item.isEmpty) {
@@ -190,10 +227,10 @@ interface ContainerManager {
 }
 
 object ClientContainerManager : ContainerManager {
-    override var holdStack = ItemStack.EMPTY
-    override val isClient = true
+    override val PLAYERS_HOLD_STACKS = HashMap<UUID, ItemStack>()
 
     override fun clickSlot(
+        player: Player,
         fromContainer: Container,
         toContainer: Container,
         id: Int,
@@ -215,11 +252,10 @@ object ClientContainerManager : ContainerManager {
             leftButton,
             hasShift
         ).send()
-        return super.clickSlot(fromContainer, toContainer, id, leftButton, hasShift) || slots.isNotEmpty()
+        return super.clickSlot(player, fromContainer, toContainer, id, leftButton, hasShift) || slots.isNotEmpty()
     }
 }
 
 object ServerContainerManager : ContainerManager {
-    override var holdStack = ItemStack.EMPTY
-    override val isClient = false
+    override val PLAYERS_HOLD_STACKS = HashMap<UUID, ItemStack>()
 }

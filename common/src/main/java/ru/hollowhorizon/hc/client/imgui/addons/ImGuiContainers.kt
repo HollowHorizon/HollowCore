@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.client.imgui.addons
 
 import imgui.ImGui
 import imgui.flag.ImGuiMouseButton
+import net.minecraft.client.Minecraft
 import net.minecraft.world.Container
 import net.minecraft.world.item.ItemStack
 import ru.hollowhorizon.hc.client.imgui.ImGuiMethods
@@ -37,7 +38,7 @@ open class ContainerProvider(val container: Container) {
         if (slots.size > 1 && ImGui.isMouseDown(ImGuiMouseButton.Left)) {
             val item = slots.map { container.getItem(it) }.firstOrNull { !it.isEmpty }
             if (item != null) {
-                val count = slots.sumOf { container.getItem(it).count } + ClientContainerManager.holdStack.count
+                val count = slots.sumOf { container.getItem(it).count } + (ClientContainerManager.PLAYERS_HOLD_STACKS[Minecraft.getInstance().player!!.uuid]?.count ?: 0)
                 val eachCount = count / slots.size
                 val holdCount = count % slots.size
 
@@ -47,7 +48,7 @@ open class ContainerProvider(val container: Container) {
                         item.copy().apply { this.count = eachCount })
                 }
                 item.count = holdCount
-                ClientContainerManager.holdStack = item
+                ClientContainerManager.PLAYERS_HOLD_STACKS[Minecraft.getInstance().player!!.uuid] = item
             }
         }
     }
