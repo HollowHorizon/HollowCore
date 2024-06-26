@@ -124,14 +124,3 @@ operator fun Vector4f.unaryMinus(): Vector4f {
     return Vector4f(-this.x(), -this.y(), -this.z(), -this.w())
 }
 
-/**
- * [IVertexBuilder] extensions
- */
-
-operator fun BufferBuilder.plusAssign(v: VertexExt) {
-    this.vertex(v.stack.last().pose(), v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
-    this.color(v.rgba.r, v.rgba.g, v.rgba.b, v.rgba.a)
-    this.endVertex()
-}
-
-class VertexExt(val stack: PoseStack, val x: Int, val y: Int, val z: Int, val rgba: RGBA)

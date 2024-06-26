@@ -83,7 +83,7 @@ open class ParticleEmitterInfo : Cloneable {
 
     @JvmOverloads
     constructor(effek: ResourceLocation, emitter: ResourceLocation? = null) {
-        this.effek = effek
+        this.effek = ResourceLocation(effek.namespace, effek.path.removeSuffix(".efkefc"))
         this.emitter = emitter
         if (emitter != null) hasEmitter = true
     }
@@ -254,7 +254,7 @@ open class ParticleEmitterInfo : Cloneable {
                                     esZ += pos.z().toDouble()
                                 }
 
-                                if(this.target2.isNotEmpty()) {
+                                if (this.target2.isNotEmpty()) {
                                     model.findPosition(this.target2, target as LivingEntity)?.let {
                                         val pos = Vector4f(0f, 0f, 0f, 1f).apply { transform(it) }
 

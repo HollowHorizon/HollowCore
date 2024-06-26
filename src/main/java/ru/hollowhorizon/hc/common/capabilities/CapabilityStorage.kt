@@ -34,11 +34,13 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.capabilities.ICapabilityProvider
 import net.minecraftforge.event.AttachCapabilitiesEvent
-import ru.hollowhorizon.hc.client.utils.rl
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import ru.hollowhorizon.hc.HollowCore
 
 object CapabilityStorage {
     val storages = hashMapOf<String, Capability<*>>()
     val playerCapabilities = arrayListOf<Capability<*>>()
+    val levelCapabilities = arrayListOf<Capability<*>>()
     val teamCapabilities = arrayListOf<Capability<*>>()
     val providers = hashSetOf<Pair<Class<*>, (ICapabilityProvider) -> CapabilityInstance>>()
 
@@ -46,32 +48,26 @@ object CapabilityStorage {
         return playerCapabilities as List<Capability<CapabilityInstance>>
     }
 
+    fun getCapabilitiesForLevel(): List<Capability<CapabilityInstance>> {
+        return levelCapabilities as List<Capability<CapabilityInstance>>
+    }
+
     @JvmStatic
     fun <T : CapabilityInstance> getCapability(cap: Class<T>): Capability<T> {
         return storages[cap.name] as Capability<T>
     }
 
-    @JvmStatic
     fun registerProvidersEntity(event: AttachCapabilitiesEvent<Entity>) = event.initCapabilities()
-
-    @JvmStatic
     fun registerProvidersBlockEntity(event: AttachCapabilitiesEvent<BlockEntity>) = event.initCapabilities()
-
-    @JvmStatic
     fun registerProvidersWorld(event: AttachCapabilitiesEvent<Level>) = event.initCapabilities()
-
-    @JvmStatic
     fun registerProvidersTeam(event: AttachCapabilitiesEvent<Team>) = event.initCapabilities()
 
 
     private fun <T> AttachCapabilitiesEvent<T>.initCapabilities() {
         providers.filter { it.first.isInstance(this.`object`) }.forEach {
             val inst = it.second(this.`object` as ICapabilityProvider)
-            this.addCapability(inst.capability.createName(), inst)
+            val path = inst.capability.name.lowercase().replace(Regex("[^a-z0-9/._-]"), "")
+            this.addCapability(ResourceLocation(HollowCore.MODID + "_capabilities", path), inst)
         }
-    }
-
-    private fun Capability<*>.createName(): ResourceLocation {
-        return "hc_capabilities:${this.name.lowercase().replace(Regex("[^a-z0-9/._-]"), "")}".rl
     }
 }

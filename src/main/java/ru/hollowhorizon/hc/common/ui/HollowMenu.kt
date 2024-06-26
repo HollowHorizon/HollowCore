@@ -73,15 +73,6 @@ class HollowMenuScreen(menu: HollowMenu) : AbstractContainerScreen<HollowMenu>(m
 
 }
 
-fun register(event: FMLClientSetupEvent) {
-    event.enqueueWork {
-        MenuScreens.register(
-            HOLLOW_MENU.get(),
-            ::HollowMenuScreen
-        )
-    }
-}
-
 fun ((Int, Inventory) -> HollowMenu).open(player: ServerPlayer) {
     NetworkHooks.openScreen(
         player, SimpleMenuProvider(

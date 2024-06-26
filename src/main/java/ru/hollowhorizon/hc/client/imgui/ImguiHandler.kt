@@ -24,10 +24,7 @@
 
 package ru.hollowhorizon.hc.client.imgui
 
-import imgui.ImFont
-import imgui.ImFontConfig
-import imgui.ImFontGlyphRangesBuilder
-import imgui.ImGui
+import imgui.*
 import imgui.extension.imnodes.ImNodes
 import imgui.flag.ImGuiBackendFlags
 import imgui.flag.ImGuiCol
@@ -47,9 +44,10 @@ object ImguiHandler {
     var windowHandle: Long = 0
     val FONTS = hashMapOf<Int, ImFont>()
 
-    fun onGlfwInit(handle: Long) {
-        initializeImGui(handle)
-        imGuiGlfw.init(handle, true)
+    fun initialize() {
+        val window = Minecraft.getInstance().window.window
+        initializeImGui(window)
+        imGuiGlfw.init(window, true)
         if (!Minecraft.ON_OSX) {
             imGuiGl3.init("#version 410")
         } else {
@@ -57,8 +55,8 @@ object ImguiHandler {
         }
 
         ImNodes.createContext()
-        ImGui.styleColorsDark()
-        windowHandle = handle
+        setupStyle(ImGui.getStyle())
+        windowHandle = window
     }
 
     fun drawFrame(renderable: Renderable) {
@@ -74,12 +72,13 @@ object ImguiHandler {
         renderable.render()
         renderable.getTheme()?.postRender()
 
+        if (ImGuiMethods.cursorStack.isNotEmpty()) throw StackOverflowError("Cursor stack must be empty!")
+
         ImGui.popFont()
 
         ImGui.render()
         endFrame()
 
-        buffers.forEach { it.destroyBuffers() }
         DockingHelper.DOCKING_ID = 0
     }
 
@@ -142,5 +141,58 @@ object ImguiHandler {
             ImGui.renderPlatformWindowsDefault()
             GLFW.glfwMakeContextCurrent(backupWindowPtr)
         }
+    }
+
+    private fun setupStyle(style: ImGuiStyle) {
+        style.windowPadding.set(15f, 15f)
+        style.framePadding.set(5.0f, 5.0f)
+        style.itemSpacing.set(12.0f, 8.0f)
+        style.itemInnerSpacing.set(8f, 6f)
+        style.windowRounding = 0f
+        style.indentSpacing = 25f
+        style.scrollbarSize = 15.0f
+        style.scrollbarRounding = 9.0f
+        style.grabRounding = 3.0f
+        setColor(ImGuiCol.Text, ImVec4(0.80f, 0.80f, 0.83f, 1.00f))
+        setColor(ImGuiCol.TextDisabled, ImVec4(0.24f, 0.23f, 0.29f, 1.00f))
+        setColor(ImGuiCol.WindowBg, ImVec4(0.06f, 0.05f, 0.07f, 0.50f))
+        setColor(ImGuiCol.ChildBg, ImVec4(0.07f, 0.07f, 0.09f, 1.00f))
+        setColor(ImGuiCol.PopupBg, ImVec4(0.07f, 0.07f, 0.09f, 1.00f))
+        setColor(ImGuiCol.Border, ImVec4(0.80f, 0.80f, 0.83f, 0.88f))
+        setColor(ImGuiCol.BorderShadow, ImVec4(0.92f, 0.91f, 0.88f, 0.00f))
+        setColor(ImGuiCol.FrameBg, ImVec4(0.10f, 0.09f, 0.12f, 1.00f))
+        setColor(ImGuiCol.FrameBgHovered, ImVec4(0.24f, 0.23f, 0.29f, 1.00f))
+        setColor(ImGuiCol.FrameBgActive, ImVec4(0.56f, 0.56f, 0.58f, 1.00f))
+        setColor(ImGuiCol.TitleBg, ImVec4(0.10f, 0.09f, 0.12f, 1.00f))
+        setColor(ImGuiCol.TitleBgCollapsed, ImVec4(1.00f, 0.98f, 0.95f, 0.75f))
+        setColor(ImGuiCol.TitleBgActive, ImVec4(0.07f, 0.07f, 0.09f, 1.00f))
+        setColor(ImGuiCol.MenuBarBg, ImVec4(0.10f, 0.09f, 0.12f, 1.00f))
+        setColor(ImGuiCol.ScrollbarBg, ImVec4(0.10f, 0.09f, 0.12f, 1.00f))
+        setColor(ImGuiCol.ScrollbarGrab, ImVec4(0.80f, 0.80f, 0.83f, 0.31f))
+        setColor(ImGuiCol.ScrollbarGrabHovered, ImVec4(0.56f, 0.56f, 0.58f, 1.00f))
+        setColor(ImGuiCol.ScrollbarGrabActive, ImVec4(0.06f, 0.05f, 0.07f, 1.00f))
+        setColor(ImGuiCol.CheckMark, ImVec4(0.80f, 0.80f, 0.83f, 0.31f))
+        setColor(ImGuiCol.SliderGrab, ImVec4(0.80f, 0.80f, 0.83f, 0.31f))
+        setColor(ImGuiCol.SliderGrabActive, ImVec4(0.06f, 0.05f, 0.07f, 1.00f))
+        setColor(ImGuiCol.Button, ImVec4(0.10f, 0.09f, 0.12f, 1.00f))
+        setColor(ImGuiCol.ButtonHovered, ImVec4(0.24f, 0.23f, 0.29f, 1.00f))
+        setColor(ImGuiCol.ButtonActive, ImVec4(0.56f, 0.56f, 0.58f, 1.00f))
+        setColor(ImGuiCol.Header, ImVec4(0.10f, 0.09f, 0.12f, 1.00f))
+        setColor(ImGuiCol.HeaderHovered, ImVec4(0.56f, 0.56f, 0.58f, 1.00f))
+        setColor(ImGuiCol.HeaderActive, ImVec4(0.06f, 0.05f, 0.07f, 1.00f))
+        setColor(ImGuiCol.ResizeGrip, ImVec4(0.00f, 0.00f, 0.00f, 0.00f))
+        setColor(ImGuiCol.ResizeGripHovered, ImVec4(0.56f, 0.56f, 0.58f, 1.00f))
+        setColor(ImGuiCol.ResizeGripActive, ImVec4(0.06f, 0.05f, 0.07f, 1.00f))
+        setColor(ImGuiCol.PlotLines, ImVec4(0.40f, 0.39f, 0.38f, 0.63f))
+        setColor(ImGuiCol.PlotLinesHovered, ImVec4(0.25f, 1.00f, 0.00f, 1.00f))
+        setColor(ImGuiCol.PlotHistogram, ImVec4(0.40f, 0.39f, 0.38f, 0.63f))
+        setColor(ImGuiCol.PlotHistogramHovered, ImVec4(0.25f, 1.00f, 0.00f, 1.00f))
+        setColor(ImGuiCol.TextSelectedBg, ImVec4(0.25f, 1.00f, 0.00f, 0.43f))
+        setColor(ImGuiCol.ModalWindowDimBg, ImVec4(1.00f, 0.98f, 0.95f, 0.73f))
+    }
+
+    private fun setColor(colorIndex: Int, color: ImVec4) {
+        val style = ImGui.getStyle()
+        style.setColor(colorIndex, color.x, color.y, color.z, color.w)
     }
 }

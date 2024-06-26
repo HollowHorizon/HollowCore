@@ -35,21 +35,21 @@ open class GuiAnimator protected constructor(
     protected val interpolation: (Float) -> Float,
 ) : ReadOnlyProperty<Any?, Int> {
     var value: Float = begin.toFloat()
-    private var startTicks = TickHandler.clientTicks
+    private var startTicks = TickHandler.currentTicks
 
     open fun update(partialTick: Float) {
         if (isFinished()) return
 
-        val currentTime = TickHandler.clientTicks - startTicks + partialTick
+        val currentTime = TickHandler.currentTicks - startTicks + partialTick
         value = begin + (end - begin) * interpolation(currentTime / maxTime)
     }
 
     fun isFinished(): Boolean {
-        return TickHandler.clientTicks - startTicks > maxTime
+        return TickHandler.currentTicks - startTicks > maxTime
     }
 
     fun reset() {
-        startTicks = TickHandler.clientTicks
+        startTicks = TickHandler.currentTicks
         value = begin.toFloat()
     }
 

@@ -24,19 +24,19 @@
 
 package ru.hollowhorizon.hc.common.registry
 
-import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssetLoader.Companion.get
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.client.render.effekseer.EffectDefinition
+import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssets
 import java.util.function.BiConsumer
 
 
 object EffectRegistry {
     @JvmStatic
-    fun get(id: ResourceLocation): EffectDefinition? = get().get(id)
+    fun get(id: ResourceLocation): EffectDefinition? = EffekAssets[id]
 
-    fun entries(): Collection<Map.Entry<ResourceLocation, EffectDefinition>> = get().entries()
+    fun entries(): Collection<Map.Entry<ResourceLocation, EffectDefinition>> = EffekAssets.entries()
 
     fun forEach(action: BiConsumer<ResourceLocation, EffectDefinition>) {
-        get().forEach(action)
+        EffekAssets.forEach(action)
     }
 }

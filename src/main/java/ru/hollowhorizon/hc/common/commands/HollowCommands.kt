@@ -24,27 +24,20 @@
 
 package ru.hollowhorizon.hc.common.commands
 
-import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.StringArgumentType
-import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.arguments.EntityArgument
 import net.minecraft.commands.arguments.ResourceLocationArgument
 import net.minecraft.commands.arguments.coordinates.Vec3Argument
-import ru.hollowhorizon.hc.client.render.particles.ParticlesExample
+import net.minecraftforge.event.RegisterCommandsEvent
 import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.effects.ParticleEmitterInfo
 import ru.hollowhorizon.hc.common.effects.ParticleHelper
 
 object HollowCommands {
-
-    @JvmStatic
-    fun register(dispatcher: CommandDispatcher<CommandSourceStack>) {
-        dispatcher.register {
+    fun onRegisterCommands(event: RegisterCommandsEvent) {
+        event.dispatcher.onRegisterCommands {
             "hollowcore" {
-                "particles_example" {
-                    ParticlesExample.spawn(source.playerOrException.position())
-                }
 
                 "stop-post" {
                     PostChain.shutdown()
@@ -53,9 +46,7 @@ object HollowCommands {
                 "start-post"(
                     arg("name", ResourceLocationArgument.id())
                 ) {
-                    val name = ResourceLocationArgument.getId(this, "name")
-
-                    PostChain.apply(name)
+                    PostChain.apply(ResourceLocationArgument.getId(this, "name"))
                 }
 
                 "particle"(
@@ -65,8 +56,8 @@ object HollowCommands {
                     val particle = StringArgumentType.getString(this, "name")
                     val pos = Vec3Argument.getVec3(this, "pos")
 
-                    val info =
-                        ParticleEmitterInfo(particle.removeSuffix(".efkefc").rl).position(pos)
+                    val info = ParticleEmitterInfo(particle.rl)
+                        .position(pos)
                     ParticleHelper.addParticle(source.level, info, true)
 
                 }
@@ -86,9 +77,6 @@ object HollowCommands {
                                 .apply { bindOnTarget(target) }
                         ParticleHelper.addParticle(source.level, info, true)
                     }
-
-
-
                 }
             }
         }

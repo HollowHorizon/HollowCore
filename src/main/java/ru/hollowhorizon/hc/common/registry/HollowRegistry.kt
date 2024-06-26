@@ -51,7 +51,7 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.render.entity.RenderFactoryBuilder
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.isPhysicalClient
-import ru.hollowhorizon.hc.common.objects.blocks.IBlockProperties
+import ru.hollowhorizon.hc.common.objects.blocks.IBlockItemProperties
 import thedarkcolour.kotlinforforge.forge.MOD_CONTEXT
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
@@ -130,10 +130,10 @@ class RegistryHolder<T>(private val config: ObjectConfig, supplier: () -> T, val
             Block::class.java.isAssignableFrom(target) -> {
                 if (config.autoModel) HollowPack.genBlockData.add(ResourceLocation(modId, config.name))
 
-                if (IBlockProperties::class.java.isAssignableFrom(target)) {
+                if (IBlockItemProperties::class.java.isAssignableFrom(target)) {
                     RegistryLoader.getRegistry(ForgeRegistries.ITEMS, modId).register(config.name) {
                         val data = this.get() as Block
-                        BlockItem(data, (data as IBlockProperties).properties)
+                        BlockItem(data, (data as IBlockItemProperties).properties)
                     }
                 }
             }

@@ -28,10 +28,10 @@ import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
 
 class SmoothScrolling(private var duration: Int = 10, val startValue: Float = 0f, val endValue: Float = 1f, val interpolation: Interpolation = Interpolation.LINEAR, val action: (Float) -> Unit) {
-    private val startTime by TickHandler.lazyCurrentTicks
+    private val startTime by lazy { TickHandler.currentTicks }
 
     fun update(): Boolean {
-        val time = TickHandler.computeTime(startTime, duration)
+        val time = (TickHandler.currentTicks - startTime + TickHandler.partialTicks) / duration
         if (time >= 1f) {
             action(endValue)
             return true

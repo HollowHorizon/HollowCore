@@ -9,6 +9,7 @@
   "mixins": [
     "CapabilityManagerMixin",
     "CapabilityProviderMixin",
+    "FontManagerAccessor",
     "ForgeRegistryMixin",
     "ListTagAccessor",
     "PrimaryLevelDataMixin",
@@ -18,16 +19,18 @@
     "particles.MixinResourceLocation"
   ],
   "client": [
+    "FontManagerAccessor",
+    "GuiMixin",
     "ScreenAccessor",
     "ShaderInstanceAccessor",
     "SoundManagerMixin",
     "TextureManagerMixin",
     "WindowMixin",
     "WorldListEntryMixin",
+    "particles.client.MinecraftMinecraft",
     "particles.client.MixinGameRenderer",
     "particles.client.MixinItemInHandRenderer",
-    "particles.client.MixinLevelRenderer",
-    "particles.client.MixinMinecraft"
+    "particles.client.MixinLevelRenderer"
   ],
   "injectors": {
     "defaultRequire": 1

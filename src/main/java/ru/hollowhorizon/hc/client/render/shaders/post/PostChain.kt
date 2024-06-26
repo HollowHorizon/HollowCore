@@ -28,21 +28,21 @@ import com.mojang.blaze3d.systems.RenderSystem
 import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import net.minecraft.world.entity.player.Player
-import net.minecraftforge.client.event.RegisterClientReloadListenersEvent
-import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.nbt.ForResourceLocation
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
 
-object PostChain {
+//TODO: Добавить настройки uniform'ов для каждого шейдера
+//TODO: Сделать систему не зависимой от GameRenderer::loadEffect
+object PostChain : ResourceManagerReloadListener {
     fun apply(location: ResourceLocation) {
         RenderSystem.recordRenderCall {
             Minecraft.getInstance().gameRenderer.loadEffect(location)
         }
-
     }
 
     fun shutdown() {
@@ -51,28 +51,25 @@ object PostChain {
         }
     }
 
-    @JvmStatic
-    fun onReload(event: RegisterClientReloadListenersEvent) {
-        event.registerReloadListener(ResourceManagerReloadListener {
-            it.listResources("shaders") {
-                it.path.endsWith(".post.fsh")
-            }.forEach {
-                val namespace = it.key.namespace
-                val path = it.key.path.substringAfterLast("/").removeSuffix(".fsh")
-                HollowPack.getPackInstance().generatePostShader(ResourceLocation(namespace, path))
-            }
-        })
+    override fun onResourceManagerReload(manager: ResourceManager) {
+        manager.listResources("shaders") {
+            it.path.endsWith(".post.fsh")
+        }.forEach {
+            val namespace = it.key.namespace
+            val path = it.key.path.substringAfterLast("/").removeSuffix(".fsh")
+            HollowPack.generatePostShader(ResourceLocation(namespace, path))
+        }
     }
 }
 
 @Serializable
 @HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
-class PostChainPacket(val location: @Serializable(ForResourceLocation::class) ResourceLocation?): HollowPacketV3<PostChainPacket> {
+class PostChainPacket(val location: @Serializable(ForResourceLocation::class) ResourceLocation?) :
+    HollowPacketV3<PostChainPacket> {
     override fun handle(player: Player, data: PostChainPacket) {
         RenderSystem.recordRenderCall {
-            if(location != null) PostChain.apply(location)
+            if (location != null) PostChain.apply(location)
             else PostChain.shutdown()
         }
     }
-
 }

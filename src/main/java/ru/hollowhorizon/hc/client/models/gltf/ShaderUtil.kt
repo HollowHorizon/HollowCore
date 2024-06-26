@@ -29,6 +29,7 @@ import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.ShaderInstance
 import org.lwjgl.opengl.GL13
+import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.mixins.ShaderInstanceAccessor
 
@@ -37,8 +38,6 @@ inline fun drawWithShader(
     pShaderInstance: ShaderInstance,
     body: () -> Unit,
 ) {
-    //TODO: Не стоит использовать стандарные apply и clear, они бонусом тебе ещё кучу ненужных фич включают
-
     pShaderInstance.PROJECTION_MATRIX?.set(RenderSystem.getProjectionMatrix())
     pShaderInstance.MODEL_VIEW_MATRIX?.set(RenderSystem.getModelViewMatrix())
     pShaderInstance.INVERSE_VIEW_ROTATION_MATRIX?.set(RenderSystem.getInverseViewRotationMatrix())
