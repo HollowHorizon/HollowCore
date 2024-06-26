@@ -33,6 +33,7 @@ import imgui.ImFont
 import imgui.ImGui
 import imgui.ImVec2
 import imgui.ImVec4
+import imgui.extension.nodeditor.NodeEditor
 import imgui.flag.ImGuiCol
 import imgui.flag.ImGuiDir
 import imgui.flag.ImGuiStyleVar
@@ -467,6 +468,7 @@ object ImGuiMethods {
         alpha: Float = 1f,
         alwaysOnTop: Boolean,
         enableScissor: Boolean = true,
+        isNodeEditor: Boolean = false,
         renderable: (ImVec2, Boolean) -> Unit,
     ): Boolean {
         val mcBuffer = Minecraft.getInstance().mainRenderTarget
@@ -475,7 +477,12 @@ object ImGuiMethods {
         val buffer = currentBufferType.buffer
         buffer.bindWrite(true)
 
-        val cursor = ImGui.getCursorScreenPos()
+        // Без этого изображение будет обрезаться если его сдвинуть дальше одного экрана
+        val cursor = if(isNodeEditor) ImVec2(
+            NodeEditor.toScreenX(ImGui.getCursorScreenPosX()),
+            NodeEditor.toScreenY(ImGui.getCursorScreenPosY())
+        ) else ImGui.getCursorScreenPos()
+
         val isHovered = ImGui.isMouseHoveringRect(cursor.x, cursor.y, cursor.x + width, cursor.y + height)
         val isClicked = isHovered && ImGui.isMouseClicked(0)
 
@@ -518,6 +525,8 @@ object ImGuiMethods {
         ) {
             val list = if (alwaysOnTop) ImGui.getForegroundDrawList() else ImGui.getWindowDrawList()
 
+            val cursor = ImGui.getCursorScreenPos()
+
             list.addImage(
                 buffer.colorTextureId, cursor.x, cursor.y,
                 cursor.x + width, cursor.y + height, u0, v0, u1, v1,
@@ -557,11 +566,11 @@ object ImGuiMethods {
         blue: Float = 1f,
         alpha: Float = 1f,
     ) {
-        opengl(width, height, border, red, green, blue, alpha, false) { cursor, hovered ->
+        opengl(width, height, border, red, green, blue, alpha, false, renderable = { cursor, hovered ->
             val mouse = ImGui.getMousePos()
 
             entity.render(cursor.x, cursor.y, width, height, scale, mouse.x, mouse.y, offsetX, offsetY, rotation)
-        }
+        })
 
 
     }
@@ -573,6 +582,7 @@ object ImGuiMethods {
         name: String = item.hashCode().toString(),
         border: Boolean = false,
         properties: ItemProperties = ItemProperties(),
+        isNodeEditor: Boolean = false,
     ): Boolean {
         ImGui.pushID(name)
         val cPos = ImGui.getCursorPos()
@@ -584,7 +594,8 @@ object ImGuiMethods {
             properties.green,
             properties.blue,
             properties.alpha,
-            properties.alwaysOnTop
+            properties.alwaysOnTop,
+            isNodeEditor=isNodeEditor
         ) { cursor, hovered ->
             properties.update(hovered)
             var weight = item.count / item.maxStackSize.toFloat()

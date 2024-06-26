@@ -25,6 +25,7 @@
 package ru.hollowhorizon.hc.client.imgui
 
 import imgui.ImGui
+import imgui.extension.nodeditor.NodeEditor
 import imgui.extension.nodeditor.NodeEditorContext
 import imgui.flag.ImGuiWindowFlags
 import net.minecraft.client.Minecraft
@@ -48,14 +49,12 @@ fun test() = Renderable {
     val player = Minecraft.getInstance().player ?: return@Renderable
 
     if (ImGui.begin("##example", ImGuiWindowFlags.NoMove)) {
-
-        player.inventory.inventoryProvider.draw()
-
-
-        if (ImGui.button("Не нажимать :)")) {
-            Minecraft.getInstance().player?.setDeltaMovement(0.0, 10.0, 0.0)
-            Minecraft.getInstance().screen?.onClose()
-        }
+        NodeEditor.setCurrentEditor(ctx)
+        NodeEditor.begin("Example")
+        NodeEditor.beginNode(1L)
+        item(ItemStack(Items.MACE), 80f, 80f, isNodeEditor = true)
+        NodeEditor.endNode()
+        NodeEditor.end()
     }
     ImGui.end()
 }

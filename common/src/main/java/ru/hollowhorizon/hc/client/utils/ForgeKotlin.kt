@@ -100,15 +100,10 @@ fun ResourceLocation.exists(): Boolean {
 val ResourceLocation.stream: InputStream
     get() = HollowJavaUtils.getResource(this)
 
-val String.mcText: MutableComponent
-    get() = Component.literal(this)
-
-val String.mcTranslate: MutableComponent
-    get() = Component.translatable(this)
-
-fun String.mcTranslate(vararg args: Any): MutableComponent {
-    return Component.translatable(this, *args)
-}
+val PLACEHOLDER: MutableComponent get() = Component.empty()
+val String.mcText: MutableComponent get() = Component.literal(this)
+val String.mcTranslate: MutableComponent get() = Component.translatable(this)
+fun String.mcTranslate(vararg args: Any) = Component.translatable(this, *args)
 
 operator fun MutableComponent.plus(other: Component): MutableComponent = this.copy().append(other)
 

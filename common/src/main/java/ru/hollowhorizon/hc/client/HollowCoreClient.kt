@@ -80,11 +80,6 @@ object HollowCoreClient {
     @SubscribeEvent
     fun onClientTick(event: TickEvent.Client) {
         if (HollowCore.config.debugMode && KEY_V.isDown) Minecraft.getInstance().setScreen(ImGuiScreen())
-
-        if(Screen.hasAltDown()) {
-            val move = event.minecraft.player!!.lookAngle.multiply(2.0, 1.5, 2.0)
-            event.minecraft.player?.setDeltaMovement(move.x, move.y, move.z)
-        }
     }
 
     @SubscribeEvent
