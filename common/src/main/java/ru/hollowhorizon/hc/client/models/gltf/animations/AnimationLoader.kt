@@ -31,7 +31,6 @@ import org.joml.Vector4f
 import ru.hollowhorizon.hc.client.models.gltf.GltfInterpolation
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.animations.interpolations.*
-import java.util.*
 
 
 object AnimationLoader {

@@ -32,7 +32,9 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.ItemInHandRenderer
+import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
@@ -53,12 +55,12 @@ class ModelData(
     val entity: LivingEntity?,
 )
 
-typealias NodeRenderer = (LivingEntity, PoseStack, GltfTree.Node, Int) -> Unit
+typealias NodeRenderer = (LivingEntity, PoseStack, GltfTree.Node, MultiBufferSource, Int) -> Unit
 
 class GltfModel(val modelTree: GltfTree.GLTFTree) {
     val nodes = modelTree.walkNodes().associateBy { (it.name ?: "Unnamed") }
     val animationPlayer = GLTFAnimationPlayer(this)
-    var visuals: NodeRenderer = { _, _, _, _ -> }
+    var visuals: NodeRenderer = { _, _, _, _, _ -> }
 
     fun update(capability: AnimatedEntityCapability, currentTick: Int, partialTick: Float) {
         animationPlayer.setTick(currentTick)
@@ -73,6 +75,7 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         stack: PoseStack,
         modelData: ModelData,
         consumer: (ResourceLocation) -> Int,
+        source: MultiBufferSource,
         light: Int,
         overlay: Int,
     ) {
@@ -80,7 +83,7 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
 
         modelTree.scenes.forEach {
             it.nodes.forEach { node ->
-                node.renderDecorations(stack, visuals, modelData, light)
+                node.renderDecorations(stack, visuals, modelData, source, light)
             }
         }
 
@@ -88,17 +91,15 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
 
         transformSkinning(stack)
 
-        //Получение текущих VAO и IBO
-        val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
-        val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
-
         GL33.glVertexAttrib4f(1, 1.0F, 1.0F, 1.0F, 1.0F) // Цвет
         GL33.glVertexAttribI2i(3, overlay and '\uffff'.code, overlay shr 16 and '\uffff'.code) // Оверлей при ударе
         GL33.glVertexAttribI2i(4, light and '\uffff'.code, light shr 16 and '\uffff'.code) // Освещение
 
         GlStateManager._activeTexture(GL33.GL_TEXTURE2)
+        val texture2 = GlStateManager.TEXTURES[GlStateManager.activeTexture].binding
         GlStateManager._bindTexture(GltfManager.lightTexture.id)
         GlStateManager._activeTexture(GL33.GL_TEXTURE1)
+        val texture1 = GlStateManager.TEXTURES[GlStateManager.activeTexture].binding
         Minecraft.getInstance().gameRenderer.overlayTexture().setupOverlayColor()
         GlStateManager._bindTexture(RenderSystem.getShaderTexture(1))
         Minecraft.getInstance().gameRenderer.overlayTexture().teardownOverlayColor()
@@ -106,16 +107,22 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
 
         val texture = GlStateManager.TEXTURES[GlStateManager.activeTexture].binding
 
-        drawWithShader(if(areShadersEnabled) ENTITY_SHADER else ModShaders.GLTF_ENTITY) {
+        drawWithShader(if(areShadersEnabled) GameRenderer.getRendertypeEntityCutoutShader()!! else ModShaders.GLTF_ENTITY) {
             modelTree.scenes.forEach { it.render(stack, visuals, modelData, consumer, light) }
         }
 
+        GlStateManager._activeTexture(GL33.GL_TEXTURE2)
+
+        GlStateManager._bindTexture(texture2)
+        GlStateManager._activeTexture(GL33.GL_TEXTURE1)
+        GlStateManager._bindTexture(texture1)
+        GlStateManager._activeTexture(GL33.GL_TEXTURE0)
         GlStateManager._bindTexture(texture)
         GlStateManager._activeTexture(activeTexture)
 
-        GL33.glBindVertexArray(currentVAO)
-        GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
-        GL33.glUseProgram(0)
+        GL33.glBindVertexArray(0)
+        GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, 0)
+        GlStateManager._glUseProgram(0)
 
         NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.clear()
     }

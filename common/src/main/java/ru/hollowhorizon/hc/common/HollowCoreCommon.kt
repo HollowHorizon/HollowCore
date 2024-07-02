@@ -24,12 +24,9 @@
 
 package ru.hollowhorizon.hc.common
 
-import net.minecraft.core.Registry
-import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.ai.attributes.Attributes
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityAttributesEvent
 import ru.hollowhorizon.hc.common.registry.ModEntities

@@ -1,14 +1,11 @@
 package ru.hollowhorizon.hc.common.events.entity.player
 
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.BlockHitResult
-import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.common.events.Cancelable
-import ru.hollowhorizon.hc.common.events.SubscribeEvent
 
 abstract class PlayerInteractEvent(player: Player) : PlayerEvent(player), Cancelable {
     override var isCanceled: Boolean = false

@@ -25,8 +25,6 @@
 package ru.hollowhorizon.hc.common.registry
 
 import net.minecraft.core.Registry
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore
 import kotlin.properties.ReadOnlyProperty

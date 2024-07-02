@@ -90,6 +90,7 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
 
                 Minecraft.getInstance().textureManager.getTexture(result).id
             }.memoize(),
+            pBufferSource,
             pPackedLight,
             pPackedOverlay
         )

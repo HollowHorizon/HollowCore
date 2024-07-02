@@ -28,6 +28,8 @@ import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.GameRenderer
+import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.EquipmentSlot
@@ -39,6 +41,8 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.*
+import ru.hollowhorizon.hc.client.utils.math.MikkTSpaceContext
+import ru.hollowhorizon.hc.client.utils.math.MikktspaceTangentGenerator
 import ru.hollowhorizon.hc.common.registry.ModShaders
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
@@ -666,7 +670,6 @@ object GltfTree {
 
             stack.use {
                 mulPose(localMatrix)
-                //last().normal().mul(normalMatrix)
 
                 mesh?.render(this@Node, stack, changedTexture)
                 children.forEach { it.render(stack, nodeRenderer, data, changedTexture, light) }
@@ -677,17 +680,18 @@ object GltfTree {
             stack: PoseStack,
             nodeRenderer: NodeRenderer,
             data: ModelData,
+            source: MultiBufferSource,
             light: Int,
         ) {
             stack.use {
                 mulPose(localMatrix)
-                //last().normal().mul(normalMatrix)
+                last().normal().mul(normalMatrix)
 
                 data.entity?.let {
-                    nodeRenderer(it, stack, this@Node, light)
+                    nodeRenderer(it, stack, this@Node, source, light)
                 }
 
-                children.forEach { it.renderDecorations(stack, nodeRenderer, data, light) }
+                children.forEach { it.renderDecorations(stack, nodeRenderer, data, source, light) }
             }
         }
 
@@ -847,7 +851,7 @@ object GltfTree {
 
                 attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
                     val normals = BufferUtils.createFloatBuffer(this.size * 3)
-                    for (n in this) normals.put(n.x()).put(n.y()).put(n.z())
+                    for (n in this) normals.put(-n.x()).put(n.y()).put(-n.z())
                     normals.flip()
 
                     morphCommands += { array ->
@@ -868,7 +872,72 @@ object GltfTree {
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, normalBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, normals, GL33.GL_STATIC_DRAW)
                     GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
+
+                    if (GltfAttribute.TANGENT !in attributes) {
+                        val pos = attributes[GltfAttribute.POSITION]!!.get<Vector3f>()
+                        val texCoords = attributes[GltfAttribute.TEXCOORD_0]!!.get<Pair<Float, Float>>()
+                        val normal = this
+
+                        val tangents = BufferUtils.createFloatBuffer(this.size * 4)
+
+                        MikktspaceTangentGenerator.genTangSpaceDefault(object : MikkTSpaceContext {
+                            override fun getNumFaces(): Int {
+                                return positionsCount / 9
+                            }
+
+                            override fun getNumVerticesOfFace(face: Int): Int {
+                                return 3
+                            }
+
+                            override fun getPosition(posOut: FloatArray, face: Int, vert: Int) {
+                                val index = (face * 3) + vert
+                                posOut[0] = pos[index].x
+                                posOut[1] = pos[index].y
+                                posOut[2] = pos[index].z
+                            }
+
+                            override fun getNormal(normOut: FloatArray, face: Int, vert: Int) {
+                                val index = (face * 3) + vert
+                                normOut[0] = normal[index].x
+                                normOut[1] = normal[index].y
+                                normOut[2] = normal[index].z
+                            }
+
+                            override fun getTexCoord(texOut: FloatArray, face: Int, vert: Int) {
+                                val index = (face * 3) + vert
+                                texOut[0] = texCoords[index].first
+                                texOut[1] = texCoords[index].second
+                            }
+
+                            override fun setTSpaceBasic(tangent: FloatArray, sign: Float, face: Int, vert: Int) {
+                                val index = (face * 3) + vert
+                                tangents
+                                    .put(-tangent[0])
+                                    .put(tangent[1])
+                                    .put(-tangent[2])
+                                    .put(-sign)
+                            }
+
+                            override fun setTSpace(
+                                tangent: FloatArray?,
+                                biTangent: FloatArray?,
+                                magS: Float,
+                                magT: Float,
+                                isOrientationPreserving: Boolean,
+                                face: Int,
+                                vert: Int,
+                            ) {
+                            }
+                        })
+
+                        tangents.flip()
+                        tangentBuffer = GL33.glGenBuffers()
+                        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, tangentBuffer)
+                        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, tangents, GL33.GL_STATIC_DRAW)
+                        GL33.glVertexAttribPointer(8, 4, GL33.GL_FLOAT, false, 0, 0)
+                    }
                 }
+
                 attributes[GltfAttribute.TANGENT]?.get<Vector4f>()?.run {
                     val tangents = BufferUtils.createFloatBuffer(this.size * 4)
                     for (t in this) {
@@ -893,7 +962,7 @@ object GltfTree {
                     tangentBuffer = GL33.glGenBuffers()
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, tangentBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, tangents, GL33.GL_STATIC_DRAW)
-                    GL33.glVertexAttribPointer(9, 4, GL33.GL_FLOAT, false, 0, 0)
+                    GL33.glVertexAttribPointer(8, 4, GL33.GL_FLOAT, false, 0, 0)
                 }
             } else {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vertexBuffer)
@@ -912,13 +981,15 @@ object GltfTree {
                 GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, texCoordsBuffer)
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 0, 0)
+                GL33.glVertexAttribPointer(7, 2, GL33.GL_FLOAT, false, 0, 0)
 
-                if (attributes[GltfAttribute.TEXCOORD_1] == null) {
-                    midCoordsBuffer = GL33.glGenBuffers()
-                    GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, midCoordsBuffer)
-                    GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
-                    GL33.glVertexAttribPointer(8, 2, GL33.GL_FLOAT, false, 0, 0)
-                }
+
+//                if (attributes[GltfAttribute.TEXCOORD_1] == null) {
+//                    midCoordsBuffer = GL33.glGenBuffers()
+//                    GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, midCoordsBuffer)
+//                    GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
+//                    GL33.glVertexAttribPointer(7, 2, GL33.GL_FLOAT, false, 0, 0)
+//                }
             }
 
             if (attributes[GltfAttribute.TEXCOORD_1] != null) {
@@ -930,7 +1001,7 @@ object GltfTree {
                     midCoordsBuffer = GL33.glGenBuffers()
                     GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, midCoordsBuffer)
                     GL33.glBufferData(GL33.GL_ARRAY_BUFFER, texCords, GL33.GL_STATIC_DRAW)
-                    GL33.glVertexAttribPointer(8, 2, GL33.GL_FLOAT, false, 0, 0)
+                    GL33.glVertexAttribPointer(7, 2, GL33.GL_FLOAT, false, 0, 0)
 
                 }
             }
@@ -1031,7 +1102,7 @@ object GltfTree {
             if (morphTargets.isNotEmpty()) updateMorphTargets(node)
 
             val hasShaders = areShadersEnabled
-            val shader = if (hasShaders) ENTITY_SHADER else ModShaders.GLTF_ENTITY
+            val shader = if (hasShaders) GameRenderer.getRendertypeEntityCutoutShader()!! else ModShaders.GLTF_ENTITY
             //Всякие настройки смешивания, материалы и т.п.
             val texture = consumer(material.texture)
 
@@ -1070,8 +1141,8 @@ object GltfTree {
             GL33.glEnableVertexAttribArray(0) // Вершины (или цвет)
             GL33.glEnableVertexAttribArray(2) // Текстурные координаты
             GL33.glEnableVertexAttribArray(5) // Нормали
-            if (tangentBuffer != -1) GL33.glEnableVertexAttribArray(9) //Тангенты
-            if (hasShaders) GL20.glEnableVertexAttribArray(8) //координаты для глубины (pbr)
+            if (tangentBuffer != -1) GL33.glEnableVertexAttribArray(8) //Тангенты
+            if (hasShaders) GL20.glEnableVertexAttribArray(7) //координаты для глубины (pbr)
 
             val modelView = Matrix4f(RenderSystem.getModelViewMatrix()).mul(stack.last().pose())
 
@@ -1080,7 +1151,7 @@ object GltfTree {
             shader.MODEL_VIEW_MATRIX?.upload()
 
             //Нормали
-            shader.getUniform("NormalMat")?.let {
+            if (!hasShaders) shader.getUniform("NormalMat")?.let {
                 it.set(stack.last().normal())
                 it.upload()
             }
@@ -1111,8 +1182,8 @@ object GltfTree {
             GL33.glDisableVertexAttribArray(0)
             GL33.glDisableVertexAttribArray(2)
             GL33.glDisableVertexAttribArray(5)
-            if (tangentBuffer != -1) GL33.glDisableVertexAttribArray(9)
-            if (hasShaders) GL20.glDisableVertexAttribArray(8)
+            if (tangentBuffer != -1) GL33.glDisableVertexAttribArray(8)
+            if (hasShaders) GL20.glDisableVertexAttribArray(7)
         }
 
         private fun updateMorphTargets(node: Node) {

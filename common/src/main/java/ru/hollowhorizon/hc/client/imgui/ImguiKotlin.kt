@@ -26,7 +26,6 @@ package ru.hollowhorizon.hc.client.imgui
 
 import imgui.ImGui
 import imgui.flag.ImGuiTreeNodeFlags
-import net.minecraft.client.Minecraft
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.client.utils.toTexture
 

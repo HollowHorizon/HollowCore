@@ -1,13 +1,8 @@
 package ru.hollowhorizon.hc;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.commands.CommandSource;
 import ru.hollowhorizon.hc.client.utils.JavaHacks;
-import ru.hollowhorizon.hc.common.events.EventBus;
-import ru.hollowhorizon.hc.common.events.tick.TickEvent;
 import ru.hollowhorizon.hc.common.registry.HollowRegistryKt;
 import ru.hollowhorizon.hc.internal.NetworkHelper;
 import ru.hollowhorizon.hc.internal.RegistryHolderFabric;

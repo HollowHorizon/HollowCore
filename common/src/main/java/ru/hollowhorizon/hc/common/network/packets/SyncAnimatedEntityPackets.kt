@@ -24,7 +24,6 @@
 
 package ru.hollowhorizon.hc.common.network.packets
 
-import com.mojang.blaze3d.systems.RenderSystem
 import kotlinx.serialization.Serializable
 import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationState

@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.internal;
 import kotlin.Unit;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.handling.ClientPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import ru.hollowhorizon.hc.client.utils.JavaHacks;
 import ru.hollowhorizon.hc.common.network.HollowPacketV3Kt;

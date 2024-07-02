@@ -48,6 +48,13 @@ fun ICapabilityDispatcher.deserializeCapabilities(tag: CompoundTag) {
     }
 }
 
+fun ICapabilityDispatcher.syncIfNeeded() {
+    capabilities.filter { it.isChanged }.forEach {
+        it.synchronize()
+        it.isChanged = false
+    }
+}
+
 fun ICapabilityDispatcher.initialize() {
     LoadCapabilitiesEvent(this, capabilities).post()
 }

@@ -24,51 +24,43 @@
 
 package ru.hollowhorizon.hc.client.models.gltf
 
-import com.mojang.blaze3d.platform.GlStateManager
+import com.mojang.blaze3d.shaders.Uniform
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.VertexFormat
+import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
+import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.ShaderInstance
-import org.joml.Matrix4f
+import net.minecraft.client.renderer.texture.TextureManager
 import org.lwjgl.opengl.GL13
-import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.mixins.ShaderInstanceAccessor
 
 
 inline fun drawWithShader(
-    pShaderInstance: ShaderInstance,
+    shader: ShaderInstance,
     body: () -> Unit,
 ) {
-    pShaderInstance.PROJECTION_MATRIX?.set(RenderSystem.getProjectionMatrix())
-    pShaderInstance.MODEL_VIEW_MATRIX?.set(RenderSystem.getModelViewMatrix())
-    pShaderInstance.FOG_START?.set(RenderSystem.getShaderFogStart())
-    pShaderInstance.FOG_END?.set(RenderSystem.getShaderFogEnd())
-    pShaderInstance.FOG_COLOR?.set(RenderSystem.getShaderFogColor())
-    pShaderInstance.FOG_SHAPE?.set(RenderSystem.getShaderFogShape().index)
-    pShaderInstance.COLOR_MODULATOR?.set(1.0F, 1.0F, 1.0F, 1.0F)
-    pShaderInstance.TEXTURE_MATRIX?.set(Matrix4f(RenderSystem.getTextureMatrix()).transpose())
-    pShaderInstance.GAME_TIME?.set(RenderSystem.getShaderGameTime())
+    val state = RenderType.entityCutout(TextureManager.INTENTIONAL_MISSING_TEXTURE)
+    val accessor = shader as ShaderInstanceAccessor
 
-    RenderSystem.setupShaderLights(pShaderInstance)
+    state.setupRenderState()
+    shader.setDefaultUniforms(
+        VertexFormat.Mode.TRIANGLES,
+        RenderSystem.getModelViewMatrix(),
+        RenderSystem.getProjectionMatrix(),
+        Minecraft.getInstance().window
+    )
+    shader.apply()
 
-    pShaderInstance.apply()
-    
-    RenderSystem.enableDepthTest()
-    RenderSystem.enableBlend()
-    RenderSystem.depthFunc(515)
-    RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA)
-
-
-    val accessor = pShaderInstance as ShaderInstanceAccessor
     accessor.samplerLocations().forEachIndexed { texture, index ->
         GL33.glUniform1i(index, texture)
     }
 
     body()
 
-    RenderSystem.depthFunc(515)
-
-    pShaderInstance.clear()
+    shader.clear()
+    state.clearRenderState()
 }
 
 val ENTITY_SHADER get() = GameRenderer.getRendertypeEntityCutoutShader()!!

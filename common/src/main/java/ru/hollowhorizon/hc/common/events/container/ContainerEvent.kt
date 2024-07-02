@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.common.events.container
 import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.common.capabilities.containers.HollowContainer
 import ru.hollowhorizon.hc.common.events.Cancelable
-import ru.hollowhorizon.hc.common.events.Event
 import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
 
 open class ContainerEvent(player: Player, val container: HollowContainer): PlayerEvent(player), Cancelable {

@@ -15,7 +15,7 @@ import ru.hollowhorizon.hc.common.objects.entities.TestEntity
 open class HollowContainer(val capability: CapabilityInstance, val size: Int, private val outputSlots: IntArray) :
     SimpleContainer(size), INBTSerializable {
     override fun setChanged() {
-        capability.sync()
+        capability.isChanged = true
     }
 
     override fun canPlaceItem(slot: Int, stack: ItemStack): Boolean {

@@ -26,7 +26,6 @@ package ru.hollowhorizon.hc.client.models.gltf.animations.interpolations
 
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sin

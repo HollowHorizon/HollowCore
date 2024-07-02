@@ -5,9 +5,7 @@ import net.minecraft.server.packs.repository.RepositorySource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.HollowLoggerKt;
-import ru.hollowhorizon.hc.client.utils.HollowPack;
 import ru.hollowhorizon.hc.common.events.EventBus;
 import ru.hollowhorizon.hc.common.events.registry.RegisterResourcePacksEvent;
 

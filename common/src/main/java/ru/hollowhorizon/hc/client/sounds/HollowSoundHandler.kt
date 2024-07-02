@@ -27,7 +27,6 @@ package ru.hollowhorizon.hc.client.sounds
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import net.minecraft.server.packs.resources.IoSupplier
-import net.minecraft.server.packs.resources.Resource
 import net.minecraft.server.packs.resources.ResourceManager
 import ru.hollowhorizon.hc.HollowCore
 import java.io.InputStream

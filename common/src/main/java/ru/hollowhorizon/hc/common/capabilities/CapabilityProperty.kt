@@ -64,7 +64,7 @@ open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : 
         this.value = value
         if (defaultType == null) defaultType =
             if (this.value == null) property.returnType.javaType as Class<out V> else this.value!!.javaClass
-        thisRef.sync()
+        thisRef.isChanged = true
     }
 
     fun serialize(tag: CompoundTag) {

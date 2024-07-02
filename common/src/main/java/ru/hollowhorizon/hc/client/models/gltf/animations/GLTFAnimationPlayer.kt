@@ -24,10 +24,8 @@
 
 package ru.hollowhorizon.hc.client.models.gltf.animations
 
-import net.minecraft.client.gui.screens.Screen
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.ai.attributes.Attributes
-import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.client.models.gltf.GltfModel
 import ru.hollowhorizon.hc.client.models.gltf.GltfTree
 import ru.hollowhorizon.hc.client.models.gltf.Transformation

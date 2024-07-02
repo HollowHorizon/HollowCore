@@ -26,7 +26,6 @@ package ru.hollowhorizon.hc.client.utils
 
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.ResourceLocation
-import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStream
 

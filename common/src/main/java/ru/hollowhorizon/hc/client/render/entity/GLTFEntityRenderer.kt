@@ -97,6 +97,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
                 Minecraft.getInstance().textureManager.getTexture(result).id
             }.memoize(),
+            source,
             packedLight,
             OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
         )
@@ -105,7 +106,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             model.nodes[node]?.let {
                 stack.use {
                     stack.mulPose(it.globalMatrix)
-                    GltfEntityUtil.render(entity, child, entity.tickCount, partialTick, stack, packedLight)
+                    GltfEntityUtil.render(entity, child, entity.tickCount, partialTick, stack, source, packedLight)
                 }
             }
         }
@@ -113,7 +114,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         stack.popPose()
     }
 
-    protected open fun drawVisuals(entity: LivingEntity, stack: PoseStack, node: GltfTree.Node, light: Int) {
+    protected open fun drawVisuals(entity: LivingEntity, stack: PoseStack, node: GltfTree.Node, source: MultiBufferSource, light: Int) {
         if ((node.name?.contains("left", ignoreCase = true) == true || node.name?.contains(
                 "right",
                 ignoreCase = true
@@ -135,7 +136,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                 if (isLeft) ItemDisplayContext.THIRD_PERSON_LEFT_HAND else ItemDisplayContext.THIRD_PERSON_RIGHT_HAND,
                 isLeft,
                 stack,
-                Minecraft.getInstance().renderBuffers().bufferSource(),
+                source,
                 light
             )
 

@@ -25,14 +25,12 @@
 package ru.hollowhorizon.hc.common.capabilities
 
 import net.minecraft.client.Minecraft
-import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.entity.BlockEntity
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.capabilities.containers.HollowContainer
 import ru.hollowhorizon.hc.common.network.sendAllInDimension
@@ -45,11 +43,12 @@ open class CapabilityInstance {
     open val canOtherPlayersAccess: Boolean = true
     lateinit var provider: ICapabilityDispatcher //Будет инициализированно инжектом
     val containers = ArrayList<HollowContainer>()
+    var isChanged = false
     fun <T> syncable(default: T) = CapabilityProperty<CapabilityInstance, T>(default).apply {
         properties += this
     }
 
-    fun sync() {
+    fun synchronize() {
         when (val target = provider) {
             is Entity -> {
                 if (target.level().isClientSide) {
@@ -97,10 +96,10 @@ open class CapabilityInstance {
     }
 
     inline fun <reified T : Any> syncableList(list: MutableList<T> = ArrayList()) =
-        syncable(SyncableListImpl(list, T::class.java, this::sync))
+        syncable(SyncableListImpl(list, T::class.java) { isChanged = true })
 
     inline fun <reified T : Any> syncableList(vararg elements: T) = syncableList(elements.toMutableList())
 
     inline fun <reified K : Any, reified V : Any> syncableMap() =
-        syncable(SyncableMapImpl(HashMap(), K::class.java, V::class.java, this::sync))
+        syncable(SyncableMapImpl(HashMap(), K::class.java, V::class.java) { isChanged = true })
 }

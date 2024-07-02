@@ -36,7 +36,6 @@ import ru.hollowhorizon.hc.client.models.gltf.animations.Animation
 import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationState
 import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.gltf.animations.PlayMode
-import kotlin.math.sin
 
 
 @Serializable
@@ -130,9 +129,7 @@ class DefinedLayer {
 
         val difference = (currentTime - currentStartTime).coerceAtMost(0.5)
         priority = (difference * 2).toFloat()
-        if(priority < 1f) HollowCore.LOGGER.info("Defined layer $priority")
         if (animationType == currentAnimation) return
-        HollowCore.LOGGER.info("changed: {}", difference)
         lastAnimation = currentAnimation
         currentAnimation = animationType
 

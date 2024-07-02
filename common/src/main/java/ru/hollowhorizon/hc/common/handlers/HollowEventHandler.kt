@@ -61,7 +61,7 @@ object HollowEventHandler {
 
     @SubscribeEvent
     fun onStartTracking(event: EntityTrackingEvent) {
-        (event.entity as ICapabilityDispatcher).capabilities.forEach(CapabilityInstance::sync)
+        (event.entity as ICapabilityDispatcher).capabilities.forEach(CapabilityInstance::synchronize)
     }
 
     @SubscribeEvent
@@ -78,7 +78,7 @@ object HollowEventHandler {
     fun onPlayerLoggedIn(event: PlayerEvent.Join) {
         val player = event.player as ICapabilityDispatcher
 
-        player.capabilities.forEach(CapabilityInstance::sync)
+        player.capabilities.forEach(CapabilityInstance::synchronize)
     }
 
     @SubscribeEvent
@@ -114,7 +114,7 @@ object HollowEventHandler {
 
     @SubscribeEvent
     fun onChangeDimension(event: PlayerEvent.ChangeDimension) {
-        (event.to as ICapabilityDispatcher).capabilities.forEach(CapabilityInstance::sync)
+        (event.to as ICapabilityDispatcher).capabilities.forEach(CapabilityInstance::synchronize)
     }
 
     @SubscribeEvent

@@ -45,10 +45,15 @@ public class EntityMixin implements ICapabilityDispatcher {
         ICapabilityDispatcherKt.deserializeCapabilities(this, tag);
     }
 
-    @Inject(method = "hurt", at = @At("HEAD"))
+    @Inject(method = "hurt", at = @At("HEAD"), cancellable = true)
     public void onHurt(DamageSource damageSource, float amount, CallbackInfoReturnable<Boolean> cir) {
         var event = new EntityHurtEvent((Entity) (Object) this, damageSource, amount);
         EventBus.post(event);
         if (event.isCanceled()) cir.setReturnValue(false);
+    }
+
+    @Inject(method = "tick", at = @At("TAIL"))
+    public void onTick(CallbackInfo ci) {
+        ICapabilityDispatcherKt.syncIfNeeded(this);
     }
 }

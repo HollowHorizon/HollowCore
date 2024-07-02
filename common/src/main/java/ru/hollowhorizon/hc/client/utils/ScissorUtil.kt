@@ -26,7 +26,6 @@ package ru.hollowhorizon.hc.client.utils
 
 import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.Minecraft
-import org.lwjgl.opengl.GL11
 import java.util.*
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind

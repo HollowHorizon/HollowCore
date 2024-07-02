@@ -24,8 +24,6 @@
 
 package ru.hollowhorizon.hc.client.models.fbx;
 
-import java.util.Arrays;
-
 public class FBXVertex {
     public final float x;
     public final float y;

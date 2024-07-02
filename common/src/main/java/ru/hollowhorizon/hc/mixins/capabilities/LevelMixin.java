@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.mixins.capabilities;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
@@ -8,7 +7,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher;
 import ru.hollowhorizon.hc.api.ICapabilityDispatcherKt;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
@@ -31,6 +29,8 @@ public class LevelMixin implements ICapabilityDispatcher {
     private void onInit(CallbackInfo ci) {
         ICapabilityDispatcherKt.initialize(this);
     }
+
+
 
 //    @Inject(method = "saveWithoutId", at = @At("TAIL"))
 //    private void serializeExtra(CompoundTag tag, CallbackInfoReturnable<CompoundTag> cir) {

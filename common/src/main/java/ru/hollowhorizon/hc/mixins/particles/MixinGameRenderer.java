@@ -24,7 +24,6 @@
 
 package ru.hollowhorizon.hc.mixins.particles;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -38,7 +37,6 @@ import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderContext;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
 import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer;
 
-import static org.lwjgl.opengl.GL11.*;
 import static ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.pasteToCurrentDepthFrom;
 
 @Mixin(GameRenderer.class)

@@ -1,7 +1,6 @@
 package ru.hollowhorizon.hc.internal
 
 import net.minecraft.client.Minecraft
-import net.minecraft.core.Direction.Axis
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.codec.StreamCodec

@@ -29,11 +29,8 @@ import imgui.extension.nodeditor.NodeEditor
 import imgui.extension.nodeditor.NodeEditorContext
 import imgui.flag.ImGuiWindowFlags
 import net.minecraft.client.Minecraft
-import net.minecraft.world.Container
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import ru.hollowhorizon.hc.client.imgui.addons.defaultProvider
-import ru.hollowhorizon.hc.client.imgui.addons.inventoryProvider
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
 
 var first by ImGuiAnimator(0..100, 1.5f, ImGuiAnimator.Type.FREEZE, Interpolation.BACK_OUT)

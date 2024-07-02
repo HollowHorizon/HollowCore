@@ -25,6 +25,7 @@
 package ru.hollowhorizon.hc.client.utils
 
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.MeshData
 import com.mojang.blaze3d.vertex.PoseStack
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.minecraft.client.Minecraft
@@ -72,6 +73,10 @@ lateinit var isPhysicalClient_: () -> Boolean
 lateinit var areShadersEnabled_: () -> Boolean
 lateinit var isModLoaded: (modid: String) -> Boolean
 lateinit var currentServer: MinecraftServer
+
+fun test(buffer: MeshData) {
+    HollowCore.LOGGER.warn("HollowCore test")
+}
 
 val registryAccess: RegistryAccess
     get() = if (currentServer is IntegratedServer) Minecraft.getInstance().connection!!.registryAccess()

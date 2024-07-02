@@ -27,7 +27,7 @@ package ru.hollowhorizon.hc.client.render.entity
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ItemInHandRenderer
-import net.minecraft.client.renderer.block.model.ItemTransforms
+import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
@@ -55,6 +55,7 @@ object GltfEntityUtil {
         tickCount: Int,
         partialTick: Float,
         stack: PoseStack,
+        source: MultiBufferSource,
         packedLight: Int,
     ) {
         if (model.model == "%NO_MODEL%") return
@@ -78,6 +79,7 @@ object GltfEntityUtil {
 
                 Minecraft.getInstance().textureManager.getTexture(result).id
             }.memoize(),
+            source,
             packedLight, OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
         )
 
@@ -85,13 +87,13 @@ object GltfEntityUtil {
             realModel.nodes[bone]?.let {
                 stack.use {
                     stack.mulPose(it.globalMatrix)
-                    render(entity, model, tickCount, partialTick, stack, packedLight)
+                    render(entity, model, tickCount, partialTick, stack, source, packedLight)
                 }
             }
         }
     }
 
-    private fun drawVisuals(entity: LivingEntity, stack: PoseStack, node: GltfTree.Node, light: Int) {
+    private fun drawVisuals(entity: LivingEntity, stack: PoseStack, node: GltfTree.Node, source: MultiBufferSource, light: Int) {
         if ((node.name?.contains("left", ignoreCase = true) == true || node.name?.contains(
                 "right",
                 ignoreCase = true

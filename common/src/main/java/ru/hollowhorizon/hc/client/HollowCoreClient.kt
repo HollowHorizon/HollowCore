@@ -27,7 +27,6 @@ package ru.hollowhorizon.hc.client
 import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.screens.Screen
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager

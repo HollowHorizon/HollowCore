@@ -1,5 +1,4 @@
 import groovy.lang.Closure
-import io.github.pacifistmc.forgix.plugin.ForgixMergeExtension.*
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
 
 plugins {
@@ -36,29 +35,25 @@ forgix {
         findProject(":fabric") -> {
             val proj = findProject(":fabric")!!
 
-            val fabricClosure = closureOf<FabricContainer> {
+            fabric(closure {
                 jarLocation = "build/libs/${proj.base.archivesName.get()}.jar"
-            } as Closure<FabricContainer>
-            fabric(fabricClosure)
+            })
         }
 
         findProject(":forge") -> {
             val proj = findProject(":forge")!!
 
-            val forgeClosure = closureOf<ForgeContainer> {
+            forge(closure {
                 jarLocation = "build/libs/${proj.base.archivesName.get()}.jar"
-            } as Closure<ForgeContainer>
-            forge(forgeClosure)
+            })
         }
 
         findProject(":neoforge") -> {
             val proj = findProject(":neoforge")!!
 
-            val neoClosure = closureOf<NeoForgeContainer> {
+            neoforge(closure {
                 jarLocation = "build/libs/${proj.base.archivesName.get()}.jar"
-            } as Closure<NeoForgeContainer>
-
-            neoforge(neoClosure)
+            })
         }
     }
 }
@@ -207,8 +202,6 @@ allprojects {
         implementation("io.github.douira:glsl-transformer:2.0.1")
         implementation("org.ow2.asm:asm:9.7")
         implementation("io.github.classgraph:classgraph:4.8.173")
-
-        implementation("effekseer.swig:Swig:1.0") // версия меняться не будет..
     }
 
     tasks {
@@ -242,3 +235,15 @@ fun DependencyHandlerScope.includes(vararg libraries: String) {
 
 fun kxExcludeRule(dependency: String) = "org.jetbrains.kotlinx" to "kotlinx-$dependency"
 fun fromProperties(id: String) = project.properties[id].toString()
+
+
+class KClosure<T : Any?>(val function: T.() -> Unit) : Closure<T>(null, null) {
+    fun doCall(it: T): T {
+        function(it)
+        return it
+    }
+}
+
+fun <T : Any> closure(function: T.() -> Unit): Closure<T> {
+    return KClosure(function)
+}
