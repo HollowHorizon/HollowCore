@@ -54,7 +54,10 @@ class ImageWidget(val image: @Serializable(ForResourceLocation::class) ResourceL
         partialTick: Float,
     ) {
         RenderSystem.setShaderTexture(0, image)
+        RenderSystem.enableBlend()
+        RenderSystem.defaultBlendFunc()
         Screen.blit(stack, x, y, 0f, 0f, widgetWidth, widgetHeight, widgetWidth, widgetHeight)
+        RenderSystem.disableBlend()
     }
 }
 
