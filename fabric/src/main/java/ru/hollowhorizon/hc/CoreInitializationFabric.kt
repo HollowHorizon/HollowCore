@@ -3,6 +3,8 @@ package ru.hollowhorizon.hc
 import io.github.classgraph.ClassGraph
 import net.fabricmc.api.EnvType
 import net.fabricmc.loader.api.FabricLoader
+import net.irisshaders.iris.Iris
+import net.irisshaders.iris.pipeline.ShaderRenderingPipeline
 import ru.hollowhorizon.hc.common.registry.getAnnotatedClasses
 import ru.hollowhorizon.hc.common.registry.getAnnotatedMethods
 import ru.hollowhorizon.hc.common.registry.getSubTypes

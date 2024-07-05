@@ -73,6 +73,7 @@ lateinit var isPhysicalClient_: () -> Boolean
 lateinit var areShadersEnabled_: () -> Boolean
 lateinit var isModLoaded: (modid: String) -> Boolean
 lateinit var currentServer: MinecraftServer
+lateinit var shouldOverrideShaders: () -> Boolean
 
 fun test(buffer: MeshData) {
     HollowCore.LOGGER.warn("HollowCore test")

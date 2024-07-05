@@ -28,7 +28,6 @@ import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
@@ -43,7 +42,6 @@ import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.client.utils.math.MikkTSpaceContext
 import ru.hollowhorizon.hc.client.utils.math.MikktspaceTangentGenerator
-import ru.hollowhorizon.hc.common.registry.ModShaders
 import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.io.EOFException
@@ -851,7 +849,7 @@ object GltfTree {
 
                 attributes[GltfAttribute.NORMAL]?.get<Vector3f>()?.run {
                     val normals = BufferUtils.createFloatBuffer(this.size * 3)
-                    for (n in this) normals.put(-n.x()).put(n.y()).put(-n.z())
+                    for (n in this) normals.put(n.x()).put(n.y()).put(n.z())
                     normals.flip()
 
                     morphCommands += { array ->
@@ -910,11 +908,10 @@ object GltfTree {
                             }
 
                             override fun setTSpaceBasic(tangent: FloatArray, sign: Float, face: Int, vert: Int) {
-                                val index = (face * 3) + vert
                                 tangents
-                                    .put(-tangent[0])
+                                    .put(tangent[0])
                                     .put(tangent[1])
-                                    .put(-tangent[2])
+                                    .put(tangent[2])
                                     .put(-sign)
                             }
 
@@ -1101,8 +1098,7 @@ object GltfTree {
         ) {
             if (morphTargets.isNotEmpty()) updateMorphTargets(node)
 
-            val hasShaders = areShadersEnabled
-            val shader = if (hasShaders) GameRenderer.getRendertypeEntityCutoutShader()!! else ModShaders.GLTF_ENTITY
+            val shader = GltfModel.SHADER
             //Всякие настройки смешивания, материалы и т.п.
             val texture = consumer(material.texture)
 
@@ -1114,7 +1110,7 @@ object GltfTree {
             var normal = 0
             var specular = 0
 
-            if (hasShaders) {
+            if (areShadersEnabled) {
                 //т.к. Iris использует отличные от Optifine id текстур стоит взять их из самого шейдера
                 GL33.glGetUniformLocation(shader.id, "normals").takeIf { it != -1 }?.let {
                     GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
@@ -1151,7 +1147,7 @@ object GltfTree {
             shader.MODEL_VIEW_MATRIX?.upload()
 
             //Нормали
-            if (!hasShaders) shader.getUniform("NormalMat")?.let {
+            shader.getUniform("NormalMat")?.let {
                 it.set(stack.last().normal())
                 it.upload()
             }

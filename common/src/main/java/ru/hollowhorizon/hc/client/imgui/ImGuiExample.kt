@@ -32,6 +32,8 @@ import net.minecraft.client.Minecraft
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
+import ru.hollowhorizon.hc.common.objects.entities.TestEntity
+import ru.hollowhorizon.hc.common.registry.ModEntities
 
 var first by ImGuiAnimator(0..100, 1.5f, ImGuiAnimator.Type.FREEZE, Interpolation.BACK_OUT)
 var count = 0
@@ -42,16 +44,13 @@ object Inventory {
     var right = ItemStack.EMPTY
 }
 
+val e by lazy { TestEntity(ModEntities.TEST_ENTITY.get(), Minecraft.getInstance().level!!) }
+
 fun test() = Renderable {
     val player = Minecraft.getInstance().player ?: return@Renderable
 
     if (ImGui.begin("##example", ImGuiWindowFlags.NoMove)) {
-        NodeEditor.setCurrentEditor(ctx)
-        NodeEditor.begin("Example")
-        NodeEditor.beginNode(1L)
-        item(ItemStack(Items.MACE), 80f, 80f, isNodeEditor = true)
-        NodeEditor.endNode()
-        NodeEditor.end()
+        entity(e, 228f, 228f,0f, 120f,2f)
     }
     ImGui.end()
 }

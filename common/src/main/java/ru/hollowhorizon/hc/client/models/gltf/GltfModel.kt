@@ -27,10 +27,6 @@ package ru.hollowhorizon.hc.client.models.gltf
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import org.joml.Matrix4f
-import org.joml.Quaternionf
-import org.joml.Vector3f
-import org.joml.Vector4f
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.ItemInHandRenderer
@@ -39,12 +35,15 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemStack
+import org.joml.Matrix4f
+import org.joml.Quaternionf
+import org.joml.Vector3f
 import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
-import ru.hollowhorizon.hc.client.utils.areShadersEnabled
+import ru.hollowhorizon.hc.client.utils.shouldOverrideShaders
 import ru.hollowhorizon.hc.common.registry.ModShaders
 
 
@@ -91,6 +90,11 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
 
         transformSkinning(stack)
 
+        //Получение текущих VAO и IBO
+        val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
+        val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
+
+
         GL33.glVertexAttrib4f(1, 1.0F, 1.0F, 1.0F, 1.0F) // Цвет
         GL33.glVertexAttribI2i(3, overlay and '\uffff'.code, overlay shr 16 and '\uffff'.code) // Оверлей при ударе
         GL33.glVertexAttribI2i(4, light and '\uffff'.code, light shr 16 and '\uffff'.code) // Освещение
@@ -107,7 +111,7 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
 
         val texture = GlStateManager.TEXTURES[GlStateManager.activeTexture].binding
 
-        drawWithShader(if(areShadersEnabled) GameRenderer.getRendertypeEntityCutoutShader()!! else ModShaders.GLTF_ENTITY) {
+        drawWithShader(SHADER) {
             modelTree.scenes.forEach { it.render(stack, visuals, modelData, consumer, light) }
         }
 
@@ -120,8 +124,8 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         GlStateManager._bindTexture(texture)
         GlStateManager._activeTexture(activeTexture)
 
-        GL33.glBindVertexArray(0)
-        GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, 0)
+        GL33.glBindVertexArray(currentVAO)
+        GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
         GlStateManager._glUseProgram(0)
 
         NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.clear()
@@ -146,15 +150,18 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
 
         lerpBodyRot *= 0.017453292f
 
-        return Matrix4f().rotation(Quaternionf(0f, Mth.sin(lerpBodyRot / 2.0f), 0f, Mth.cos(lerpBodyRot / 2.0f))).mul(node.globalMatrix)
+        return Matrix4f().rotation(Quaternionf(0f, Mth.sin(lerpBodyRot / 2.0f), 0f, Mth.cos(lerpBodyRot / 2.0f)))
+            .mul(node.globalMatrix)
     }
 
     fun findRotation(name: String): Quaternionf {
         val node = nodes[name] ?: return Quaternionf(0.0f, 0.0f, 0.0f, 1.0f)
         return node.globalRotation
     }
-}
 
-private fun Vector4f.isNotEmpty(): Boolean {
-    return x() != 0f || y() != 0f || z() != 0f || w() != 0f
+    companion object {
+        val SHADER get() =
+            if (shouldOverrideShaders()) GameRenderer.getRendertypeEntityCutoutShader()!!
+            else ModShaders.GLTF_ENTITY // Ванильный шейдер не поддерживает матрицу нормалей
+    }
 }

@@ -41,6 +41,7 @@ import net.minecraft.world.item.ItemStack
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3d
+import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
 import kotlin.math.atan
 import kotlin.math.min
 
@@ -94,16 +95,21 @@ fun LivingEntity.render(
     xRot = -rotationY * 20f
     yHeadRot = yRot
     yHeadRotO = yRot
+    val old = isCustomNameVisible
+    isCustomNameVisible = false
     renderDispatcher.setRenderShadow(false)
     RenderSystem.runAsFancy {
         renderDispatcher.render(
             this, 0.0, 0.0, 0.0, 0.0f, 1.0f, stack, Minecraft.getInstance().renderBuffers().bufferSource(), 15728880
         )
     }
+
     RenderSystem.disableDepthTest()
     Minecraft.getInstance().renderBuffers().bufferSource().endBatch()
     RenderSystem.enableDepthTest()
+
     renderDispatcher.setRenderShadow(true)
+    isCustomNameVisible = old
     yBodyRot = yBodyRotOld
     yRot = yRotOld
     xRot = xRotOld
@@ -147,9 +153,20 @@ fun renderItemDecorations(stack: ItemStack, poseStack: PoseStack, x: Int, y: Int
         val j = stack.barColor
         val k = (x + width * 0.125f).toInt()
         val l = (y + height * 0.8125f).toInt()
-        fill(poseStack,RenderType.guiOverlay(),k,l,(k + width * 0.8125f).toInt(),(l + height * 0.125f).toInt(), 0,-16777216)
-        fill(poseStack, RenderType.guiOverlay(), k, l, (k + i * width).toInt(),
-            (l + height * 0.0625f).toInt(), 10, ARGB32.opaque(j))
+        fill(
+            poseStack,
+            RenderType.guiOverlay(),
+            k,
+            l,
+            (k + width * 0.8125f).toInt(),
+            (l + height * 0.125f).toInt(),
+            0,
+            -16777216
+        )
+        fill(
+            poseStack, RenderType.guiOverlay(), k, l, (k + i * width).toInt(),
+            (l + height * 0.0625f).toInt(), 10, ARGB32.opaque(j)
+        )
     }
     Minecraft.getInstance().player?.cooldowns?.getCooldownPercent(
         stack.item, Minecraft.getInstance().timer.getGameTimeDeltaPartialTick(true)
