@@ -112,6 +112,12 @@ subprojects {
                 "org.jetbrains.kotlin:kotlin-reflect:1.9.22",
                 "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.7.0-RC",
                 "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.9.0-RC",
+                "org.jetbrains.kotlin:kotlin-scripting-jvm:2.0.0",
+                "org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.0.0",
+                "org.jetbrains.kotlin:kotlin-script-runtime:2.0.0",
+                "org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.0",
+                "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.0.0",
+                "org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.0.0",
                 "com.akuleshov7:ktoml-core-jvm:0.5.1",
                 "org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.4.0", // For KToml
                 "io.github.classgraph:classgraph:4.8.173",

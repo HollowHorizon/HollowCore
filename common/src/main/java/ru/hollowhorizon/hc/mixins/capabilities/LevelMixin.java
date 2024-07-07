@@ -30,15 +30,4 @@ public class LevelMixin implements ICapabilityDispatcher {
         ICapabilityDispatcherKt.initialize(this);
     }
 
-
-
-//    @Inject(method = "saveWithoutId", at = @At("TAIL"))
-//    private void serializeExtra(CompoundTag tag, CallbackInfoReturnable<CompoundTag> cir) {
-//        ICapabilityDispatcherKt.serializeCapabilities(this, tag);
-//    }
-//
-//    @Inject(method = "load", at = @At("TAIL"))
-//    private void deserializeExtra(CompoundTag tag, CallbackInfo ci) {
-//        ICapabilityDispatcherKt.deserializeCapabilities(this, tag);
-//    }
 }

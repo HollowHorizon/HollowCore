@@ -87,7 +87,7 @@ fun ResultWithDiagnostics.Failure.errors(): List<String> = reports.map { diagnos
 
 object ScriptingCompiler {
 
-    inline fun <reified T : Any> compileText(text: String): CompiledScript {
+    suspend inline fun <reified T : Any> compileText(text: String): CompiledScript {
         val hostConfiguration = AbstractHollowScriptHost()
 
         val compilationConfiguration = createCompilationConfigurationFromTemplate(
@@ -96,23 +96,39 @@ object ScriptingCompiler {
             HollowCore::class
         ) {}
 
-        return runBlocking {
-            val compiler = JvmScriptCompiler(hostConfiguration)
-            val compiled = compiler(StringScriptSource(text), compilationConfiguration)
 
-            return@runBlocking CompiledScript(
-                "script.kts", "",
-                compiled.valueOrNull(), File("").resolve("script.kts")
-            ).apply {
-                if (compiled.isError()) {
-                    this.errors = if (compiled.isError()) (compiled as ResultWithDiagnostics.Failure).errors() else null
+        val compiler = JvmScriptCompiler(hostConfiguration)
+        val compiled = compiler(StringScriptSource(text), compilationConfiguration)
+
+        return CompiledScript(
+            "script.kts", "",
+            compiled.valueOrNull(), File("").resolve("script.kts")
+        ).apply {
+            if (compiled.isError()) {
+                val errors = compiled.reports.map {
+                    ScriptError(
+                        Severity.entries[it.severity.ordinal],
+                        it.message,
+                        it.sourcePath ?: "",
+                        it.location?.start?.line ?: 0,
+                        it.location?.start?.col ?: 0,
+                        it.exception
+                    )
                 }
 
+                val event = ScriptErrorEvent(null, ErrorType.COMPILATION_ERROR, errors)
+                event.post()
+                if (!event.isCanceled) {
+                    this.errors =
+                        if (compiled.isError()) (compiled as ResultWithDiagnostics.Failure).errors() else null
+                }
             }
+
         }
+
     }
 
-    inline fun <reified T : Any> compileFile(script: File): CompiledScript {
+    suspend inline fun <reified T : Any> compileFile(script: File): CompiledScript {
         val hostConfiguration = AbstractHollowScriptHost()
 
         val compilationConfiguration = createCompilationConfigurationFromTemplate(
@@ -121,48 +137,47 @@ object ScriptingCompiler {
             HollowCore::class
         ) {}
 
-        return runBlocking {
-            val compiledJar = script.absoluteFile.parentFile.resolve(script.name + ".jar")
-            val hashcode = script.readText().hashCode().toString()
+        val compiledJar = script.absoluteFile.parentFile.resolve(script.name + ".jar")
+        val hashcode = script.readText().hashCode().toString()
 
-            if (compiledJar.exists() && compiledJar.loadScriptHashCode() == hashcode) {
-                return@runBlocking CompiledScript(
-                    script.name, hashcode,
-                    compiledJar.loadScriptFromJar(), script
-                )
-            }
-
-            val compiler = JvmScriptCompiler(hostConfiguration)
-            val compiled = compiler(FileScriptSource(script), compilationConfiguration)
-
-            return@runBlocking CompiledScript(
+        if (compiledJar.exists() && compiledJar.loadScriptHashCode() == hashcode) {
+            return CompiledScript(
                 script.name, hashcode,
-                compiled.valueOrNull(), script
-            ).apply {
-                if (compiled.isError()) {
-                    val errors = compiled.reports.map {
-                        ScriptError(
-                            Severity.entries[it.severity.ordinal],
-                            it.message,
-                            it.sourcePath ?: "",
-                            it.location?.start?.line ?: 0,
-                            it.location?.start?.col ?: 0,
-                            it.exception
-                        )
-                    }
+                compiledJar.loadScriptFromJar(), script
+            )
+        }
 
-                    val event = ScriptErrorEvent(script, ErrorType.COMPILATION_ERROR, errors)
-                    event.post()
-                    if (event.isCanceled) {
-                        this.errors =
-                            if (compiled.isError()) (compiled as ResultWithDiagnostics.Failure).errors() else null
-                    }
-                } else {
-                    save(compiledJar)
-                    ScriptCompiledEvent(script).post()
+        val compiler = JvmScriptCompiler(hostConfiguration)
+        val compiled = compiler(FileScriptSource(script), compilationConfiguration)
+
+        return CompiledScript(
+            script.name, hashcode,
+            compiled.valueOrNull(), script
+        ).apply {
+            if (compiled.isError()) {
+                val errors = compiled.reports.map {
+                    ScriptError(
+                        Severity.entries[it.severity.ordinal],
+                        it.message,
+                        it.sourcePath ?: "",
+                        it.location?.start?.line ?: 0,
+                        it.location?.start?.col ?: 0,
+                        it.exception
+                    )
                 }
 
+                val event = ScriptErrorEvent(script, ErrorType.COMPILATION_ERROR, errors)
+                event.post()
+                if (!event.isCanceled) {
+                    this.errors =
+                        if (compiled.isError()) (compiled as ResultWithDiagnostics.Failure).errors() else null
+                }
+            } else {
+                save(compiledJar)
+                ScriptCompiledEvent(script).post()
             }
+
+
         }
     }
 

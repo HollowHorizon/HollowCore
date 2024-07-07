@@ -24,15 +24,20 @@
 package ru.hollowhorizon.hc
 
 
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.apache.logging.log4j.Logger
-import ru.hollowhorizon.hc.api.HollowMod
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.common.HollowCoreCommon
 import ru.hollowhorizon.hc.common.config.HollowCoreConfig
 import ru.hollowhorizon.hc.common.config.hollowConfig
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor.initMod
+import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler
+import ru.hollowhorizon.hc.common.scripting.kotlin.HollowScript
 
 
+@OptIn(DelicateCoroutinesApi::class)
 object HollowCore {
     const val MODID: String = "hollowcore"
     lateinit var platform: Platform
@@ -43,7 +48,10 @@ object HollowCore {
 
 
     init {
-        config.save()
+        GlobalScope.launch {
+            ScriptingCompiler.compileText<HollowScript>("ru.hollowhorizon.hc.HollowCore.LOGGER.info(\"HollowCore Scripting Engine loaded!\")")
+                .execute()
+        }
         HollowCoreCommon
 
         initMod()
@@ -54,12 +62,5 @@ object HollowCore {
 
     enum class Platform {
         FABRIC, FORGE, NEOFORGE
-    }
-}
-
-@HollowMod
-object HCTest {
-    init {
-        HollowCore.LOGGER.info("Some mod loading")
     }
 }
