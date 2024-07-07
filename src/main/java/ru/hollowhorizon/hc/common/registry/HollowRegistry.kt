@@ -199,5 +199,7 @@ object RegistryLoader {
         }
 
         REGISTRIES.clear()
+
+        HollowPack.close()
     }
 }

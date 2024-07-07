@@ -28,6 +28,8 @@ import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import dev.ftb.mods.ftbteams.data.TeamBase
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import net.coderbot.iris.Iris
+import net.coderbot.iris.pipeline.newshader.CoreWorldRenderingPipeline
 import net.irisshaders.iris.api.v0.IrisApi
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
@@ -47,8 +49,6 @@ import net.minecraft.world.item.ItemStack
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import net.minecraftforge.common.capabilities.ICapabilityProvider
-import net.minecraftforge.eventbus.api.Event
-import net.minecraftforge.eventbus.api.IEventBus
 import net.minecraftforge.fml.ModList
 import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.fml.loading.FMLLoader
@@ -59,7 +59,6 @@ import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.CapabilityStorage
 import ru.hollowhorizon.hc.common.ui.Anchor
 import java.io.InputStream
-import java.util.function.Consumer
 import kotlin.reflect.KClass
 
 
@@ -74,7 +73,10 @@ val isPhysicalServer get() = !isPhysicalClient
 
 val hasShaders get() = ModList.get().isLoaded("oculus") || ModList.get().isLoaded("optifine")
 
-val areShadersEnabled get() = hasShaders && IrisApi.getInstance().config.areShadersEnabled()
+val areShadersEnabled get() = hasShaders && isDeferred()
+
+fun isDeferred() =
+    (Iris.getPipelineManager().pipelineNullable as? CoreWorldRenderingPipeline)?.shouldOverrideShaders() == true
 
 fun fromJava(clazz: Class<*>) = clazz.kotlin
 
