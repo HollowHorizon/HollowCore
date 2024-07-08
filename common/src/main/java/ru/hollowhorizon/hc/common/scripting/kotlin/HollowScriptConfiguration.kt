@@ -1,7 +1,6 @@
 package ru.hollowhorizon.hc.common.scripting.kotlin
 
-import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.utils.isProduction
+import ru.hollowhorizon.hc.common.scripting.ScriptingLogger
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
@@ -9,7 +8,10 @@ import kotlin.script.experimental.host.FileBasedScriptSource
 import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.getScriptingClass
-import kotlin.script.experimental.jvm.*
+import kotlin.script.experimental.jvm.JvmGetScriptingClass
+import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
+import kotlin.script.experimental.jvm.jvm
+import kotlin.script.experimental.jvm.updateClasspath
 import kotlin.script.experimental.jvm.util.classpathFromClassloader
 
 class HollowScriptConfiguration : AbstractHollowScriptConfiguration({})
@@ -34,27 +36,12 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
             "-Xadd-modules=ALL-MODULE-PATH" //Loading kotlin from shadowed jar
         )
 
-        //Скорее всего в этом случае этот класс был загружен через IDE, поэтому получить моды и classpath автоматически нельзя
-        if (true || isProduction) {
-            dependenciesFromCurrentContext(wholeClasspath = true)
-            return@jvm
-        }
+        dependenciesFromCurrentContext(wholeClasspath = true)
 
-        //val stdLib = ModList.get().getModFileById(KotlinScriptForForge.MODID).file.filePath.toFile().absolutePath
-        //System.setProperty("kotlin.java.stdlib.jar", stdLib)
+        val files = File("mods").walk().filter { it.name.endsWith(".jar") }.toList()
 
-        val files = HashSet<File>()
-
-        //files.addAll(ModList.get().mods.map { File(it.owningFile.file.filePath.absolutePathString()) })
-        //FMLLoader.getGamePath().resolve("mods").toFile().listFiles()?.forEach(files::add)
-        //files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherModPaths.flatten().map { File(it.absolutePathString()) })
-        //files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.otherArtifacts.map { File(it.absolutePathString()) })
-        //files.addAll(FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map { File(it.absolutePathString()) })
-
-        dependenciesFromClassContext(HollowScriptConfiguration::class, wholeClasspath = true)
-
-        files.removeIf { it.isDirectory }
-        updateClasspath(files.distinct().sortedBy { it.absolutePath }.onEach { HollowCore.LOGGER.info(it.absolutePath) })
+        updateClasspath(files.distinct().sortedBy { it.absolutePath }
+            .onEach { ScriptingLogger.LOGGER.info("Loading library: {}", it) })
     }
 
     defaultImports(

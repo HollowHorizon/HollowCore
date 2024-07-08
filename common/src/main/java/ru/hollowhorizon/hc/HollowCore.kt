@@ -27,6 +27,7 @@ package ru.hollowhorizon.hc
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import net.minecraft.client.Minecraft
 import org.apache.logging.log4j.Logger
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.common.HollowCoreCommon
@@ -35,6 +36,7 @@ import ru.hollowhorizon.hc.common.config.hollowConfig
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor.initMod
 import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler
 import ru.hollowhorizon.hc.common.scripting.kotlin.HollowScript
+import java.io.File
 
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -49,8 +51,17 @@ object HollowCore {
 
     init {
         GlobalScope.launch {
-            ScriptingCompiler.compileText<HollowScript>("ru.hollowhorizon.hc.HollowCore.LOGGER.info(\"HollowCore Scripting Engine loaded!\")")
-                .execute()
+            val file = ScriptingCompiler.compileText<HollowScript>(
+                """
+                import ru.hollowhorizon.hc.HollowCore
+                import net.minecraft.client.Minecraft
+                
+                HollowCore.LOGGER.info("Current Script: {}", Minecraft.getInstance().screen)
+                """.trimIndent()
+            )
+
+            file.save(File("example.jar"))
+            file.execute()
         }
         HollowCoreCommon
 
