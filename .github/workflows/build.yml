@@ -41,3 +41,7 @@ jobs:
           title: "[AUTOMATIC BUILD 1.21]"
           files: |
             build/libs/*.jar
+            common/build/libs/*.jar
+            fabric/build/libs/*.jar
+            forge/build/libs/*.jar
+            neoforge/build/libs/*.jar
