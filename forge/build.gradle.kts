@@ -43,7 +43,7 @@ configurations.configureEach {
 }
 
 base {
-    archivesName = "$mod_name-forge-$minecraft_version"
+    archivesName = "$mod_name-forge"
 }
 
 dependencies {
