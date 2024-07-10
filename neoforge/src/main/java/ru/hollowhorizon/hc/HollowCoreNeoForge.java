@@ -28,6 +28,8 @@ public class HollowCoreNeoForge {
         HollowCore.platform = HollowCore.Platform.NEOFORGE;
         var events = NeoForgeEvents.INSTANCE;
 
+        TabInitializer.init()
+
         if (FMLEnvironment.dist.isClient()) new HollowCoreClientNeoForge();
     }
 }

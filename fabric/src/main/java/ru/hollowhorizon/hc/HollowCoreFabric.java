@@ -24,6 +24,8 @@ public class HollowCoreFabric implements ModInitializer {
         HollowCore.platform = HollowCore.Platform.FABRIC;
         var events = FabricEvents.INSTANCE;
 
+        TabInitializer.init()
+
         NetworkHelper.register();
     }
 }
