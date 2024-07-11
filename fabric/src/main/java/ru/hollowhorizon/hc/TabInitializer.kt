@@ -5,7 +5,7 @@ import ru.hollowhorizon.hc.common.registry._tabCallback
 
 object TabInitializer {
     @JvmStatic
-    fun create() {
+    fun init() {
         val builder = FabricItemGroup.builder()
         _tabCallback = {
             builder.apply(it)
