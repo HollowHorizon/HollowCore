@@ -40,4 +40,8 @@ jobs:
           prerelease: false
           title: "[AUTOMATIC BUILD 1.21]"
           files: |
+            common/build/libs/*.jar
             build/libs/*.jar
+            fabric/build/libs/*.jar
+            forge/build/libs/*.jar
+            neoforge/build/libs/*.jar
