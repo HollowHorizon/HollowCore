@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.client.screens
 
+import com.mojang.blaze3d.platform.InputConstants
 import imgui.ImGui
 import imgui.extension.texteditor.TextEditor
 import imgui.flag.ImGuiCol
@@ -23,6 +24,7 @@ import org.jetbrains.kotlin.resolve.LazyTopDownAnalyzer
 import org.jetbrains.kotlin.resolve.TopDownAnalysisMode
 import org.jetbrains.kotlin.resolve.lazy.declarations.FileBasedDeclarationProviderFactory
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingServices
+import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler
@@ -31,6 +33,7 @@ import ru.hollowhorizon.hc.common.scripting.kotlin.HollowScript
 import ru.hollowhorizon.hc.common.scripting.kotlin.completions
 
 class CodeEditor : Screen(Component.empty()) {
+    var popup: Boolean = false
     val editor = TextEditor()
     var completions = arrayListOf<String>()
     var index = 0
@@ -39,6 +42,7 @@ class CodeEditor : Screen(Component.empty()) {
     override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
         renderBackground(guiGraphics, mouseX, mouseY, partialTick)
         ImGuiHandler.drawFrame {
+            button("Закрыть") { onClose() }
             editor.render("TextEditor")
             if (editor.isTextChanged) {
                 val text = editor.text
@@ -54,16 +58,33 @@ class CodeEditor : Screen(Component.empty()) {
                 newIndex += column
                 index = newIndex - 1
 
-                if (index >= 0 && index < text.length && text[index] == '.') {
+                if (index >= 0 && index < text.length) {
                     GlobalScope.launch {
                         ScriptingCompiler.compileText<HollowScript>(text)
                     }
                 }
             }
 
-            if (completions.isNotEmpty()) {
+            if (popup) {
                 ImGui.openPopup("completions")
+                popup = false
+            }
+            if (completions.isNotEmpty()) {
                 if (ImGui.beginPopup("completions")) {
+                    val array = (GLFW.GLFW_KEY_SPACE..GLFW.GLFW_KEY_Z).toMutableList()
+                    array.add(GLFW.GLFW_KEY_BACKSPACE)
+
+                    for (i in array) {
+                        if (InputConstants.isKeyDown(Minecraft.getInstance().window.window, i)) {
+                            ImGui.closeCurrentPopup()
+                            if (i != GLFW.GLFW_KEY_BACKSPACE) {
+                                val char = if (hasShiftDown()) Char(i).uppercase()
+                                else Char(i).lowercase()
+                                editor.insertText(char)
+                            }
+                            break
+                        }
+                    }
                     ImGui.beginChild("#internal", minecraft!!.window.height * 0.7f, minecraft!!.window.width / 3f)
                     var close = false
                     completions.forEach {
@@ -79,14 +100,18 @@ class CodeEditor : Screen(Component.empty()) {
                         ImGui.popStyleColor()
                     }
                     ImGui.endChild()
-                    if (close) {
-                        completions.clear()
-                        ImGui.closeCurrentPopup()
-                    }
+                    if (close) ImGui.closeCurrentPopup()
                     ImGui.endPopup()
+                }
+                if (!ImGui.isPopupOpen("completions")) {
+                    completions.clear()
                 }
             }
         }
+    }
+
+    override fun shouldCloseOnEsc(): Boolean {
+        return false
     }
 }
 
@@ -104,6 +129,7 @@ fun onEvent(event: AfterCodeAnalysisEvent) {
 
     val services = container.get<ExpressionTypingServices>()
 
+    screen.popup = true
     screen.completions.clear()
     screen.completions += completions(module, trace, event.sourceFiles.first(), screen.index - 1)
 }

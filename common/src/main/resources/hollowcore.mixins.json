@@ -27,7 +27,7 @@
     "scripting.ClassIdMixin",
     "scripting.JvmCompilationUtilMixin",
     "scripting.SlicedMapImplAccessor",
-    "scripting.TopDownAnalyzerFacadeMixin"
+    "scripting.ScriptJvmCompilerImplsMixin"
   ],
   "client": [
     "FontManagerAccessor",
