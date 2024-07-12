@@ -27,7 +27,6 @@ package ru.hollowhorizon.hc
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import net.minecraft.client.Minecraft
 import org.apache.logging.log4j.Logger
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.common.HollowCoreCommon
@@ -56,7 +55,7 @@ object HollowCore {
                 import ru.hollowhorizon.hc.HollowCore
                 import net.minecraft.client.Minecraft
                 
-                HollowCore.LOGGER.info("Current Script: {}", Minecraft.getInstance().screen)
+                HollowCore.LOGGER.info("Current Script: {}", Minecraft.getInstance().)
                 """.trimIndent()
             )
 

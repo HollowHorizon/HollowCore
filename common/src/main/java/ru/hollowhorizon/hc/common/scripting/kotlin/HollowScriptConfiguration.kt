@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.common.scripting.kotlin
 
+import org.jetbrains.kotlin.scripting.resolve.KtFileScriptSource
 import ru.hollowhorizon.hc.common.scripting.ScriptingLogger
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
@@ -19,7 +20,9 @@ class HollowScriptConfiguration : AbstractHollowScriptConfiguration({})
 @KotlinScript(
     "HollowScript", "ks.kts", compilationConfiguration = HollowScriptConfiguration::class
 )
-abstract class HollowScript
+abstract class HollowScript {
+    var name = "HelloWorld"
+}
 
 class AbstractHollowScriptHost : ScriptingHostConfiguration({
     getScriptingClass(JvmGetScriptingClass())

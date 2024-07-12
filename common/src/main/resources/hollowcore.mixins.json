@@ -23,8 +23,11 @@
     "capabilities.EntityMixin",
     "capabilities.LevelMixin",
     "scripting.BinaryJavaClassMixin",
+    "scripting.BindingTraceContextAccessor",
+    "scripting.ClassIdMixin",
     "scripting.JvmCompilationUtilMixin",
-    "scripting.ClassIdMixin"
+    "scripting.SlicedMapImplAccessor",
+    "scripting.TopDownAnalyzerFacadeMixin"
   ],
   "client": [
     "FontManagerAccessor",

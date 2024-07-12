@@ -24,7 +24,6 @@
 
 package ru.hollowhorizon.hc.common.scripting
 
-import kotlinx.coroutines.runBlocking
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.scripting.*
@@ -98,14 +97,15 @@ object ScriptingCompiler {
 
 
         val compiler = JvmScriptCompiler(hostConfiguration)
-        val compiled = compiler(StringScriptSource(text), compilationConfiguration)
+        val result = compiler(StringScriptSource(text), compilationConfiguration)
+
 
         return CompiledScript(
             "script.kts", "",
-            compiled.valueOrNull(), File("").resolve("script.kts")
+            result.valueOrNull(), File("").resolve("script.kts")
         ).apply {
-            if (compiled.isError()) {
-                val errors = compiled.reports.map {
+            if (result.isError()) {
+                val errors = result.reports.map {
                     ScriptError(
                         Severity.entries[it.severity.ordinal],
                         it.message,
@@ -120,7 +120,7 @@ object ScriptingCompiler {
                 event.post()
                 if (!event.isCanceled) {
                     this.errors =
-                        if (compiled.isError()) (compiled as ResultWithDiagnostics.Failure).errors() else null
+                        if (result.isError()) (result as ResultWithDiagnostics.Failure).errors() else null
                 }
             }
 

@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.common.scripting
 
-import kotlinx.coroutines.runBlocking
 import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.scripting.*
 import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler.saveScriptToJar
@@ -9,7 +8,6 @@ import kotlin.script.experimental.api.*
 import kotlin.script.experimental.api.CompiledScript
 import kotlin.script.experimental.jvm.BasicJvmScriptEvaluator
 import kotlin.script.experimental.jvm.impl.KJvmCompiledScript
-import kotlin.script.experimental.jvm.util.isError
 
 data class CompiledScript(
     val scriptName: String,
@@ -39,7 +37,7 @@ data class CompiledScript(
 
 
         if (result is ResultWithDiagnostics.Success) ScriptStartedEvent(scriptFile)
-        else if(result is ResultWithDiagnostics.Failure) {
+        else if (result is ResultWithDiagnostics.Failure) {
             val errors = result.reports.map {
                 ScriptError(
                     Severity.entries[it.severity.ordinal],
