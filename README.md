@@ -1,17 +1,18 @@
 # HollowCore
-HollowCore is a minecraft modding library by [HollowHorizon](https://github.com/HollowHorizon). It is designed to be a lightweight, easy to use, and powerful library for more easily creating minecraft mods. It is designed to be used with Forge.
+HollowCore is a minecraft modding library by [HollowHorizon](https://github.com/HollowHorizon). It is an easy to use and powerful library for easier creation of minecraft mods for Fabric, Forge and NeoForge.
 
 ## Features
-- [x] Easier registration of blocks, items, and tile entities using annotations. (also automatic model generation and renderers registration is required)
-- [x] NBT serialization and deserialization of objects using Kotlinx.Serialization.
-- [x] A simple and easy to creating gui's using special layout. (also easy to posing objects, and some widgets, for example lists, buttons, and navigation fields)
-- [x] A simple and easy to use networking system, without any serialization or deserialization required.
-- [x] Easier capabilities' system, without serialization and auto-generated providers for Entities, Tiles, Worlds and Chunks.
-- [x] GLTF model loading and rendering. (Deprecated)
-- [x] Automatic configuration file generation and loading with annotations. (maybe in future it will be possible to use it with gui and Kotlinx.Serialization)
+### Integration with ModLoaders
+- [x] Universal Registration system to register blocks, items, block entities, etc. using kotlin delegates.
+- [x] Universal Packet system with automatic serialization and registration using annotations.
+- [x] Universal Capabilities system to storing nbt in entities, block entities and worlds. 
+- [x] Universal EventBus system for all modloaders and basic events.
+### Easier development
+- [x] Automatic models generation for blocks and items using embed resourcepack.
+- [x] NBT serialization and deserialization of any objects using Kotlinx.Serialization.
+- [x] Toml Config system based on KotlinX Serialization.
 - [x] Automatic sounds.json generation.
-
-## Work In Progress
-- [ ] Assimp model loading (gltf, fbx, obj and some more)
-- [ ] Post Processing, Shaders (visual effects, particles)
-- [ ] Gui Framework (May be something like JCEF)
+### Graphics
+- [x] ImGui based framework: basic elements, items, entities, containers, slots, etc. 
+- [x] GLTF models support includes skeletal animations, skinning, morph targets, PBR materials with Iris/Oculus support.
+- [x] Effekseer particles support.
