@@ -25,7 +25,6 @@
 package ru.hollowhorizon.hc.client.utils
 
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.blaze3d.vertex.MeshData
 import com.mojang.blaze3d.vertex.PoseStack
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.minecraft.client.Minecraft
@@ -75,10 +74,6 @@ lateinit var isModLoaded: (modid: String) -> Boolean
 lateinit var currentServer: MinecraftServer
 lateinit var shouldOverrideShaders: () -> Boolean
 
-fun test(buffer: MeshData) {
-    HollowCore.LOGGER.warn("HollowCore test")
-}
-
 val registryAccess: RegistryAccess
     get() = if (currentServer is IntegratedServer) Minecraft.getInstance().connection!!.registryAccess()
     else currentServer.registryAccess()
@@ -88,8 +83,13 @@ fun fromJava(clazz: Class<*>) = clazz.kotlin
 
 operator fun <O, T : CapabilityInstance> O.get(capability: KClass<T>): T = get(capability.java)
 
-operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T =
-    (this as ICapabilityDispatcher).capabilities.first { it.javaClass == capability } as T
+@Suppress("UNCHECKED_CAST")
+operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T = when (this) {
+
+
+    is ICapabilityDispatcher -> this.capabilities.first { it.javaClass == capability } as T
+    else -> throw IllegalStateException("Unsupported capability type: $capability")
+}
 
 val String.rl get() = ResourceLocation.parse(this)
 
@@ -107,7 +107,10 @@ val ResourceLocation.stream: InputStream
     get() = HollowJavaUtils.getResource(this)
 
 val PLACEHOLDER: MutableComponent get() = Component.empty()
+
+@Deprecated("Use String.literal instead.", ReplaceWith("this.literal"))
 val String.mcText: MutableComponent get() = Component.literal(this)
+val String.literal: MutableComponent get() = Component.literal(this)
 val String.mcTranslate: MutableComponent get() = Component.translatable(this)
 fun String.mcTranslate(vararg args: Any) = Component.translatable(this, *args)
 

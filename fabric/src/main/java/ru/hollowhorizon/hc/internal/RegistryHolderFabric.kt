@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.internal
 
 import net.minecraft.core.Registry
+import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
@@ -41,6 +42,7 @@ class RegistryHolderFabric<T : Any>(
             CreativeModeTab::class.java.isAssignableFrom(this) -> BuiltInRegistries.CREATIVE_MODE_TAB
             MenuType::class.java.isAssignableFrom(this) -> BuiltInRegistries.MENU
             ParticleType::class.java.isAssignableFrom(this) -> BuiltInRegistries.PARTICLE_TYPE
+            DataComponentType::class.java.isAssignableFrom(this) -> BuiltInRegistries.DATA_COMPONENT_TYPE
 
             registry != null -> registry
 

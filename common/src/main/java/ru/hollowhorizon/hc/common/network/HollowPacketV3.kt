@@ -49,7 +49,7 @@ interface HollowPacketV3<T : HollowPacketV3<T>> : CustomPacketPayload {
     }
 
     override fun type() =
-        CustomPacketPayload.Type<T>(ResourceLocation.fromNamespaceAndPath(MODID, javaClass.name.lowercase()))
+        CustomPacketPayload.Type<T>(ResourceLocation.fromNamespaceAndPath(MODID, javaClass.name.lowercase().replace("\$", ".")))
 }
 
 fun HollowPacketV3<*>.sendTrackingEntity(entity: Entity) {

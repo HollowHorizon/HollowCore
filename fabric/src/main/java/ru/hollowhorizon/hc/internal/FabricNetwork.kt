@@ -14,10 +14,11 @@ import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
+import ru.hollowhorizon.hc.common.network.RequestPacket
 
 fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
     val annotation = type.getAnnotation(HollowPacketV2::class.java)
-    val location = CustomPacketPayload.Type<T>(ResourceLocation.fromNamespaceAndPath(MODID, type.name.lowercase()))
+    val location = CustomPacketPayload.Type<T>(ResourceLocation.fromNamespaceAndPath(MODID, type.name.lowercase().replace("\$", ".")))
 
     val codec: StreamCodec<RegistryFriendlyByteBuf, T> = CustomPacketPayload.codec(
         { packet, buffer ->

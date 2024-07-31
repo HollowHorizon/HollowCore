@@ -5,7 +5,7 @@ plugins {
     java
     `maven-publish`
     id("architectury-plugin") version "3.4-SNAPSHOT"
-    id("dev.architectury.loom") version "1.6-SNAPSHOT" apply false
+    id("dev.architectury.loom") version "1.7-SNAPSHOT" apply false
     id("io.github.pacifistmc.forgix") version "1.2.9"
     kotlin("jvm")
     kotlin("plugin.serialization")
@@ -219,6 +219,7 @@ allprojects {
     }
 
     tasks {
+
         jar {
             from("LICENSE") {
                 rename { "${it}_${modName}" }

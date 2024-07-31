@@ -26,8 +26,8 @@
     "scripting.BindingTraceContextAccessor",
     "scripting.ClassIdMixin",
     "scripting.JvmCompilationUtilMixin",
-    "scripting.SlicedMapImplAccessor",
-    "scripting.ScriptJvmCompilerImplsMixin"
+    "scripting.ScriptJvmCompilerImplsMixin",
+    "scripting.SlicedMapImplAccessor"
   ],
   "client": [
     "FontManagerAccessor",

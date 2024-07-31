@@ -14,6 +14,7 @@ import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
 import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityAttributesEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
+import ru.hollowhorizon.hc.common.events.server.ServerEvent
 
 object ForgeEvents {
     init {
@@ -72,5 +73,6 @@ object ForgeEvents {
 
     private fun onServerStart(event: ServerAboutToStartEvent) {
         currentServer = event.server
+        ServerEvent.Started(currentServer).post()
     }
 }

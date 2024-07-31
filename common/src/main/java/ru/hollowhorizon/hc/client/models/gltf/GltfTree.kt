@@ -46,6 +46,7 @@ import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.io.EOFException
 import java.io.InputStream
+import java.nio.BufferUnderflowException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -278,13 +279,18 @@ object GltfTree {
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun ByteBuffer.next(type: GltfComponentType): Number {
-        return when (type) {
-            GltfComponentType.BYTE -> get()
-            GltfComponentType.UNSIGNED_BYTE -> readUByte()
-            GltfComponentType.SHORT -> short
-            GltfComponentType.UNSIGNED_SHORT -> readUShort()
-            GltfComponentType.UNSIGNED_INT -> readUInt()
-            GltfComponentType.FLOAT -> float
+        try {
+            return when (type) {
+                GltfComponentType.BYTE -> get()
+                GltfComponentType.UNSIGNED_BYTE -> readUByte()
+                GltfComponentType.SHORT -> short
+                GltfComponentType.UNSIGNED_SHORT -> readUShort()
+                GltfComponentType.UNSIGNED_INT -> readUInt()
+                GltfComponentType.FLOAT -> float
+            }
+        } catch (ex: BufferUnderflowException) {
+            HollowCore.LOGGER.error("Can't read buffer $type: ", ex)
+            return 0
         }
     }
 

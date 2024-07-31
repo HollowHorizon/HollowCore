@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.internal
 
 import net.minecraft.core.Registry
+import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
@@ -73,6 +74,9 @@ class RegistryHolderNeoForge<T : Any>(
             ParticleType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 BuiltInRegistries.PARTICLE_TYPE,
                 location.namespace
+            )
+            DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+                BuiltInRegistries.DATA_COMPONENT_TYPE.key(), location.namespace
             )
 
             registry != null -> DeferredRegister.create(registry, location.namespace)

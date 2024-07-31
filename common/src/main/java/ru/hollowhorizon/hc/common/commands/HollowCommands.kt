@@ -25,21 +25,54 @@
 package ru.hollowhorizon.hc.common.commands
 
 import com.mojang.brigadier.arguments.StringArgumentType
+import kotlinx.serialization.Serializable
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.components.toasts.SystemToast
+import net.minecraft.client.gui.components.toasts.ToastComponent
 import net.minecraft.commands.arguments.EntityArgument
 import net.minecraft.commands.arguments.ResourceLocationArgument
 import net.minecraft.commands.arguments.coordinates.Vec3Argument
+import net.minecraft.server.level.ServerPlayer
 import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
+import ru.hollowhorizon.hc.client.utils.literal
 import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.coroutines.scopeSync
 import ru.hollowhorizon.hc.common.effects.ParticleEmitterInfo
 import ru.hollowhorizon.hc.common.effects.ParticleHelper
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterCommandsEvent
+import ru.hollowhorizon.hc.common.network.HollowPacketV2
+import ru.hollowhorizon.hc.common.network.RequestPacket
+import ru.hollowhorizon.hc.common.network.request
+
+@HollowPacketV2
+@Serializable
+class ExampleDataPacket(var level: String = "") : RequestPacket<ExampleDataPacket>() {
+    override fun retrieveValue(player: ServerPlayer) {
+        level = player.serverLevel().dimension().location().toString()
+    }
+}
 
 object HollowCommands {
     @SubscribeEvent
     fun onRegisterCommands(event: RegisterCommandsEvent) {
         event.dispatcher.onRegisterCommands {
             "hollowcore" {
+                "test" {
+
+                    // Предположим это запущено с клиента
+                    scopeSync {
+                        val result = ExampleDataPacket().request()
+
+                        Minecraft.getInstance().toasts.addToast(
+                            SystemToast(
+                                SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                                "Уведомление:".literal,
+                                result.level.literal
+                            )
+                        )
+                    }
+                }
 
                 "stop-post" {
                     PostChain.shutdown()

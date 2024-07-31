@@ -27,6 +27,7 @@ package ru.hollowhorizon.hc.common.registry
 import net.minecraft.core.Registry
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.LOGGER
 import kotlin.properties.ReadOnlyProperty
 
 open class HollowRegistry {
@@ -41,7 +42,6 @@ open class HollowRegistry {
         registry: Registry<in T>? = null,
         noinline registryEntry: () -> T,
     ): IRegistryHolder<T> {
-        HollowCore.LOGGER.info("Registering: {}", location)
         return createRegistry(location, registry, autoModel, registryEntry, T::class.java) as IRegistryHolder<T>
     }
 

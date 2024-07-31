@@ -18,6 +18,7 @@ import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.registry.RegisterCommandsEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityAttributesEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
+import ru.hollowhorizon.hc.common.events.server.ServerEvent
 import ru.hollowhorizon.hc.common.events.tick.TickEvent
 import ru.hollowhorizon.hc.internal.DelegatedReloadListener
 
@@ -37,6 +38,7 @@ object FabricEvents {
         })
         ServerLifecycleEvents.SERVER_STARTING.register(ServerLifecycleEvents.ServerStarting {
             currentServer = it
+            ServerEvent.Started(currentServer).post()
         })
     }
 

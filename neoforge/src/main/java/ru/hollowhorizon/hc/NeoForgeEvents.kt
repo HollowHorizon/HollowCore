@@ -8,11 +8,13 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent
 import net.neoforged.neoforge.event.tick.ServerTickEvent
 import ru.hollowhorizon.hc.client.utils.currentServer
+import ru.hollowhorizon.hc.common.events.EventBus
 import ru.hollowhorizon.hc.common.events.EventBus.post
 import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
 import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityAttributesEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
+import ru.hollowhorizon.hc.common.events.server.ServerEvent
 import ru.hollowhorizon.hc.internal.NeoForgeNetworkHelper
 
 object NeoForgeEvents {
@@ -71,5 +73,6 @@ object NeoForgeEvents {
 
     private fun onServerStart(event: ServerAboutToStartEvent) {
         currentServer = event.server
+        ServerEvent.Started(currentServer).post()
     }
 }

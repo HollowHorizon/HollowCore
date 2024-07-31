@@ -66,7 +66,7 @@ object HollowModProcessor {
         val runnables = arrayListOf<Runnable>()
 
         registerClassHandler<HollowPacketV2> { type, _ ->
-            if (HollowPacketV3::class.java in type.interfaces) runnables += Runnable { registerPacket(type) }
+            if (HollowPacketV3::class.java.isAssignableFrom(type)) runnables += Runnable { registerPacket(type) }
             else HollowCore.LOGGER.warn("Unsupported packet: ${type.simpleName}")
         }
 

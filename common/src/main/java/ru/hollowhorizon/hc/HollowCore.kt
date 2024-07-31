@@ -29,9 +29,12 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.apache.logging.log4j.Logger
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
+import ru.hollowhorizon.hc.client.utils.literal
 import ru.hollowhorizon.hc.common.HollowCoreCommon
 import ru.hollowhorizon.hc.common.config.HollowCoreConfig
 import ru.hollowhorizon.hc.common.config.hollowConfig
+import ru.hollowhorizon.hc.common.coroutines.scopeSync
+import ru.hollowhorizon.hc.common.events.greeting
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor.initMod
 import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler
 import ru.hollowhorizon.hc.common.scripting.kotlin.HollowScript
@@ -49,6 +52,10 @@ object HollowCore {
 
 
     init {
+        scopeSync {
+            greeting("Привет из корутин".literal)
+        }
+
         GlobalScope.launch {
             val file = ScriptingCompiler.compileText<HollowScript>(
                 """

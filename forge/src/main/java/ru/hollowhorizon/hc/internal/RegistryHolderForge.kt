@@ -1,7 +1,9 @@
 package ru.hollowhorizon.hc.internal
 
 import net.minecraft.core.Registry
+import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.particles.ParticleType
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
@@ -81,6 +83,9 @@ class RegistryHolderForge<T : Any>(
             ParticleType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 ForgeRegistries.PARTICLE_TYPES,
                 location.namespace
+            )
+            DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+                BuiltInRegistries.DATA_COMPONENT_TYPE.key(), location.namespace
             )
 
             registry != null -> DeferredRegister.create(registry.key(), location.namespace)
