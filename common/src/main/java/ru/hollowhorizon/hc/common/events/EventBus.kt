@@ -45,7 +45,7 @@ object EventBus {
     }
 }
 
-suspend inline fun <reified T : Event> awaitEvent(): T {
+suspend inline fun <reified T : Event> awaitEvent(crossinline isValidCondition: (T) -> Boolean = { true }): T {
     var listener: EventListener<T>? = null
 
     val result: T = suspendCoroutine { continuation ->
@@ -53,7 +53,7 @@ suspend inline fun <reified T : Event> awaitEvent(): T {
         listener = EventListener { event ->
             scopeSync {
                 onMainThreadSync {
-                    continuation.resume(event)
+                    if(isValidCondition(event)) continuation.resume(event)
                 }
             }
         }
@@ -66,12 +66,4 @@ suspend inline fun <reified T : Event> awaitEvent(): T {
     }
 
     return result
-}
-
-suspend fun greeting(message: Component) {
-    val event: ServerEvent.Started = awaitEvent() // Ждём запуска сервера
-
-    val players = awaitEvent<PlayerEvent.Join>() // Ждём хоть 1 игрока
-
-    players.player.sendSystemMessage(message)
 }

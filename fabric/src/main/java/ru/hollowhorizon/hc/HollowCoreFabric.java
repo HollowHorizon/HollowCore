@@ -7,8 +7,7 @@ import ru.hollowhorizon.hc.common.registry.HollowRegistryKt;
 import ru.hollowhorizon.hc.internal.NetworkHelper;
 import ru.hollowhorizon.hc.internal.RegistryHolderFabric;
 
-import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.isModLoaded;
-import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.isProduction_;
+import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.*;
 
 public class HollowCoreFabric implements ModInitializer {
 
@@ -20,6 +19,7 @@ public class HollowCoreFabric implements ModInitializer {
         isModLoaded = FabricLoader.getInstance()::isModLoaded;
         isProduction_ = () -> !FabricLoader.getInstance().isDevelopmentEnvironment();
 
+        isPhysicalClient_ = () -> false;
         var init = HollowCore.INSTANCE; // Loading Main Class
         HollowCore.platform = HollowCore.Platform.FABRIC;
         var events = FabricEvents.INSTANCE;

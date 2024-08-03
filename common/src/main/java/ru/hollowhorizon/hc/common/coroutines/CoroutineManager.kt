@@ -2,8 +2,6 @@ package ru.hollowhorizon.hc.common.coroutines
 
 import kotlinx.coroutines.*
 import net.minecraft.client.Minecraft
-import net.minecraft.world.entity.monster.Zombie
-import ru.hollowhorizon.hc.client.utils.literal
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.server.ServerEvent
 
@@ -27,7 +25,7 @@ fun <T> CoroutineScope.onMainThreadAsync(block: suspend CoroutineScope.() -> T):
 }
 
 private fun waiter(checker: CompletableDeferred<Boolean>, condition: () -> Boolean) {
-    mcCoroutineScope.onMainThreadAsync {
+    mcCoroutineScope.onMainThreadSync {
         if (condition()) checker.complete(true)
         else {
             delay(50L)
@@ -51,23 +49,4 @@ fun onServerStart(event: ServerEvent.Started) {
     mcCoroutineDispatcher = event.server.asCoroutineDispatcher()
     mcCoroutineScope = CoroutineScope(SupervisorJob() + mcCoroutineDispatcher)
     isServerLoaded = true
-}
-
-fun startScript(zombie: Zombie) = scopeSync {
-    zombie.removeAllGoals { true }
-    val server = zombie.server ?: return@scopeSync
-    onMainThreadSync {
-        server.playerList.players.forEach { it.sendSystemMessage("[Зомби] Привет ${it.name.string}!".literal) }
-        delay(5000L)
-        server.playerList.players.forEach { it.sendSystemMessage("[Зомби] Как у тебя дела?".literal) }
-        delay(3000L)
-        server.playerList.players.forEach { it.sendSystemMessage("[Зомби] Окей...".literal) }
-        suspendBy {
-            val nearest = server.playerList.players.minBy { it.distanceTo(zombie) }
-            zombie.navigation.moveTo(nearest, 1.0)
-
-            zombie.distanceTo(nearest) < 5
-        }
-        server.playerList.players.forEach { it.sendSystemMessage("[Зомби] Похоже работает...".literal) }
-    }
 }

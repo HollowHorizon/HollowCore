@@ -7,6 +7,7 @@ import ru.hollowhorizon.hc.client.HollowCoreClient;
 import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.internal.IrisHelper;
 
+import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.isPhysicalClient_;
 import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.shouldOverrideShaders;
 
 public class HollowCoreClientFabric implements ClientModInitializer {
@@ -21,6 +22,7 @@ public class HollowCoreClientFabric implements ClientModInitializer {
             shouldOverrideShaders = () -> false;
         }
 
+        isPhysicalClient_ = () -> true;
         var events = FabricClientEvents.INSTANCE;
         var init = HollowCoreClient.INSTANCE; // Loading Main Class
     }

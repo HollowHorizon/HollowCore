@@ -25,14 +25,15 @@
 package ru.hollowhorizon.hc.common.commands
 
 import com.mojang.brigadier.arguments.StringArgumentType
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.components.toasts.SystemToast
-import net.minecraft.client.gui.components.toasts.ToastComponent
 import net.minecraft.commands.arguments.EntityArgument
 import net.minecraft.commands.arguments.ResourceLocationArgument
 import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.Level
 import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
 import ru.hollowhorizon.hc.client.utils.literal
 import ru.hollowhorizon.hc.client.utils.rl
@@ -40,6 +41,8 @@ import ru.hollowhorizon.hc.common.coroutines.scopeSync
 import ru.hollowhorizon.hc.common.effects.ParticleEmitterInfo
 import ru.hollowhorizon.hc.common.effects.ParticleHelper
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.events.awaitEvent
+import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterCommandsEvent
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.RequestPacket
@@ -60,17 +63,26 @@ object HollowCommands {
             "hollowcore" {
                 "test" {
 
+                    val tasks: List<suspend CoroutineScope.() -> Unit> = listOf(
+                        {
+                            awaitEvent<PlayerEvent.ChangeDimension> { it.to.dimension() != Level.NETHER }
+                        },
+                        {
+                            val result = ExampleDataPacket().request()
+
+                            Minecraft.getInstance().toasts.addToast(
+                                SystemToast(
+                                    SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                                    "Уведомление:".literal,
+                                    result.level.literal
+                                )
+                            )
+                        }
+                    )
+
                     // Предположим это запущено с клиента
                     scopeSync {
-                        val result = ExampleDataPacket().request()
-
-                        Minecraft.getInstance().toasts.addToast(
-                            SystemToast(
-                                SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                "Уведомление:".literal,
-                                result.level.literal
-                            )
-                        )
+                        tasks.forEach { it() }
                     }
                 }
 

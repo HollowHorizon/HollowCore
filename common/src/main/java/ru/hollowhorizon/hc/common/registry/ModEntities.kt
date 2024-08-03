@@ -32,6 +32,6 @@ import ru.hollowhorizon.hc.common.objects.entities.TestEntity
 
 object ModEntities : HollowRegistry() {
     val TEST_ENTITY by register("$MODID:test_entity".rl) {
-        EntityType.Builder.of(::TestEntity, MobCategory.CREATURE).sized(1f, 2f).build("test_entity")
+        EntityType.Builder.of(::TestEntity, MobCategory.CREATURE).sized(0.6f, 1.8f).build("test_entity")
     }
 }

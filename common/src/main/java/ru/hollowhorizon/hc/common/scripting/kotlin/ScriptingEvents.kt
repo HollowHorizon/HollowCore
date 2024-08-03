@@ -1,138 +1,65 @@
 package ru.hollowhorizon.hc.common.scripting.kotlin
 
-import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.load.java.structure.JavaArrayType
-import org.jetbrains.kotlin.load.java.structure.JavaClassifierType
-import org.jetbrains.kotlin.load.java.structure.JavaPrimitiveType
-import org.jetbrains.kotlin.load.java.structure.JavaType
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.cli.jvm.compiler.CliBindingTrace
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
+import org.jetbrains.kotlin.cli.jvm.compiler.TopDownAnalyzerFacadeForJVM
+import org.jetbrains.kotlin.container.ComponentProvider
+import org.jetbrains.kotlin.container.get
+import org.jetbrains.kotlin.container.getService
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtImportDirective
-import org.jetbrains.kotlin.psi.KtNameReferenceExpression
-import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.BindingTrace
-import org.jetbrains.kotlin.resolve.scopes.HierarchicalScope
-import org.jetbrains.kotlin.resolve.scopes.LexicalScope
-import org.jetbrains.kotlin.resolve.scopes.utils.parentsWithSelf
-import org.jetbrains.kotlin.scripting.compiler.plugin.impl.SharedScriptCompilationContext
-import org.jetbrains.kotlin.types.TypeUtils
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
+import org.jetbrains.kotlin.resolve.BindingTraceContext
+import org.jetbrains.kotlin.resolve.LazyTopDownAnalyzer
+import org.jetbrains.kotlin.resolve.TopDownAnalysisMode
+import org.jetbrains.kotlin.resolve.lazy.declarations.FileBasedDeclarationProviderFactory
 import ru.hollowhorizon.hc.client.utils.JavaHacks
 import ru.hollowhorizon.hc.common.events.Event
-import ru.hollowhorizon.hc.common.scripting.util.FieldDescriptor
-import ru.hollowhorizon.hc.common.scripting.util.MethodDescriptor
-import ru.hollowhorizon.hc.common.scripting.util.getMethodsAndVariables
-import ru.hollowhorizon.hc.common.scripting.util.simpleClassName
+import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.events.post
+import ru.hollowhorizon.hc.common.scripting.util.CodeCompletion
+import ru.hollowhorizon.hc.common.scripting.util.ImportDescriptor
 import ru.hollowhorizon.hc.mixins.scripting.BindingTraceContextAccessor
 import ru.hollowhorizon.hc.mixins.scripting.SlicedMapImplAccessor
 import kotlin.script.experimental.api.SourceCode
+import org.jetbrains.kotlin.scripting.compiler.plugin.impl.SharedScriptCompilationContext as ScriptContext
 
-val JavaType.name: String
-    get() {
-        return if (this is JavaClassifierType) {
-            classifier?.name?.asString() ?: throw ClassNotFoundException("$this is not a JavaClassifierType")
-        } else if (this is JavaPrimitiveType) {
-            type?.typeName?.asString() ?: "Void"
-        } else if (this is JavaArrayType) {
-            "Array<${componentType.name}>"
-        } else {
-            "???"
-        }
-    }
+class AfterCodeAnalysisEvent(val context: ScriptContext, val script: SourceCode, val sourceFiles: List<KtFile>) : Event
+class CodeCompletionEvent(val source: SourceCode, val completions: List<CodeCompletion>) : Event
 
-class AfterCodeAnalysisEvent(
-    val context: SharedScriptCompilationContext,
-    val script: SourceCode,
-    val sourceFiles: List<KtFile>,
-) : Event
+var currentCodeIndex = 0
 
-fun completions(module: ModuleDescriptor, trace: BindingTrace, file: KtFile, cursor: Int): List<String> {
-    val elements = file.findElementAt(cursor)?.parentsWithSelf?.filterIsInstance<KtExpression>() ?: return emptyList()
+@SubscribeEvent
+fun onEvent(event: AfterCodeAnalysisEvent) {
+    val environment = event.context.environment
+
+    val (container, trace) = environment.createContainer(event.sourceFiles)
+    val module = container.getService(ModuleDescriptor::class.java)
+
+    container.get<LazyTopDownAnalyzer>()
+        .analyzeDeclarations(TopDownAnalysisMode.TopLevelDeclarations, event.sourceFiles)
 
     val traceAccessor: BindingTraceContextAccessor = JavaHacks.forceCast(trace)
     val mapAccessor: SlicedMapImplAccessor = JavaHacks.forceCast(traceAccessor.map())
 
-    elements.flatMap { it.parentsWithSelf }.toSet().firstIsInstanceOrNull<KtImportDirective>()?.let {
-        val match = Regex("import ((\\w+\\.)*)[\\w*]*").matchEntire(it.text) ?: return@let
-        val parentDot = match.groupValues[1].ifBlank { "." }
-        val parent = parentDot.substring(0, parentDot.length - 1)
-        val parentPackage = module.getPackage(FqName.fromSegments(parent.split('.')))
-        return parentPackage.memberScope.getContributedDescriptors().map { it.name.asString() }
-            .filter { it.isNotEmpty() }.sorted()
-    }
+    val members =
+        completeMembers(module, mapAccessor, event.sourceFiles.first().findElementAt(currentCodeIndex) ?: return)
+            .map { it.completion }
+            .distinctBy { it.toString() }
+            .sortedBy { it is ImportDescriptor }
+            .sortedBy { it.toString() }
 
-    val target = elements.firstOrNull()
-    if (target is KtNameReferenceExpression) {
-        mapAccessor.map()[target]?.get(BindingContext.LEXICAL_SCOPE.key)?.let { scope ->
-            return identifiers(scope).map { descriptor ->
-                when (descriptor) {
-                    is PropertyDescriptor -> {
-                        val result = descriptor.returnType?.simpleClassName ?: "???"
-                        return@map FieldDescriptor(descriptor.name.asString(), result).toString()
-                    }
-
-                    is FunctionDescriptor -> {
-                        if(descriptor.name.asString().startsWith("<")) return@map "???"
-                        val result = descriptor.returnType?.simpleClassName ?: "???"
-                        val args =
-                            descriptor.valueParameters.map { it.name.asString() + ": " + it.type.simpleClassName }
-                        return@map MethodDescriptor(descriptor.name.asString(), args, result).toString()
-                    }
-
-                    is ClassDescriptor -> {
-                        return@map descriptor.name.asString()
-                    }
-
-                    else -> return@map descriptor.name.asString()
-                }
-            }.filter { it.contains(target.text) }.sortedBy { it.indexOf(target.text) }.toList()
-        }
-    }
-
-    var isStatic = false
-
-    val elementType = elements.mapNotNull {
-        val expression = mapAccessor.map()[it]?.get(BindingContext.EXPRESSION_TYPE_INFO.key)?.type
-        if (expression != null) {
-            return@mapNotNull TypeUtils.getClassDescriptor(expression)
-        } else {
-            isStatic = true
-            mapAccessor.map()[it]?.get(BindingContext.QUALIFIER.key)?.descriptor as? ClassDescriptor
-        }
-    }.firstOrNull() ?: return emptyList()
-
-    val completions = elementType.getMethodsAndVariables(isStatic && elementType.kind != ClassKind.OBJECT)
-
-    return completions.first.map { it.toString() } + completions.second.map { it.toString() }
+    if (members.isNotEmpty()) CodeCompletionEvent(event.script, members).post()
 }
 
-private fun identifiers(scope: LexicalScope): Sequence<DeclarationDescriptor> =
-    scope.parentsWithSelf
-        .flatMap(::scopeIdentifiers)
-        .flatMap(::explodeConstructors)
-
-private fun scopeIdentifiers(scope: HierarchicalScope): Sequence<DeclarationDescriptor> {
-    val locals = scope.getContributedDescriptors().asSequence()
-    val members = implicitMembers(scope)
-
-    return locals + members
-}
-
-private fun explodeConstructors(declaration: DeclarationDescriptor): Sequence<DeclarationDescriptor> {
-    return when (declaration) {
-        is ClassDescriptor ->
-            declaration.constructors.asSequence() + declaration
-
-        else ->
-            sequenceOf(declaration)
-    }
-}
-
-private fun implicitMembers(scope: HierarchicalScope): Sequence<DeclarationDescriptor> {
-    if (scope !is LexicalScope) return emptySequence()
-    val implicit = scope.implicitReceiver ?: return emptySequence()
-
-    return implicit.type.memberScope.getContributedDescriptors().asSequence()
+fun KotlinCoreEnvironment.createContainer(sourcePath: Collection<KtFile>): Pair<ComponentProvider, BindingTraceContext> {
+    val trace = CliBindingTrace(project)
+    val container = TopDownAnalyzerFacadeForJVM.createContainer(
+        project = project,
+        files = sourcePath,
+        trace = trace,
+        configuration = configuration,
+        packagePartProvider = ::createPackagePartProvider,
+        declarationProviderFactory = ::FileBasedDeclarationProviderFactory
+    )
+    return Pair(container, trace)
 }
