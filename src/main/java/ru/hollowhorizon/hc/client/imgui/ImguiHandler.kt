@@ -49,7 +49,7 @@ object ImguiHandler {
         initializeImGui(window)
         imGuiGlfw.init(window, true)
         if (!Minecraft.ON_OSX) {
-            imGuiGl3.init("#version 300")
+            imGuiGl3.init("#version 330 core")
         } else {
             imGuiGl3.init("#version 120")
         }
