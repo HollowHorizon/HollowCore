@@ -1,5 +1,15 @@
-# HollowCore
-HollowCore is a minecraft modding library by [HollowHorizon](https://github.com/HollowHorizon). It is an easy to use and powerful library for easier creation of minecraft mods for Fabric, Forge and NeoForge.
+<p align="center">
+  <img src="https://github.com/HollowHorizon/HollowCore/blob/1.19.2/src/main/resources/hollow_core_logo.png">
+</p>
+<p align="center">
+  <a href="https://github.com/HollowHorizon/HollowCore/commits/"><img src="https://img.shields.io/github/commit-activity/t/HollowHorizon/HollowCore?style=for-the-badge&labelColor=7e91a6&color=80bcff" alt="Stars"></a>
+  <a href="https://github.com/HollowHorizon/HollowCore/stargazers"><img src="https://img.shields.io/github/stars/HollowHorizon/HollowCore.svg?style=for-the-badge&labelColor=7e91a6&color=80bcff" alt="Stars"></a>
+  <a href="https://github.com/HollowHorizon/HollowCore/graphs/contributors"><img src="https://img.shields.io/github/contributors/HollowHorizon/HollowCore.svg?style=for-the-badge&labelColor=7e91a6&color=80bcff" alt="Contributors"></a>
+  <a href="https://github.com/HollowHorizon/HollowCore/releases"><img src="https://img.shields.io/github/downloads/HollowHorizon/HollowCore/total?style=for-the-badge&labelColor=7e91a6&color=80bcff" alt="Downloads"></a>
+  <a href="https://discord.gg/qKpPhkwGCY"><img src="https://img.shields.io/discord/1081609215484887051?style=for-the-badge&label=Discord&logo=discord&logoColor=d9e0ee&labelColor=7e91a6&color=80bcff" alt="Discord"></a>
+</p>
+HollowCore is a minecraft modding library by <a href="https://github.com/HollowHorizon" style="color: black; text-decoration: underline;text-decoration-style: dotted;">HollowHorizon</a>. It is an easy to use and powerful library for easier creation of minecraft mods for Fabric, Forge and NeoForge.
+
 
 ## Features
 ### Integration with ModLoaders
