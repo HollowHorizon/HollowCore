@@ -120,11 +120,13 @@ subprojects {
                 "org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.0.0",
                 "org.jetbrains.kotlin:kotlin-scripting-common:2.0.0",
                 "org.jetbrains.kotlin:kotlin-metadata-jvm:2.0.0",
+                "net.fabricmc:mapping-io:0.6.1",
                 "trove:trove:1.0.2",
                 "com.akuleshov7:ktoml-core-jvm:0.5.1",
                 "org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.4.0", // For KToml
                 "io.github.classgraph:classgraph:4.8.173",
                 "javassist:javassist:3.12.1.GA",
+                "io.github.classgraph:classgraph:4.8.173",
                 "team.0mods:imgui-app:$imguiVersion",
                 "team.0mods:imgui-binding:$imguiVersion",
                 "team.0mods:imgui-lwjgl3:$imguiVersion",
@@ -203,7 +205,10 @@ allprojects {
         implementation("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.0.0")
         implementation("org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.0.0")
         implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.0.0")
-        
+
+        implementation("net.fabricmc:tiny-remapper:0.10.4")
+        implementation("net.fabricmc:mapping-io:0.6.1")
+
         implementation("org.ow2.asm:asm:9.7")
         implementation("org.ow2.asm:asm-tree:9.7")
 
