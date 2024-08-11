@@ -57,7 +57,7 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
 
     init {
         this[AnimatedEntityCapability::class].apply {
-            model = "${HollowCore.MODID}:models/entity/player_model.gltf"
+            model = "${HollowCore.MODID}:models/halva.glb"
             //animations[AnimationType.IDLE] = "hello"
             transform = Transform.create {}
         }
@@ -107,10 +107,16 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
                 override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
                     renderBackground(guiGraphics, mouseX, mouseY, partialTick)
                     ImGuiHandler.drawFrame {
-                        ImGui.begin("Inventory", ImGuiWindowFlags.NoMove or ImGuiWindowFlags.NoCollapse)
-                        this@TestEntity[TestEntityCapability::class].slots.defaultProvider.draw()
+                        ImGui.begin("Инвентарь", ImGuiWindowFlags.NoMove or ImGuiWindowFlags.NoCollapse)
+                        if (ImGui.treeNodeEx("Слоты моба")) {
+                            this@TestEntity[TestEntityCapability::class].slots.defaultProvider.draw()
+                            ImGui.treePop()
+                        }
                         ImGui.separator()
-                        Minecraft.getInstance().player?.inventory?.inventoryProvider?.draw()
+                        if (ImGui.treeNodeEx("Инвентарь")) {
+                            Minecraft.getInstance().player?.inventory?.inventoryProvider?.draw()
+                            ImGui.treePop()
+                        }
                         ImGui.end()
                     }
                 }

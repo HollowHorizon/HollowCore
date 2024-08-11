@@ -59,5 +59,5 @@ fun CapabilityInstance.container(container: HollowContainer): CapabilityProperty
 
 @HollowCapabilityV2(TestEntity::class)
 class TestEntityCapability : CapabilityInstance() {
-    val slots by container(5, 4)
+    val slots by container(27)
 }
