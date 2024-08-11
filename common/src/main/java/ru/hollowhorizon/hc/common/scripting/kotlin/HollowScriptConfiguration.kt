@@ -1,7 +1,5 @@
 package ru.hollowhorizon.hc.common.scripting.kotlin
 
-import org.jetbrains.kotlin.scripting.resolve.KtFileScriptSource
-import ru.hollowhorizon.hc.common.scripting.ScriptingLogger
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
@@ -10,7 +8,6 @@ import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.getScriptingClass
 import kotlin.script.experimental.jvm.JvmGetScriptingClass
-import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
 import kotlin.script.experimental.jvm.jvm
 import kotlin.script.experimental.jvm.updateClasspath
 import kotlin.script.experimental.jvm.util.classpathFromClassloader
@@ -29,6 +26,18 @@ class AbstractHollowScriptHost : ScriptingHostConfiguration({
     classpathFromClassloader(Thread.currentThread().contextClassLoader)
 })
 
+val scriptJars = mutableListOf<File>()
+val deobfClassPath: File
+    get() {
+        val classPath = File("hollowcore/.classpath")
+        if (!classPath.exists()) classPath.mkdirs()
+        return classPath
+    }
+val deobfJars: List<File>
+    get() {
+        return deobfClassPath.walk().toList()
+    }
+
 abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : ScriptCompilationConfiguration({
     body()
 
@@ -39,12 +48,7 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
             "-Xadd-modules=ALL-MODULE-PATH" //Loading kotlin from shadowed jar
         )
 
-        dependenciesFromCurrentContext(wholeClasspath = true)
-
-        val files = File("mods").walk().filter { it.name.endsWith(".jar") }.toList()
-
-        updateClasspath(files.distinct().sortedBy { it.absolutePath }
-            .onEach { ScriptingLogger.LOGGER.info("Loading library: {}", it) })
+        updateClasspath(scriptJars + deobfJars)
     }
 
     defaultImports(

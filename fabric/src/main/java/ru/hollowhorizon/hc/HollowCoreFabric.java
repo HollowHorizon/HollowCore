@@ -3,7 +3,9 @@ package ru.hollowhorizon.hc;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import ru.hollowhorizon.hc.client.utils.JavaHacks;
+import ru.hollowhorizon.hc.client.utils.ModList;
 import ru.hollowhorizon.hc.common.registry.HollowRegistryKt;
+import ru.hollowhorizon.hc.internal.FabricModList;
 import ru.hollowhorizon.hc.internal.NetworkHelper;
 import ru.hollowhorizon.hc.internal.RegistryHolderFabric;
 
@@ -13,13 +15,14 @@ public class HollowCoreFabric implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        var core = CoreInitializationFabric.INSTANCE;
-
-        HollowRegistryKt.createRegistry = ((resourceLocation, registry, aBoolean, function0, aClass) -> new RegistryHolderFabric<>(resourceLocation, JavaHacks.forceCast(registry), aBoolean, JavaHacks.forceCast(function0), aClass));
+        ModList.Companion.setINSTANCE(FabricModList.INSTANCE);
         isModLoaded = FabricLoader.getInstance()::isModLoaded;
         isProduction_ = () -> !FabricLoader.getInstance().isDevelopmentEnvironment();
-
         isPhysicalClient_ = () -> false;
+        HollowRegistryKt.createRegistry = ((resourceLocation, registry, aBoolean, function0, aClass) -> new RegistryHolderFabric<>(resourceLocation, JavaHacks.forceCast(registry), aBoolean, JavaHacks.forceCast(function0), aClass));
+
+
+        var core = CoreInitializationFabric.INSTANCE;
         var init = HollowCore.INSTANCE; // Loading Main Class
         HollowCore.platform = HollowCore.Platform.FABRIC;
         var events = FabricEvents.INSTANCE;

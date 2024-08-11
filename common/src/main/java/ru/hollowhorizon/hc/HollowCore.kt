@@ -29,12 +29,15 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.apache.logging.log4j.Logger
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
+import ru.hollowhorizon.hc.client.utils.ModList
 import ru.hollowhorizon.hc.common.HollowCoreCommon
 import ru.hollowhorizon.hc.common.config.HollowCoreConfig
 import ru.hollowhorizon.hc.common.config.hollowConfig
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor.initMod
 import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler
 import ru.hollowhorizon.hc.common.scripting.kotlin.HollowScript
+import ru.hollowhorizon.hc.common.scripting.kotlin.deobfClassPath
+import ru.hollowhorizon.hc.common.scripting.mappings.Remapper
 import java.io.File
 import java.util.concurrent.SynchronousQueue
 import java.util.concurrent.ThreadPoolExecutor
@@ -52,25 +55,36 @@ object HollowCore {
     val EXECUTOR = ThreadPoolExecutor(4, 16, 60L, TimeUnit.SECONDS, SynchronousQueue())
 
     init {
-        GlobalScope.launch {
-            val file = ScriptingCompiler.compileText<HollowScript>(
-                """
-                import ru.hollowhorizon.hc.HollowCore
-                import net.minecraft.client.Minecraft
-                
-                HollowCore.LOGGER.info("Current Script: {}", Minecraft.getInstance().)
-                """.trimIndent()
-            )
-
-            file.save(File("example.jar"))
-            file.execute()
-        }
         HollowCoreCommon
 
         initMod()
 
         HollowSoundHandler.MODS.add("hollowcore")
         HollowSoundHandler.MODS.add("hollowengine")
+
+        Remapper.remap(
+            Remapper.DEOBFUSCATE_REMAPPER,
+            ModList.INSTANCE.mods
+                .filter { it in config.scripting.includeMods }
+                .map { ModList.INSTANCE.getFile(it) }
+                .filter { it.name.endsWith(".jar") }
+                .toTypedArray(),
+            deobfClassPath.toPath()
+        )
+
+        GlobalScope.launch {
+            val file = ScriptingCompiler.compileText<HollowScript>(
+                """
+                import ru.hollowhorizon.hc.HollowCore
+                import net.minecraft.client.Minecraft
+                
+                HollowCore.LOGGER.info("Current Script: {}", Minecraft.getInstance().launchedVersion)
+                """.trimIndent()
+            )
+
+            file.save(File("example.jar"))
+            file.execute()
+        }
     }
 
     enum class Platform {

@@ -22,10 +22,7 @@
     "capabilities.BlockEntityMixin",
     "capabilities.EntityMixin",
     "capabilities.LevelMixin",
-    "scripting.BinaryJavaClassMixin",
     "scripting.BindingTraceContextAccessor",
-    "scripting.ClassIdMixin",
-    "scripting.JvmCompilationUtilMixin",
     "scripting.ScriptJvmCompilerImplsMixin",
     "scripting.SlicedMapImplAccessor"
   ],

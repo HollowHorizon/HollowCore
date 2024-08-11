@@ -4,18 +4,16 @@ import imgui.ImGui
 import imgui.extension.texteditor.TextEditor
 import imgui.flag.ImGuiCol
 import kotlinx.serialization.Serializable
+import net.minecraft.server.MinecraftServer
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.js.descriptorUtils.nameIfStandardType
-import org.jetbrains.kotlin.types.DeferredType
-import org.jetbrains.kotlin.types.FlexibleType
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.SimpleType
-import org.jetbrains.kotlin.types.TypeUtils
+import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.error.ErrorType
 import org.jetbrains.kotlin.types.error.ErrorTypeConstructor
 import ru.hollowhorizon.hc.api.utils.Polymorphic
 import ru.hollowhorizon.hc.client.imgui.FontAwesomeIcons
+import kotlin.math.max
 
 @Serializable
 @Polymorphic(CodeCompletion::class)
@@ -23,18 +21,18 @@ data class MethodDescriptor(val name: String, val parameters: List<String>, val 
     override fun complete(editor: TextEditor) {
         val lines = editor.textLines
         val original = lines[editor.cursorPositionLine]
-        if ('.' in original) {
-            lines[editor.cursorPositionLine] = original.substringBeforeLast(".") + "." + name + "()"
-        } else {
-            lines[editor.cursorPositionLine] = original.substringBeforeLast(' ') + " $name()"
-        }
-        editor.textLines = lines
-        editor.setCursorPosition(editor.cursorPositionLine, lines[editor.cursorPositionLine].length)
+        val column = editor.cursorPositionColumn
 
-        if (parameters.isNotEmpty()) editor.setCursorPosition(
-            editor.cursorPositionLine,
-            editor.cursorPositionColumn - 1
-        )
+        val beforeIndex = original.substring(0, column)
+        var charPos = beforeIndex.lastIndexOf('.')+1
+
+        charPos = max(charPos, beforeIndex.lastIndexOf('(')+1)
+        charPos = max(charPos, beforeIndex.lastIndexOf('[')+1)
+        charPos = max(charPos, beforeIndex.lastIndexOf('{')+1)
+        charPos = max(charPos, 0)
+        lines[editor.cursorPositionLine] = original.substring(0, charPos) + name + "()" + original.substring(column)
+        editor.textLines = lines
+        editor.setCursorPosition(editor.cursorPositionLine, charPos + name.length + (if(parameters.isEmpty()) 2 else 1))
     }
 
     override fun draw(): Boolean {
@@ -57,13 +55,18 @@ class FieldDescriptor(val name: String, private val returnType: String) : CodeCo
     override fun complete(editor: TextEditor) {
         val lines = editor.textLines
         val original = lines[editor.cursorPositionLine]
-        if ('.' in original) {
-            lines[editor.cursorPositionLine] = original.substringBeforeLast(".") + "." + name
-        } else {
-            lines[editor.cursorPositionLine] = original.substringBeforeLast(' ') + " $name"
-        }
+        val column = editor.cursorPositionColumn
+
+        val beforeIndex = original.substring(0, column)
+        var charPos = beforeIndex.lastIndexOf('.')+1
+
+        charPos = max(charPos, beforeIndex.lastIndexOf('(')+1)
+        charPos = max(charPos, beforeIndex.lastIndexOf('[')+1)
+        charPos = max(charPos, beforeIndex.lastIndexOf('{')+1)
+        charPos = max(charPos, 0)
+        lines[editor.cursorPositionLine] = original.substring(0, charPos) + name + original.substring(column)
         editor.textLines = lines
-        editor.setCursorPosition(editor.cursorPositionLine, lines[editor.cursorPositionLine].length)
+        editor.setCursorPosition(editor.cursorPositionLine, charPos + name.length)
     }
 
     override fun draw(): Boolean {
@@ -108,13 +111,18 @@ class ClassCompletionDescriptor(val name: String) : CodeCompletion {
     override fun complete(editor: TextEditor) {
         val lines = editor.textLines
         val original = lines[editor.cursorPositionLine]
-        if ('.' in original) {
-            lines[editor.cursorPositionLine] = original.substringBeforeLast(".") + "." + name
-        } else {
-            lines[editor.cursorPositionLine] = name
-        }
+        val column = editor.cursorPositionColumn
+
+        val beforeIndex = original.substring(0, column)
+        var charPos = beforeIndex.lastIndexOf('.')+1
+
+        charPos = max(charPos, beforeIndex.lastIndexOf('(')+1)
+        charPos = max(charPos, beforeIndex.lastIndexOf('[')+1)
+        charPos = max(charPos, beforeIndex.lastIndexOf('{')+1)
+        charPos = max(charPos, 0)
+        lines[editor.cursorPositionLine] = original.substring(0, charPos) + name + original.substring(column)
         editor.textLines = lines
-        editor.setCursorPosition(editor.cursorPositionLine, lines[editor.cursorPositionLine].length)
+        editor.setCursorPosition(editor.cursorPositionLine, charPos + name.length)
     }
 
     override fun draw(): Boolean {
@@ -146,11 +154,11 @@ interface CodeCompletion {
 
 val KotlinType.simpleClassName: String
     get() {
-        return when (this) {
+        val name = when (this) {
             is SimpleType -> {
                 if (this is ErrorType) {
                     val type = (constructor as? ErrorTypeConstructor)?.formatParams?.firstOrNull()
-                    if(type != null) return "Error Resolve Type ($type)"
+                    if (type != null) return "Error Resolve Type ($type)"
                 }
 
                 val type = constructor.declarationDescriptor?.name?.asString()
@@ -161,34 +169,12 @@ val KotlinType.simpleClassName: String
 
                 val nullable = isMarkedNullable
 
-                return type + if (parameters.isNotEmpty()) "<$parameters>" else "" + if (nullable) "?" else ""
+                type + if (parameters.isNotEmpty()) "<$parameters>" else "" + if (nullable) "?" else ""
             }
 
             is DeferredType -> this.delegate.simpleClassName
             is FlexibleType -> lowerBound.simpleClassName
             else -> TypeUtils.getClassDescriptor(this)?.name?.asString() ?: "???"
         }
+        return name
     }
-
-fun ClassDescriptor.getMethodsAndVariables(isStatic: Boolean): List<CodeCompletion> {
-    val scope = if (isStatic) staticScope else unsubstitutedMemberScope
-
-    val methods = scope.getContributedDescriptors()
-        .filterIsInstance<org.jetbrains.kotlin.descriptors.FunctionDescriptor>()
-        .filter { it.visibility == DescriptorVisibilities.PUBLIC }
-        .map {
-            val result = it.returnType?.simpleClassName ?: "???"
-            val args = it.valueParameters.map { it.name.asString() + ": " + it.type.simpleClassName }
-            MethodDescriptor(it.name.asString(), args, result)
-        }
-
-    val variables = scope.getContributedDescriptors()
-        .filterIsInstance<org.jetbrains.kotlin.descriptors.PropertyDescriptor>()
-        .filter { it.visibility == DescriptorVisibilities.PUBLIC }
-        .map {
-            val result = it.returnType?.simpleClassName ?: "???"
-            FieldDescriptor(it.name.asString(), result)
-        }
-
-    return methods + variables
-}

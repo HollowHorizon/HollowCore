@@ -21,11 +21,11 @@ public class HollowCoreForge {
         isModLoaded = ModList.get()::isLoaded;
         isProduction_ = FMLLoader::isProduction;
 
-        ForgeNetworkHelper.register();
-
         var events = ForgeEvents.INSTANCE;
         var init = HollowCore.INSTANCE; // Loading Main Class
         HollowCore.platform = HollowCore.Platform.FORGE;
+
+        ForgeNetworkHelper.register();
 
         if (FMLEnvironment.dist.isClient()) new HollowCoreClientForge();
     }

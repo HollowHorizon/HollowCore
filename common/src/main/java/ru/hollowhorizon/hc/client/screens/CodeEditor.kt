@@ -26,8 +26,16 @@ class CodeEditor : Screen(Component.empty()) {
     @OptIn(DelicateCoroutinesApi::class)
     override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
         renderBackground(guiGraphics, mouseX, mouseY, partialTick)
+
         ImGuiHandler.drawFrame {
             button("Закрыть") { onClose() }
+            sameLine()
+            button("Запуск") {
+                GlobalScope.launch {
+                    ScriptingCompiler.compileText<HollowScript>(editor.text).execute()
+                }
+            }
+
             editor.render("TextEditor")
             if (editor.isTextChanged) {
                 val text = editor.text

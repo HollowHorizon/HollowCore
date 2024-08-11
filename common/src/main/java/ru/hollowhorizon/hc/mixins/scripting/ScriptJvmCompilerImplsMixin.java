@@ -22,9 +22,12 @@ import java.util.List;
 @Mixin(value = ScriptJvmCompilerImplsKt.class, remap = false)
 public class ScriptJvmCompilerImplsMixin {
 
-    @Inject(
-            method = "doCompileWithK2", at = @At("RETURN")
-    )
+    @Inject(method = "doCompileWithK2", at = @At("RETURN"))
+    private static void afterAnalyzeK2(SharedScriptCompilationContext context, SourceCode script, List<? extends KtFile> sourceFiles, List<ScriptsCompilationDependencies.SourceDependencies> sourceDependencies, ScriptDiagnosticsMessageCollector messageCollector, Function1<? super KtFile, ? extends ScriptCompilationConfiguration> getScriptConfiguration, CallbackInfoReturnable<ResultWithDiagnostics<KJvmCompiledScript>> cir) {
+        EventBus.post(new AfterCodeAnalysisEvent(context, script, sourceFiles));
+    }
+
+    @Inject(method = "doCompile", at = @At("RETURN"))
     private static void afterAnalyze(SharedScriptCompilationContext context, SourceCode script, List<? extends KtFile> sourceFiles, List<ScriptsCompilationDependencies.SourceDependencies> sourceDependencies, ScriptDiagnosticsMessageCollector messageCollector, Function1<? super KtFile, ? extends ScriptCompilationConfiguration> getScriptConfiguration, CallbackInfoReturnable<ResultWithDiagnostics<KJvmCompiledScript>> cir) {
         EventBus.post(new AfterCodeAnalysisEvent(context, script, sourceFiles));
     }

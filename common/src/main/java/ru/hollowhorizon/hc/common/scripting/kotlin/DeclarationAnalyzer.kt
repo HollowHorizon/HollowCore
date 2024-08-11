@@ -1,8 +1,8 @@
 package ru.hollowhorizon.hc.common.scripting.kotlin
 
-import net.minecraft.client.Minecraft
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.resolve.scopes.HierarchicalScope
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
+import org.jetbrains.kotlin.resolve.scopes.receivers.AbstractReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.PackageQualifier
 import org.jetbrains.kotlin.resolve.scopes.utils.parentsWithSelf
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedTypeAliasDescriptor
@@ -48,8 +49,11 @@ val ClassDescriptor.staticDeclarations: List<DeclarationDescriptor>
     get() = staticScope.getContributedDescriptors().toList()
 
 fun DeclarationDescriptor.isValid(start: String) = when (this) {
-    is ClassDescriptor, is DeserializedTypeAliasDescriptor -> name.asString().startsWith(start)
-    is PackageViewDescriptor -> name.asString().substringAfterLast('.').startsWith(start) && name.asString()
+    is ClassDescriptor, is DeserializedTypeAliasDescriptor, is ClassDeclarationDescriptor -> name.asString()
+        .startsWith(start)
+
+    is PackageViewDescriptor, is ImportDeclarationDescriptor -> name.asString().substringAfterLast('.')
+        .startsWith(start) && name.asString()
         .isNotEmpty()
 
     is FunctionDescriptor -> name.asString()
@@ -61,6 +65,9 @@ fun DeclarationDescriptor.isValid(start: String) = when (this) {
     is ValueParameterDescriptor -> name.asString()
         .startsWith(start) && (visibility == DescriptorVisibilities.PUBLIC || visibility == DescriptorVisibilities.LOCAL)
 
+    is LocalVariableDescriptor -> name.asString()
+        .startsWith(start) && (visibility == DescriptorVisibilities.PUBLIC || visibility == DescriptorVisibilities.LOCAL)
+
     is ReceiverParameterDescriptor -> name.asString().startsWith(start)
 
     else -> {
@@ -69,6 +76,8 @@ fun DeclarationDescriptor.isValid(start: String) = when (this) {
     }
 }
 
+// WARNING: VERY BAD CODE
+// TODO: Optimize the search for packages and classes with mappings support
 fun completeMembers(
     module: ModuleDescriptor,
     accessor: SlicedMapImplAccessor,
@@ -97,6 +106,16 @@ fun completeMembers(
             is KtNameReferenceExpression -> {
                 if (element.parent is KtDotQualifiedExpression) continue
 
+                accessor.map()[elements.first()]?.get(BindingContext.CALL.key)?.let {
+                    val name = it.callElement.text
+                    val reciever = it.explicitReceiver
+                    if (reciever is AbstractReceiverValue) {
+                        val decl =
+                            TypeUtils.getClassDescriptor(reciever.type)?.memberDeclarations?.filter { it.isValid(name) }
+                        if (decl != null) descriptors += decl
+                    }
+                }
+
                 val scope = accessor.map()[element]?.get(BindingContext.LEXICAL_SCOPE.key) ?: continue
                 val name = element.getReferencedName()
 
@@ -105,7 +124,7 @@ fun completeMembers(
                     val owner = ownerDescriptor.extensionReceiverParameter
                     if (owner != null) descriptors += owner
                 }
-                if(ownerDescriptor is ClassConstructorDescriptor) descriptors += ownerDescriptor
+                if (ownerDescriptor is ClassConstructorDescriptor && "this".startsWith(name)) descriptors += ownerDescriptor
 
                 descriptors += identifiers(scope).filter { it.isValid(name) }.toList()
             }
@@ -167,6 +186,11 @@ val DeclarationDescriptor.completion: CodeCompletion
             FieldDescriptor(name.asString(), result)
         }
 
+        is LocalVariableDescriptor -> {
+            val result = returnType.simpleClassName
+            FieldDescriptor(name.asString(), result)
+        }
+
         is ClassConstructorDescriptor -> {
             FieldDescriptor("this", returnType.simpleClassName)
         }
@@ -182,15 +206,15 @@ val DeclarationDescriptor.completion: CodeCompletion
 
         is FunctionDescriptor -> {
             val result = returnType?.simpleClassName ?: "???"
-            val args = valueParameters.map { it.name.asString() + ": " + it.type.simpleClassName }
+            val args = valueParameters.map { it.name.asString().replace("$$", "var") + ": " + it.type.simpleClassName }
             MethodDescriptor(name.asString(), args, result)
         }
 
-        is ClassDescriptor, is DeserializedTypeAliasDescriptor -> {
+        is ClassDescriptor, is DeserializedTypeAliasDescriptor, is ClassDeclarationDescriptor -> {
             ClassCompletionDescriptor(name.asString())
         }
 
-        is PackageViewDescriptor -> {
+        is PackageViewDescriptor, is ImportDeclarationDescriptor -> {
             ImportDescriptor(name.asString())
         }
 
