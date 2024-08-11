@@ -9,6 +9,7 @@ pluginManagement {
         maven("https://maven.neoforged.net/releases")
         maven("https://maven.architectury.dev")
         maven("https://maven.minecraftforge.net")
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 
     val kotlinVersion: String by settings

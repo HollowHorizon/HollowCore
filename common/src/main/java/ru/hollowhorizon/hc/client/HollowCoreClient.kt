@@ -29,6 +29,7 @@ import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.compose.Renderer
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.render.RenderLoader
 import ru.hollowhorizon.hc.client.render.effekseer.EffekseerNatives
@@ -37,7 +38,6 @@ import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.render.shaders.ShadersLoader
 import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
 import ru.hollowhorizon.hc.client.screens.CodeEditor
-import ru.hollowhorizon.hc.client.screens.ImGuiScreen
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent
@@ -55,6 +55,10 @@ object HollowCoreClient {
 
         EffekseerNatives.install()
         RenderSystem.recordRenderCall(RenderLoader::onInitialize)
+        RenderSystem.recordRenderCall {
+            Renderer.initContext()
+            Renderer.initSkia()
+        }
     }
 
     @SubscribeEvent

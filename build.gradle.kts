@@ -9,6 +9,8 @@ plugins {
     id("io.github.pacifistmc.forgix") version "1.2.9"
     kotlin("jvm")
     kotlin("plugin.serialization")
+    id("org.jetbrains.compose") version "1.7.0-dev1756"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
 }
 
 val modId = fromProperties("mod_id")
@@ -119,11 +121,14 @@ subprojects {
                 "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.0.0",
                 "org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.0.0",
                 "org.jetbrains.kotlin:kotlin-scripting-common:2.0.0",
+                "org.jetbrains.kotlin:kotlin-metadata-jvm:2.0.0",
+                "net.fabricmc:mapping-io:0.6.1",
                 "trove:trove:1.0.2",
                 "com.akuleshov7:ktoml-core-jvm:0.5.1",
                 "org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.4.0", // For KToml
                 "io.github.classgraph:classgraph:4.8.173",
                 "javassist:javassist:3.12.1.GA",
+                "net.fabricmc:tiny-remapper:0.10.4",
                 "team.0mods:imgui-app:$imguiVersion",
                 "team.0mods:imgui-binding:$imguiVersion",
                 "team.0mods:imgui-lwjgl3:$imguiVersion",
@@ -171,6 +176,8 @@ allprojects {
     apply(plugin = "kotlin")
     apply(plugin = "maven-publish")
     apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
+    apply(plugin = "org.jetbrains.kotlin.plugin.compose")
+    apply(plugin = "org.jetbrains.compose")
 
     group = fromProperties("group")
     version = "${minecraftVersion}-$modVersion"
@@ -185,10 +192,23 @@ allprojects {
         maven("https://maven.0mods.team/releases")
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
         maven("https://oss.sonatype.org/content/repositories/releases/")
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         flatDir { dir("libs") }
     }
 
+    val composeImpl by configurations.creating
+
+    configurations.all {
+        if(this.name == "architecturyTransformerClasspath") {
+            attributes {
+                attribute(Attribute.of("ui", String::class.java), "awt")
+            }
+        }
+    }
+
     dependencies {
+        implementation(compose.desktop.currentOs)
+
         compileOnly("org.spongepowered:mixin:0.8.5")
 
         implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.0")
@@ -201,6 +221,10 @@ allprojects {
         implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.0")
         implementation("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.0.0")
         implementation("org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.0.0")
+        implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.0.0")
+
+        implementation("net.fabricmc:tiny-remapper:0.10.4")
+        implementation("net.fabricmc:mapping-io:0.6.1")
 
         implementation("org.ow2.asm:asm:9.7")
         implementation("org.ow2.asm:asm-tree:9.7")
