@@ -46,11 +46,7 @@ import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.io.EOFException
 import java.io.InputStream
-import java.nio.BufferUnderflowException
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.FloatBuffer
-import java.nio.IntBuffer
+import java.nio.*
 import java.util.*
 
 
@@ -426,7 +422,7 @@ object GltfTree {
             var textureName = texture.name?.substringBefore(".png") ?: ""
             if (textureName.isEmpty()) textureName = generatedTextureName
 
-            val textureLocation = "$MODID:textureName.lowercase()".rl
+            val textureLocation = "$MODID:${textureName.lowercase()}".rl
 
             if (!TEXTURE_MAP.contains(textureLocation)) {
                 TEXTURE_MAP[textureLocation] = dynamicTexture
@@ -748,12 +744,15 @@ object GltfTree {
         private val skin = Array(jointsIds.size) { Matrix4f() }
 
         fun finalMatrices(node: Node): Array<Matrix4f> {
-            val inverseTransform = node.globalMatrix
-            inverseTransform.invert()
+            // Получаем и инвертируем глобальную матрицу узла модели
+            val inverseTransform = Matrix4f(node.globalMatrix).invert()
 
+            // Проходим по всем суставам
             for (i in jointsIds.indices) {
-                skin[i] = joints[i]!!.globalMatrix.mul(inverseBindMatrices[i])
-                skin[i] = Matrix4f(inverseTransform).mul(skin[i])
+                val jointGlobalMatrix = joints[i]!!.globalMatrix
+                val bindMatrix = Matrix4f(inverseBindMatrices[i]).transpose()
+                val skinMatrix = Matrix4f(jointGlobalMatrix).mul(bindMatrix)
+                skin[i] = Matrix4f(inverseTransform).mul(skinMatrix)
             }
             return skin
         }
@@ -1223,20 +1222,20 @@ object GltfTree {
             for (m in matrices) {
                 // Угадайте сколько часов у меня ушло, чтобы угадать, в каком порядке я должен передавать эти значения :(
                 buffer.put(m.m00())
-                buffer.put(m.m10())
-                buffer.put(m.m20())
-                buffer.put(m.m30())
                 buffer.put(m.m01())
-                buffer.put(m.m11())
-                buffer.put(m.m21())
-                buffer.put(m.m31())
                 buffer.put(m.m02())
-                buffer.put(m.m12())
-                buffer.put(m.m22())
-                buffer.put(m.m32())
                 buffer.put(m.m03())
+                buffer.put(m.m10())
+                buffer.put(m.m11())
+                buffer.put(m.m12())
                 buffer.put(m.m13())
+                buffer.put(m.m20())
+                buffer.put(m.m21())
+                buffer.put(m.m22())
                 buffer.put(m.m23())
+                buffer.put(m.m30())
+                buffer.put(m.m31())
+                buffer.put(m.m32())
                 buffer.put(m.m33())
             }
             buffer.flip()

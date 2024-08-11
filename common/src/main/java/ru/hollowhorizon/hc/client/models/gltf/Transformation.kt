@@ -65,7 +65,7 @@ data class Transformation(
 
         if (transform.hasRotation) {
             val res = rotation
-            if (!simpleRot) res.mul(transform.rotation)
+            if (!simpleRot) res.mulLeft(transform.rotation)
             else res.mul(transform.rotation)
 
             rotationX = res.x()
