@@ -119,6 +119,7 @@ subprojects {
                 "org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.0.0",
                 "org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.0.0",
                 "org.jetbrains.kotlin:kotlin-scripting-common:2.0.0",
+                "org.jetbrains.kotlin:kotlin-metadata-jvm:2.0.0",
                 "trove:trove:1.0.2",
                 "com.akuleshov7:ktoml-core-jvm:0.5.1",
                 "org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.4.0", // For KToml
@@ -201,7 +202,8 @@ allprojects {
         implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.0")
         implementation("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.0.0")
         implementation("org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.0.0")
-
+        implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.0.0")
+        
         implementation("org.ow2.asm:asm:9.7")
         implementation("org.ow2.asm:asm-tree:9.7")
 
