@@ -24,6 +24,7 @@
 
 package ru.hollowhorizon.hc.client.utils
 
+import com.mojang.blaze3d.Blaze3D
 import ru.hollowhorizon.hc.client.handlers.TickHandler
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -35,21 +36,21 @@ open class GuiAnimator protected constructor(
     protected val interpolation: (Float) -> Float,
 ) : ReadOnlyProperty<Any?, Int> {
     var value: Float = begin.toFloat()
-    private var startTicks = TickHandler.currentTicks
+    private var startTime = Blaze3D.getTime()
 
-    open fun update(partialTick: Float) {
+    open fun update() {
         if (isFinished()) return
 
-        val currentTime = TickHandler.currentTicks - startTicks + partialTick
-        value = begin + (end - begin) * interpolation(currentTime / maxTime)
+        val currentTime = (Blaze3D.getTime() - startTime) * 20
+        value = begin + (end - begin) * interpolation(currentTime.toFloat() / maxTime)
     }
 
     fun isFinished(): Boolean {
-        return TickHandler.currentTicks - startTicks > maxTime
+        return TickHandler.currentTicks - startTime > maxTime
     }
 
     fun reset() {
-        startTicks = TickHandler.currentTicks
+        startTime = Blaze3D.getTime()
         value = begin.toFloat()
     }
 
@@ -57,8 +58,8 @@ open class GuiAnimator protected constructor(
         GuiAnimator(begin, end, time, interpolation) {
         private var switch = false
 
-        override fun update(partialTick: Float) {
-            super.update(partialTick)
+        override fun update() {
+            super.update()
             if (switch) value = end - value
 
             if (isFinished()) {
@@ -70,8 +71,8 @@ open class GuiAnimator protected constructor(
 
     class Looped(begin: Int, end: Int, time: Int, interpolation: (Float) -> Float) :
         GuiAnimator(begin, end, time, interpolation) {
-        override fun update(partialTick: Float) {
-            super.update(partialTick)
+        override fun update() {
+            super.update()
             if (isFinished()) reset()
         }
     }
@@ -80,7 +81,7 @@ open class GuiAnimator protected constructor(
         GuiAnimator(begin, end, time, interpolation)
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): Int {
-        update(TickHandler.partialTick)
+        update()
         return value.toInt()
     }
 }

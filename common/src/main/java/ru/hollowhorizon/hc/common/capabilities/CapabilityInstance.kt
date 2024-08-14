@@ -35,6 +35,7 @@ import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.capabilities.containers.HollowContainer
 import ru.hollowhorizon.hc.common.network.sendAllInDimension
 import ru.hollowhorizon.hc.common.network.sendTrackingEntity
+import ru.hollowhorizon.hc.common.network.sendTrackingEntityAndSelf
 
 @Suppress("API_STATUS_INTERNAL")
 open class CapabilityInstance {
@@ -57,7 +58,7 @@ open class CapabilityInstance {
                         javaClass.name,
                         serializeNBT()
                     ).send()
-                } else CSyncEntityCapabilityPacket(target.id, javaClass.name, serializeNBT()).sendTrackingEntity(target)
+                } else CSyncEntityCapabilityPacket(target.id, javaClass.name, serializeNBT()).sendTrackingEntityAndSelf(target)
             }
 
             is Level -> {
@@ -78,17 +79,7 @@ open class CapabilityInstance {
     fun deserializeNBT(nbt: Tag) {
         properties.forEach { if (it.deserialize(nbt as? CompoundTag ?: return)) nbt.remove(it.defaultName) }
         val tag = nbt as? CompoundTag ?: return
-        notUsedTags.mergeData(tag)
-    }
-
-    fun CompoundTag.mergeData(other: CompoundTag) {
-        other.allKeys.forEach { key ->
-            when (val value = this[key]) {
-                is ListTag -> value.addAll(other[key] as ListTag)
-                is CompoundTag -> value.mergeData(other[key] as CompoundTag)
-                else -> this.put(key, other[key] ?: return)
-            }
-        }
+        notUsedTags.merge(tag)
     }
 
     open fun canAcceptFromClient(player: Player): Boolean {

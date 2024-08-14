@@ -49,7 +49,12 @@ interface HollowPacketV3<T : HollowPacketV3<T>> : CustomPacketPayload {
     }
 
     override fun type() =
-        CustomPacketPayload.Type<T>(ResourceLocation.fromNamespaceAndPath(MODID, javaClass.name.lowercase().replace("\$", ".")))
+        CustomPacketPayload.Type<T>(
+            ResourceLocation.fromNamespaceAndPath(
+                MODID,
+                javaClass.name.lowercase().replace("\$", ".")
+            )
+        )
 }
 
 fun HollowPacketV3<*>.sendTrackingEntity(entity: Entity) {
@@ -62,6 +67,11 @@ fun HollowPacketV3<*>.sendTrackingEntity(entity: Entity) {
     } else {
         throw IllegalStateException("Cannot send clientbound payloads on the client")
     }
+}
+
+fun HollowPacketV3<*>.sendTrackingEntityAndSelf(entity: Entity) {
+    sendTrackingEntity(entity)
+    if (entity is ServerPlayer) send(entity)
 }
 
 fun HollowPacketV3<*>.sendAllInDimension(level: Level) {
