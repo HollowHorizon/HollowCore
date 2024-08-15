@@ -9,15 +9,15 @@ import java.nio.ByteOrder
 
 
 object Mp3Format {
-    const val DECODER_ERROR: Int = 0x200
+    private const val DECODER_ERROR: Int = 0x200
     const val UNKNOWN_ERROR: Int = DECODER_ERROR
     const val UNSUPPORTED_LAYER: Int = DECODER_ERROR + 1
     const val ILLEGAL_SUBBAND_ALLOCATION: Int = DECODER_ERROR + 2
 
     private class Decode {
-        private var output: OutputBuffer? = null
-        private var filter1: SynthesisFilter? = null
-        private var filter2: SynthesisFilter? = null
+        lateinit var output: OutputBuffer
+        private lateinit var filter1: SynthesisFilter
+        private lateinit var filter2: SynthesisFilter
 
         private var l3decoder: LayerIIIDecoder? = null
         private var l2decoder: LayerIIDecoder? = null
@@ -30,10 +30,6 @@ object Mp3Format {
             val layer: Int = header.layer()
             val decoder = retrieveDecoder(header, stream, layer)
             decoder.decodeFrame()
-        }
-
-        fun setOutputBuffer(out: OutputBuffer?) {
-            output = out
         }
 
         private fun retrieveDecoder(header: Header, stream: Bitstream, layer: Int): FrameDecoder {
@@ -73,10 +69,9 @@ object Mp3Format {
             val mode: Int = header.mode()
             header.layer()
             val channels = if (mode == Header.SINGLE_CHANNEL) 1 else 2
-            if (output == null) throw RuntimeException("Output buffer was not set.")
 
-            filter1 = SynthesisFilter(0, scalefactor, null)
-            if (channels == 2) filter2 = SynthesisFilter(1, scalefactor, null)
+            filter1 = SynthesisFilter(0, scalefactor)
+            if (channels == 2) filter2 = SynthesisFilter(1, scalefactor)
 
             initialized = true
         }
@@ -88,11 +83,11 @@ object Mp3Format {
         var header: Header? = bitstream.readFrame()
             ?: throw IllegalStateException("Empty mp3 file!")
         val channels = if (header?.mode() == Header.SINGLE_CHANNEL) 1 else 2
-        val rate: Int = header?.getSampleRate() ?: -1
+        val rate: Int = header?.sampleRate ?: -1
         val outputBuffer = OutputBuffer(channels, false)
         val buffer = ByteArrayOutputStream(4096)
         val decoder = Decode()
-        decoder.setOutputBuffer(outputBuffer)
+        decoder.output = outputBuffer
         while (true) {
             header = bitstream.readFrame()
             if (header == null) break

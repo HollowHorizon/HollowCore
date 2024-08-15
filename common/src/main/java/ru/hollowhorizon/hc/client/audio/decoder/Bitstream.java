@@ -242,7 +242,7 @@ public final class Bitstream {
 
     private void nextFrame() throws BitstreamException {
         // entire frame is read by the header class.
-        header.read_header(this, crc);
+        header.readHeader(this, crc);
     }
 
     public void unreadFrame() throws BitstreamException {
