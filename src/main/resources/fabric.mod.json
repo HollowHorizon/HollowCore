@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "hollowcore",
+  "version": "2.0",
+  "name": "HollowCore",
+  "description": "TODO: make description",
+  "authors": [
+    "HollowHorizon"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+  "license": "${license}",
+  "icon": "hollowcore.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "ru.hollowhorizon.hc.fabric.HollowCoreFabric"
+    ],
+    "client": [
+      "ru.hollowhorizon.hc.fabric.HollowCoreClientFabric"
+    ]
+  },
+  "accessWidener": "hollowcore.accesswidener",
+  "mixins": [
+    "hollowcore.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "fabric-api": "*",
+    "minecraft": "1.21",
+    "java": "21"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
+  
