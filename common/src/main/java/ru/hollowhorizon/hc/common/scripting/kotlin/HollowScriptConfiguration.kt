@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.common.scripting.kotlin
 
+import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*

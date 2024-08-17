@@ -23,6 +23,7 @@
     "capabilities.EntityMixin",
     "capabilities.LevelMixin",
     "scripting.BindingTraceContextAccessor",
+    "scripting.CompilationContextMixin",
     "scripting.ScriptJvmCompilerImplsMixin",
     "scripting.SlicedMapImplAccessor"
   ],

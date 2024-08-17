@@ -8,12 +8,11 @@ import ru.hollowhorizon.hc.common.events.scripting.*
 import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler.saveScriptToJar
 import ru.hollowhorizon.hc.common.scripting.mappings.Remapper
 import java.io.File
-import kotlin.script.experimental.api.EvaluationResult
-import kotlin.script.experimental.api.ResultWithDiagnostics
-import kotlin.script.experimental.api.ScriptDiagnostic
-import kotlin.script.experimental.api.ScriptEvaluationConfiguration
+import kotlin.script.experimental.api.*
 import kotlin.script.experimental.jvm.BasicJvmScriptEvaluator
 import kotlin.script.experimental.jvm.impl.KJvmCompiledScript
+import kotlin.script.experimental.jvm.jvm
+import kotlin.script.experimental.jvm.loadDependencies
 import kotlin.script.experimental.jvmhost.loadScriptFromJar
 
 data class CompiledScript(
@@ -31,7 +30,12 @@ data class CompiledScript(
         }
     }
 
-    suspend fun execute(body: ScriptEvaluationConfiguration.Builder.() -> Unit = {}): ResultWithDiagnostics<EvaluationResult> {
+    suspend fun execute(body: ScriptEvaluationConfiguration.Builder.() -> Unit = {
+        jvm {
+            loadDependencies(true)
+            scriptsInstancesSharing(true)
+        }
+    }): ResultWithDiagnostics<EvaluationResult> {
         if (script == null) {
             return ResultWithDiagnostics.Failure(
                 arrayListOf(

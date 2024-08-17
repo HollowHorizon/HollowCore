@@ -71,20 +71,6 @@ object HollowCore {
                 .toTypedArray(),
             deobfClassPath.toPath()
         )
-
-        GlobalScope.launch {
-            val file = ScriptingCompiler.compileText<HollowScript>(
-                """
-                import ru.hollowhorizon.hc.HollowCore
-                import net.minecraft.client.Minecraft
-                
-                HollowCore.LOGGER.info("Current Script: {}", Minecraft.getInstance().launchedVersion)
-                """.trimIndent()
-            )
-
-            file.save(File("example.jar"))
-            file.execute()
-        }
     }
 
     enum class Platform {
