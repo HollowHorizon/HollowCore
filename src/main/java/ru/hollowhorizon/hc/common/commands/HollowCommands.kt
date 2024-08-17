@@ -73,11 +73,11 @@ object HollowCommands {
                             Minecraft.getInstance().toasts.addToast(
                                 SystemToast(
                                     //? if <1.21 {
-                                    SystemToast.SystemToastIds.PERIODIC_NOTIFICATION,
-                                    //?} else {
-                                    /*
+                                    /*SystemToast.SystemToastIds.PERIODIC_NOTIFICATION,
+                                    *///?} else {
+                                    
                                     SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                    *///?}
+                                    //?}
                                     "Уведомление:".literal,
                                     result.level.literal
                                 )

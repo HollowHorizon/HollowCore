@@ -11,8 +11,8 @@ open class ImGuiScreen(private val drawer: Renderable): Screen(Component.empty()
         renderBackground(
             gui
             //? if >=1.21 {
-            /*, mouseX, mouseY, partialTick
-            *///?}
+            , mouseX, mouseY, partialTick
+            //?}
         )
         ImGuiHandler.drawFrame(drawer)
     }

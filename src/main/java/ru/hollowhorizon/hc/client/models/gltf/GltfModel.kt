@@ -80,6 +80,10 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
     ) {
         val activeTexture = GlStateManager._getActiveTexture()
 
+        //Получение текущих VAO и IBO
+        val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
+        val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
+
         modelTree.scenes.forEach {
             it.nodes.forEach { node ->
                 node.renderDecorations(stack, visuals, modelData, source, light)
@@ -89,10 +93,6 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
         CURRENT_NORMAL = stack.last().normal()
 
         transformSkinning(stack)
-
-        //Получение текущих VAO и IBO
-        val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
-        val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
 
 
         GL33.glVertexAttrib4f(1, 1.0F, 1.0F, 1.0F, 1.0F) // Цвет

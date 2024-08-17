@@ -24,9 +24,11 @@
 
 package ru.hollowhorizon.hc.client.imgui
 
-//? if >=1.21 {
-/*import net.minecraft.network.chat.contents.PlainTextContents
-*///?}
+//? if <1.21 {
+/*import net.minecraft.network.chat.contents.LiteralContents
+*///?} else {
+import net.minecraft.network.chat.contents.PlainTextContents
+//?}
 import com.google.common.collect.Queues
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
@@ -47,11 +49,11 @@ import net.minecraft.locale.Language
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
-import net.minecraft.network.chat.contents.LiteralContents
 import net.minecraft.network.chat.contents.TranslatableContents
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.FastColor.ARGB32
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.TooltipFlag
 import org.intellij.lang.annotations.MagicConstant
@@ -496,12 +498,12 @@ object ImGuiMethods {
         )
         val matrix4fstack = RenderSystem.getModelViewStack()
         //? if <1.21 {
-        matrix4fstack.pushPose()
+        /*matrix4fstack.pushPose()
         matrix4fstack.translate(0.0f, 0.0f, -2000.0f)
-        //?} else {
-        /*matrix4fstack.pushMatrix()
+        *///?} else {
+        matrix4fstack.pushMatrix()
         matrix4fstack.translation(0.0f, 0.0f, -2000.0f)
-        *///?}
+        //?}
         RenderSystem.applyModelViewMatrix()
 
         if (enableScissor) RenderSystem.enableScissor(
@@ -516,10 +518,10 @@ object ImGuiMethods {
         RenderSystem.restoreProjectionMatrix()
 
         //? if <1.21 {
-        matrix4fstack.popPose()
-        //?} else {
-        /*matrix4fstack.popMatrix()
-        *///?}
+        /*matrix4fstack.popPose()
+        *///?} else {
+        matrix4fstack.popMatrix()
+        //?}
 
         RenderSystem.applyModelViewMatrix()
 
@@ -686,20 +688,20 @@ object ImGuiMethods {
 
                 ImGui.dummy(0f, borderSize / 2)
                 //? if <1.21 {
-                item.getTooltipLines(
+                /*item.getTooltipLines(
                     player, TooltipFlag.Default.NORMAL
                 ).forEach {
                     ImGui.setCursorPosX(ImGui.getCursorPosX() + borderSize * 2)
                     text(it)
                 }
-                //?} else {
-                /*item.getTooltipLines(
+                *///?} else {
+                item.getTooltipLines(
                     Item.TooltipContext.of(player.level()), player, TooltipFlag.Default.NORMAL
                 ).forEach {
                     ImGui.setCursorPosX(ImGui.getCursorPosX() + borderSize * 2)
                     text(it)
                 }
-                *///?}
+                //?}
                 ImGui.dummy(borderSize, borderSize)
             }
             ImGui.popStyleColor(2)
@@ -752,11 +754,11 @@ object ImGuiMethods {
     private fun drawText(text: Component, alpha: Float = 1f, shadow: Boolean) {
         when (val content = text.contents) {
             //? if <1.21 {
-            is LiteralContents,
-                //?} else {
-                /*
+            /*is LiteralContents,
+                *///?} else {
+                
             is PlainTextContents
-            *///?}
+            //?}
             -> {
                 if (shadow) textShadow(content.text())
                 else text(content.text())
@@ -800,10 +802,10 @@ object ImGuiMethods {
         if (isHovered) text.style.hoverEvent?.let {
             val name =
                 //? if <1.21 {
-                it.action.name
-            //?} else {
-            /*it.action.serializedName
-            *///?}
+                /*it.action.name
+            *///?} else {
+            it.action.serializedName
+            //?}
             when (name) {
                 "show_text" -> {
                     ImGui.beginTooltip()
@@ -817,7 +819,7 @@ object ImGuiMethods {
                         item(it.itemStack, 128f, 128f)
                         it.itemStack.getTooltipLines(
                             //? if >=1.21 {
-                            /*Item.TooltipContext.of(Minecraft.getInstance().level),*/
+                            Item.TooltipContext.of(Minecraft.getInstance().level),
                             //?}
                             Minecraft.getInstance().player,
                             TooltipFlag.Default.NORMAL
@@ -833,9 +835,9 @@ object ImGuiMethods {
                         val entity = Minecraft.getInstance().level?.entitiesForRendering()
                             ?.find { a -> a.uuid == it.id } as? LivingEntity
                         //? if <1.21 {
-                        if(it.name != null) text(it.name!!)
-                        //?} else {
-                        /*if (it.name.isPresent) text(it.name.get())*/
+                        /*if(it.name != null) text(it.name!!)
+                        *///?} else {
+                        if (it.name.isPresent) text(it.name.get())
                         //?}
                         if (entity != null) entity(entity, 128f, 128f)
                     }

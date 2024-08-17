@@ -54,11 +54,11 @@ interface ContainerManager {
                             .map { it to fromContainer.getItem(it) }
                             .filter {
                                 //? if <1.21 {
-                                ItemStack.isSameItemSameTags(original, it.second) or
-                                        //?} else {
-                                        /*
+                                /*ItemStack.isSameItemSameTags(original, it.second) or
+                                        *///?} else {
+                                        
                                         ItemStack.isSameItemSameComponents(original, it.second) or
-                                        *///?}
+                                        //?}
                                         it.second.isEmpty
                             }
                             .sortedBy { it.first }
@@ -92,11 +92,11 @@ interface ContainerManager {
                             .map { it to toContainer.getItem(it) }
                             .filter {
                                 //? if <1.21 {
-                                ItemStack.isSameItemSameTags(original, it.second) or
-                                        //?} else {
-                                        /*
+                                /*ItemStack.isSameItemSameTags(original, it.second) or
+                                        *///?} else {
+                                        
                                         ItemStack.isSameItemSameComponents(original, it.second) or
-                                        *///?}
+                                        //?}
                                         it.second.isEmpty
                             }
                             .sortedBy { it.first }
@@ -153,11 +153,11 @@ interface ContainerManager {
                                 .map { it to fromContainer.getItem(it) }
                                 .filter {
                                     //? if <1.21 {
-                                    ItemStack.isSameItemSameTags(holdStack, it.second) or
-                                            //?} else {
-                                            /*
+                                    /*ItemStack.isSameItemSameTags(holdStack, it.second) or
+                                            *///?} else {
+                                            
                                             ItemStack.isSameItemSameComponents(holdStack, it.second) or
-                                            *///?}
+                                            //?}
                                             it.second.isEmpty
                                 }
                                 .sortedBy { it.second.count }
@@ -198,11 +198,11 @@ interface ContainerManager {
 
                     if (
                     //? if <1.21 {
-                        ItemStack.isSameItemSameTags(holdStack, item)
-                    //?} else {
-                    /*
+                        /*ItemStack.isSameItemSameTags(holdStack, item)
+                    *///?} else {
+                    
                     ItemStack.isSameItemSameComponents(holdStack, item)
-                    *///?}
+                    //?}
                     ) {
                         if (item.count != item.maxStackSize) {
 
@@ -244,11 +244,11 @@ interface ContainerManager {
                     return true
                 } else if (
                     //? if <1.21 {
-                    ItemStack.isSameItemSameTags(holdStack, item)
-                    //?} else {
-                    /*
+                    /*ItemStack.isSameItemSameTags(holdStack, item)
+                    *///?} else {
+                    
                     ItemStack.isSameItemSameComponents(holdStack, item)
-                    *///?}
+                    //?}
 
                     && item.count != item.maxStackSize) {
                     fromContainer.setItem(id, item.copy().apply { count++ })

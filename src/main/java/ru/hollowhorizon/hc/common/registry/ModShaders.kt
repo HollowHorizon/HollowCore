@@ -25,6 +25,7 @@
 package ru.hollowhorizon.hc.common.registry
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
+import net.minecraft.SharedConstants
 import net.minecraft.client.renderer.ShaderInstance
 import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.client.utils.rl
@@ -36,7 +37,7 @@ object ModShaders {
 
     @SubscribeEvent(clientSideOnly = true)
     fun onShaderRegistry(event: RegisterShadersEvent) {
-        event.register("$MODID:gltf_entity".rl, DefaultVertexFormat.NEW_ENTITY) {
+        event.register("$MODID:gltf_entity-${SharedConstants.getCurrentVersion().name}".rl, DefaultVertexFormat.NEW_ENTITY) {
             GLTF_ENTITY = it
         }
     }

@@ -35,6 +35,9 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
+//? if >=1.21 {
+import net.minecraft.core.RegistryAccess
+//?}
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.nbt.*
 import net.minecraft.network.chat.Component
@@ -142,9 +145,9 @@ object ForTextComponent : KSerializer<Component> {
             Component.Serializer.toJson(
                 value
                 //? if >=1.21 {
-                /*
+                
                 , RegistryAccess.EMPTY
-                *///?}
+                //?}
             )
         )
 
@@ -152,9 +155,9 @@ object ForTextComponent : KSerializer<Component> {
         Component.Serializer.fromJson(
             decoder.decodeString()
             //? if >=1.21 {
-            /*
+            
             , RegistryAccess.EMPTY
-            *///?}
+            //?}
         ) ?: "".mcText
 }
 

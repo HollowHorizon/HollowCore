@@ -24,11 +24,9 @@
 package ru.hollowhorizon.hc.client.utils
 
 //? if >=1.21 {
-//?} else {
-/*
 import net.minecraft.server.packs.PackLocationInfo
 import net.minecraft.server.packs.PackSelectionConfig
-*///?}
+//?}
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import net.minecraft.resources.ResourceLocation
@@ -123,17 +121,17 @@ object HollowPack : PackResources {
     }
 
     //? if <1.21 {
-    override fun packId(): String {
+    /*override fun packId(): String {
         return "HollowCore Resources"
     }
-    //?} else {
-    /*
+    *///?} else {
+    
     override fun location(): PackLocationInfo {
         val name = "HollowCore Resources"
         return PackLocationInfo(name, name.mcText, PackSource.BUILT_IN, Optional.empty())
     }
 
-    *///?}
+    //?}
 
 
     override fun close() {
@@ -150,13 +148,13 @@ object HollowPack : PackResources {
 
 fun PackResources.asPack(): Pack {
     //? if <1.21 {
-    val resources = ResourcesSupplier { this }
+    /*val resources = ResourcesSupplier { this }
     return Pack.readMetaAndCreate(
         packId(), packId().literal, true, resources, PackType.CLIENT_RESOURCES,
         Pack.Position.TOP, PackSource.BUILT_IN
     ) ?: throw FileNotFoundException("Could not find the pack resource $this")
-    //?} else {
-    /*
+    *///?} else {
+    
     val resources = object : ResourcesSupplier {
         override fun openPrimary(p0: PackLocationInfo): PackResources = this@asPack
         override fun openFull(p0: PackLocationInfo, p1: Pack.Metadata) = this@asPack
@@ -167,5 +165,5 @@ fun PackResources.asPack(): Pack {
         PackType.CLIENT_RESOURCES,
         PackSelectionConfig(true, Pack.Position.TOP, true)
     ) ?: throw FileNotFoundException("Could not find the pack resource $this")
-    *///?}
+    //?}
 }

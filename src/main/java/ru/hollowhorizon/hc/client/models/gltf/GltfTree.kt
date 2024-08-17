@@ -670,9 +670,9 @@ object GltfTree {
 
             stack.use {
                 //? if <1.21 {
-                mulPoseMatrix(localMatrix)
-                //?} else {
-                /*mulPose(localMatrix)*/
+                /*mulPoseMatrix(localMatrix)
+                *///?} else {
+                mulPose(localMatrix)
                 //?}
 
                 mesh?.render(this@Node, stack, changedTexture)
@@ -689,9 +689,9 @@ object GltfTree {
         ) {
             stack.use {
                 //? if <1.21 {
-                mulPoseMatrix(localMatrix)
-                //?} else {
-                /*mulPose(localMatrix)*/
+                /*mulPoseMatrix(localMatrix)
+                *///?} else {
+                mulPose(localMatrix)
                 //?}
                 last().normal().mul(normalMatrix)
 
@@ -758,7 +758,7 @@ object GltfTree {
             // Проходим по всем суставам
             for (i in jointsIds.indices) {
                 val jointGlobalMatrix = joints[i]!!.globalMatrix
-                val bindMatrix = Matrix4f(inverseBindMatrices[i])
+                val bindMatrix = Matrix4f(inverseBindMatrices[i]).transpose()
                 val skinMatrix = Matrix4f(jointGlobalMatrix).mul(bindMatrix)
                 skin[i] = Matrix4f(inverseTransform).mul(skinMatrix)
             }

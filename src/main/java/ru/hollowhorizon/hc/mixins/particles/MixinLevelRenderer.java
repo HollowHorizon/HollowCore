@@ -24,8 +24,8 @@
 
 package ru.hollowhorizon.hc.mixins.particles;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
@@ -38,12 +38,34 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderContext;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
 import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer;
-
 import static ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.copyCurrentDepthTo;
+
+//? if >=1.21 {
+import net.minecraft.client.DeltaTracker;
+ 
+//?}
 
 @Mixin(LevelRenderer.class)
 public class MixinLevelRenderer {
     @Inject(method = "renderLevel", at = @At("RETURN"))
+    //? if <1.21 {
+    /*private void onRenderLevelLast(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f projectionMatrix, CallbackInfo ci) {
+        var capture = RenderStateCapture.LEVEL;
+        var capturedPose = capture.pose.last();
+        capturedPose.pose().set(poseStack.last().pose());
+        capturedPose.normal().set(poseStack.last().normal());
+        capture.projection.set(projectionMatrix);
+        capture.camera = camera;
+        capture.hasCapture = true;
+
+        if (RenderContext.renderLevelDeferred()) {
+            copyCurrentDepthTo(RenderStateCapture.CAPTURED_WORLD_DEPTH_BUFFER);
+        } else {
+            EffekRenderer.onRenderWorldLast(partialTick, capture.pose, capture.projection, capture.camera);
+        }
+    }
+    *///?} else {
+    
     private void onRenderLevelLast(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f cameraMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         var capture = RenderStateCapture.LEVEL;
         var capturedPose = capture.pose.last();
@@ -59,4 +81,5 @@ public class MixinLevelRenderer {
             EffekRenderer.onRenderWorldLast(deltaTracker.getRealtimeDeltaTicks(), capture.pose, capture.projection, capture.camera);
         }
     }
+    //?}
 }

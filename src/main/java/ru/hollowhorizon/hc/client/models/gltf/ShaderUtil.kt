@@ -47,7 +47,7 @@ inline fun drawWithShader(
 
     state.setupRenderState()
     //? if <1.21 {
-    shader.PROJECTION_MATRIX?.set(RenderSystem.getProjectionMatrix())
+    /*shader.PROJECTION_MATRIX?.set(RenderSystem.getProjectionMatrix())
     shader.MODEL_VIEW_MATRIX?.set(RenderSystem.getModelViewMatrix())
     shader.INVERSE_VIEW_ROTATION_MATRIX?.set(RenderSystem.getInverseViewRotationMatrix())
     shader.FOG_START?.set(RenderSystem.getShaderFogStart())
@@ -58,14 +58,14 @@ inline fun drawWithShader(
     shader.TEXTURE_MATRIX?.set(Matrix4f(RenderSystem.getTextureMatrix()).apply { transpose() })
     shader.GAME_TIME?.set(RenderSystem.getShaderGameTime())
     RenderSystem.setupShaderLights(shader)
-    //?} else {
-    /*shader.setDefaultUniforms(
+    *///?} else {
+    shader.setDefaultUniforms(
         VertexFormat.Mode.TRIANGLES,
         RenderSystem.getModelViewMatrix(),
         RenderSystem.getProjectionMatrix(),
         Minecraft.getInstance().window
     )
-    *///?}
+    //?}
     shader.apply()
 
     accessor.samplerLocations().forEachIndexed { texture, index ->

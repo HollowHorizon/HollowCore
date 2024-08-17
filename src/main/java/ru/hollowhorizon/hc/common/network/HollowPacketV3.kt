@@ -25,10 +25,14 @@
 package ru.hollowhorizon.hc.common.network
 
 //? if >=1.21 {
-/*
-import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
+
+//?}
+import io.netty.buffer.Unpooled
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
+import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
-*///?}
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerChunkCache
 import net.minecraft.server.level.ServerPlayer
@@ -36,12 +40,13 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
 import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.client.utils.rl
 
 interface HollowPacketV3<T : HollowPacketV3<T>>
 //? if >=1.21 {
-/*
+
     : CustomPacketPayload
-*///?}
+//?}
 {
     fun handle(player: Player)
 
@@ -57,22 +62,27 @@ interface HollowPacketV3<T : HollowPacketV3<T>>
     }
 
     //? if >=1.21 {
-    /*override fun type() =
+    override fun type() =
         CustomPacketPayload.Type<T>(
             ResourceLocation.fromNamespaceAndPath(
                 MODID,
                 javaClass.name.lowercase().replace("\$", ".")
             )
         )
-    *///?}
+    //?}
 }
+
+val HollowPacketV3<*>.packetName: ResourceLocation
+    get() = "$MODID:${
+        this.javaClass.name.lowercase().replace("\$", ".")
+    }".rl
 
 fun HollowPacketV3<*>.sendTrackingEntity(entity: Entity) {
     val chunkCache = entity.level().chunkSource
     if (chunkCache is ServerChunkCache) {
         chunkCache.broadcastAndSend(
             entity,
-            ClientboundCustomPayloadPacket(this)
+            this.asVanillaPacket(true)
         )
     } else {
         throw IllegalStateException("Cannot send clientbound payloads on the client")
@@ -86,7 +96,23 @@ fun HollowPacketV3<*>.sendTrackingEntityAndSelf(entity: Entity) {
 
 fun HollowPacketV3<*>.sendAllInDimension(level: Level) {
     val server = level.server ?: return
-    server.playerList.broadcastAll(ClientboundCustomPayloadPacket(this), level.dimension())
+    server.playerList.broadcastAll(this.asVanillaPacket(true), level.dimension())
+}
+
+
+fun HollowPacketV3<*>.asVanillaPacket(toClient: Boolean): Packet<*> {
+    //? if fabric {
+    return if (!toClient) ClientPlayNetworking.createC2SPacket(this)
+    else ServerPlayNetworking.createS2CPacket(this)
+    //? if >=1.21 {
+    //?} else {
+    /*val byteBuf = FriendlyByteBuf(Unpooled.buffer())
+    byteBuf.writeNbt(NBTFormat.serializeNoInline(this, javaClass) as CompoundTag)
+    return if (!toClient) ClientPlayNetworking.createC2SPacket(packetName, byteBuf)
+    else ServerPlayNetworking.createS2CPacket(packetName, byteBuf)
+    *///?}
+
+    //?}
 }
 
 lateinit var sendPacketToServer: (HollowPacketV3<*>) -> Unit

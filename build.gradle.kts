@@ -156,12 +156,7 @@ afterEvaluate {
         stonecutter.const("forge", platform == "forge")
         stonecutter.const("neoforge", platform == "neoforge")
 
-        stonecutter.exclude("*.so")
-        stonecutter.exclude("*.dylib")
-        stonecutter.exclude("*.dll")
-        stonecutter.exclude("*.ser")
-        stonecutter.exclude("*.gltf")
-        stonecutter.exclude("*.glb")
+        stonecutter.exclude("src/main/resources")
     }
 }
 
@@ -197,12 +192,7 @@ stonecutter {
         jvmToolchain(if (j21) 21 else 17)
     }
 
-    stonecutter.exclude("*.so")
-    stonecutter.exclude("*.dylib")
-    stonecutter.exclude("*.dll")
-    stonecutter.exclude("*.ser")
-    stonecutter.exclude("*.gltf")
-    stonecutter.exclude("*.glb")
+    stonecutter.exclude("src/main/resources")
 }
 
 fun DependencyHandlerScope.includes(vararg libraries: String) {

@@ -1,3 +1,4 @@
+//? if >=1.21 {
 package ru.hollowhorizon.hc.mixins.capabilities;
 
 import net.minecraft.core.component.DataComponentType;
@@ -17,3 +18,4 @@ public abstract class ItemPropertiesMixin {
         //component(CapabilityComponents.INSTANCE.getCAPABILITIES().get(), new DefaultDispatcher());
     }
 }
+//?}

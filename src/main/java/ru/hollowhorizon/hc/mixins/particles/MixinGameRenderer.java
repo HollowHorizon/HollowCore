@@ -24,7 +24,7 @@
 
 package ru.hollowhorizon.hc.mixins.particles;
 
-import net.minecraft.client.DeltaTracker;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -36,22 +36,38 @@ import ru.hollowhorizon.hc.client.render.effekseer.internal.EffekFpvRenderer;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderContext;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
 import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer;
-
 import static ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.pasteToCurrentDepthFrom;
+
+//? if >=1.21 {
+import net.minecraft.client.DeltaTracker;
+ 
+//?}
 
 @Mixin(GameRenderer.class)
 public class MixinGameRenderer {
 
-    @Shadow private boolean renderHand;
+    @Shadow
+    private boolean renderHand;
 
     @Inject(method = "renderLevel", at = @At("TAIL"))
+    //? if <1.21 {
+    /*private void renderLevelTail(float partialTicks, long finishTimeNano, PoseStack poseStack, CallbackInfo ci) {
+    *///?} else {
     private void renderLevelTail(DeltaTracker deltaTracker, CallbackInfo ci) {
+    //?}
+
         if (RenderContext.renderLevelDeferred() && RenderStateCapture.LEVEL.hasCapture) {
             RenderStateCapture.LEVEL.hasCapture = false;
 
             pasteToCurrentDepthFrom(RenderStateCapture.CAPTURED_WORLD_DEPTH_BUFFER);
             assert RenderStateCapture.LEVEL.camera != null;
-            EffekRenderer.onRenderWorldLast(deltaTracker.getRealtimeDeltaTicks(), RenderStateCapture.LEVEL.pose, RenderStateCapture.LEVEL.projection, RenderStateCapture.LEVEL.camera);
+            EffekRenderer.onRenderWorldLast(
+                    //? if <1.21 {
+                    /*partialTicks,
+                    *///?} else {
+                    deltaTracker.getRealtimeDeltaTicks(),
+                     //?}
+                    RenderStateCapture.LEVEL.pose, RenderStateCapture.LEVEL.projection, RenderStateCapture.LEVEL.camera);
         }
         final var minecraft = Minecraft.getInstance();
         if (RenderContext.renderHandDeferred() && renderHand) {
@@ -60,7 +76,13 @@ public class MixinGameRenderer {
             }
 
             assert minecraft.player != null;
-            ((EffekFpvRenderer) minecraft.gameRenderer.itemInHandRenderer).hollowcore$renderFpvEffek(deltaTracker.getRealtimeDeltaTicks(), minecraft.player);
+            ((EffekFpvRenderer) minecraft.gameRenderer.itemInHandRenderer).hollowcore$renderFpvEffek(
+                    //? if <1.21 {
+                    /*partialTicks,
+                    *///?} else {
+                    deltaTracker.getRealtimeDeltaTicks(),
+                     //?}
+                    minecraft.player);
         }
     }
 }
