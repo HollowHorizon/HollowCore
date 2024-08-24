@@ -82,15 +82,28 @@ repositories {
     maven("https://jitpack.io")
     maven("https://maven.neoforged.net/releases")
     maven("https://maven.fabricmc.net/")
-    flatDir { dir("libs") }
+    maven("https://maven.cleanroommc.com")
+    maven("https://thedarkcolour.github.io/KotlinForForge/")
+    flatDir { dirs(rootDir.resolve("libs")) }
+}
+
+configurations.configureEach {
+    // Fix that can be found in Forge MDK too
+    resolutionStrategy {
+        force("net.sf.jopt-simple:jopt-simple:5.0.4")
+    }
 }
 
 dependencies {
     "minecraft"("com.mojang:minecraft:$minecraftVersion")
     "mappings"(loom.layered {
         officialMojangMappings()
-        val mappingsVer = if (stonecutter.eval(minecraftVersion, ">=1.21")) "2024.07.28"
-        else "2023.09.03"
+        val mappingsVer = when (minecraftVersion) {
+            "1.21" -> "2024.07.28"
+            "1.20.1" -> "2023.09.03"
+            "1.19.2" -> "2022.11.27"
+            else -> "..."
+        }
         parchment("org.parchmentmc.data:parchment-$minecraftVersion:$mappingsVer")
     })
 
@@ -131,16 +144,31 @@ dependencies {
             if (minecraftVersion == "1.21") {
                 "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
                 "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.100.1+1.21")
-            } else {
+            } else if (minecraftVersion == "1.20.1") {
                 "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
                 "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.92.2+1.20.1")
+            } else {
+                "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
+                "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.77.0+1.19.2")
+                implementation("org.joml:joml:1.10.8") //TODO: На 1.19.2 и ниже нужно предоставлять эту зависимость вместе с модом
             }
         }
 
         "forge" -> {
             if (minecraftVersion == "1.20.1") {
                 "forge"("net.minecraftforge:forge:${minecraftVersion}-47.3.6")
-            } else "forge"("net.minecraftforge:forge:${minecraftVersion}-51.0.8")
+            } else if (minecraftVersion == "1.21") {
+                implementation("ru.hollowhorizon:forgefixer:1.0.0")
+                implementation("thedarkcolour:kotlinforforge:5.5.0")
+                implementation("thedarkcolour:kfflang:5.5.0")
+                implementation("thedarkcolour:kfflib:5.5.0")
+                implementation("thedarkcolour:kffmod:5.5.0")
+
+                "forge"("net.minecraftforge:forge:${minecraftVersion}-51.0.8")
+            }
+            else {
+                "forge"("net.minecraftforge:forge:${minecraftVersion}-43.4.2")
+            }
         }
 
         "neoforge" -> {
@@ -156,7 +184,6 @@ afterEvaluate {
         stonecutter.const("forge", platform == "forge")
         stonecutter.const("neoforge", platform == "neoforge")
 
-        stonecutter.exclude("src/main/resources")
     }
 }
 
@@ -191,8 +218,6 @@ stonecutter {
     kotlin {
         jvmToolchain(if (j21) 21 else 17)
     }
-
-    stonecutter.exclude("src/main/resources")
 }
 
 fun DependencyHandlerScope.includes(vararg libraries: String) {

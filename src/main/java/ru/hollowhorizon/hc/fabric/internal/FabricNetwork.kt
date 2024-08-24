@@ -1,7 +1,8 @@
 package ru.hollowhorizon.hc.fabric.internal
 
-//? if fabric {
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
+//? if fabric && >=1.21 {
+
+/*import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.network.RegistryFriendlyByteBuf
@@ -67,11 +68,10 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
         }
     }
 }
-//? if >=1.21 {
-//?} else {
-/*
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
+*///?} elif fabric {
+
+/*import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
@@ -147,5 +147,3 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
     }
 }
 *///?}
-
-//?}

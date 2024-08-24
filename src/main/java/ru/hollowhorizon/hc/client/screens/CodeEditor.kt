@@ -83,6 +83,7 @@ class CodeEditor : Screen(Component.empty()) {
                     ImGui.end()
                 }
             }
+
         }
     }
 

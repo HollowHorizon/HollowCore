@@ -24,16 +24,20 @@
 
 package ru.hollowhorizon.hc.client.imgui
 
-//? if <1.21 {
-/*import net.minecraft.network.chat.contents.LiteralContents
-*///?} else {
+//? if >=1.21 {
 import net.minecraft.network.chat.contents.PlainTextContents
-//?}
+import com.mojang.blaze3d.vertex.VertexSorting
+//?} elif >=1.20.1 {
+/*import com.mojang.blaze3d.vertex.VertexSorting
+import net.minecraft.network.chat.contents.LiteralContents
+*///?} else {
+/*import net.minecraft.network.chat.contents.LiteralContents
+import ru.hollowhorizon.hc.client.utils.toMc
+*///?}
 import com.google.common.collect.Queues
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.VertexSorting
 import imgui.ImFont
 import imgui.ImGui
 import imgui.ImVec2
@@ -62,6 +66,7 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.imgui.addons.ItemProperties
 import ru.hollowhorizon.hc.client.render.render
 import ru.hollowhorizon.hc.client.render.renderItemDecorations
+
 import ru.hollowhorizon.hc.client.utils.toTexture
 import java.io.File
 import java.util.*
@@ -492,18 +497,28 @@ object ImGuiMethods {
 
         RenderSystem.backupProjectionMatrix()
         RenderSystem.setProjectionMatrix(
+            //? if >=1.20.1 {
             Matrix4f().setOrtho(
                 0.0F, buffer.width.toFloat(), buffer.height.toFloat(), 0.0F, 1000.0F, 3000.0F
             ), VertexSorting.ORTHOGRAPHIC_Z
+            //?} else {
+            /*Matrix4f().setOrtho(
+                0.0F, buffer.width.toFloat(), buffer.height.toFloat(), 0.0F, 1000.0F, 3000.0F
+            ).toMc()
+            *///?}
         )
         val matrix4fstack = RenderSystem.getModelViewStack()
-        //? if <1.21 {
-        /*matrix4fstack.pushPose()
-        matrix4fstack.translate(0.0f, 0.0f, -2000.0f)
-        *///?} else {
+        //? if >=1.21 {
         matrix4fstack.pushMatrix()
         matrix4fstack.translation(0.0f, 0.0f, -2000.0f)
-        //?}
+        //?} elif >=1.20.1 {
+        /*
+        matrix4fstack.pushPose()
+        matrix4fstack.translate(0.0f, 0.0f, -2000.0f)
+        *///?} else {
+        /*matrix4fstack.pushPose()
+        matrix4fstack.translate(0.0, 0.0, -2000.0)
+        *///?}
         RenderSystem.applyModelViewMatrix()
 
         if (enableScissor) RenderSystem.enableScissor(
@@ -615,13 +630,23 @@ object ImGuiMethods {
             var weight = item.count / item.maxStackSize.toFloat()
             if (item.maxStackSize == 1) weight = 0f
             val stack = PoseStack()
-            if (properties.alwaysOnTop) stack.translate(0f, 0f, 200f)
+            if (properties.alwaysOnTop) {
+                //? if >=1.21 {
+                stack.translate(0f, 0f, 200f)
+                //?} else {
+                /*stack.translate(0.0, 0.0, 200.0)
+                *///?}
+            }
 
             val enableCounts = HollowCore.config.inventory.enableItemCounts
 
             if (weight > 0.3f && enableCounts) {
                 stack.pushPose()
+                //? if >=1.21 {
                 stack.translate(0f, 0f, -100f)
+                //?} else {
+                /*stack.translate(0.0, 0.0, -100.0)
+                *///?}
                 item.render(
                     cursor.x + width / 5f, cursor.y, width, height,
                     (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale * 0.65f,
@@ -632,7 +657,11 @@ object ImGuiMethods {
 
             if (weight > 0.6f && enableCounts) {
                 stack.pushPose()
+                //? if >=1.21 {
                 stack.translate(0f, 0f, -100f)
+                //?} else {
+                /*stack.translate(0.0, 0.0, -100.0)
+                *///?}
                 item.render(
                     cursor.x - width / 5, cursor.y - height / 10, width, height,
                     (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale * 0.75f,
@@ -756,7 +785,7 @@ object ImGuiMethods {
             //? if <1.21 {
             /*is LiteralContents,
                 *///?} else {
-                
+
             is PlainTextContents
             //?}
             -> {
@@ -780,7 +809,16 @@ object ImGuiMethods {
             when (it.action) {
                 ClickEvent.Action.OPEN_URL -> Util.getPlatform().openUri(it.value)
                 ClickEvent.Action.OPEN_FILE -> Util.getPlatform().openFile(File(it.value))
-                ClickEvent.Action.RUN_COMMAND -> Minecraft.getInstance().connection?.sendCommand(it.value)
+                ClickEvent.Action.RUN_COMMAND -> {
+                    val connection = Minecraft.getInstance().connection
+                    if(connection != null) {
+                        //? if >=1.20.1 {
+                        connection.sendCommand(it.value)
+                        //?} else {
+                        /*connection.commands.execute(it.value, connection.suggestionsProvider)
+                        *///?}
+                    }
+                }
                 ClickEvent.Action.COPY_TO_CLIPBOARD -> Minecraft.getInstance().keyboardHandler.clipboard = it.value
                 else -> throw UnsupportedOperationException("Unsupported click action: ${it.action}")
             }

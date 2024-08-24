@@ -35,10 +35,12 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.texture.OverlayTexture
 //? if >=1.21 {
 import net.minecraft.util.FastColor
-//?}
+import net.minecraft.world.item.ItemDisplayContext
+//?} elif >=1.20.1 {
+/*import net.minecraft.world.item.ItemDisplayContext
+*///?}
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import org.joml.Matrix4f
 import org.joml.Quaternionf

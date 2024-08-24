@@ -152,7 +152,7 @@ data class GltfNode(
     val translation: Vector3f? = Vector3f(),
     val weights: List<Float> = emptyList(),
     val name: String? = null,
-    val extensions: String? = null,
+    val extensions: Map<String, Any?>? = null,
     val extras: Any? = null,
 )
 

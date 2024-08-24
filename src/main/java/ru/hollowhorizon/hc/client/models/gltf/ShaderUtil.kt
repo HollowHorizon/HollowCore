@@ -55,7 +55,6 @@ inline fun drawWithShader(
     shader.FOG_COLOR?.set(RenderSystem.getShaderFogColor())
     shader.FOG_SHAPE?.set(RenderSystem.getShaderFogShape().index)
     shader.COLOR_MODULATOR?.set(1.0F, 1.0F, 1.0F, 1.0F)
-    shader.TEXTURE_MATRIX?.set(Matrix4f(RenderSystem.getTextureMatrix()).apply { transpose() })
     shader.GAME_TIME?.set(RenderSystem.getShaderGameTime())
     RenderSystem.setupShaderLights(shader)
     *///?} else {
@@ -66,6 +65,12 @@ inline fun drawWithShader(
         Minecraft.getInstance().window
     )
     //?}
+
+    //? if >=1.20.1 {
+    shader.TEXTURE_MATRIX?.set(Matrix4f(RenderSystem.getTextureMatrix()).apply { transpose() })
+    //?} else {
+    /*shader.TEXTURE_MATRIX?.set(RenderSystem.getTextureMatrix().copy().apply { transpose() })
+    *///?}
     shader.apply()
 
     accessor.samplerLocations().forEachIndexed { texture, index ->

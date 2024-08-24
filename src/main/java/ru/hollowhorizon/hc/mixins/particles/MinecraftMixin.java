@@ -24,6 +24,7 @@
 
 package ru.hollowhorizon.hc.mixins.particles;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -36,11 +37,15 @@ import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
 public class MinecraftMixin {
     @Inject(method = "resizeDisplay", at = @At("RETURN"))
     private void resizeCapturedDepthBuffer(CallbackInfo ci) {
-        final var window = Minecraft.getInstance().getWindow();
-        RenderStateCapture.CAPTURED_WORLD_DEPTH_BUFFER.resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
-        RenderStateCapture.CAPTURED_HAND_DEPTH_BUFFER.resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
-        ImGuiExtensionsKt.getImguiWindowBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
-        ImGuiExtensionsKt.getImguiBackgroundBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
-        ImGuiExtensionsKt.getImguiForegroundBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+        if (Minecraft.getInstance().getNarrator() == null) return;
+        RenderSystem.recordRenderCall(() -> {
+            final var window = Minecraft.getInstance().getWindow();
+            RenderStateCapture.CAPTURED_WORLD_DEPTH_BUFFER.resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+            RenderStateCapture.CAPTURED_HAND_DEPTH_BUFFER.resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+            ImGuiExtensionsKt.getImguiWindowBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+            ImGuiExtensionsKt.getImguiBackgroundBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+            ImGuiExtensionsKt.getImguiForegroundBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+
+        });
     }
 }

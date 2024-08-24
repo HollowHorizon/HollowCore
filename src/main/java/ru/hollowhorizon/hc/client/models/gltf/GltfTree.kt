@@ -669,11 +669,13 @@ object GltfTree {
             ) return
 
             stack.use {
-                //? if <1.21 {
+                //? if >=1.21 {
+                mulPose(localMatrix)
+                //?} elif >=1.20.1 {
                 /*mulPoseMatrix(localMatrix)
                 *///?} else {
-                mulPose(localMatrix)
-                //?}
+                /*mulPoseMatrix(localMatrix.toMc())
+                *///?}
 
                 mesh?.render(this@Node, stack, changedTexture)
                 children.forEach { it.render(stack, nodeRenderer, data, changedTexture, light) }
@@ -688,12 +690,16 @@ object GltfTree {
             light: Int,
         ) {
             stack.use {
-                //? if <1.21 {
-                /*mulPoseMatrix(localMatrix)
-                *///?} else {
+                //? if >=1.21 {
                 mulPose(localMatrix)
-                //?}
                 last().normal().mul(normalMatrix)
+                //?} elif >=1.20.1 {
+                /*mulPoseMatrix(localMatrix)
+                last().normal().mul(normalMatrix)
+                *///?} else {
+                /*mulPoseMatrix(localMatrix.toMc())
+                last().normal().mul(normalMatrix.toMc())
+                *///?}
 
                 data.entity?.let {
                     nodeRenderer(it, stack, this@Node, source, light)
@@ -886,7 +892,7 @@ object GltfTree {
 
                     if (GltfAttribute.TANGENT !in attributes) {
                         val pos = attributes[GltfAttribute.POSITION]!!.get<Vector3f>()
-                        val texCoords = attributes[GltfAttribute.TEXCOORD_0]!!.get<Pair<Float, Float>>()
+                        val texCoords = attributes[GltfAttribute.TEXCOORD_0]?.get<Pair<Float, Float>>()
                         val normal = this
 
                         val tangents = BufferUtils.createFloatBuffer(this.size * 4)
@@ -916,8 +922,8 @@ object GltfTree {
 
                             override fun getTexCoord(texOut: FloatArray, face: Int, vert: Int) {
                                 val index = (face * 3) + vert
-                                texOut[0] = texCoords[index].first
-                                texOut[1] = texCoords[index].second
+                                texOut[0] = texCoords?.get(index)?.first ?: 0f
+                                texOut[1] = texCoords?.get(index)?.second ?: 0f
                             }
 
                             override fun setTSpaceBasic(tangent: FloatArray, sign: Float, face: Int, vert: Int) {
@@ -1148,15 +1154,19 @@ object GltfTree {
             if (indexBuffer != -1) GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
 
             GL33.glEnableVertexAttribArray(0) // Вершины (или цвет)
-            GL33.glEnableVertexAttribArray(2) // Текстурные координаты
+            if(texCoordsBuffer != -1) GL33.glEnableVertexAttribArray(2) // Текстурные координаты
             GL33.glEnableVertexAttribArray(5) // Нормали
             if (tangentBuffer != -1) GL33.glEnableVertexAttribArray(8) //Тангенты
             if (hasShaders) GL20.glEnableVertexAttribArray(7) //координаты для глубины (pbr)
 
+            //? if >=1.20.1 {
             val modelView = Matrix4f(RenderSystem.getModelViewMatrix()).mul(stack.last().pose())
-
-            //Матрица
             shader.MODEL_VIEW_MATRIX?.set(modelView)
+            //?} else {
+            /*val modelView = Matrix4f(RenderSystem.getModelViewMatrix().fromMc()).mul(stack.last().pose().fromMc())
+            shader.MODEL_VIEW_MATRIX?.set(modelView.toMc())
+            *///?}
+
             shader.MODEL_VIEW_MATRIX?.upload()
 
             //Нормали
@@ -1189,7 +1199,7 @@ object GltfTree {
 
             //Отключение параметров выше
             GL33.glDisableVertexAttribArray(0)
-            GL33.glDisableVertexAttribArray(2)
+            if(texCoordsBuffer != -1) GL33.glDisableVertexAttribArray(2)
             GL33.glDisableVertexAttribArray(5)
             if (tangentBuffer != -1) GL33.glDisableVertexAttribArray(8)
             if (hasShaders) GL20.glDisableVertexAttribArray(7)

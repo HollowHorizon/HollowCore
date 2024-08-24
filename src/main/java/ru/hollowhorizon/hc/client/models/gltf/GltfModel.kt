@@ -46,6 +46,9 @@ import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.shouldOverrideShaders
 import ru.hollowhorizon.hc.common.registry.ModShaders
 
+//? if<=1.19.2{
+/*import ru.hollowhorizon.hc.client.utils.fromMc*/
+//?}
 
 class ModelData(
     val leftHand: ItemStack?,
@@ -90,7 +93,11 @@ class GltfModel(val modelTree: GltfTree.GLTFTree) {
             }
         }
 
+        //? if >=1.20.1 {
         CURRENT_NORMAL = stack.last().normal()
+        //?} else {
+        /*CURRENT_NORMAL = stack.last().normal().fromMc()
+        *///?}
 
         transformSkinning(stack)
 

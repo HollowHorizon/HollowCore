@@ -43,11 +43,15 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.util.FormattedCharSequence
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemStack
+import org.joml.Matrix3f
+import org.joml.Matrix4f
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import java.io.InputStream
+import java.nio.FloatBuffer
 import kotlin.reflect.KClass
+
 //? if >=1.21 {
 import kotlin.jvm.optionals.getOrDefault
 //?}
@@ -112,7 +116,7 @@ fun ItemStack.save(): CompoundTag {
     //? if <1.21 {
     /*return CompoundTag().apply(::save)
     *///?} else {
-    
+
     return save(registryAccess) as CompoundTag
     //?}
 }
@@ -121,7 +125,7 @@ fun CompoundTag.readItem(): ItemStack {
     //? if <1.21 {
     /*return ItemStack.of(this)
     *///?} else {
-    
+
     return ItemStack.parse(registryAccess, this).getOrDefault(ItemStack.EMPTY)
     //?}
 }
@@ -268,3 +272,11 @@ fun <A, B> ((A) -> B).memoize(): (A) -> B {
         cache.getOrPut(it) { this(it) }
     }
 }
+
+//? if <=1.19.2 {
+/*fun Matrix4f.toMc() = com.mojang.math.Matrix4f().apply { load(this@toMc.get(FloatBuffer.allocate(16))) }
+fun com.mojang.math.Matrix4f.fromMc() = Matrix4f(FloatBuffer.allocate(16).apply { this@fromMc.load(this) })
+
+fun Matrix3f.toMc() = com.mojang.math.Matrix3f().apply { load(this@toMc.get(FloatBuffer.allocate(16))) }
+fun com.mojang.math.Matrix3f.fromMc() = Matrix3f(FloatBuffer.allocate(16).apply { this@fromMc.load(this) })
+*///?}

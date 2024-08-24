@@ -1,5 +1,5 @@
 //? if fabric {
-package ru.hollowhorizon.hc.fabric;
+/*package ru.hollowhorizon.hc.fabric;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -27,4 +27,4 @@ public class HollowCoreClientFabric implements ClientModInitializer {
         var init = HollowCoreClient.INSTANCE; // Loading Main Class
     }
 }
-//?}
+*///?}

@@ -1,3 +1,7 @@
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
+
 plugins {
     id("dev.kikugie.stonecutter")
     kotlin("jvm") version "2.0.0" apply false
@@ -7,7 +11,7 @@ plugins {
     id("me.modmuss50.mod-publish-plugin") version "0.5.+" apply false
 }
 
-stonecutter active "1.21-fabric" /* [SC] DO NOT EDIT */
+stonecutter active "1.21-forge" /* [SC] DO NOT EDIT */
 
 stonecutter registerChiseled tasks.register("chiseledBuildAndCollect", stonecutter.chiseled) {
     group = "project"
@@ -17,4 +21,9 @@ stonecutter registerChiseled tasks.register("chiseledBuildAndCollect", stonecutt
 stonecutter registerChiseled tasks.register("chiseledPublishMods", stonecutter.chiseled) {
     group = "project"
     ofTask("publishMods")
+}
+
+stonecutter.configureEach {
+    arrayOf("gltf", "glb", "bin", "ttf", "so", "dll", "dylib", "ser", "efkefc", "obj", "mtl")
+        .forEach { stonecutter.exclude("*.$it") }
 }

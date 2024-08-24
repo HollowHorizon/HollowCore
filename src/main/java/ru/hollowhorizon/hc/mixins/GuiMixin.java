@@ -41,8 +41,8 @@ import ru.hollowhorizon.hc.api.HudHideable;
 public class GuiMixin {
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     //? if <1.21 {
-    /*public void hideScreen(GuiGraphics guiGraphics, float partialTick, CallbackInfo ci) {*/
-    //?} else {
+    /*public void hideScreen(GuiGraphics guiGraphics, float partialTick, CallbackInfo ci) {
+    *///?} else {
     public void hideScreen(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
     //?}
         if (Minecraft.getInstance().screen instanceof HudHideable) ci.cancel();
