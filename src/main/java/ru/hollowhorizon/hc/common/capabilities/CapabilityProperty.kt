@@ -27,7 +27,7 @@ package ru.hollowhorizon.hc.common.capabilities
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.EndTag
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.utils.JavaHacks
 import ru.hollowhorizon.hc.client.utils.nbt.INBTSerializable
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat

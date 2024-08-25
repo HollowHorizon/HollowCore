@@ -34,11 +34,11 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntity
 import org.joml.Quaternionf
-import ru.hollowhorizon.hc.client.models.gltf.ModelData
-import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
-import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
-import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
+import ru.hollowhorizon.hc.client.models.internal.ModelData
+import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
+import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.client.utils.get

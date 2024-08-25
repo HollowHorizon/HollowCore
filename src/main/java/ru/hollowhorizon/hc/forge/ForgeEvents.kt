@@ -1,4 +1,5 @@
-package ru.hollowhorizon.hc.forge
+//? if forge {
+/*package ru.hollowhorizon.hc.forge
 
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.AddReloadListenerEvent
@@ -76,3 +77,4 @@ object ForgeEvents {
         ServerEvent.Started(currentServer).post()
     }
 }
+*///?}

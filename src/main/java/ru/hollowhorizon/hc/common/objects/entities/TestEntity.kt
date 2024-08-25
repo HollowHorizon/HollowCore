@@ -50,9 +50,9 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
 import ru.hollowhorizon.hc.client.imgui.addons.defaultProvider
 import ru.hollowhorizon.hc.client.imgui.addons.inventoryProvider
-import ru.hollowhorizon.hc.client.models.gltf.Transform
-import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
+import ru.hollowhorizon.hc.client.models.internal.Transform
+import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
 import ru.hollowhorizon.hc.client.utils.get
 import ru.hollowhorizon.hc.client.utils.open
 import ru.hollowhorizon.hc.common.capabilities.containers.TestEntityCapability
@@ -62,7 +62,7 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
 
     init {
         this[AnimatedEntityCapability::class].apply {
-            model = "${HollowCore.MODID}:models/untitled.gltf"
+            model = "${HollowCore.MODID}:models/mech.glb"
             //animations[AnimationType.IDLE] = "hello"
             transform = Transform.create {}
         }

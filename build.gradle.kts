@@ -107,11 +107,12 @@ dependencies {
         parchment("org.parchmentmc.data:parchment-$minecraftVersion:$mappingsVer")
     })
 
-    compileOnly("org.spongepowered:mixin:0.8.5")
+    compileOnly("org.spongepowered:mixin:0.8.7")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.0-RC")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
     implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:2.0.0")
     implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.0.0")
@@ -143,7 +144,10 @@ dependencies {
         "fabric" -> {
             if (minecraftVersion == "1.21") {
                 "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
-                "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.100.1+1.21")
+                "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.102.0+1.21")
+
+                "modImplementation"("mods:sodium:0.6.0")
+                "modImplementation"("mods:iris:1.8.0")
             } else if (minecraftVersion == "1.20.1") {
                 "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
                 "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.92.2+1.20.1")

@@ -1,5 +1,5 @@
 //? if fabric {
-/*package ru.hollowhorizon.hc.fabric
+package ru.hollowhorizon.hc.fabric
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback
@@ -56,10 +56,10 @@ object FabricClientEvents {
 
     private fun renderTooltips() {
         //? if <1.21 {
-        /^ItemTooltipCallback.EVENT.register(ItemTooltipCallback { stack, tooltipFlag, lines ->
+        /*ItemTooltipCallback.EVENT.register(ItemTooltipCallback { stack, tooltipFlag, lines ->
             ItemTooltipEvent(tooltipFlag, stack, lines).post()
         })
-        ^///?} else {
+        *///?} else {
         
         ItemTooltipCallback.EVENT.register(ItemTooltipCallback { stack, tooltipContext, tooltipType, lines ->
             ItemTooltipEvent(tooltipType, stack, lines
@@ -70,4 +70,4 @@ object FabricClientEvents {
 
     }
 }
-*///?}
+//?}

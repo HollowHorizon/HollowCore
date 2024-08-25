@@ -1,8 +1,9 @@
 //? if fabric {
-/*package ru.hollowhorizon.hc.fabric;
+package ru.hollowhorizon.hc.fabric;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
+import net.irisshaders.iris.api.v0.IrisApi;
 import ru.hollowhorizon.hc.client.HollowCoreClient;
 import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.fabric.internal.IrisHelper;
@@ -14,8 +15,8 @@ public class HollowCoreClientFabric implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        if (FabricLoader.getInstance().isModLoaded("iris")) { //TODO: FixMe
-            ForgeKotlinKt.areShadersEnabled_ = () -> false; //IrisApi.getInstance().getConfig()::areShadersEnabled;
+        if (FabricLoader.getInstance().isModLoaded("iris")) {
+            ForgeKotlinKt.areShadersEnabled_ = IrisApi.getInstance().getConfig()::areShadersEnabled;
             shouldOverrideShaders = IrisHelper::shouldOverrideShaders;
         } else {
             ForgeKotlinKt.areShadersEnabled_ = () -> false;
@@ -27,4 +28,4 @@ public class HollowCoreClientFabric implements ClientModInitializer {
         var init = HollowCoreClient.INSTANCE; // Loading Main Class
     }
 }
-*///?}
+//?}

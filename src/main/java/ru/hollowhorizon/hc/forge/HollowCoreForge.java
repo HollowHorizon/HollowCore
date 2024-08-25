@@ -1,4 +1,5 @@
-package ru.hollowhorizon.hc.forge;
+//? if forge {
+/*package ru.hollowhorizon.hc.forge;
 
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
@@ -32,3 +33,4 @@ public class HollowCoreForge {
         if (FMLEnvironment.dist.isClient()) new HollowCoreClientForge();
     }
 }
+*///?}

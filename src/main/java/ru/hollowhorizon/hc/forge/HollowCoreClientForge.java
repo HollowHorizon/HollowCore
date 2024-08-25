@@ -1,4 +1,5 @@
-package ru.hollowhorizon.hc.forge;
+//? if forge {
+/*package ru.hollowhorizon.hc.forge;
 
 import ru.hollowhorizon.hc.client.HollowCoreClient;
 
@@ -8,3 +9,4 @@ public class HollowCoreClientForge {
         var init = HollowCoreClient.INSTANCE; // Loading Main Class
     }
 }
+*///?}

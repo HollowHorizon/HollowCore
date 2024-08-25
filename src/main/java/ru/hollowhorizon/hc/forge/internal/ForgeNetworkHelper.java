@@ -1,4 +1,5 @@
-package ru.hollowhorizon.hc.forge.internal;
+//? if forge {
+/*package ru.hollowhorizon.hc.forge.internal;
 
 import kotlin.Unit;
 import net.minecraftforge.network.Channel;
@@ -31,3 +32,4 @@ public class ForgeNetworkHelper {
         HollowPacketV3Kt.registerPackets.invoke();
     }
 }
+*///?}

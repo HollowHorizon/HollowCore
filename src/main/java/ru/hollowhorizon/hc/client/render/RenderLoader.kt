@@ -25,7 +25,7 @@
 package ru.hollowhorizon.hc.client.render
 
 import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
-import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 
 object RenderLoader {
     fun onInitialize() {

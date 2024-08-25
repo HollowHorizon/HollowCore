@@ -1,4 +1,5 @@
-package ru.hollowhorizon.hc.forge.internal
+//? if forge {
+/*package ru.hollowhorizon.hc.forge.internal
 
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
@@ -78,3 +79,4 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
         }
     }
 }
+*///?}

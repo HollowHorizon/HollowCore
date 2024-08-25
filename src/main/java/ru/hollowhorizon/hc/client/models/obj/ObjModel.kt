@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.client.models.obj
 
 import net.minecraft.resources.ResourceLocation
-import ru.hollowhorizon.hc.client.models.gltf.GltfTree
+import ru.hollowhorizon.hc.client.models.internal.Material
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
 
@@ -11,7 +11,7 @@ internal class ObjData(var url: String) {
     val vertexNormals = arrayListOf<Float>()
     val vertexTextures = arrayListOf<Float>()
 
-    val materials = hashMapOf<String, GltfTree.Material>()
+    val materials = hashMapOf<String, Material>()
 
     val currentGroup: ObjGroup
         get() {
@@ -33,14 +33,14 @@ internal class SubGroup {
     val faces = arrayListOf<Int>()
     val smoothingGroups = arrayListOf<Int>()
 
-    var material = GltfTree.Material()
+    var material = Material()
 
     var smoothingGroup = -1
 }
 
 internal class MtlData(val url: ResourceLocation) {
 
-    val materials = hashMapOf<String, GltfTree.Material>()
+    val materials = hashMapOf<String, Material>()
 }
 
 class ObjModelLoader {
@@ -167,7 +167,7 @@ class ObjModelLoader {
         }
 
         private fun parseNewMaterial(tokens: List<String>, data: MtlData) {
-            data.materials[tokens[0]] = GltfTree.Material()
+            data.materials[tokens[0]] = Material()
         }
 
         private fun loadObjData(url: String): ObjData {

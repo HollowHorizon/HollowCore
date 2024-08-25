@@ -26,12 +26,12 @@ package ru.hollowhorizon.hc.common.network.packets
 
 import kotlinx.serialization.Serializable
 import net.minecraft.world.entity.player.Player
-import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationState
-import ru.hollowhorizon.hc.client.models.gltf.animations.PlayMode
-import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.gltf.manager.AnimationLayer
-import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
-import ru.hollowhorizon.hc.client.models.gltf.manager.LayerMode
+import ru.hollowhorizon.hc.client.models.internal.animations.AnimationState
+import ru.hollowhorizon.hc.client.models.internal.animations.PlayMode
+import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.internal.manager.AnimationLayer
+import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
+import ru.hollowhorizon.hc.client.models.internal.manager.LayerMode
 import ru.hollowhorizon.hc.client.utils.get
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3

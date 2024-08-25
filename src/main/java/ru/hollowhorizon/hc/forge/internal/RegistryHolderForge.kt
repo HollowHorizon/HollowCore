@@ -1,4 +1,5 @@
-package ru.hollowhorizon.hc.forge.internal
+//? if forge {
+/*package ru.hollowhorizon.hc.forge.internal
 
 import net.minecraft.core.Registry
 import net.minecraft.core.component.DataComponentType
@@ -122,3 +123,4 @@ class RegistryHolderForge<T : Any>(
         return RegistryObject { result.get() }
     }
 }
+*///?}

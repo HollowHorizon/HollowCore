@@ -1,4 +1,5 @@
-package ru.hollowhorizon.hc.forge
+//? if forge {
+/*package ru.hollowhorizon.hc.forge
 
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ShaderInstance
@@ -70,3 +71,4 @@ object ForgeClientEvents {
         ).post()
     }
 }
+*///?}

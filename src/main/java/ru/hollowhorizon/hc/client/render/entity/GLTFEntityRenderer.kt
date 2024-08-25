@@ -38,12 +38,12 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.FlyingAnimal
 import net.minecraft.world.item.ItemDisplayContext
 import org.joml.Quaternionf
-import ru.hollowhorizon.hc.client.models.gltf.GltfTree
-import ru.hollowhorizon.hc.client.models.gltf.ModelData
-import ru.hollowhorizon.hc.client.models.gltf.animations.AnimationType
-import ru.hollowhorizon.hc.client.models.gltf.animations.GLTFAnimationPlayer
-import ru.hollowhorizon.hc.client.models.gltf.animations.PlayMode
-import ru.hollowhorizon.hc.client.models.gltf.manager.*
+import ru.hollowhorizon.hc.client.models.internal.ModelData
+import ru.hollowhorizon.hc.client.models.internal.Node
+import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
+import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
+import ru.hollowhorizon.hc.client.models.internal.animations.PlayMode
+import ru.hollowhorizon.hc.client.models.internal.manager.*
 import ru.hollowhorizon.hc.client.utils.*
 
 
@@ -119,7 +119,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         stack.popPose()
     }
 
-    protected open fun drawVisuals(entity: LivingEntity, stack: PoseStack, node: GltfTree.Node, source: MultiBufferSource, light: Int) {
+    protected open fun drawVisuals(entity: LivingEntity, stack: PoseStack, node: Node, source: MultiBufferSource, light: Int) {
         if ((node.name?.contains("left", ignoreCase = true) == true || node.name?.contains(
                 "right",
                 ignoreCase = true

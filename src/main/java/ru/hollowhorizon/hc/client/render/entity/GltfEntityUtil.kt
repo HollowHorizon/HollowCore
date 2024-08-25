@@ -35,10 +35,10 @@ import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemDisplayContext
 import org.joml.Quaternionf
-import ru.hollowhorizon.hc.client.models.gltf.GltfTree
-import ru.hollowhorizon.hc.client.models.gltf.ModelData
-import ru.hollowhorizon.hc.client.models.gltf.animations.SubModelPlayer
-import ru.hollowhorizon.hc.client.models.gltf.manager.*
+import ru.hollowhorizon.hc.client.models.internal.ModelData
+import ru.hollowhorizon.hc.client.models.internal.Node
+import ru.hollowhorizon.hc.client.models.internal.animations.SubModelPlayer
+import ru.hollowhorizon.hc.client.models.internal.manager.*
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.client.utils.memoize
 import ru.hollowhorizon.hc.client.utils.rl
@@ -103,7 +103,7 @@ object GltfEntityUtil {
         }
     }
 
-    private fun drawVisuals(entity: LivingEntity, stack: PoseStack, node: GltfTree.Node, source: MultiBufferSource, light: Int) {
+    private fun drawVisuals(entity: LivingEntity, stack: PoseStack, node: Node, source: MultiBufferSource, light: Int) {
         if ((node.name?.contains("left", ignoreCase = true) == true || node.name?.contains(
                 "right",
                 ignoreCase = true

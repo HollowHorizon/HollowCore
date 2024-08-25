@@ -1,4 +1,5 @@
-package ru.hollowhorizon.hc.forge
+//? if forge {
+/*package ru.hollowhorizon.hc.forge
 
 import net.minecraftforge.fml.loading.FMLLoader
 import net.minecraftforge.fml.loading.moddiscovery.ModFileInfo
@@ -20,3 +21,4 @@ object ForgeModList : ModList {
     override val mods: List<String>
         get() = emptyList() //forgeList.mods.map { it.namespace }
 }
+*///?}

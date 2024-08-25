@@ -37,4 +37,5 @@ void main() {
     lightMapColor = texelFetch(Sampler2, UV2 / 16, 0);
     overlayColor = texelFetch(Sampler1, UV1, 0);
     texCoord0 = UV0;
+    normal = ProjMat * ModelViewMat * vec4(fixNormal, 0.0);
 }
