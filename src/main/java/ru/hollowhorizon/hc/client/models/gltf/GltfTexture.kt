@@ -8,18 +8,10 @@ import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.toIS
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.util.*
 
-/**
- * A texture and its sampler.
- *
- * @param sampler The index of the sampler used by this texture. When undefined, a sampler with repeat wrapping and
- *                auto filtering should be used.
- * @param source  The index of the image used by this texture. When undefined, it is expected that an extension or
- *                other mechanism will supply an alternate texture source, otherwise behavior is undefined.
- * @param name    The user-defined name of this object.
- */
 @Serializable
 data class GltfTexture(
     val sampler: Int = -1,
@@ -59,11 +51,24 @@ data class GltfTexture(
 
                 createdTex = DynamicTexture(NativeImage.read(retrieveFile(uri)))
             } else {
-                createdTex = DynamicTexture(NativeImage.read(imageRef.bufferViewRef!!.getData().toArray()))
+                createdTex = DynamicTexture(NativeImage.read(ByteArrayInputStream(imageRef.bufferViewRef!!.getData().toArray())))
             }
 
             Minecraft.getInstance().textureManager.register(name.lowercase().rl, createdTex)
         }
         return name.lowercase().rl
     }
+
+    @Serializable
+    data class Info(
+        val index: Int,
+        val strength: Float = 1f,
+        val texCoord: Int = 0,
+        val scale: Float = 1f,
+    ) {
+        fun getTexture(gltfFile: GltfFile, location: ResourceLocation): ResourceLocation {
+            return gltfFile.textures[index].makeTexture(location)
+        }
+    }
 }
+

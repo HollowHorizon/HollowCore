@@ -14,51 +14,36 @@ class DataStream(val data: Uint8Buffer, val byteOffset: Int = 0) {
 
     fun hasRemaining() = index < data.capacity
 
-    fun readByte(): Int {
-        return data[byteOffset + index++].toInt()
-    }
+    fun readByte() = data[byteOffset + index++].toInt()
 
-    fun readUByte(): Int {
-        return data[byteOffset + index++].toInt() and 0xff
-    }
+    fun readUByte() = data[byteOffset + index++].toInt() and 0xff
 
     fun readShort(): Int {
         var s = readUShort()
-        if (s > 32767) {
-            s -= 65536
-        }
+        if (s > 32767) s -= 65536
         return s
     }
 
     fun readUShort(): Int {
         var d = 0
-        for (i in 0..1) {
-            d = d or (readUByte() shl (i * 8))
-        }
+        for (i in 0..1) d = d or (readUByte() shl (i * 8))
         return d
     }
 
-    fun readInt(): Int {
-        return readUInt()
-    }
+    fun readInt() = readUInt()
 
     fun readUInt(): Int {
         var d = 0
-        for (i in 0..3) {
-            d = d or (readUByte() shl (i * 8))
-        }
+        for (i in 0..3) d = d or (readUByte() shl (i * 8))
         return d
     }
 
-    fun readFloat(): Float {
-        return Float.fromBits(readUInt())
-    }
+    fun readFloat() = Float.fromBits(readUInt())
+
 
     fun readData(len: Int): Uint8Buffer {
         val buf = Uint8Buffer(len)
-        for (i in 0 until len) {
-            buf[i] = data[index++]
-        }
+        for (i in 0 until len) buf[i] = data[index++]
         return buf
     }
 
@@ -78,9 +63,7 @@ abstract class GenericBuffer<B : NioBuffer>(
     override var isAutoLimit: Boolean = isAutoLimit
         set(value) {
             field = value
-            if (value) {
-                buffer.limit(capacity)
-            }
+            if (value) buffer.limit(capacity)
         }
 
     override var limit: Int
@@ -113,9 +96,7 @@ abstract class GenericBuffer<B : NioBuffer>(
     }
 
     fun finishRawBuffer() {
-        if (isAutoLimit) {
-            buffer.limit(capacity)
-        }
+        if (isAutoLimit) buffer.limit(capacity)
         buffer.position(pos)
     }
 
@@ -133,8 +114,7 @@ interface Buffer {
     var limit: Int
     var isAutoLimit: Boolean
 
-    val remaining: Int
-        get() = capacity - position
+    val remaining: Int get() = capacity - position
 
     fun clear()
 
@@ -206,12 +186,10 @@ class Uint8BufferImpl(buffer: ByteBuffer, isAutoLimit: Boolean = false) :
 }
 
 inline fun <R> Uint8Buffer.useRaw(block: (ByteBuffer) -> R): R = (this as Uint8BufferImpl).useRaw(block)
-fun Uint8Buffer.inflate(): Uint8Buffer {
-    return Uint8BufferImpl(GZIPInputStream(ByteArrayInputStream(toArray())).readBytes())
-}
+fun Uint8Buffer.inflate() = Uint8BufferImpl(GZIPInputStream(ByteArrayInputStream(toArray())).readBytes())
 
-fun Uint8Buffer.decodeToString(): String {
-    return toArray().decodeToString()
-}
+
+fun Uint8Buffer.decodeToString(): String = toArray().decodeToString()
+
 
 fun loadBlob(key: String) = Uint8BufferImpl(key.rl.stream.readBytes())

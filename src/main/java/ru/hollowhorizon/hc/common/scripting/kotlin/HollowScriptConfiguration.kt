@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.common.scripting.kotlin
 
-import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.utils.ModList
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
@@ -49,7 +50,13 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
             "-Xadd-modules=ALL-MODULE-PATH" //Loading kotlin from shadowed jar
         )
 
+        scriptJars.clear()
+        scriptJars.addAll(ModList.INSTANCE.mods.map { ModList.INSTANCE.getFile(it) }.distinct())
+
+        scriptJars.add(File("C:\\Users\\Artem\\Modding\\HollowCore\\versions\\1.21-forge\\build\\devlibs\\HollowCore-1.0.0-dev.jar"))
+
         updateClasspath(scriptJars + deobfJars)
+        classpathFromClassloader(HollowCore::class.java.classLoader)
     }
 
     defaultImports(

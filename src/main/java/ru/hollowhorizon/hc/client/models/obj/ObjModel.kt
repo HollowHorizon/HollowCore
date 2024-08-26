@@ -100,13 +100,6 @@ class ObjModelLoader {
             }
         }
 
-        /**
-         * Each token is of form v1/(vt1)/(vn1).
-         * Case v1
-         * Case v1/vt1
-         * Case v1//n1
-         * Case v1/vt1/vn1
-         */
         private fun parseFaceVertex(token: String, data: ObjData) {
             val faceVertex = token.split("/")
 

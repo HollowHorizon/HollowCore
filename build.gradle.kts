@@ -62,11 +62,11 @@ base {
 }
 
 
-tasks.register("doMerge") {
-    dependsOn(":fabric:build", ":forge:build", ":neoforge:build")
-    finalizedBy("mergeJars")
-}
-tasks.build.get().dependsOn("doMerge")
+//tasks.register("doMerge") {
+//    dependsOn(":fabric:build", ":forge:build", ":neoforge:build")
+//    finalizedBy("mergeJars")
+//}
+//tasks.build.get().dependsOn("doMerge")
 
 repositories {
     mavenCentral()

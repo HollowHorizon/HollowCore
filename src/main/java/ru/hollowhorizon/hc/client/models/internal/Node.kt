@@ -12,6 +12,10 @@ import ru.hollowhorizon.hc.client.utils.getArmorTexture
 import ru.hollowhorizon.hc.client.utils.toTexture
 import ru.hollowhorizon.hc.client.utils.use
 
+//? if <=1.19.2 {
+/*import ru.hollowhorizon.hc.client.utils.toMc
+*///?}
+
 class Node(
     val index: Int,
     val children: List<Node>,

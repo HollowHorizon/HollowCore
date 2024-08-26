@@ -49,8 +49,8 @@ import ru.hollowhorizon.hc.client.utils.shouldOverrideShaders
 import ru.hollowhorizon.hc.common.registry.ModShaders
 
 //? if <=1.19.2 {
-/*import ru.hollowhorizon.hc.client.utils.fromMc*/
-//?}
+/*import ru.hollowhorizon.hc.client.utils.fromMc
+*///?}
 
 class ModelData(
     val leftHand: ItemStack?,

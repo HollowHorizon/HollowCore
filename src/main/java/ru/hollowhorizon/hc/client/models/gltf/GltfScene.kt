@@ -3,12 +3,6 @@ package ru.hollowhorizon.hc.client.models.gltf
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
-/**
- * The root nodes of a scene.
- *
- * @param nodes The indices of each root node.
- * @param name  The user-defined name of this object.
- */
 @Serializable
 data class GltfScene(
     val nodes: List<Int>,

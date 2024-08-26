@@ -99,7 +99,12 @@ object EffekRenderer {
 
         if (type == ParticleEmitter.Type.WORLD) pose.translate(-position.x(), -position.y(), -position.z())
 
+        //? if >=1.20.1 {
         pose.last().pose().get(CAMERA_TRANSFORM_BUFFER)
+        //?} else {
+        /*pose.last().pose().store(CAMERA_TRANSFORM_BUFFER)
+        *///?}
+
         transposeMatrix(CAMERA_TRANSFORM_BUFFER)
         CAMERA_TRANSFORM_BUFFER[CAMERA_TRANSFORM_DATA]
 
@@ -110,7 +115,6 @@ object EffekRenderer {
         //? if <1.21 {
         /*val deltaFrames = Minecraft.getInstance().frameTime * 3f
         *///?} else {
-        
         val deltaFrames = Minecraft.getInstance().timer.gameTimeDeltaTicks * 3f // 60FPS / 20 TPS
         //?}
 

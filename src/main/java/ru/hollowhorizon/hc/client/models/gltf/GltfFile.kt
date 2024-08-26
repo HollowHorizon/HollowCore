@@ -8,13 +8,6 @@ import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
 import java.util.Base64
 
-fun main() {
-    val gltf = loadGltf("hollowcore:models/bake.glb".rl)
-        .getOrThrow()
-
-    println(gltf)
-}
-
 fun loadGltf(location: ResourceLocation): Result<GltfFile> {
     val data = Uint8BufferImpl(location.stream.readBytes())
 
@@ -61,10 +54,8 @@ fun loadGltf(location: ResourceLocation): Result<GltfFile> {
 private fun loadGlb(data: Uint8Buffer): GltfFile {
     val str = DataStream(data)
 
-    // file header
     val magic = str.readUInt()
     val version = str.readUInt()
-    //val fileLength = str.readUInt()
     str.readUInt()
     if (magic != GltfFile.GLB_FILE_MAGIC) {
         error("Unexpected glTF magic number: $magic (should be ${GltfFile.GLB_FILE_MAGIC} / 'glTF')")
@@ -73,7 +64,6 @@ private fun loadGlb(data: Uint8Buffer): GltfFile {
         HollowCore.LOGGER.warn("Unexpected glTF version: $version (should be 2) - stuff might not work as expected")
     }
 
-    // chunk 0 - JSON content
     var chunkLen = str.readUInt()
     var chunkType = str.readUInt()
     if (chunkType != GltfFile.GLB_CHUNK_MAGIC_JSON) {
@@ -82,14 +72,12 @@ private fun loadGlb(data: Uint8Buffer): GltfFile {
     val jsonData = str.readData(chunkLen).toArray()
     val model = GltfFile.fromJson(jsonData.decodeToString())
 
-    // remaining data chunks
     var iChunk = 1
     while (str.hasRemaining()) {
         chunkLen = str.readUInt()
         chunkType = str.readUInt()
         if (chunkType == GltfFile.GLB_CHUNK_MAGIC_BIN) {
             model.buffers[iChunk - 1].data = str.readData(chunkLen)
-
         } else {
             HollowCore.LOGGER.warn("Unexpected chunk type for chunk $iChunk: $chunkType (should be ${GltfFile.GLB_CHUNK_MAGIC_BIN} / ' BIN')")
             str.index += chunkLen
@@ -100,25 +88,6 @@ private fun loadGlb(data: Uint8Buffer): GltfFile {
     return model
 }
 
-/**
- * The root object for a glTF asset.
- *
- * @param extensionsUsed     Names of glTF extensions used somewhere in this asset.
- * @param extensionsRequired Names of glTF extensions required to properly load this asset.
- * @param accessors          An array of accessors.
- * @param animations         An array of keyframe animations.
- * @param asset              Metadata about the glTF asset.
- * @param buffers            An array of buffers.
- * @param bufferViews        An array of bufferViews.
- * @param images             An array of images.
- * @param materials          An array of materials.
- * @param meshes             An array of meshes.
- * @param nodes              An array of nodes.
- * @param scene              The index of the default scene
- * @param scenes             An array of scenes.
- * @param skins              An array of skins.
- * @param textures           An array of textures.
- */
 @Serializable
 data class GltfFile(
     val extensionsUsed: List<String> = emptyList(),
@@ -128,7 +97,6 @@ data class GltfFile(
     val asset: GltfAsset,
     val buffers: List<GltfBuffer> = emptyList(),
     val bufferViews: List<GltfBufferView> = emptyList(),
-    //val cameras List<Camera> = emptyList(),
     val images: List<GltfImage> = emptyList(),
     val materials: List<GltfMaterial> = emptyList(),
     val meshes: List<GltfMesh> = emptyList(),

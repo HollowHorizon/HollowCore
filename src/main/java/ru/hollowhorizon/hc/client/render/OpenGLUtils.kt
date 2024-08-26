@@ -32,12 +32,15 @@ import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.RenderType
+import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.client.renderer.texture.OverlayTexture
 //? if >=1.21 {
 import net.minecraft.util.FastColor
 import net.minecraft.world.item.ItemDisplayContext
 //?} elif >=1.20.1 {
 /*import net.minecraft.world.item.ItemDisplayContext
+*///?} else {
+/*import ru.hollowhorizon.hc.client.utils.toMc
 *///?}
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
@@ -85,7 +88,11 @@ fun LivingEntity.render(
     val stack = PoseStack()
     val xOffset = x + width / 2 + offsetX
     val yOffset = y + height + offsetY
+    //? if >=1.20.1 {
     stack.translate(xOffset, yOffset, 0f)
+    //?} else {
+    /*stack.translate(xOffset.toDouble(), yOffset.toDouble(), 0.0)
+    *///?}
     val newScale = min(width / bbWidth, height / bbHeight) * 0.95f * scale
     stack.scale(newScale, -newScale, newScale)
 
@@ -139,10 +146,20 @@ fun ItemStack.render(
 ) {
     val xOffset = x + width / 2
     val yOffset = y + height / 2
+    //? if >=1.20.1 {
     stack.translate(xOffset, yOffset, 0f)
+    //?} else {
+    /*stack.translate(xOffset.toDouble(), yOffset.toDouble(), 0.0)
+    *///?}
     val newScale = min(width, height) * 0.95f * scale
     stack.scale(newScale, -newScale, newScale)
+    //? if >=1.20.1 {
     stack.mulPose(Quaternionf().rotateZ(rotation * Mth.DEG_TO_RAD))
+    //?} else {
+    /*val q = Quaternionf().rotateZ(rotation * Mth.DEG_TO_RAD)
+    stack.mulPose(com.mojang.math.Quaternion(q.x, q.y, q.z, q.w))
+    *///?}
+
 
     val src = Minecraft.getInstance().renderBuffers().bufferSource()
     val model = Minecraft.getInstance().itemRenderer.getModel(this, Minecraft.getInstance().level, null, 0)
@@ -150,7 +167,15 @@ fun ItemStack.render(
 
     if (flat) Lighting.setupForFlatItems()
     Minecraft.getInstance().itemRenderer.render(
-        this, ItemDisplayContext.GUI, false, stack, src, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, model
+        this,
+        //? if >=1.20.1 {
+        ItemDisplayContext.GUI,
+        //?} else {
+        /*ItemTransforms.TransformType.GUI,
+        *///?}
+
+        false,
+        stack, src, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, model
     )
 
     src.endBatch()
@@ -180,7 +205,7 @@ fun renderItemDecorations(stack: ItemStack, poseStack: PoseStack, x: Int, y: Int
             /*j or -16777216
             *///?} else {
             FastColor.ARGB32.opaque(j)
-             //?}
+            //?}
         )
     }
     Minecraft.getInstance().player?.cooldowns?.getCooldownPercent(

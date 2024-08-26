@@ -96,6 +96,18 @@ object ScriptingCompiler {
         val compiler = JvmScriptCompiler(hostConfiguration)
         val result = compiler(StringScriptSource(text), compilationConfiguration)
 
+        result.reports.map {
+            ScriptError(
+                Severity.entries[it.severity.ordinal],
+                it.message,
+                it.sourcePath ?: "",
+                it.location?.start?.line ?: 0,
+                it.location?.start?.col ?: 0,
+                it.exception
+            )
+        }.forEach {
+            HollowCore.LOGGER.error(it.format())
+        }
 
         return CompiledScript(
             "script.kts", "",

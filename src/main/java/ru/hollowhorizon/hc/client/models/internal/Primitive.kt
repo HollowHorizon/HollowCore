@@ -8,11 +8,9 @@ import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.gltf.*
-import ru.hollowhorizon.hc.client.utils.areShadersEnabled
-import ru.hollowhorizon.hc.client.utils.hasShaders
+import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.client.utils.math.MikkTSpaceContext
 import ru.hollowhorizon.hc.client.utils.math.MikktspaceTangentGenerator
-import ru.hollowhorizon.hc.client.utils.toTexture
 import java.nio.FloatBuffer
 import java.util.ArrayList
 

@@ -28,10 +28,10 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
+import ru.hollowhorizon.hc.client.models.gltf.*
 import ru.hollowhorizon.hc.client.models.internal.Model
 import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.animations.interpolations.*
-import ru.hollowhorizon.hc.client.models.gltf.*
 
 
 object AnimationLoader {
@@ -130,6 +130,8 @@ object AnimationLoader {
 }
 
 fun splitListByN(list: List<Float>, n: Int): List<FloatArray> {
+    if (n < 1) return listOf(list.toFloatArray())
+
     val result = mutableListOf<FloatArray>()
     var startIndex = 0
     while (startIndex < list.size) {

@@ -4,20 +4,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.joml.*
 
-/**
- * A typed view into a bufferView. A bufferView contains raw binary data. An accessor provides a typed view into a
- * bufferView or a subset of a bufferView similar to how WebGL's vertexAttribPointer() defines an attribute in a
- * buffer.
- *
- * @param bufferView    The index of the bufferView.
- * @param byteOffset    The offset relative to the start of the bufferView in bytes.
- * @param componentType The datatype of components in the attribute.
- * @param normalized    Specifies whether integer data values should be normalized.
- * @param count         The number of attributes referenced by this accessor.
- * @param type          Specifies if the attribute is a scalar, vector, or matrix.
- * @param max           Maximum value of each component in this attribute.
- * @param min           Minimum value of each component in this attribute.
- */
 @Serializable
 data class GltfAccessor(
     val bufferView: Int = -1,
@@ -52,9 +38,12 @@ data class GltfAccessor(
         const val COMP_TYPE_FLOAT = 5126
 
         val COMP_INT_TYPES = setOf(
-            COMP_TYPE_BYTE, COMP_TYPE_UNSIGNED_BYTE,
-            COMP_TYPE_SHORT, COMP_TYPE_UNSIGNED_SHORT,
-            COMP_TYPE_INT, COMP_TYPE_UNSIGNED_INT
+            COMP_TYPE_BYTE,
+            COMP_TYPE_UNSIGNED_BYTE,
+            COMP_TYPE_SHORT,
+            COMP_TYPE_UNSIGNED_SHORT,
+            COMP_TYPE_INT,
+            COMP_TYPE_UNSIGNED_INT
         )
     }
 
@@ -90,11 +79,9 @@ abstract class DataStreamAccessor(val accessor: GltfAccessor) {
     private val byteStride: Int
 
     private val buffer: GltfBufferView? = accessor.bufferViewRef
-    private val stream: DataStream? = if (buffer != null) {
-        DataStream(buffer.bufferRef.data, accessor.byteOffset + buffer.byteOffset)
-    } else {
-        null
-    }
+    private val stream: DataStream? =
+        if (buffer != null) DataStream(buffer.bufferRef.data, accessor.byteOffset + buffer.byteOffset)
+        else null
 
     private val sparseIndexStream: DataStream?
     private val sparseValueStream: DataStream?
@@ -111,12 +98,10 @@ abstract class DataStreamAccessor(val accessor: GltfAccessor) {
 
         if (accessor.sparse != null) {
             sparseIndexStream = DataStream(
-                accessor.sparse.indices.bufferViewRef.bufferRef.data,
-                accessor.sparse.indices.bufferViewRef.byteOffset
+                accessor.sparse.indices.bufferViewRef.bufferRef.data, accessor.sparse.indices.bufferViewRef.byteOffset
             )
             sparseValueStream = DataStream(
-                accessor.sparse.values.bufferViewRef.bufferRef.data,
-                accessor.sparse.values.bufferViewRef.byteOffset
+                accessor.sparse.values.bufferViewRef.bufferRef.data, accessor.sparse.values.bufferViewRef.byteOffset
             )
             sparseIndexType = accessor.sparse.indices.componentType
             nextSparseIndex = sparseIndexStream.nextIntComponent(sparseIndexType)
@@ -148,39 +133,30 @@ abstract class DataStreamAccessor(val accessor: GltfAccessor) {
             else -> throw IllegalArgumentException("Unsupported accessor type: ${accessor.type}")
         }
         elemByteSize = compByteSize * numComponents
-        byteStride = if (buffer != null && buffer.byteStride > 0) {
-            buffer.byteStride
-        } else {
-            elemByteSize
-        }
+        byteStride = if (buffer != null && buffer.byteStride > 0) buffer.byteStride
+        else elemByteSize
     }
 
     private fun selectDataStream() = if (index != nextSparseIndex) stream else sparseValueStream
 
     protected fun nextInt(): Int {
-        if (index < accessor.count) {
-            return selectDataStream()?.nextIntComponent(accessor.componentType) ?: 0
-        } else {
-            throw IndexOutOfBoundsException("Accessor overflow")
-        }
+        if (index < accessor.count) return selectDataStream()?.nextIntComponent(accessor.componentType) ?: 0
+        else throw IndexOutOfBoundsException("Accessor overflow")
     }
 
     protected fun nextFloat(): Float {
-        if (accessor.componentType == GltfAccessor.COMP_TYPE_FLOAT) {
-            if (index < accessor.count) {
-                return selectDataStream()?.readFloat() ?: 0f
-            } else {
-                throw IndexOutOfBoundsException("Accessor overflow")
-            }
+        return if (accessor.componentType == GltfAccessor.COMP_TYPE_FLOAT) {
+            if (index < accessor.count) selectDataStream()?.readFloat() ?: 0f
+            else throw IndexOutOfBoundsException("Accessor overflow")
         } else {
             // implicitly convert int type to normalized float
-            return nextInt() / when (accessor.componentType) {
+            nextInt() / when (accessor.componentType) {
                 GltfAccessor.COMP_TYPE_BYTE -> 128f
                 GltfAccessor.COMP_TYPE_UNSIGNED_BYTE -> 255f
                 GltfAccessor.COMP_TYPE_SHORT -> 32767f
                 GltfAccessor.COMP_TYPE_UNSIGNED_SHORT -> 65535f
-                GltfAccessor.COMP_TYPE_INT -> 2147483647f
-                GltfAccessor.COMP_TYPE_UNSIGNED_INT -> 4294967296f
+                GltfAccessor.COMP_TYPE_INT -> 2.14748365E9f
+                GltfAccessor.COMP_TYPE_UNSIGNED_INT -> 4.2949673E9f
                 else -> throw IllegalStateException("Unknown component type: ${accessor.componentType}")
             }
         }
@@ -208,12 +184,6 @@ abstract class DataStreamAccessor(val accessor: GltfAccessor) {
     }
 }
 
-/**
- * Utility class to retrieve scalar integer values from an accessor. The provided accessor must have a non floating
- * point component type (byte, short or int either signed or unsigned) and must be of type SCALAR.
- *
- * @param accessor [GltfAccessor] to use.
- */
 class IntAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
     val list by lazy {
         Array(accessor.count) { next() }
@@ -233,18 +203,12 @@ class IntAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
             val i = nextInt()
             advance()
             return i
-        } else {
-            throw IndexOutOfBoundsException("Accessor overflow")
         }
+
+        throw IndexOutOfBoundsException("Accessor overflow")
     }
 }
 
-/**
- * Utility class to retrieve scalar float values from an accessor. The provided accessor must have a float component
- * type and must be of type SCALAR.
- *
- * @param accessor [GltfAccessor] to use.
- */
 class FloatAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
     val list by lazy {
         Array(accessor.count) { next() }
@@ -254,9 +218,6 @@ class FloatAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
         if (accessor.type != GltfAccessor.TYPE_SCALAR) {
             throw IllegalArgumentException("Vec2fAccessor requires accessor type ${GltfAccessor.TYPE_SCALAR}, provided was ${accessor.type}")
         }
-//        if (accessor.componentType != GltfAccessor.COMP_TYPE_FLOAT) {
-//            throw IllegalArgumentException("FloatAccessor requires a float component type, provided was ${accessor.componentType}")
-//        }
     }
 
     fun next(): Float {
@@ -298,12 +259,6 @@ class Vec2fAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
     }
 }
 
-/**
- * Utility class to retrieve Vec3 float values from an accessor. The provided accessor must have a float component type
- * and must be of type VEC3.
- *
- * @param accessor [GltfAccessor] to use.
- */
 class Vec3fAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
     val list by lazy {
         Array(accessor.count) { next() }
@@ -336,12 +291,6 @@ class Vec3fAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
     }
 }
 
-/**
- * Utility class to retrieve Vec4 float values from an accessor. The provided accessor must have a float component type
- * and must be of type VEC4.
- *
- * @param accessor [GltfAccessor] to use.
- */
 class Vec4fAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
     val list by lazy {
         Array(accessor.count) { next() }
@@ -376,12 +325,6 @@ class Vec4fAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
     }
 }
 
-/**
- * Utility class to retrieve Vec4 int values from an accessor. The provided accessor must have a non floating
- * point component type (byte, short or int either signed or unsigned) and must be of type VEC4.
- *
- * @param accessor [GltfAccessor] to use.
- */
 class Vec4iAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
     val list by lazy {
         Array(accessor.count) { next() }
@@ -409,12 +352,6 @@ class Vec4iAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
 }
 
 
-/**
- * Utility class to retrieve Mat4 float values from an accessor. The provided accessor must have a float component type
- * and must be of type MAT4.
- *
- * @param accessor [GltfAccessor] to use.
- */
 class Mat4fAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
     val list by lazy {
         Array(accessor.count) { next() }

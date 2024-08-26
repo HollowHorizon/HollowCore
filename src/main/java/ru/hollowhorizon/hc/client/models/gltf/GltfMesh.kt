@@ -3,13 +3,6 @@ package ru.hollowhorizon.hc.client.models.gltf
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
-/**
- * A set of primitives to be rendered. A node can contain one mesh. A node's transform places the mesh in the scene.
- *
- * @param primitives An array of primitives, each defining geometry to be rendered with a material.
- * @param weights    Array of weights to be applied to the Morph Targets.
- * @param name       The user-defined name of this object.
- */
 @Serializable
 data class GltfMesh(
     val primitives: List<Primitive>,
@@ -17,17 +10,6 @@ data class GltfMesh(
     val name: String? = null,
 ) {
 
-    /**
-     * Geometry to be rendered with the given material.
-     *
-     * @param attributes A dictionary object, where each key corresponds to mesh attribute semantic and each value is
-     *                   the index of the accessor containing attribute's data.
-     * @param indices    The index of the accessor that contains the indices.
-     * @param material   The index of the material to apply to this primitive when rendering.
-     * @param mode       The type of primitives to render.
-     * @param targets    An array of Morph Targets, each Morph Target is a dictionary mapping attributes (only
-     *                   POSITION, NORMAL, and TANGENT supported) to their deviations in the Morph Target.
-     */
     @Serializable
     data class Primitive(
         val attributes: Map<String, Int>,

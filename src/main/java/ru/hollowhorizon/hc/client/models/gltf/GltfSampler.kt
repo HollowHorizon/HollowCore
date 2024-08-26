@@ -2,15 +2,6 @@ package ru.hollowhorizon.hc.client.models.gltf
 
 import kotlinx.serialization.Serializable
 
-/**
- * Texture sampler properties for filtering and wrapping modes.
- *
- * @param magFilter Magnification filter.
- * @param minFilter Minification filter.
- * @param wrapS     S (U) wrapping mode.
- * @param wrapT     T (V) wrapping mode.
- * @param name      The user-defined name of this object.
- */
 @Serializable
 data class GltfSampler(
     val magFilter: Int = LINEAR,
