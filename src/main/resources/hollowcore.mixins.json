@@ -4,7 +4,6 @@
   "package": "ru.hollowhorizon.hc.mixins",
   "refmap": "${mod_name}-common-refmap.json",
   "compatibilityLevel": "JAVA_17",
-  "plugin": "ru.hollowhorizon.hc.mixins.HollowMixinPlugin",
   "mixins": [
     "ClientLevelMixin",
     "CreativeModeTabMixin",

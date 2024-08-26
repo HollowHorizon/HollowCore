@@ -2,12 +2,13 @@ package ru.hollowhorizon.hc.common.events
 
 import ru.hollowhorizon.hc.common.coroutines.onMainThreadSync
 import ru.hollowhorizon.hc.common.coroutines.scopeSync
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.KClass
 
 object EventBus {
-    val listeners = hashMapOf<KClass<out Event>, MutableList<EventListener<out Event>>>()
+    val listeners = ConcurrentHashMap<KClass<out Event>, MutableList<EventListener<out Event>>>()
 
     inline fun <reified T : Event> register(listener: EventListener<T>) {
         val list = listeners.getOrPut(T::class) { mutableListOf() }

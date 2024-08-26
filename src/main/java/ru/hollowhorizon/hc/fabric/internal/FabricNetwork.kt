@@ -2,7 +2,7 @@ package ru.hollowhorizon.hc.fabric.internal
 
 //? if fabric && >=1.21 {
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
+/*import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.network.RegistryFriendlyByteBuf
@@ -69,7 +69,7 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
     }
 }
 
-//?} elif fabric {
+*///?} elif fabric {
 
 /*import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking

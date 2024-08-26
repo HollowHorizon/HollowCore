@@ -28,19 +28,9 @@ val modVersion = fromProperties("version")
 val imguiVersion: String by project
 val kotlinVersion: String by project
 
-architectury {
-    minecraft = minecraftVersion
-    platformSetupLoomIde()
-    common("forge", "fabric", "neoforge")
-    when (modPlatform) {
-        "fabric" -> fabric()
-        "forge" -> forge()
-        "neoforge" -> neoForge()
-    }
-}
-
 val loom: LoomGradleExtensionAPI = project.extensions.getByName<LoomGradleExtensionAPI>("loom").apply {
     silentMojangMappingsLicense()
+    if (modPlatform == "neoforge") (this as LoomGradleExtensionImpl).generateSrgTiny = false
     val awFile = rootProject.file("src/main/resources/$modId.accesswidener")
     if (awFile.exists()) accessWidenerPath = awFile
 
@@ -54,6 +44,18 @@ val loom: LoomGradleExtensionAPI = project.extensions.getByName<LoomGradleExtens
         "neoforge" -> neoForge {
 
         }
+    }
+}
+
+architectury {
+    minecraft = minecraftVersion
+    platformSetupLoomIde()
+    if (modPlatform == "neoforge") (loom as LoomGradleExtensionImpl).generateSrgTiny = false
+    common(modPlatform)
+    when (modPlatform) {
+        "fabric" -> fabric()
+        "forge" -> forge()
+        "neoforge" -> neoForge()
     }
 }
 
@@ -88,97 +90,54 @@ repositories {
 }
 
 configurations.configureEach {
-    // Fix that can be found in Forge MDK too
     resolutionStrategy {
         force("net.sf.jopt-simple:jopt-simple:5.0.4")
+        force("org.ow2.asm:asm-commons:9.5")
     }
 }
 
 dependencies {
-    "minecraft"("com.mojang:minecraft:$minecraftVersion")
-    "mappings"(loom.layered {
-        officialMojangMappings()
-        val mappingsVer = when (minecraftVersion) {
-            "1.21" -> "2024.07.28"
-            "1.20.1" -> "2023.09.03"
-            "1.19.2" -> "2022.11.27"
-            else -> "..."
-        }
-        parchment("org.parchmentmc.data:parchment-$minecraftVersion:$mappingsVer")
-    })
+    setupLoader(modPlatform, minecraftVersion)
 
     compileOnly("org.spongepowered:mixin:0.8.7")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.0")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:2.0.0")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.0.0")
-    implementation("org.jetbrains.kotlin:kotlin-script-runtime:2.0.0")
-    implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.0")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.0.0")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.0.0")
-    implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.0.0")
+    // KOTLIN //
+    dependency("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.0")
+    dependency("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
+    dependency("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.1")
+    dependency("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+    dependency("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
 
-    implementation("net.fabricmc:tiny-remapper:0.10.4")
-    implementation("net.fabricmc:mapping-io:0.6.1")
+    // SCRIPTING //
+    dependency("org.jetbrains.kotlin:kotlin-scripting-jvm:2.0.0")
+    dependency("org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.0.0")
+    dependency("org.jetbrains.kotlin:kotlin-script-runtime:2.0.0")
+    dependency("org.jetbrains.kotlin:kotlin-compiler-embeddable-mcfriendly:2.0.0")
+    dependency("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.0.0")
+    dependency("org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.0.0")
+    dependency("org.jetbrains.kotlin:kotlin-metadata-jvm:2.0.0")
+    dependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.0")
+    dependency("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.4.0")
+    dependency("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
+    dependency("org.jetbrains.kotlin:kotlin-scripting-common:2.0.0")
+    dependency("net.fabricmc:tiny-remapper:0.10.4")
+    dependency("net.fabricmc:mapping-io:0.6.1")
 
+    // CONFIG //
+    dependency("com.akuleshov7:ktoml-core-jvm:0.5.1")
+
+    // IMGUI //
+    dependency("team.0mods:imgui-app:$imguiVersion")
+    dependency("team.0mods:imgui-binding:$imguiVersion")
+    dependency("team.0mods:imgui-lwjgl3:$imguiVersion")
+    dependency("team.0mods:imgui-binding-natives:$imguiVersion")
+
+    // OTHER
     implementation("org.ow2.asm:asm:9.7")
     implementation("org.ow2.asm:asm-tree:9.7")
-
-    implementation("com.akuleshov7:ktoml-core-jvm:0.5.1")
-
-    implementation("team.0mods:imgui-app:$imguiVersion")
-    implementation("team.0mods:imgui-binding:$imguiVersion")
-    implementation("team.0mods:imgui-lwjgl3:$imguiVersion")
-    implementation("team.0mods:imgui-binding-natives:$imguiVersion")
-
     implementation("org.anarres:jcpp:1.4.14")
     implementation("io.github.douira:glsl-transformer:2.0.1")
-    implementation("org.ow2.asm:asm:9.7")
     implementation("io.github.classgraph:classgraph:4.8.173")
-
-    when (modPlatform) {
-        "fabric" -> {
-            if (minecraftVersion == "1.21") {
-                "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
-                "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.102.0+1.21")
-
-                "modImplementation"("mods:sodium:0.6.0")
-                "modImplementation"("mods:iris:1.8.0")
-            } else if (minecraftVersion == "1.20.1") {
-                "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
-                "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.92.2+1.20.1")
-            } else {
-                "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
-                "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.77.0+1.19.2")
-                implementation("org.joml:joml:1.10.8") //TODO: На 1.19.2 и ниже нужно предоставлять эту зависимость вместе с модом
-            }
-        }
-
-        "forge" -> {
-            if (minecraftVersion == "1.20.1") {
-                "forge"("net.minecraftforge:forge:${minecraftVersion}-47.3.6")
-            } else if (minecraftVersion == "1.21") {
-                implementation("ru.hollowhorizon:forgefixer:1.0.0")
-                implementation("thedarkcolour:kotlinforforge:5.5.0")
-                implementation("thedarkcolour:kfflang:5.5.0")
-                implementation("thedarkcolour:kfflib:5.5.0")
-                implementation("thedarkcolour:kffmod:5.5.0")
-
-                "forge"("net.minecraftforge:forge:${minecraftVersion}-51.0.8")
-            }
-            else {
-                "forge"("net.minecraftforge:forge:${minecraftVersion}-43.4.2")
-            }
-        }
-
-        "neoforge" -> {
-            "neoForge"("net.neoforged:neoforge:21.0.14-beta")
-        }
-    }
 }
 
 afterEvaluate {
@@ -187,7 +146,6 @@ afterEvaluate {
         stonecutter.const("fabric", platform == "fabric")
         stonecutter.const("forge", platform == "forge")
         stonecutter.const("neoforge", platform == "neoforge")
-
     }
 }
 
@@ -258,5 +216,76 @@ object ForgeFixer : RemapperExtensionHolder(object : RemapperParameters {}) {
     ) {
         // Under some strange circumstances there are errors with mapping source names, but that doesn't stop me from compiling the jar, does it?
         tinyRemapperBuilder.ignoreConflicts(true)
+    }
+}
+
+fun DependencyHandlerScope.dependency(path: String) {
+    val dependency = implementation(path) {
+        exclude("org.jetbrains.kotlin")
+        exclude("org.ow2.asm")
+    }
+
+    dependency.takeIf { modPlatform == "forge " || modPlatform == "neoforge" }?.let { "forgeRuntimeLibrary"(it) }
+    "include"(dependency)
+}
+
+fun DependencyHandlerScope.minecraft(version: String) = "minecraft"("com.mojang:minecraft:$version")
+
+@Suppress("UnstableApiUsage")
+fun setupMappings(version: String): Dependency = loom.layered {
+    officialMojangMappings()
+    val mappingsVer = when (version) {
+        "1.21" -> "2024.07.28"
+        "1.20.1" -> "2023.09.03"
+        "1.19.2" -> "2022.11.27"
+        else -> throw IllegalStateException("Unknown mappings for version $version!")
+    }
+    parchment("org.parchmentmc.data:parchment-$version:$mappingsVer")
+}
+
+fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
+    minecraft(version)
+    "mappings"(setupMappings(version))
+
+    when (loader) {
+        "fabric" -> {
+            when (version) {
+                "1.21" -> {
+                    "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
+                    "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.102.0+$version")
+                    "modImplementation"("mods:sodium:0.6.0")
+                    "modImplementation"("mods:iris:1.8.0")
+                }
+
+                "1.20.1" -> {
+                    "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
+                    "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.92.2+$version")
+                }
+
+                "1.19.2" -> {
+                    "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
+                    "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.77.0+$version")
+                    dependency("org.joml:joml:1.10.8")
+                }
+
+                else -> throw IllegalStateException("Unsupported $loader version $version!")
+            }
+        }
+
+        "forge" -> {
+            when (version) {
+                "1.21" -> "forge"("net.minecraftforge:forge:$version-51.0.8")
+                "1.20.1" -> "forge"("net.minecraftforge:forge:$version-47.3.6")
+                "1.19.2" -> "forge"("net.minecraftforge:forge:$version-43.4.2")
+                else -> throw IllegalStateException("Unsupported $loader version $version!")
+            }
+        }
+
+        "neoforge" -> {
+            when (version) {
+                "1.21" -> "neoForge"("net.neoforged:neoforge:21.0.14-beta")
+                else -> throw IllegalStateException("Unsupported $loader version $version!")
+            }
+        }
     }
 }
