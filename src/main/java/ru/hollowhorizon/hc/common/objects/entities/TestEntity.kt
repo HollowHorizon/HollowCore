@@ -62,7 +62,7 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
 
     init {
         this[AnimatedEntityCapability::class].apply {
-            model = "${HollowCore.MODID}:models/mech.glb"
+            model = "${HollowCore.MODID}:models/entity/player_model.gltf"
             //animations[AnimationType.IDLE] = "hello"
             transform = Transform.create {}
         }

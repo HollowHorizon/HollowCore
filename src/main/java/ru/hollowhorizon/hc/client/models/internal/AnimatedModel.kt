@@ -83,17 +83,17 @@ class AnimatedModel(val modelTree: Model) {
         light: Int,
         overlay: Int,
     ) {
-        val activeTexture = GlStateManager._getActiveTexture()
-
-        //Получение текущих VAO и IBO
-        val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
-        val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
-
         modelTree.scenes.forEach {
             it.nodes.forEach { node ->
                 node.renderDecorations(stack, visuals, modelData, source, light)
             }
         }
+
+        val activeTexture = GlStateManager._getActiveTexture()
+
+        //Получение текущих VAO и IBO
+        val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
+        val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
 
         //? if >=1.20.1 {
         CURRENT_NORMAL = stack.last().normal()
