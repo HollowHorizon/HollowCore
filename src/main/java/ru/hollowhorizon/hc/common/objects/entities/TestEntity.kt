@@ -40,11 +40,11 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.Level
 //? if <1.21 {
-/*import net.minecraft.world.level.pathfinder.BlockPathTypes
-*///?} else {
+import net.minecraft.world.level.pathfinder.BlockPathTypes
+//?} else {
 
-import net.minecraft.world.level.pathfinder.PathType
-//?}
+/*import net.minecraft.world.level.pathfinder.PathType
+*///?}
 import net.minecraft.world.phys.Vec3
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
@@ -67,11 +67,11 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
             transform = Transform.create {}
         }
         //? if <1.21 {
-        /*setPathfindingMalus(BlockPathTypes.WATER, -1.0f)
-        *///?} else {
+        setPathfindingMalus(BlockPathTypes.WATER, -1.0f)
+        //?} else {
         
-        setPathfindingMalus(PathType.WATER, -1.0f)
-        //?}
+        /*setPathfindingMalus(PathType.WATER, -1.0f)
+        *///?}
         this.setItemInHand(InteractionHand.MAIN_HAND, ItemStack(Items.NETHERITE_HOE))
         this.setItemInHand(InteractionHand.OFF_HAND, ItemStack(Items.TNT))
 
@@ -116,11 +116,11 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
             object : Screen(Component.empty()) {
                 override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
                     //? if <1.21 {
-                    /*renderBackground(guiGraphics)
-                    *///?} else {
+                    renderBackground(guiGraphics)
+                    //?} else {
                     
-                    renderBackground(guiGraphics, mouseX, mouseY, partialTick)
-                    //?}
+                    /*renderBackground(guiGraphics, mouseX, mouseY, partialTick)
+                    *///?}
                     ImGuiHandler.drawFrame {
                         ImGui.begin("Инвентарь", ImGuiWindowFlags.NoMove or ImGuiWindowFlags.NoCollapse)
                         if (ImGui.treeNodeEx("Слоты моба", ImGuiWindowFlags.None)) {

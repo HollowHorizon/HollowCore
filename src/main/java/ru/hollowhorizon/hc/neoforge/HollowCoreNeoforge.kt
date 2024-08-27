@@ -1,5 +1,5 @@
 //? if neoforge {
-package ru.hollowhorizon.hc.neoforge
+/*package ru.hollowhorizon.hc.neoforge
 
 
 import net.neoforged.bus.api.IEventBus
@@ -47,4 +47,4 @@ class HollowCoreNeoForge(modBus: IEventBus) {
         lateinit var MOD_BUS: IEventBus
     }
 }
-//?}
+*///?}

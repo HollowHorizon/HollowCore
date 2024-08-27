@@ -35,11 +35,11 @@ import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.client.renderer.texture.OverlayTexture
 //? if >=1.21 {
-import net.minecraft.util.FastColor
+/*import net.minecraft.util.FastColor
 import net.minecraft.world.item.ItemDisplayContext
-//?} elif >=1.20.1 {
-/*import net.minecraft.world.item.ItemDisplayContext
-*///?} else {
+*///?} elif >=1.20.1 {
+import net.minecraft.world.item.ItemDisplayContext
+//?} else {
 /*import ru.hollowhorizon.hc.client.utils.toMc
 *///?}
 import net.minecraft.util.Mth
@@ -59,14 +59,14 @@ object OpenGLUtils {
         r: Float, g: Float, b: Float, a: Float,
     ) {
         //? if <1.21 {
-        /*bufferbuilder.vertex(matrix, from.x.toFloat(), from.y.toFloat() - 0.1f, from.z.toFloat())
+        bufferbuilder.vertex(matrix, from.x.toFloat(), from.y.toFloat() - 0.1f, from.z.toFloat())
             .color(r, g, b, a)
         bufferbuilder.vertex(matrix, to.x.toFloat(), to.y.toFloat() - 0.1f, to.z.toFloat()).color(r, g, b, a)
-        *///?} else {
-           bufferbuilder.addVertex(matrix, from.x.toFloat(), from.y.toFloat() - 0.1f, from.z.toFloat())
+        //?} else {
+           /*bufferbuilder.addVertex(matrix, from.x.toFloat(), from.y.toFloat() - 0.1f, from.z.toFloat())
                     .setColor(r, g, b, a)
                 bufferbuilder.addVertex(matrix, to.x.toFloat(), to.y.toFloat() - 0.1f, to.z.toFloat()).setColor(r, g, b, a)
-        //?}
+        *///?}
     }
 }
 
@@ -202,10 +202,10 @@ fun renderItemDecorations(stack: ItemStack, poseStack: PoseStack, x: Int, y: Int
             poseStack, RenderType.guiOverlay(), k, l, (k + i * width).toInt(),
             (l + height * 0.0625f).toInt(), 10,
             //? if <1.21 {
-            /*j or -16777216
-            *///?} else {
-            FastColor.ARGB32.opaque(j)
-            //?}
+            j or -16777216
+            //?} else {
+            /*FastColor.ARGB32.opaque(j)
+            *///?}
         )
     }
     Minecraft.getInstance().player?.cooldowns?.getCooldownPercent(
@@ -240,17 +240,17 @@ fun fill(stack: PoseStack, renderType: RenderType, minX: Int, minY: Int, maxX: I
     val vertexConsumer: VertexConsumer = src.getBuffer(renderType)
 
     //? if <1.21 {
-    /*vertexConsumer.vertex(matrix4f, minX.toFloat(), minY.toFloat(), z.toFloat()).color(color)
+    vertexConsumer.vertex(matrix4f, minX.toFloat(), minY.toFloat(), z.toFloat()).color(color)
     vertexConsumer.vertex(matrix4f, minX.toFloat(), maxY.toFloat(), z.toFloat()).color(color)
     vertexConsumer.vertex(matrix4f, maxX.toFloat(), maxY.toFloat(), z.toFloat()).color(color)
     vertexConsumer.vertex(matrix4f, maxX.toFloat(), minY.toFloat(), z.toFloat()).color(color)
-    *///?} else {
+    //?} else {
     
-    vertexConsumer.addVertex(matrix4f, minX.toFloat(), minY.toFloat(), z.toFloat()).setColor(color)
+    /*vertexConsumer.addVertex(matrix4f, minX.toFloat(), minY.toFloat(), z.toFloat()).setColor(color)
     vertexConsumer.addVertex(matrix4f, minX.toFloat(), maxY.toFloat(), z.toFloat()).setColor(color)
     vertexConsumer.addVertex(matrix4f, maxX.toFloat(), maxY.toFloat(), z.toFloat()).setColor(color)
     vertexConsumer.addVertex(matrix4f, maxX.toFloat(), minY.toFloat(), z.toFloat()).setColor(color)
-    //?}
+    *///?}
     RenderSystem.disableDepthTest()
     src.endBatch()
     RenderSystem.enableDepthTest()

@@ -1,5 +1,5 @@
 //? if neoforge {
-package ru.hollowhorizon.hc.neoforge
+/*package ru.hollowhorizon.hc.neoforge
 
 import net.neoforged.neoforge.common.NeoForge
 import net.neoforged.neoforge.event.AddReloadListenerEvent
@@ -77,4 +77,4 @@ object NeoForgeEvents {
         ServerEvent.Started(currentServer).post()
     }
 }
-//?}
+*///?}

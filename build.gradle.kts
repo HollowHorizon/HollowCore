@@ -225,7 +225,9 @@ fun DependencyHandlerScope.dependency(path: String) {
         exclude("org.ow2.asm")
     }
 
-    dependency.takeIf { modPlatform == "forge " || modPlatform == "neoforge" }?.let { "forgeRuntimeLibrary"(it) }
+    dependency.takeIf { modPlatform == "forge" || modPlatform == "neoforge" }?.let {
+        "forgeRuntimeLibrary"(it)
+    }
     "include"(dependency)
 }
 

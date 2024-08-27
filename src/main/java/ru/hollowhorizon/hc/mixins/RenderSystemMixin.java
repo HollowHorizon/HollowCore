@@ -9,7 +9,7 @@ import ru.hollowhorizon.hc.client.imgui.ImGuiHandler;
 
 @Mixin(RenderSystem.class)
 public class RenderSystemMixin {
-    @Inject(method = "flipFrame", at = @At("HEAD"))
+    @Inject(method = "flipFrame", at = @At("HEAD"), remap = false)
     private static void onRenderFrame(long l, CallbackInfo ci) {
         ImGuiHandler.INSTANCE.renderFrames();
     }

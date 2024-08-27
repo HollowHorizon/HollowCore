@@ -1,5 +1,5 @@
 //? if forge {
-/*package ru.hollowhorizon.hc.forge
+package ru.hollowhorizon.hc.forge
 
 import net.minecraftforge.fml.ModList
 import ru.hollowhorizon.hc.HollowCore
@@ -39,4 +39,4 @@ object CoreInitializationForge {
         }
     }
 }
-*///?}
+//?}

@@ -1,5 +1,5 @@
 //? if neoforge {
-package ru.hollowhorizon.hc.neoforge.internal
+/*package ru.hollowhorizon.hc.neoforge.internal
 
 import ru.hollowhorizon.hc.client.utils.ModList
 import java.io.File
@@ -69,4 +69,4 @@ fun getAsFile(path: Path, modId: String): List<File> {
         return listOf(File(path.absolutePathString()))
     }
 }
-//?}
+*///?}

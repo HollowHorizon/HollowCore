@@ -29,8 +29,8 @@ class CodeEditor : Screen(Component.empty()) {
         renderBackground(
             guiGraphics
             //? if >=1.21 {
-            , mouseX, mouseY, partialTick
-            //?}
+            /*, mouseX, mouseY, partialTick
+            *///?}
         )
 
         ImGuiHandler.drawFrame {

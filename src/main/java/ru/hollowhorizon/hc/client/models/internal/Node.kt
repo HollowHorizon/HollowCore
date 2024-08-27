@@ -91,10 +91,10 @@ class Node(
 
         stack.use {
             //? if >=1.21 {
-            mulPose(localMatrix)
-            //?} elif >=1.20.1 {
-            /*mulPoseMatrix(localMatrix)
-            *///?} else {
+            /*mulPose(localMatrix)
+            *///?} elif >=1.20.1 {
+            mulPoseMatrix(localMatrix)
+            //?} else {
             /*mulPoseMatrix(localMatrix.toMc())
             *///?}
 
@@ -112,12 +112,12 @@ class Node(
     ) {
         stack.use {
             //? if >=1.21 {
-            mulPose(localMatrix)
+            /*mulPose(localMatrix)
             last().normal().mul(normalMatrix)
-            //?} elif >=1.20.1 {
-            /*mulPoseMatrix(localMatrix)
+            *///?} elif >=1.20.1 {
+            mulPoseMatrix(localMatrix)
             last().normal().mul(normalMatrix)
-            *///?} else {
+            //?} else {
             /*mulPoseMatrix(localMatrix.toMc())
             last().normal().mul(normalMatrix.toMc())
             *///?}

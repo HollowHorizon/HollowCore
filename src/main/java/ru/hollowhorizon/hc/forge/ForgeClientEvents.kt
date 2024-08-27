@@ -1,5 +1,5 @@
 //? if forge {
-/*package ru.hollowhorizon.hc.forge
+package ru.hollowhorizon.hc.forge
 
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ShaderInstance
@@ -67,8 +67,10 @@ object ForgeClientEvents {
             event.flags,
             event.itemStack,
             event.toolTip,
-            Item.TooltipContext.of(Minecraft.getInstance().level)
+            //? if >=1.21 {
+            /*Item.TooltipContext.of(Minecraft.getInstance().level)
+            *///?}
         ).post()
     }
 }
-*///?}
+//?}
