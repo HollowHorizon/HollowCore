@@ -170,11 +170,15 @@ if (stonecutter.current.isActive) {
 }
 
 stonecutter {
-    val j21 = eval(minecraftVersion, ">=1.20.6")
+    val j21 = eval(minecraftVersion, ">=1.20.5")
     java {
         withSourcesJar()
         sourceCompatibility = if (j21) JavaVersion.VERSION_21 else JavaVersion.VERSION_17
         targetCompatibility = if (j21) JavaVersion.VERSION_21 else JavaVersion.VERSION_17
+
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(if (j21) 21 else 17)
+        }
     }
 
     kotlin {
