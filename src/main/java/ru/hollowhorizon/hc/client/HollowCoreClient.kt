@@ -33,6 +33,8 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.audio.SoundBuffer
 import ru.hollowhorizon.hc.client.audio.SoundPlayer
 import ru.hollowhorizon.hc.client.audio.formats.Mp3Format
+import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
+import ru.hollowhorizon.hc.client.imgui.Renderable
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.render.RenderLoader
 import ru.hollowhorizon.hc.client.render.effekseer.EffekseerNatives
@@ -41,6 +43,8 @@ import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.render.shaders.ShadersLoader
 import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
 import ru.hollowhorizon.hc.client.screens.CodeEditor
+import ru.hollowhorizon.hc.client.screens.ImGuiScreen
+import ru.hollowhorizon.hc.client.screens.example
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
@@ -60,6 +64,8 @@ object HollowCoreClient {
 
         EffekseerNatives.install()
         RenderSystem.recordRenderCall(RenderLoader::onInitialize)
+
+        //ImGuiHandler.frames += Renderable { example() }
     }
 
     @SubscribeEvent
@@ -84,7 +90,7 @@ object HollowCoreClient {
 
     @SubscribeEvent
     fun onClientTick(event: TickEvent.Client) {
-        if (HollowCore.config.debugMode && KEY_V.isDown) Minecraft.getInstance().setScreen(CodeEditor())
+        if (HollowCore.config.debugMode && KEY_V.isDown) Minecraft.getInstance().setScreen(ImGuiScreen())
     }
 
     @SubscribeEvent

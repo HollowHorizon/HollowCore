@@ -25,11 +25,11 @@
 package ru.hollowhorizon.hc.client.imgui
 
 fun interface Renderable {
+    fun Graphics.render()
+
     fun getName(): String? = null
 
     fun getTheme(): Theme? = null
-
-    fun ImGuiMethods.render()
 }
 
 interface Theme {

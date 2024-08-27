@@ -27,6 +27,7 @@ package ru.hollowhorizon.hc.client.utils
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
@@ -148,6 +149,7 @@ fun String.mcTranslate(vararg args: Any) = Component.translatable(this, *args)
 operator fun MutableComponent.plus(other: Component): MutableComponent = this.copy().append(other)
 
 fun MutableComponent.colored(color: Int): MutableComponent = this.withStyle { it.withColor(color) }
+fun MutableComponent.colored(color: ChatFormatting): MutableComponent = this.withStyle { it.withColor(color) }
 fun MutableComponent.bold(): MutableComponent = this.withStyle { it.withBold(true) }
 fun MutableComponent.italic(): MutableComponent = this.withStyle { it.withItalic(true) }
 fun MutableComponent.obfuscated(): MutableComponent = this.withStyle { it.withObfuscated(true) }

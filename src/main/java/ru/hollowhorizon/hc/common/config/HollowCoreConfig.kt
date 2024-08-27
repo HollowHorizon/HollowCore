@@ -1,11 +1,7 @@
 package ru.hollowhorizon.hc.common.config
 
-import imgui.ImGui
 import kotlinx.serialization.Serializable
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.imgui.ImGuiMethods
-import ru.hollowhorizon.hc.client.utils.rl
-import ru.hollowhorizon.hc.client.utils.toTexture
 
 @Serializable
 class HollowCoreConfig : HollowConfig() {

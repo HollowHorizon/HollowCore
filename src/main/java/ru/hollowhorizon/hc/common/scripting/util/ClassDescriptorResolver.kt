@@ -20,8 +20,8 @@ import kotlin.math.max
 data class MethodDescriptor(val name: String, val parameters: List<String>, val returnType: String) : CodeCompletion {
     override fun complete(editor: TextEditor) {
         val lines = editor.textLines
-        val original = lines[editor.cursorPositionLine]
-        val column = editor.cursorPositionColumn
+        val original = lines[editor.cursorPosition.mLine]
+        val column = editor.cursorPosition.mColumn
 
         val beforeIndex = original.substring(0, column)
         var charPos = beforeIndex.lastIndexOf('.')+1
@@ -30,9 +30,9 @@ data class MethodDescriptor(val name: String, val parameters: List<String>, val 
         charPos = max(charPos, beforeIndex.lastIndexOf('[')+1)
         charPos = max(charPos, beforeIndex.lastIndexOf('{')+1)
         charPos = max(charPos, 0)
-        lines[editor.cursorPositionLine] = original.substring(0, charPos) + name + "()" + original.substring(column)
+        lines[editor.cursorPosition.mLine] = original.substring(0, charPos) + name + "()" + original.substring(column)
         editor.textLines = lines
-        editor.setCursorPosition(editor.cursorPositionLine, charPos + name.length + (if(parameters.isEmpty()) 2 else 1))
+        editor.setCursorPosition(editor.cursorPosition.mLine, charPos + name.length + (if(parameters.isEmpty()) 2 else 1))
     }
 
     override fun draw(): Boolean {
@@ -54,8 +54,8 @@ data class MethodDescriptor(val name: String, val parameters: List<String>, val 
 class FieldDescriptor(val name: String, private val returnType: String) : CodeCompletion {
     override fun complete(editor: TextEditor) {
         val lines = editor.textLines
-        val original = lines[editor.cursorPositionLine]
-        val column = editor.cursorPositionColumn
+        val original = lines[editor.cursorPosition.mLine]
+        val column = editor.cursorPosition.mColumn
 
         val beforeIndex = original.substring(0, column)
         var charPos = beforeIndex.lastIndexOf('.')+1
@@ -64,9 +64,9 @@ class FieldDescriptor(val name: String, private val returnType: String) : CodeCo
         charPos = max(charPos, beforeIndex.lastIndexOf('[')+1)
         charPos = max(charPos, beforeIndex.lastIndexOf('{')+1)
         charPos = max(charPos, 0)
-        lines[editor.cursorPositionLine] = original.substring(0, charPos) + name + original.substring(column)
+        lines[editor.cursorPosition.mLine] = original.substring(0, charPos) + name + original.substring(column)
         editor.textLines = lines
-        editor.setCursorPosition(editor.cursorPositionLine, charPos + name.length)
+        editor.setCursorPosition(editor.cursorPosition.mLine, charPos + name.length)
     }
 
     override fun draw(): Boolean {
@@ -86,11 +86,11 @@ class FieldDescriptor(val name: String, private val returnType: String) : CodeCo
 class ImportDescriptor(val name: String) : CodeCompletion {
     override fun complete(editor: TextEditor) {
         val lines = editor.textLines
-        val original = lines[editor.cursorPositionLine]
+        val original = lines[editor.cursorPosition.mLine]
         val separator = if ('.' in original) "." else " "
-        lines[editor.cursorPositionLine] = original.substringBeforeLast(separator) + separator + name
+        lines[editor.cursorPosition.mLine] = original.substringBeforeLast(separator) + separator + name
         editor.textLines = lines
-        editor.setCursorPosition(editor.cursorPositionLine, lines[editor.cursorPositionLine].length)
+        editor.setCursorPosition(editor.cursorPosition.mLine, lines[editor.cursorPosition.mLine].length)
     }
 
     override fun draw(): Boolean {
@@ -110,8 +110,8 @@ class ImportDescriptor(val name: String) : CodeCompletion {
 class ClassCompletionDescriptor(val name: String) : CodeCompletion {
     override fun complete(editor: TextEditor) {
         val lines = editor.textLines
-        val original = lines[editor.cursorPositionLine]
-        val column = editor.cursorPositionColumn
+        val original = lines[editor.cursorPosition.mLine]
+        val column = editor.cursorPosition.mColumn
 
         val beforeIndex = original.substring(0, column)
         var charPos = beforeIndex.lastIndexOf('.')+1
@@ -120,9 +120,9 @@ class ClassCompletionDescriptor(val name: String) : CodeCompletion {
         charPos = max(charPos, beforeIndex.lastIndexOf('[')+1)
         charPos = max(charPos, beforeIndex.lastIndexOf('{')+1)
         charPos = max(charPos, 0)
-        lines[editor.cursorPositionLine] = original.substring(0, charPos) + name + original.substring(column)
+        lines[editor.cursorPosition.mLine] = original.substring(0, charPos) + name + original.substring(column)
         editor.textLines = lines
-        editor.setCursorPosition(editor.cursorPositionLine, charPos + name.length)
+        editor.setCursorPosition(editor.cursorPosition.mLine, charPos + name.length)
     }
 
     override fun draw(): Boolean {

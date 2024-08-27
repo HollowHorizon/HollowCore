@@ -9,7 +9,7 @@ import net.minecraft.world.Container
 import net.minecraft.world.item.ItemStack
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.imgui.BufferType
-import ru.hollowhorizon.hc.client.imgui.ImGuiMethods
+import ru.hollowhorizon.hc.client.imgui.Graphics
 import ru.hollowhorizon.hc.client.imgui.currentBufferType
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
 import ru.hollowhorizon.hc.common.containers.ClientContainerManager
@@ -46,7 +46,7 @@ object ImGuiInventory {
     private var holdStackY = 0f
     val ITEM_SIZES = HashMap<Container, HashMap<Int, ItemAnimation>>()
 
-    fun ImGuiMethods.slot(
+    fun Graphics.slot(
         id: Int,
         stack: ItemStack,
         size: Float = 0f,
@@ -126,7 +126,7 @@ object ImGuiInventory {
 
             val modifier = if (HollowCore.config.inventory.enableItemRotation) 1f else 0f
 
-            ImGuiMethods.item(
+            Graphics.item(
                 holdItem,
                 80f,
                 80f,

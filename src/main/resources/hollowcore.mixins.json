@@ -29,6 +29,7 @@
   "client": [
     "FontManagerAccessor",
     "GuiMixin",
+    "RenderSystemMixin",
     "ScreenAccessor",
     "ShaderInstanceAccessor",
     "SoundManagerMixin",

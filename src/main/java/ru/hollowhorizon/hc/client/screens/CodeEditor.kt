@@ -45,8 +45,8 @@ class CodeEditor : Screen(Component.empty()) {
             editor.render("TextEditor")
             if (editor.isTextChanged) {
                 val text = editor.text
-                val line = editor.cursorPositionLine
-                val column = editor.cursorPositionColumn
+                val line = editor.cursorPosition.mLine
+                val column = editor.cursorPosition.mColumn
                 var newIndex = 0
                 var lineIndex = 0
                 for (textLine in editor.textLines) {

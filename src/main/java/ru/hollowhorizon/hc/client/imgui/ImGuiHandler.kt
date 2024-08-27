@@ -46,10 +46,11 @@ object ImGuiHandler {
     val imGuiGlfw = ImGuiImplGlfw()
     val imGuiGl3 = ImGuiImplGl3()
     var windowHandle: Long = 0
+    val frames = ArrayList<Renderable>()
 
     fun initialize() {
         val window = Minecraft.getInstance().window.window
-        initializeImGui(window)
+        initializeImGui()
         imGuiGlfw.init(window, true)
         if (!Minecraft.ON_OSX) {
             imGuiGl3.init("#version 410")
@@ -62,23 +63,25 @@ object ImGuiHandler {
         windowHandle = window
     }
 
-    fun drawFrame(renderable: Renderable) {
+    fun renderFrames() {
+        if(frames.isEmpty()) return
+
         imguiWindowBuffer.clear(Minecraft.ON_OSX)
         imguiBackgroundBuffer.clear(Minecraft.ON_OSX)
         imguiForegroundBuffer.clear(Minecraft.ON_OSX)
 
-        Minecraft.getInstance().mainRenderTarget.bindWrite(true)
         imGuiGlfw.newFrame()
         ImGui.newFrame()
-        ImGui.setNextWindowViewport(ImGui.getMainViewport().id)
 
-        renderable.getTheme()?.preRender()
-        ImGuiMethods.apply { with(renderable) { render() } }
-        renderable.getTheme()?.postRender()
+        frames.forEach {
+            it.getTheme()?.preRender()
+            Graphics.apply { with(it) { render() } }
+            it.getTheme()?.postRender()
+        }
 
         ImGuiInventory.renderHoldItem()
 
-        if (ImGuiMethods.cursorStack.isNotEmpty()) throw StackOverflowError("Cursor stack must be empty!")
+        if (Graphics.cursorStack.isNotEmpty()) throw StackOverflowError("Cursor stack must be empty!")
 
         ImGui.render()
         endFrame()
@@ -86,18 +89,52 @@ object ImGuiHandler {
         DockingHelper.DOCKING_ID = 0
     }
 
-    private fun initializeImGui(glHandle: Long) {
+    fun drawFrame(renderable: Renderable) {
+        imguiWindowBuffer.clear(Minecraft.ON_OSX)
+        imguiBackgroundBuffer.clear(Minecraft.ON_OSX)
+        imguiForegroundBuffer.clear(Minecraft.ON_OSX)
+
+        Minecraft.getInstance().mainRenderTarget.bindWrite(true)
+        imGuiGl3.newFrame()
+        imGuiGlfw.newFrame()
+        ImGui.newFrame()
+        ImGui.setNextWindowViewport(ImGui.getMainViewport().id)
+
+        renderable.getTheme()?.preRender()
+        Graphics.apply { with(renderable) { render() } }
+        renderable.getTheme()?.postRender()
+
+        ImGuiInventory.renderHoldItem()
+
+        if (Graphics.cursorStack.isNotEmpty()) throw StackOverflowError("Cursor stack must be empty!")
+
+        endFrame()
+
+        DockingHelper.DOCKING_ID = 0
+    }
+
+    private fun initializeImGui() {
         ImGui.createContext()
 
         val io = ImGui.getIO()
         io.iniFilename = null
         io.addBackendFlags(ImGuiBackendFlags.HasSetMousePos)
-        io.addConfigFlags(ImGuiConfigFlags.NavEnableKeyboard); // Enable Keyboard Controls
-        io.addConfigFlags(ImGuiConfigFlags.DockingEnable); // Enable Docking
+        io.addConfigFlags(ImGuiConfigFlags.NavEnableKeyboard) // Enable Keyboard Controls
+        io.addConfigFlags(ImGuiConfigFlags.DockingEnable) // Enable Docking
         io.configViewportsNoTaskBarIcon = true
 
-        loadFont(30) { ImGuiMethods.FONT_SIZES[30] = it }
-        LoadFontEvent { size -> loadFont(size) { ImGuiMethods.FONT_SIZES[size] = it } }.post()
+        loadFont(30) { Graphics.FONT_SIZES[30] = it }
+
+        for (i in 1..10) {
+            if (i == 3) continue
+            loadFont(i * 10) { Graphics.FONT_SIZES[i * 10] = it }
+        }
+
+        LoadFontEvent { size ->
+            if (!Graphics.FONT_SIZES.contains(size)) loadFont(size) {
+                Graphics.FONT_SIZES[size] = it
+            }
+        }.post()
 
         if (io.hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
             val style = ImGui.getStyle()
@@ -116,12 +153,9 @@ object ImGuiHandler {
             addRanges(fontAtlas.glyphRangesJapanese)
             addRanges(FontAwesomeIcons._IconRange)
         }
-        fontConfig.oversampleH = 1
-        fontConfig.oversampleV = 1
         fontConfig.fontBuilderFlags = ImGuiFreeTypeBuilderFlags.LoadColor
 
         val ranges = rangesBuilder.buildRanges()
-
 
         val monoFont = fontAtlas.addFontFromMemoryTTF(
             "${HollowCore.MODID}:fonts/$font.ttf".rl.stream.readAllBytes(), size.toFloat(), fontConfig, ranges
@@ -143,7 +177,6 @@ object ImGuiHandler {
         )
         fontAtlas.build()
 
-        fontConfig.pixelSnapH = true
         fontConfig.destroy()
 
         imFont(monoFont)
@@ -151,6 +184,7 @@ object ImGuiHandler {
     }
 
     fun endFrame() {
+        ImGui.render()
         imGuiGl3.renderDrawData(ImGui.getDrawData())
         if (ImGui.getIO().hasConfigFlags(ImGuiConfigFlags.ViewportsEnable)) {
             val backupWindowPtr = GLFW.glfwGetCurrentContext()

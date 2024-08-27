@@ -5,7 +5,7 @@ import imgui.flag.ImGuiMouseButton
 import net.minecraft.client.Minecraft
 import net.minecraft.world.Container
 import net.minecraft.world.item.ItemStack
-import ru.hollowhorizon.hc.client.imgui.ImGuiMethods
+import ru.hollowhorizon.hc.client.imgui.Graphics
 import ru.hollowhorizon.hc.client.imgui.addons.ImGuiInventory.slot
 import ru.hollowhorizon.hc.common.containers.ClientContainerManager
 
@@ -27,7 +27,7 @@ open class ContainerProvider(val container: Container) {
     }
 
     fun slot(i: Int, item: ItemStack) {
-        ImGuiMethods.slot(i, item, slotSize, container = container)
+        Graphics.slot(i, item, slotSize, container = container)
     }
 
     fun splitItems() {

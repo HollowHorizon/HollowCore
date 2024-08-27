@@ -85,4 +85,5 @@ public class MixinGameRenderer {
                     minecraft.player);
         }
     }
+
 }

@@ -25,8 +25,8 @@ val modPlatform = stonecutter.current.project.substringAfterLast('-')
 val parchmentVersion = fromProperties("parchment_version")
 val modName = fromProperties("mod_name")
 val modVersion = fromProperties("version")
-val imguiVersion: String by project
-val kotlinVersion: String by project
+val imguiVersion: String by rootProject
+val kotlinVersion: String by rootProject
 
 val loom: LoomGradleExtensionAPI = project.extensions.getByName<LoomGradleExtensionAPI>("loom").apply {
     silentMojangMappingsLicense()
@@ -189,7 +189,7 @@ fun DependencyHandlerScope.includes(vararg libraries: String) {
 }
 
 fun kxExcludeRule(dependency: String) = "org.jetbrains.kotlinx" to "kotlinx-$dependency"
-fun fromProperties(id: String) = project.properties[id].toString()
+fun fromProperties(id: String) = rootProject.properties[id].toString()
 
 
 class KClosure<T : Any?>(val function: T.() -> Unit) : Closure<T>(null, null) {
