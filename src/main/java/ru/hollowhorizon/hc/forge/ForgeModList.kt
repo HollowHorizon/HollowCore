@@ -1,5 +1,5 @@
 //? if forge {
-/*package ru.hollowhorizon.hc.forge
+package ru.hollowhorizon.hc.forge
 
 import ru.hollowhorizon.hc.client.utils.ModList
 import java.io.File
@@ -69,4 +69,4 @@ fun getAsFile(path: Path, modId: String): List<File> {
         return listOf(File(path.absolutePathString()))
     }
 }
-*///?}
+//?}

@@ -1,5 +1,5 @@
 //? if fabric {
-package ru.hollowhorizon.hc.fabric
+/*package ru.hollowhorizon.hc.fabric
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback
@@ -61,13 +61,13 @@ object FabricClientEvents {
         })
         //?} else {
         
-        /*ItemTooltipCallback.EVENT.register(ItemTooltipCallback { stack, tooltipContext, tooltipType, lines ->
+        /^ItemTooltipCallback.EVENT.register(ItemTooltipCallback { stack, tooltipContext, tooltipType, lines ->
             ItemTooltipEvent(tooltipType, stack, lines
                 , tooltipContext
             ).post()
         })
-        *///?}
+        ^///?}
 
     }
 }
-//?}
+*///?}

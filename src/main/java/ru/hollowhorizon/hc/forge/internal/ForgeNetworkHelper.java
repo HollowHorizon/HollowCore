@@ -1,15 +1,15 @@
 //? if forge {
-/*package ru.hollowhorizon.hc.forge.internal;
+package ru.hollowhorizon.hc.forge.internal;
 
 import kotlin.Unit;
 
 //? if >=1.21 {
-/^
+/*
 import net.minecraftforge.network.SimpleChannel;
 import net.minecraftforge.network.Channel;
 import net.minecraftforge.network.ChannelBuilder;
 import net.minecraftforge.network.PacketDistributor;
-^///?} else {
+*///?} else {
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -21,11 +21,11 @@ import ru.hollowhorizon.hc.common.network.HollowPacketV3Kt;
 public class ForgeNetworkHelper {
     public static SimpleChannel hollowCoreChannel = NetworkRegistry.ChannelBuilder
             //? if >=1.21 {
-            /^.named("hollowcore:hollow_packets")
+            /*.named("hollowcore:hollow_packets")
             .networkProtocolVersion(4)
             .clientAcceptedVersions(Channel.VersionTest.exact(4))
             .serverAcceptedVersions(Channel.VersionTest.exact(4))
-            ^/
+            */
             //?} else {
             .named(ForgeKotlinKt.getRl("hollowcore:hollow_packets"))
             .networkProtocolVersion(() -> "4")
@@ -41,16 +41,16 @@ public class ForgeNetworkHelper {
         };
         HollowPacketV3Kt.sendPacketToClient = (player, hollowPacketV3) -> {
             //? if >=1.21 {
-            /^hollowCoreChannel.send(hollowPacketV3, PacketDistributor.PLAYER.with(player));
-            ^///?} else {
+            /*hollowCoreChannel.send(hollowPacketV3, PacketDistributor.PLAYER.with(player));
+            *///?} else {
             hollowCoreChannel.send(PacketDistributor.PLAYER.with(() -> player), hollowPacketV3);
             //?}
             return Unit.INSTANCE;
         };
         HollowPacketV3Kt.sendPacketToServer = (hollowPacketV3) -> {
             //? if >=1.21 {
-            /^hollowCoreChannel.send(hollowPacketV3, PacketDistributor.SERVER.noArg());
-            ^///?} else {
+            /*hollowCoreChannel.send(hollowPacketV3, PacketDistributor.SERVER.noArg());
+            *///?} else {
             hollowCoreChannel.send(PacketDistributor.SERVER.noArg(), hollowPacketV3);
             //?}
             return Unit.INSTANCE;
@@ -58,4 +58,4 @@ public class ForgeNetworkHelper {
         HollowPacketV3Kt.registerPackets.invoke();
     }
 }
-*///?}
+//?}

@@ -62,15 +62,15 @@ import ru.hollowhorizon.hc.client.utils.rl
 //?}
 
 //? if forge {
-/*import ru.hollowhorizon.hc.forge.internal.ForgeNetworkHelper
+import ru.hollowhorizon.hc.forge.internal.ForgeNetworkHelper
 import net.minecraftforge.network.PacketDistributor
-*///?} elif neoforge {
+//?} elif neoforge {
 /*import ru.hollowhorizon.hc.neoforge.internal.NeoForgeNetworkHelper
 import net.neoforged.neoforge.network.PacketDistributor
 *///?} elif fabric {
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
+/*import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
-//?}
+*///?}
 
 interface HollowPacketV3<T : HollowPacketV3<T>>
 //? if >=1.21 {
@@ -117,15 +117,15 @@ fun HollowPacketV3<*>.sendTrackingEntity(entity: Entity) {
         //? forge && >=1.21 {
         /*ForgeNetworkHelper.hollowCoreChannel.send(this, PacketDistributor.TRACKING_ENTITY.with(entity))
         *///?} elif forge && >=1.20.1 {
-        /*ForgeNetworkHelper.hollowCoreChannel.send(PacketDistributor.TRACKING_ENTITY.with{entity}, this)
-        *///?} elif neoforge {
+        ForgeNetworkHelper.hollowCoreChannel.send(PacketDistributor.TRACKING_ENTITY.with{entity}, this)
+        //?} elif neoforge {
         /*PacketDistributor.sendToPlayersTrackingEntity(entity, this)
         *///?} else {
-        chunkCache.broadcastAndSend(
+        /*chunkCache.broadcastAndSend(
             entity,
             this.asVanillaPacket(true)
         )
-        //?}
+        *///?}
     } else {
         throw IllegalStateException("Cannot send clientbound payloads on the client")
     }
@@ -141,12 +141,12 @@ fun HollowPacketV3<*>.sendAllInDimension(level: Level) {
     //? forge && >=1.21 {
     /*ForgeNetworkHelper.hollowCoreChannel.send(this, PacketDistributor.DIMENSION.with(level.dimension()))
     *///?} elif forge && >=1.20.1 {
-    /*ForgeNetworkHelper.hollowCoreChannel.send(PacketDistributor.DIMENSION.with{level.dimension()}, this)
-    *///?} elif neoforge {
+    ForgeNetworkHelper.hollowCoreChannel.send(PacketDistributor.DIMENSION.with{level.dimension()}, this)
+    //?} elif neoforge {
     /*PacketDistributor.sendToPlayersInDimension(level as ServerLevel, this)
     *///?} else {
-    server.playerList.broadcastAll(this.asVanillaPacket(true), level.dimension())
-    //?}
+    /*server.playerList.broadcastAll(this.asVanillaPacket(true), level.dimension())
+    *///?}
 }
 
 
@@ -157,15 +157,15 @@ fun HollowPacketV3<*>.asVanillaPacket(toClient: Boolean): Packet<*> {
     else ServerPlayNetworking.createS2CPacket(this)
     
     *///?} elif fabric {
-    val byteBuf = FriendlyByteBuf(Unpooled.buffer())
+    /*val byteBuf = FriendlyByteBuf(Unpooled.buffer())
     byteBuf.writeNbt(NBTFormat.serializeNoInline(this, javaClass) as CompoundTag)
     return if (!toClient) ClientPlayNetworking.createC2SPacket(packetName, byteBuf)
     else ServerPlayNetworking.createS2CPacket(packetName, byteBuf)
-    //?}
+    *///?}
 
     //? forge {
-    /*return this as Packet<*>
-    *///?}
+    return this as Packet<*>
+    //?}
 
     //? neoforge {
     /*return this as Packet<*>
