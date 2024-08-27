@@ -6,6 +6,10 @@ data class Model(
     val animations: List<Animation>,
     val materials: Set<Material>,
 ) {
+    fun initGl() {
+        walkNodes().forEach { it.mesh?.primitives?.forEach { it.init() } }
+    }
+
     fun walkNodes(): List<Node> {
         val nodes = mutableListOf<Node>()
         fun walk(node: Node) {

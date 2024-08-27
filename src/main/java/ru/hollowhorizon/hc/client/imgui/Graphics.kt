@@ -25,9 +25,11 @@
 package ru.hollowhorizon.hc.client.imgui
 
 //? if >=1.21 {
-/*import com.mojang.blaze3d.vertex.VertexSorting
-import net.minecraft.network.chat.contents.PlainTextContents*/
+import com.mojang.blaze3d.vertex.VertexSorting
+import net.minecraft.network.chat.contents.PlainTextContents
 //?} elif >=1.20.1 {
+/*
+import net.minecraft.network.chat.contents.LiteralContents*/
 //?} else {
 /*import net.minecraft.network.chat.contents.LiteralContents
 import ru.hollowhorizon.hc.client.utils.toMc
@@ -37,7 +39,6 @@ import com.google.common.collect.Queues
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.blaze3d.vertex.VertexSorting
 import imgui.*
 import imgui.ImGui.*
 import imgui.extension.nodeditor.NodeEditor
@@ -49,11 +50,11 @@ import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.ComponentContents
 import net.minecraft.network.chat.HoverEvent
-import net.minecraft.network.chat.contents.LiteralContents
 import net.minecraft.network.chat.contents.TranslatableContents
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.FastColor.ARGB32
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.TooltipFlag
 import org.intellij.lang.annotations.MagicConstant
@@ -464,14 +465,14 @@ object Graphics {
         )
         val matrix4fstack = RenderSystem.getModelViewStack()
         //? if >=1.21 {
-        /*matrix4fstack.pushMatrix()
+        matrix4fstack.pushMatrix()
         matrix4fstack.translation(0.0f, 0.0f, -2000.0f)
-        *///?} elif >=1.20.1 {
+        //?} elif >=1.20.1 {
 
-        matrix4fstack.pushPose()
+        /*matrix4fstack.pushPose()
         matrix4fstack.setIdentity()
         matrix4fstack.translate(0.0f, 0.0f, -2000.0f)
-        //?} else {
+        *///?} else {
         /*matrix4fstack.pushPose()
         matrix4fstack.translate(0.0, 0.0, -2000.0)
         *///?}
@@ -488,10 +489,10 @@ object Graphics {
         RenderSystem.restoreProjectionMatrix()
 
         //? if <1.21 {
-        matrix4fstack.popPose()
-        //?} else {
-        /*matrix4fstack.popMatrix()
-        *///?}
+        /*matrix4fstack.popPose()
+        *///?} else {
+        matrix4fstack.popMatrix()
+        //?}
 
         RenderSystem.applyModelViewMatrix()
 
@@ -584,10 +585,10 @@ object Graphics {
             val stack = PoseStack()
             if (properties.alwaysOnTop) {
                 //? if >=1.21 {
-                /*stack.translate(0f, 0f, 200f)
-                *///?} else {
-                stack.translate(0.0, 0.0, 200.0)
-                //?}
+                stack.translate(0f, 0f, 200f)
+                //?} else {
+                /*stack.translate(0.0, 0.0, 200.0)
+                *///?}
             }
 
             val enableCounts = HollowCore.config.inventory.enableItemCounts
@@ -595,10 +596,10 @@ object Graphics {
             if (weight > 0.3f && enableCounts) {
                 stack.pushPose()
                 //? if >=1.21 {
-                /*stack.translate(0f, 0f, -100f)
-                *///?} else {
-                stack.translate(0.0, 0.0, -100.0)
-                //?}
+                stack.translate(0f, 0f, -100f)
+                //?} else {
+                /*stack.translate(0.0, 0.0, -100.0)
+                *///?}
                 item.render(
                     cursor.x + width / 5f, cursor.y, width, height,
                     (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale * 0.65f,
@@ -610,10 +611,10 @@ object Graphics {
             if (weight > 0.6f && enableCounts) {
                 stack.pushPose()
                 //? if >=1.21 {
-                /*stack.translate(0f, 0f, -100f)
-                *///?} else {
-                stack.translate(0.0, 0.0, -100.0)
-                //?}
+                stack.translate(0f, 0f, -100f)
+                //?} else {
+                /*stack.translate(0.0, 0.0, -100.0)
+                *///?}
                 item.render(
                     cursor.x - width / 5, cursor.y - height / 10, width, height,
                     (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale * 0.75f,
@@ -671,21 +672,21 @@ object Graphics {
 
                     dummy(0f, borderSize / 2)
                     //? if <1.21 {
-                    item.getTooltipLines(
+                    /*item.getTooltipLines(
                         player, TooltipFlag.Default.NORMAL
                     ).forEach {
                         setCursorPosX(getCursorPosX() + borderSize * 2)
                         text(it)
 
                     }
-                    //?} else {
-                    /*item.getTooltipLines(
+                    *///?} else {
+                    item.getTooltipLines(
                         Item.TooltipContext.of(player.level()), player, TooltipFlag.Default.NORMAL
                     ).forEach {
                         setCursorPosX(getCursorPosX() + borderSize * 2)
                         text(it)
                     }
-                    *///?}
+                    //?}
                     dummy(borderSize, borderSize)
                 }
             }
@@ -743,11 +744,11 @@ object Graphics {
 
             when (val content = text.contents) {
                 //? if <1.21 {
-                is LiteralContents,
-                    //?} else {
+                /*is LiteralContents,
+                    *///?} else {
 
-                    /*is PlainTextContents,
-                        *///?}
+                    is PlainTextContents,
+                        //?}
                 -> {
                     val string = if (isObfuscated) obfuscatedString(content.text().length) else content.text()
                     val length = calcTextSize(string)
@@ -781,9 +782,10 @@ object Graphics {
                     else ImGui.text(string)
                 }
 
-                ComponentContents.EMPTY -> {
+                //? if<=1.20.1 {
+                /*ComponentContents.EMPTY -> {
                     newLine()
-                }
+                }*///?}
             }
 
 
@@ -823,10 +825,10 @@ object Graphics {
             if (isHovered) text.style.hoverEvent?.let {
                 val name =
                     //? if <1.21 {
-                    it.action.name
-                //?} else {
-                /*it.action.serializedName
-            *///?}
+                    /*it.action.name
+                *///?} else {
+                it.action.serializedName
+            //?}
                 when (name) {
                     "show_text" -> {
                         beginTooltip()
@@ -840,8 +842,8 @@ object Graphics {
                             item(it.itemStack, 128f, 128f)
                             it.itemStack.getTooltipLines(
                                 //? if >=1.21 {
-                                /*Item.TooltipContext.of(Minecraft.getInstance().level),
-                                *///?}
+                                Item.TooltipContext.of(Minecraft.getInstance().level),
+                                //?}
                                 Minecraft.getInstance().player,
                                 TooltipFlag.Default.NORMAL
                             ).forEach(::text)
@@ -856,10 +858,10 @@ object Graphics {
                             val entity = Minecraft.getInstance().level?.entitiesForRendering()
                                 ?.find { a -> a.uuid == it.id } as? LivingEntity
                             //? if <1.21 {
-                            if (it.name != null) text(it.name!!)
-                            //?} else {
-                            /*if (it.name.isPresent) text(it.name.get())
-                            *///?}
+                            /*if (it.name != null) text(it.name!!)
+                            *///?} else {
+                            if (it.name.isPresent) text(it.name.get())
+                            //?}
                             if (entity != null) entity(entity, 128f, 128f)
                         }
                         endTooltip()

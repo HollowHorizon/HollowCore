@@ -41,15 +41,15 @@ import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer;
 import static ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.copyCurrentDepthTo;
 
 //? if >=1.21 {
-/*import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.DeltaTracker;
  
-*///?}
+//?}
 
 @Mixin(LevelRenderer.class)
 public class MixinLevelRenderer {
     @Inject(method = "renderLevel", at = @At("RETURN"))
     //? if <1.21 {
-    private void onRenderLevelLast(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f projectionMatrix, CallbackInfo ci) {
+    /*private void onRenderLevelLast(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f projectionMatrix, CallbackInfo ci) {
         var capture = RenderStateCapture.LEVEL;
         var capturedPose = capture.pose.last();
         capturedPose.pose().set(poseStack.last().pose());
@@ -64,9 +64,9 @@ public class MixinLevelRenderer {
             EffekRenderer.onRenderWorldLast(partialTick, capture.pose, capture.projection, capture.camera);
         }
     }
-    //?} else {
+    *///?} else {
     
-    /*private void onRenderLevelLast(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f cameraMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
+    private void onRenderLevelLast(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f cameraMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         var capture = RenderStateCapture.LEVEL;
         var capturedPose = capture.pose.last();
         capturedPose.pose().set(cameraMatrix);
@@ -81,5 +81,5 @@ public class MixinLevelRenderer {
             EffekRenderer.onRenderWorldLast(deltaTracker.getRealtimeDeltaTicks(), capture.pose, capture.projection, capture.camera);
         }
     }
-    *///?}
+    //?}
 }

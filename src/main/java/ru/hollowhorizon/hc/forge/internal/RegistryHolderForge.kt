@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.forge.internal
 
 //? if forge && >=1.21 {
-/*import net.minecraft.core.component.DataComponentType*/
+import net.minecraft.core.component.DataComponentType
 //?}
 
 //? if forge {
@@ -90,10 +90,10 @@ class RegistryHolderForge<T : Any>(
                 location.namespace
             )
             //? if >=1.21 {
-            /*DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+            DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 BuiltInRegistries.DATA_COMPONENT_TYPE.key(), location.namespace
             )
-            *///?}
+            //?}
 
             registry != null -> DeferredRegister.create(registry.key(), location.namespace)
 

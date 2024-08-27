@@ -71,11 +71,11 @@ class HollowArmor<T : ArmorItem>(
         fun damagePart(entity: LivingEntity, target: EquipmentSlot, damage: Int) {
             val armorItem = entity.getItemBySlot(target)
             //? if <1.21 {
-            armorItem.hurtAndBreak(damage, entity) {}
-            //?} else {
+            /*armorItem.hurtAndBreak(damage, entity) {}
+            *///?} else {
             
-            /*armorItem.hurtAndBreak(damage, entity, target)
-            *///?}
+            armorItem.hurtAndBreak(damage, entity, target)
+            //?}
         }
 
         fun hasPart(entity: LivingEntity, armor: HollowArmor<*>, target: EquipmentSlot?): Boolean {

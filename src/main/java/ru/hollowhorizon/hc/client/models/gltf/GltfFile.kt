@@ -1,14 +1,14 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
+import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
-import java.util.Base64
+import java.util.*
 
-fun loadGltf(location: ResourceLocation): Result<GltfFile> {
+suspend fun loadGltf(location: ResourceLocation): Result<GltfFile> {
     val data = Uint8BufferImpl(location.stream.readBytes())
 
     return try {
@@ -22,28 +22,37 @@ fun loadGltf(location: ResourceLocation): Result<GltfFile> {
 
         val modelBasePath = if (filePath.contains('/')) filePath.substringBeforeLast('/') else "."
         gltfFile.let { m ->
-            m.buffers.filter { it.uri != null }.forEach {
-                val uri = it.uri!!
-                val bufferUri = if (uri.startsWith("data:", true)) {
-                    when {
-                        uri.startsWith("data:application/octet-stream;base64,") -> {
-                            it.data = Uint8BufferImpl(Base64.getDecoder().decode(uri.substring(37)))
+            coroutineScope {
+                withContext(Dispatchers.IO) {
+                    m.buffers.filter { it.uri != null }.map {
+                        async {
+                            val uri = it.uri!!
+                            val bufferUri = if (uri.startsWith("data:", true)) {
+                                when {
+                                    uri.startsWith("data:application/octet-stream;base64,") -> {
+                                        it.data = Uint8BufferImpl(Base64.getDecoder().decode(uri.substring(37)))
+                                    }
+
+                                    uri.startsWith("data:image/png;base64,") -> {
+                                        it.data = Uint8BufferImpl(Base64.getDecoder().decode(uri.substring(22)))
+                                    }
+
+                                    else -> throw IllegalStateException("Unknown data format: $uri")
+                                }
+                                return@async
+                            } else {
+                                "${location.namespace}:$modelBasePath/$uri"
+                            }
+                            it.data = loadBlob(bufferUri)
                         }
-                        uri.startsWith("data:image/png;base64,") -> {
-                            it.data = Uint8BufferImpl(Base64.getDecoder().decode(uri.substring(22)))
-                        }
-                        else -> throw IllegalStateException("Unknown data format: $uri")
+                    }.awaitAll()
+                    m.images.filter { it.uri != null }.forEach {
+                        if (it.uri?.startsWith("data:") == false) it.uri =
+                            "${location.namespace}:$modelBasePath/${it.uri}"
                     }
-                    return@forEach
-                } else {
-                    "${location.namespace}:$modelBasePath/$uri"
+                    m.updateReferences()
                 }
-                it.data = loadBlob(bufferUri)
             }
-            m.images.filter { it.uri != null }.forEach {
-                if(it.uri?.startsWith("data:") == false) it.uri = "${location.namespace}:$modelBasePath/${it.uri}"
-            }
-            m.updateReferences()
         }
         Result.success(gltfFile)
     } catch (t: Throwable) {
@@ -130,7 +139,8 @@ data class GltfFile(
             }
         }
         bufferViews.forEach { it.bufferRef = buffers[it.buffer] }
-        images.filter { it.bufferView >= 0 && it.bufferViewRef == null }.forEach { it.bufferViewRef = bufferViews[it.bufferView] }
+        images.filter { it.bufferView >= 0 && it.bufferViewRef == null }
+            .forEach { it.bufferViewRef = bufferViews[it.bufferView] }
         meshes.forEach { mesh ->
             mesh.primitives.forEach {
                 if (it.material >= 0) {

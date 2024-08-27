@@ -37,19 +37,19 @@ object TickHandler {
     val partialTick: Float
         get() {
             //? if <1.21 {
-            return Minecraft.getInstance().deltaFrameTime
-            //?} elif >=1.21 {
-            /*return Minecraft.getInstance().timer.realtimeDeltaTicks
-            *///?}
+            /*return Minecraft.getInstance().deltaFrameTime
+            *///?} elif >=1.21 {
+            return Minecraft.getInstance().timer.realtimeDeltaTicks
+            //?}
         }
     val tickRate: Float
         get() {
             //? if <1.21 {
-            return 20f
-            //?} elif >=1.21 {
-            /*return (Minecraft.getInstance().level?.tickRateManager()?.tickrate()?.coerceAtLeast(20f)
+            /*return 20f
+            *///?} elif >=1.21 {
+            return (Minecraft.getInstance().level?.tickRateManager()?.tickrate()?.coerceAtLeast(20f)
                 ?: 20f) //В deltaFrame уже учтены значения ниже 20
-            *///?}
+            //?}
         }
 
     @SubscribeEvent

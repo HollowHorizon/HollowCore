@@ -24,6 +24,9 @@
 
 package ru.hollowhorizon.hc.client.models.internal.manager
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.AbstractTexture
 import net.minecraft.resources.ResourceLocation
@@ -34,14 +37,16 @@ import org.lwjgl.opengl.GL12
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
 import ru.hollowhorizon.hc.client.models.gltf.GltfModelLoader
+import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
+import ru.hollowhorizon.hc.client.models.internal.Model
 import ru.hollowhorizon.hc.client.textures.GIF_TEXTURES
 import ru.hollowhorizon.hc.client.textures.GlTexture
 import ru.hollowhorizon.hc.client.utils.resource
 import ru.hollowhorizon.hc.client.utils.rl
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.time.measureTime
 
 
 object GltfManager : ResourceManagerReloadListener {
@@ -50,7 +55,7 @@ object GltfManager : ResourceManagerReloadListener {
     var glProgramSkinning = -1
 
     fun getOrCreate(location: ResourceLocation) = models.computeIfAbsent(location) { model ->
-        AnimatedModel(GltfModelLoader.parse(model))
+        AnimatedModel(runBlocking { GltfModelLoader.parse(model) }.apply(Model::initGl))
     }
 
     private fun createSkinningProgramGL33() {
@@ -73,8 +78,24 @@ object GltfManager : ResourceManagerReloadListener {
         models.values.forEach { it.destroy() }
         models.clear()
 
-        manager.listResources("models") { it.path.endsWith(".gltf") or it.path.endsWith(".glb") }.keys
-            .forEach { getOrCreate(it) }
+        runBlocking {
+            val time = measureTime {
+                val loaded =
+                    manager.listResources("models") { it.path.endsWith(".gltf") or it.path.endsWith(".glb") }.keys
+                        .map { location ->
+                            async {
+                                location to AnimatedModel(GltfModelLoader.parse(location))
+                            }
+                        }.awaitAll()
+                        .toMap()
+
+                models.putAll(loaded)
+            }
+
+            HollowCore.LOGGER.info("Loaded ${models.size} models in ${time}")
+        }
+
+        models.forEach { it.value.modelTree.initGl() }
 
         GIF_TEXTURES.forEach { it.value.releaseId() }
         GIF_TEXTURES.clear()
@@ -82,7 +103,7 @@ object GltfManager : ResourceManagerReloadListener {
 
     fun initialize() {
         val textureManager = Minecraft.getInstance().getTextureManager()
-        
+
         lightTexture = textureManager.getTexture("dynamic/light_map_1".rl)
 
         val currentTexture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)

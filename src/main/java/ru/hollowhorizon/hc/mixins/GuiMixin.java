@@ -25,8 +25,8 @@
 package ru.hollowhorizon.hc.mixins;
 
 //? if >=1.21 {
-/*import net.minecraft.client.DeltaTracker;
- *///?}
+import net.minecraft.client.DeltaTracker;
+ //?}
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -41,10 +41,10 @@ import ru.hollowhorizon.hc.api.HudHideable;
 public class GuiMixin {
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     //? if <1.21 {
-    public void hideScreen(GuiGraphics guiGraphics, float partialTick, CallbackInfo ci) {
-    //?} else {
-    /*public void hideScreen(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-    *///?}
+    /*public void hideScreen(GuiGraphics guiGraphics, float partialTick, CallbackInfo ci) {
+    *///?} else {
+    public void hideScreen(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+    //?}
         if (Minecraft.getInstance().screen instanceof HudHideable) ci.cancel();
     }
 }

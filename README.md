@@ -12,17 +12,24 @@ HollowCore is a minecraft modding library by <a href="https://github.com/HollowH
 
 
 ## Features
+### Multi versional
+HollowCore is now running on 1.21, 1.20.1 and 1.19.2 (WIP) by the Forge, Fabric and NeoForge loaders.
+
 ### Integration with ModLoaders
 - [x] Universal Registration system to register blocks, items, block entities, etc. using kotlin delegates.
 - [x] Universal Packet system with automatic serialization and registration using annotations.
 - [x] Universal Capabilities system to storing nbt in entities, block entities and worlds. 
 - [x] Universal EventBus system for all modloaders and basic events.
+
 ### Easier development
 - [x] Automatic models generation for blocks and items using embed resourcepack.
 - [x] NBT serialization and deserialization of any objects using Kotlinx.Serialization.
 - [x] Toml Config system based on KotlinX Serialization.
 - [x] Automatic sounds.json generation.
+
 ### Graphics
 - [x] ImGui based framework: basic elements, items, entities, containers, slots, etc. 
-- [x] GLTF models support includes skeletal animations, skinning, morph targets, PBR materials with Iris/Oculus support.
+- [x] Async GLTF model loader with skeletal animations, skinning, morph targets, PBR materials with Iris/Oculus support.
 - [x] Effekseer particles support.
+- [x] Gif textures.
+- [x] MP3, OGG, WAV Sound formats support.

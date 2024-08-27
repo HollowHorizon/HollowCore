@@ -65,11 +65,11 @@ object GltfEntityUtil {
         realModel.visuals = ::drawVisuals
 
         //? if <1.21 {
-        stack.mulPoseMatrix(model.transform.matrix)
-        //?} else {
+        /*stack.mulPoseMatrix(model.transform.matrix)
+        *///?} else {
         
-        /*stack.mulPose(model.transform.matrix)
-        *///?}
+        stack.mulPose(model.transform.matrix)
+        //?}
 
         SubModelPlayer.update(realModel, model, tickCount, partialTick)
 
@@ -92,11 +92,11 @@ object GltfEntityUtil {
             realModel.nodes[bone]?.let {
                 stack.use {
                     //? if <1.21 {
-                    stack.mulPoseMatrix(it.globalMatrix)
-                    //?} else {
+                    /*stack.mulPoseMatrix(it.globalMatrix)
+                    *///?} else {
                     
-                    /*stack.mulPose(it.globalMatrix)
-                    *///?}
+                    stack.mulPose(it.globalMatrix)
+                    //?}
                     render(entity, model, tickCount, partialTick, stack, source, packedLight)
                 }
             }

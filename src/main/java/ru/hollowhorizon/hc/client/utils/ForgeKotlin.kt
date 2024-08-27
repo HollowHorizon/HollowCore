@@ -54,8 +54,8 @@ import java.nio.FloatBuffer
 import kotlin.reflect.KClass
 
 //? if >=1.21 {
-/*import kotlin.jvm.optionals.getOrDefault
-*///?}
+import kotlin.jvm.optionals.getOrDefault
+//?}
 
 val mc: Minecraft get() = Minecraft.getInstance()
 
@@ -102,10 +102,10 @@ operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T = when (
 val String.rl
     get() =
 //? if <1.21 {
-        ResourceLocation(this)
-//?} else {
-/*ResourceLocation.parse(this)
-*///?}
+        /*ResourceLocation(this)
+*///?} else {
+ResourceLocation.parse(this)
+//?}
 
 fun resource(resource: String) = "${HollowCore.MODID}:$resource".rl.stream
 
@@ -115,20 +115,20 @@ fun ResourceLocation.toIS(): InputStream {
 
 fun ItemStack.save(): CompoundTag {
     //? if <1.21 {
-    return CompoundTag().apply(::save)
-    //?} else {
+    /*return CompoundTag().apply(::save)
+    *///?} else {
 
-    /*return save(registryAccess) as CompoundTag
-    *///?}
+    return save(registryAccess) as CompoundTag
+    //?}
 }
 
 fun CompoundTag.readItem(): ItemStack {
     //? if <1.21 {
-    return ItemStack.of(this)
-    //?} else {
+    /*return ItemStack.of(this)
+    *///?} else {
 
-    /*return ItemStack.parse(registryAccess, this).getOrDefault(ItemStack.EMPTY)
-    *///?}
+    return ItemStack.parse(registryAccess, this).getOrDefault(ItemStack.EMPTY)
+    //?}
 }
 
 fun ResourceLocation.exists(): Boolean {

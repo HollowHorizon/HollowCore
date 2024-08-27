@@ -283,6 +283,8 @@ fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
                 "1.19.2" -> "forge"("net.minecraftforge:forge:$version-43.4.2")
                 else -> throw IllegalStateException("Unsupported $loader version $version!")
             }
+            // Мне надоело каждый раз постоянно вырезать руками лишние jar из classpath
+            implementation("ru.hollowhorizon:forgefixer:1.0.0")
         }
 
         "neoforge" -> {

@@ -28,7 +28,7 @@ public class HollowCoreClasspathModifier implements BootstrapClasspathModifier {
 
             var blacklist = Arrays.asList(
                     "annotations-23.0.0.jar", "jcip-annotations-1.0.jar", "jsr305-3.0.2.jar", // Лишние аннотации
-                    "kotlinforforge-5.5.0-all.jar" // У меня уже есть Kotlin, давайте выкинем этот.
+                    "kotlinforforge-5.5.0-all.jar"
             );
 
             return classpath.removeIf(path ->

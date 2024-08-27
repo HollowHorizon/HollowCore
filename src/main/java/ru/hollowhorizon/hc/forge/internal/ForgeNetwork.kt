@@ -1,6 +1,6 @@
 package ru.hollowhorizon.hc.forge.internal
 //? if forge && >=1.21 {
-/*
+
 
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
@@ -80,8 +80,8 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
         }
     }
 }
-*///?} elif forge {
-import net.minecraft.client.Minecraft
+//?} elif forge {
+/*import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.protocol.PacketFlow
@@ -154,4 +154,4 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
         }
     }
 }
-//}
+//}*/
