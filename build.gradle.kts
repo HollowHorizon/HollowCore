@@ -177,7 +177,7 @@ stonecutter {
         targetCompatibility = if (j21) JavaVersion.VERSION_21 else JavaVersion.VERSION_17
 
         toolchain {
-            languageVersion = JavaLanguageVersion.of(j21) 21 else 17)
+            languageVersion = JavaLanguageVersion.of(if (j21) 21 else 17)
         }
     }
 
