@@ -1,16 +1,16 @@
 name: build
 on: 
   push:
-    branches: [ "stonecutter1" ]
+    branches: [ "stonecutter" ]
   pull_request:
-    branches: [ "stonecutter1" ]
+    branches: [ "stonecutter" ]
 
 jobs:
   build:
     strategy:
       matrix:
         # Use these Java versions
-        java: [17, 21] #TODO Fix java version for multiloader
+        java: [21] 
         os: [ubuntu-20.04]
     runs-on: ${{ matrix.os }}
     steps:
