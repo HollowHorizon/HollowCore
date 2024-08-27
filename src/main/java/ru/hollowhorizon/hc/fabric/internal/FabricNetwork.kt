@@ -71,8 +71,9 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
 
 *///?} elif fabric {
 
-/*import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
+import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import ru.hollowhorizon.hc.HollowCore
@@ -110,9 +111,9 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
             ClientPlayNetworking.registerGlobalReceiver(
                 location
             ) { client, handler, buf, responseSender ->
-                val player = client.player
+                val player = client.player ?: Minecraft.getInstance().player
                 if (player == null) {
-                    HollowCore.LOGGER.error("No player found in minecraft... How do you receive that ${type.simpleName}?")
+                    HollowCore.LOGGER.warn("No player found in minecraft... How do you receive that ${type.simpleName}?")
                     return@registerGlobalReceiver
                 }
                 deserializer(buf).handle(player)
@@ -146,4 +147,4 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
         }
     }
 }
-*///?}
+//?}

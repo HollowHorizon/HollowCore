@@ -1,16 +1,16 @@
 name: build
 on: 
   push:
-    branches: [ "1.21" ]
+    branches: [ "stonecutter" ]
   pull_request:
-    branches: [ "1.21" ]
+    branches: [ "stonecutter" ]
 
 jobs:
   build:
     strategy:
       matrix:
         # Use these Java versions
-        java: [21] # Current Java LTS & minimum supported by Minecraft
+        java: [21, 17] # Current Java LTS & minimum supported by Minecraft
         os: [ubuntu-20.04]
     runs-on: ${{ matrix.os }}
     steps:
@@ -38,10 +38,6 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "latest-1.21"
           prerelease: false
-          title: "[AUTOMATIC BUILD 1.21]"
+          title: "[AUTOMATIC BUILD]"
           files: |
-            common/build/libs/*.jar
-            build/libs/*.jar
-            fabric/build/libs/*.jar
-            forge/build/libs/*.jar
-            neoforge/build/libs/*.jar
+            versions/*/build/libs/*.jar

@@ -112,11 +112,7 @@ object EffekRenderer {
 
         minecraft.levelRenderer.particlesTarget?.copyDepthFrom(minecraft.mainRenderTarget)
 
-        //? if <1.21 {
-        val deltaFrames = Minecraft.getInstance().frameTime * 3f
-        //?} else {
-        /*val deltaFrames = Minecraft.getInstance().timer.gameTimeDeltaTicks * 3f // 60FPS / 20 TPS
-        *///?}
+        val deltaFrames = 60 * getDeltaTime(type)
 
         RenderType.PARTICLES_TARGET.setupRenderState()
         EffekAssets.forEach { _: ResourceLocation, inst: EffectDefinition ->

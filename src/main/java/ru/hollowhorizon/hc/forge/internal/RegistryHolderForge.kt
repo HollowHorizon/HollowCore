@@ -1,12 +1,12 @@
 package ru.hollowhorizon.hc.forge.internal
 
-//?if forge && >=1.21 {
+//? if forge && >=1.21 {
 /*import net.minecraft.core.component.DataComponentType*/
 //?}
 
 //? if forge {
 
-import net.minecraft.core.Registry
+/*import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
@@ -89,11 +89,11 @@ class RegistryHolderForge<T : Any>(
                 ForgeRegistries.PARTICLE_TYPES,
                 location.namespace
             )
-            //?if>=1.21{
-            /*DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+            //? if >=1.21 {
+            /^DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 BuiltInRegistries.DATA_COMPONENT_TYPE.key(), location.namespace
             )
-            *///?}
+            ^///?}
 
             registry != null -> DeferredRegister.create(registry.key(), location.namespace)
 
@@ -129,4 +129,4 @@ class RegistryHolderForge<T : Any>(
         return RegistryObject { result.get() }
     }
 }
-//?}
+*///?}

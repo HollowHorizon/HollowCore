@@ -1,11 +1,11 @@
 //? if fabric {
-/*package ru.hollowhorizon.hc.fabric.internal
+package ru.hollowhorizon.hc.fabric.internal
 
 import net.minecraft.core.Registry
 //? if >1.21 {
-/^
+/*
 import net.minecraft.core.component.DataComponentType
-^///?}
+*///?}
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
@@ -47,8 +47,8 @@ class RegistryHolderFabric<T : Any>(
             MenuType::class.java.isAssignableFrom(this) -> BuiltInRegistries.MENU
             ParticleType::class.java.isAssignableFrom(this) -> BuiltInRegistries.PARTICLE_TYPE
             //? if >1.21 {
-            /^DataComponentType::class.java.isAssignableFrom(this) -> BuiltInRegistries.DATA_COMPONENT_TYPE
-            ^///?}
+            /*DataComponentType::class.java.isAssignableFrom(this) -> BuiltInRegistries.DATA_COMPONENT_TYPE
+            *///?}
 
             registry != null -> registry
 
@@ -80,4 +80,4 @@ class RegistryHolderFabric<T : Any>(
         return RegistryObject { result }
     }
 }
-*///?}
+//?}
