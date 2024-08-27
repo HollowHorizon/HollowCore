@@ -1,6 +1,8 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
 import com.mojang.blaze3d.platform.NativeImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import net.minecraft.client.Minecraft
@@ -27,7 +29,7 @@ data class GltfTexture(
     @Transient
     private lateinit var createdTex: DynamicTexture
 
-    fun makeTexture(location: ResourceLocation): ResourceLocation {
+    suspend fun makeTexture(location: ResourceLocation): ResourceLocation {
         val uri = imageRef.uri
         val name = if (uri != null && !uri.startsWith("data:", true)) {
             uri
@@ -37,24 +39,32 @@ data class GltfTexture(
         }
 
         if (!this::createdTex.isInitialized) {
-            if (uri != null && imageRef.bufferViewRef == null) {
-                fun retrieveFile(path: String): InputStream {
-                    if (path.startsWith("data:application/octet-stream;base64,")) {
-                        return Base64.getDecoder().wrap(path.substring(37).byteInputStream())
-                    }
-                    if (path.startsWith("data:image/png;base64,")) {
-                        return Base64.getDecoder().wrap(path.substring(22).byteInputStream())
+            withContext(Dispatchers.IO) {
+                if (uri != null && imageRef.bufferViewRef == null) {
+                    fun retrieveFile(path: String): InputStream {
+                        if (path.startsWith("data:application/octet-stream;base64,")) {
+                            return Base64.getDecoder().wrap(path.substring(37).byteInputStream())
+                        }
+                        if (path.startsWith("data:image/png;base64,")) {
+                            return Base64.getDecoder().wrap(path.substring(22).byteInputStream())
+                        }
+
+                        return path.rl.toIS()
                     }
 
-                    return path.rl.toIS()
+                    createdTex = DynamicTexture(NativeImage.read(retrieveFile(uri)))
+                } else {
+                    createdTex = DynamicTexture(
+                        NativeImage.read(
+                            ByteArrayInputStream(
+                                imageRef.bufferViewRef!!.getData().toArray()
+                            )
+                        )
+                    )
                 }
 
-                createdTex = DynamicTexture(NativeImage.read(retrieveFile(uri)))
-            } else {
-                createdTex = DynamicTexture(NativeImage.read(ByteArrayInputStream(imageRef.bufferViewRef!!.getData().toArray())))
+                Minecraft.getInstance().textureManager.register(name.lowercase().rl, createdTex)
             }
-
-            Minecraft.getInstance().textureManager.register(name.lowercase().rl, createdTex)
         }
         return name.lowercase().rl
     }
@@ -66,7 +76,7 @@ data class GltfTexture(
         val texCoord: Int = 0,
         val scale: Float = 1f,
     ) {
-        fun getTexture(gltfFile: GltfFile, location: ResourceLocation): ResourceLocation {
+        suspend fun getTexture(gltfFile: GltfFile, location: ResourceLocation): ResourceLocation {
             return gltfFile.textures[index].makeTexture(location)
         }
     }

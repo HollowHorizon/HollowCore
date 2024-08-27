@@ -24,6 +24,7 @@
 
 package ru.hollowhorizon.hc.client.models.gltf
 
+import kotlinx.coroutines.runBlocking
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
 import org.joml.*
@@ -39,7 +40,12 @@ object GltfModelLoader {
 
     fun parse(file: GltfFile, location: ResourceLocation): Model {
         val skins = parseSkins(file)
-        val materials = file.materials.map { it.toMaterial(file, location) }
+        val materials = runBlocking {
+            file.materials.map { material ->
+                material.toMaterial(file, location)
+            }
+        }
+
         val scenes = parseScenes(file, skins, materials)
         val animations = parseAnimations(file)
 

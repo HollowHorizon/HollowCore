@@ -1,5 +1,7 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.Serializable
 import net.minecraft.resources.ResourceLocation
 import org.joml.Vector4f
@@ -25,20 +27,31 @@ data class GltfMaterial(
     val doubleSided: Boolean = false,
 ) {
 
-    fun toMaterial(file: GltfFile, location: ResourceLocation) = Material().apply {
+    suspend fun toMaterial(file: GltfFile, location: ResourceLocation): Material = coroutineScope {
+        val material = Material()
         val colorList = pbrMetallicRoughness.baseColorFactor
-        this.color = Vector4f(colorList[0], colorList[1], colorList[2], colorList[3])
+        material.color = Vector4f(colorList[0], colorList[1], colorList[2], colorList[3])
 
-        pbrMetallicRoughness.baseColorTexture?.let {
-            this.texture = it.getTexture(file, location)
+        val baseColorTextureDeferred = pbrMetallicRoughness.baseColorTexture?.let {
+            async { it.getTexture(file, location) }
         }
-        this@GltfMaterial.normalTexture?.let {
-            this.normalTexture = it.getTexture(file, location)
+        val normalTextureDeferred = this@GltfMaterial.normalTexture?.let {
+            async { it.getTexture(file, location) }
         }
-        pbrMetallicRoughness.metallicRoughnessTexture?.let {
-            this.specularTexture = it.getTexture(file, location)
+        val specularTextureDeferred = pbrMetallicRoughness.metallicRoughnessTexture?.let {
+            async { it.getTexture(file, location) }
         }
-        this.doubleSided = this@GltfMaterial.doubleSided
+
+        if(baseColorTextureDeferred != null)
+            material.texture = baseColorTextureDeferred.await()
+        if(normalTextureDeferred != null)
+            material.normalTexture = normalTextureDeferred.await()
+        if(specularTextureDeferred != null)
+            material.specularTexture = specularTextureDeferred.await()
+
+        material.doubleSided = this@GltfMaterial.doubleSided
+
+        material
     }
 
     @Serializable
