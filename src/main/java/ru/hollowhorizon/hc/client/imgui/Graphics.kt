@@ -28,8 +28,6 @@ package ru.hollowhorizon.hc.client.imgui
 /*import com.mojang.blaze3d.vertex.VertexSorting
 import net.minecraft.network.chat.contents.PlainTextContents*/
 //?} elif >=1.20.1 {
-import com.mojang.blaze3d.vertex.VertexSorting
-import net.minecraft.network.chat.contents.LiteralContents
 //?} else {
 /*import net.minecraft.network.chat.contents.LiteralContents
 import ru.hollowhorizon.hc.client.utils.toMc
@@ -39,6 +37,7 @@ import com.google.common.collect.Queues
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
+import com.mojang.blaze3d.vertex.VertexSorting
 import imgui.*
 import imgui.ImGui.*
 import imgui.extension.nodeditor.NodeEditor
@@ -48,13 +47,13 @@ import net.minecraft.client.Minecraft
 import net.minecraft.locale.Language
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.ComponentContents
 import net.minecraft.network.chat.HoverEvent
-
+import net.minecraft.network.chat.contents.LiteralContents
 import net.minecraft.network.chat.contents.TranslatableContents
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.FastColor.ARGB32
 import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.TooltipFlag
 import org.intellij.lang.annotations.MagicConstant
@@ -470,13 +469,13 @@ object Graphics {
         *///?} elif >=1.20.1 {
 
         matrix4fstack.pushPose()
+        matrix4fstack.setIdentity()
         matrix4fstack.translate(0.0f, 0.0f, -2000.0f)
         //?} else {
         /*matrix4fstack.pushPose()
         matrix4fstack.translate(0.0, 0.0, -2000.0)
         *///?}
         RenderSystem.applyModelViewMatrix()
-
         if (enableScissor) RenderSystem.enableScissor(
             cursor.x.toInt(), (buffer.height - cursor.y - height).toInt(),
             width.toInt(), (height).toInt(),
@@ -530,7 +529,7 @@ object Graphics {
         val buffer = currentBufferType.buffer
         NativeImage(buffer.width, buffer.height, Minecraft.ON_OSX).apply {
             RenderSystem.setShaderTexture(0, buffer.colorTextureId)
-            downloadTexture(0, true)
+            downloadTexture(0, false)
         }.writeToFile(File("hollowcore/framebuffer_debug.png"))
     }
 
@@ -643,7 +642,7 @@ object Graphics {
             ) && !item.isEmpty && properties.tooltip
         ) {
             withStyles(
-                style(ImGuiStyleVar.WindowPadding, 0f, 0f),
+                style(ImGuiStyleVar.WindowPadding, 8f, 0f),
                 style(ImGuiStyleVar.WindowRounding, 0f),
                 style(ImGuiStyleVar.PopupBorderSize, 0f),
                 styleColor(ImGuiCol.Border, color(WHITE)),
@@ -675,8 +674,9 @@ object Graphics {
                     item.getTooltipLines(
                         player, TooltipFlag.Default.NORMAL
                     ).forEach {
-                        ImGui.setCursorPosX(ImGui.getCursorPosX() + borderSize * 2)
+                        setCursorPosX(getCursorPosX() + borderSize * 2)
                         text(it)
+
                     }
                     //?} else {
                     /*item.getTooltipLines(
@@ -733,7 +733,7 @@ object Graphics {
     }
 
     private fun drawText(text: Component, alpha: Float = 1f, shadow: Boolean) {
-        val textColor = color(text.style.color?.value ?: 0xFFFFFF) or ((alpha * 255f).toInt() shl 24)
+        val textColor = color(text.style.color?.value ?: colorConvertFloat4ToU32(getStyle().getColor(ImGuiCol.Text))) or ((alpha * 255f).toInt() shl 24)
         withColors(
             ImGuiCol.Text to textColor
         ) {
@@ -746,8 +746,8 @@ object Graphics {
                 is LiteralContents,
                     //?} else {
 
-                /*is PlainTextContents,
-                    *///?}
+                    /*is PlainTextContents,
+                        *///?}
                 -> {
                     val string = if (isObfuscated) obfuscatedString(content.text().length) else content.text()
                     val length = calcTextSize(string)
@@ -780,85 +780,90 @@ object Graphics {
                     if (shadow) textShadow(string)
                     else ImGui.text(string)
                 }
-            }
-        }
 
-
-        text.style.clickEvent?.let {
-            when (it.action) {
-                ClickEvent.Action.OPEN_URL -> Util.getPlatform().openUri(it.value)
-                ClickEvent.Action.OPEN_FILE -> Util.getPlatform().openFile(File(it.value))
-                ClickEvent.Action.RUN_COMMAND -> {
-                    val connection = Minecraft.getInstance().connection
-                    if (connection != null) {
-                        //? if >=1.20.1 {
-                        connection.sendCommand(it.value)
-                        //?} else {
-                        /*connection.commands.execute(it.value, connection.suggestionsProvider)
-                        *///?}
-                    }
+                ComponentContents.EMPTY -> {
+                    newLine()
                 }
-
-                ClickEvent.Action.COPY_TO_CLIPBOARD -> Minecraft.getInstance().keyboardHandler.clipboard = it.value
-                else -> throw UnsupportedOperationException("Unsupported click action: ${it.action}")
             }
-        }
-
-        val isHovered = isItemHovered()
 
 
-        text.siblings.forEach {
-            val old = getStyle().itemSpacing
-            withStyles(style(ImGuiStyleVar.ItemSpacing, 0f, old.y)) {
-                sameLine()
+            text.style.clickEvent?.let {
+                when (it.action) {
+                    ClickEvent.Action.OPEN_URL -> Util.getPlatform().openUri(it.value)
+                    ClickEvent.Action.OPEN_FILE -> Util.getPlatform().openFile(File(it.value))
+                    ClickEvent.Action.RUN_COMMAND -> {
+                        val connection = Minecraft.getInstance().connection
+                        if (connection != null) {
+                            //? if >=1.20.1 {
+                            connection.sendCommand(it.value)
+                            //?} else {
+                            /*connection.commands.execute(it.value, connection.suggestionsProvider)
+                            *///?}
+                        }
+                    }
 
-                text(it, alpha)
+                    ClickEvent.Action.COPY_TO_CLIPBOARD -> Minecraft.getInstance().keyboardHandler.clipboard = it.value
+                    else -> throw UnsupportedOperationException("Unsupported click action: ${it.action}")
+                }
             }
-        }
 
-        if (isHovered) text.style.hoverEvent?.let {
-            val name =
-            //? if <1.21 {
+            val isHovered = isItemHovered()
+
+
+            text.siblings.forEach {
+                val old = getStyle().itemSpacing
+                withStyles(style(ImGuiStyleVar.ItemSpacing, 0f, old.y)) {
+                    sameLine()
+
+                    text(it, alpha)
+                }
+            }
+
+
+            if (isHovered) text.style.hoverEvent?.let {
+                val name =
+                    //? if <1.21 {
                     it.action.name
                 //?} else {
                 /*it.action.serializedName
             *///?}
-            when (name) {
-                "show_text" -> {
-                    beginTooltip()
-                    text(it.getValue(HoverEvent.Action.SHOW_TEXT) ?: Component.empty())
-                    endTooltip()
-                }
+                when (name) {
+                    "show_text" -> {
+                        beginTooltip()
+                        text(it.getValue(HoverEvent.Action.SHOW_TEXT) ?: Component.empty())
+                        endTooltip()
+                    }
 
-                "show_item" -> {
-                    beginTooltip()
-                    it.getValue(HoverEvent.Action.SHOW_ITEM)?.let {
-                        item(it.itemStack, 128f, 128f)
-                        it.itemStack.getTooltipLines(
-                            //? if >=1.21 {
-                            /*Item.TooltipContext.of(Minecraft.getInstance().level),
+                    "show_item" -> {
+                        beginTooltip()
+                        it.getValue(HoverEvent.Action.SHOW_ITEM)?.let {
+                            item(it.itemStack, 128f, 128f)
+                            it.itemStack.getTooltipLines(
+                                //? if >=1.21 {
+                                /*Item.TooltipContext.of(Minecraft.getInstance().level),
+                                *///?}
+                                Minecraft.getInstance().player,
+                                TooltipFlag.Default.NORMAL
+                            ).forEach(::text)
+                        }
+                        ImGui.sameLine()
+                        endTooltip()
+                    }
+
+                    "show_entity" -> {
+                        beginTooltip()
+                        it.getValue(HoverEvent.Action.SHOW_ENTITY)?.let {
+                            val entity = Minecraft.getInstance().level?.entitiesForRendering()
+                                ?.find { a -> a.uuid == it.id } as? LivingEntity
+                            //? if <1.21 {
+                            if (it.name != null) text(it.name!!)
+                            //?} else {
+                            /*if (it.name.isPresent) text(it.name.get())
                             *///?}
-                            Minecraft.getInstance().player,
-                            TooltipFlag.Default.NORMAL
-                        ).forEach(::text)
+                            if (entity != null) entity(entity, 128f, 128f)
+                        }
+                        endTooltip()
                     }
-                    ImGui.sameLine()
-                    endTooltip()
-                }
-
-                "show_entity" -> {
-                    beginTooltip()
-                    it.getValue(HoverEvent.Action.SHOW_ENTITY)?.let {
-                        val entity = Minecraft.getInstance().level?.entitiesForRendering()
-                            ?.find { a -> a.uuid == it.id } as? LivingEntity
-                        //? if <1.21 {
-                        if(it.name != null) text(it.name!!)
-                        //?} else {
-                        /*if (it.name.isPresent) text(it.name.get())
-                        *///?}
-                        if (entity != null) entity(entity, 128f, 128f)
-                    }
-                    endTooltip()
                 }
             }
         }

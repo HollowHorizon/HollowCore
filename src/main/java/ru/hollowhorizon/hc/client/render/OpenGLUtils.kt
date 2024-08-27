@@ -24,6 +24,13 @@
 
 package ru.hollowhorizon.hc.client.render
 
+//? if >=1.21 {
+/*import net.minecraft.util.FastColor
+import net.minecraft.world.item.ItemDisplayContext
+*///?} elif >=1.20.1 {
+//?} else {
+/*import ru.hollowhorizon.hc.client.utils.toMc
+*///?}
 import com.mojang.blaze3d.platform.Lighting
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.BufferBuilder
@@ -32,18 +39,10 @@ import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.RenderType
-import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.client.renderer.texture.OverlayTexture
-//? if >=1.21 {
-/*import net.minecraft.util.FastColor
-import net.minecraft.world.item.ItemDisplayContext
-*///?} elif >=1.20.1 {
-import net.minecraft.world.item.ItemDisplayContext
-//?} else {
-/*import ru.hollowhorizon.hc.client.utils.toMc
-*///?}
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import org.joml.Matrix4f
 import org.joml.Quaternionf
@@ -151,8 +150,9 @@ fun ItemStack.render(
     //?} else {
     /*stack.translate(xOffset.toDouble(), yOffset.toDouble(), 0.0)
     *///?}
+    stack.mulPoseMatrix(Matrix4f().scaling(1f, -1f, 1f))
     val newScale = min(width, height) * 0.95f * scale
-    stack.scale(newScale, -newScale, newScale)
+    stack.scale(newScale, newScale, newScale)
     //? if >=1.20.1 {
     stack.mulPose(Quaternionf().rotateZ(rotation * Mth.DEG_TO_RAD))
     //?} else {
@@ -163,6 +163,7 @@ fun ItemStack.render(
 
     val src = Minecraft.getInstance().renderBuffers().bufferSource()
     val model = Minecraft.getInstance().itemRenderer.getModel(this, Minecraft.getInstance().level, null, 0)
+
     val flat = !model.usesBlockLight()
 
     if (flat) Lighting.setupForFlatItems()

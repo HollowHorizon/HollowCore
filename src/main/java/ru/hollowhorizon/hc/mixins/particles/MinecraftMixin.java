@@ -37,7 +37,6 @@ import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
 public class MinecraftMixin {
     @Inject(method = "resizeDisplay", at = @At("RETURN"))
     private void resizeCapturedDepthBuffer(CallbackInfo ci) {
-        if (Minecraft.getInstance().getNarrator() == null) return;
         RenderSystem.recordRenderCall(() -> {
             final var window = Minecraft.getInstance().getWindow();
             RenderStateCapture.CAPTURED_WORLD_DEPTH_BUFFER.resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);

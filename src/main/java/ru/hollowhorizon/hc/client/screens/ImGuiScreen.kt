@@ -5,6 +5,8 @@ import imgui.ImGui
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
 import ru.hollowhorizon.hc.client.imgui.Graphics
 import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
 import ru.hollowhorizon.hc.client.imgui.Renderable
@@ -23,11 +25,5 @@ open class ImGuiScreen(private val drawer: Renderable = Renderable { example() }
 }
 
 fun Graphics.example() {
-    withFontSize(100) {
-        val data = "Привет, вот тут какой-то там текст"
-        val scale = ((sin(Blaze3D.getTime()) + 1f) / 2f * 150 % 150).toInt() + 1
-        val size = ImGui.calcTextSize(data).times(scale / 100f, scale / 100f)
-        ImGui.getWindowDrawList()
-            .textShadow(screenWidth / 2f - size.x / 2f, screenHeight / 2f - size.y / 2f, data, size = scale)
-    }
+    item(ItemStack(Items.DIAMOND_SWORD), 100f, 100f)
 }
