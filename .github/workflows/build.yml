@@ -11,7 +11,7 @@ jobs:
       matrix:
         # Use these Java versions
         java: [21] 
-        os: [ubuntu-20.04]
+        os: [ubuntu-20.04, self-hosted]
     runs-on: ${{ matrix.os }}
     steps:
       - name: checkout repository
