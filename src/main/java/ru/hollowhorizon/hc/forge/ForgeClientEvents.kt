@@ -1,8 +1,8 @@
 package ru.hollowhorizon.hc.forge
 
 //? if forge && >=1.21 {
-/*import net.minecraft.world.item.Item
-*///?}
+import net.minecraft.world.item.Item
+//?}
 
 //? if forge {
 
@@ -71,13 +71,13 @@ object ForgeClientEvents {
             event.itemStack,
             event.toolTip,
             //? if >=1.21 {
-            /*Item.TooltipContext.of(Minecraft.getInstance().level)
-            *///?}
+            Item.TooltipContext.of(Minecraft.getInstance().level)
+            //?}
         ).post()
     }
 }
 //?}
 
 //? if forge && <=1.19.2 {
-val net.minecraftforge.client.event.RegisterShadersEvent.resourceProvider get() = resourceManager
-//?}
+/*val net.minecraftforge.client.event.RegisterShadersEvent.resourceProvider get() = resourceManager
+*///?}

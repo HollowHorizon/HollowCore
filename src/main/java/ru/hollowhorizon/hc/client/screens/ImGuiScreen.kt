@@ -10,23 +10,23 @@ import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
 import ru.hollowhorizon.hc.client.imgui.Renderable
 
 //? if >=1.20.1 {
-/*import net.minecraft.client.gui.GuiGraphics
-*///?}
+import net.minecraft.client.gui.GuiGraphics
+//?}
 
 open class ImGuiScreen(private val drawer: Renderable = Renderable { example() }) : Screen(Component.empty()) {
     //? if >=1.20.1 {
-    /*override fun render(gui: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
-    *///?} else {
-    override fun render(poseStack: PoseStack, mouseX: Int, mouseY: Int, partialTick: Float) {
-    //?}
+    override fun render(gui: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+    //?} else {
+    /*override fun render(poseStack: PoseStack, mouseX: Int, mouseY: Int, partialTick: Float) {
+    *///?}
         renderBackground(
             //? if >=1.21 {
-            /*gui, mouseX, mouseY, partialTick
-            *///?} elif >=1.20.1 {
+            gui, mouseX, mouseY, partialTick
+            //?} elif >=1.20.1 {
             /*gui
             *///?} else {
-            poseStack
-            //?}
+            /*poseStack
+            *///?}
         )
 
         ImGuiHandler.drawFrame(drawer)

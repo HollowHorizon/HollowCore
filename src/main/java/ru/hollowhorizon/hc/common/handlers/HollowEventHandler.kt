@@ -121,10 +121,10 @@ object HollowEventHandler {
     fun onEntityTick(event: TickEvent.Entity) {
         if (event.entity
                 //? if >=1.20.1 {
-                /*.level()
-                *///?} else {
-                .level
-                //?}
+                .level()
+                //?} else {
+                /*.level
+                *///?}
                 .isClientSide
         ) {
             ENTITY_TAGS[event.entity.id]?.let { map ->

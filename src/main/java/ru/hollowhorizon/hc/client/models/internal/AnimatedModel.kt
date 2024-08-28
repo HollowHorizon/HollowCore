@@ -48,11 +48,11 @@ import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.shouldOverrideShaders
 import ru.hollowhorizon.hc.common.registry.ModShaders
 
-//?if<=1.19.2{
+//? if <=1.19.2 {
 
-import ru.hollowhorizon.hc.client.utils.fromMc
+/*import ru.hollowhorizon.hc.client.utils.fromMc
 
-//?}
+*///?}
 
 class ModelData(
     val leftHand: ItemStack?,
@@ -98,10 +98,10 @@ class AnimatedModel(val modelTree: Model) {
         val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
 
         //? if >=1.20.1 {
-        /*CURRENT_NORMAL = stack.last().normal()
-        *///?} else {
-        CURRENT_NORMAL = stack.last().normal().fromMc()
-        //?}
+        CURRENT_NORMAL = stack.last().normal()
+        //?} else {
+        /*CURRENT_NORMAL = stack.last().normal().fromMc()
+        *///?}
 
         transformSkinning(stack)
 

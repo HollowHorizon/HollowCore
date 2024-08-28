@@ -22,8 +22,8 @@ public class PackRepositoryMixin {
 
         l.add((src
         //? if <=1.19.2 {
-               , info
-        //?}
+               /*, info
+        *///?}
         ) -> {
             EventBus.post(new RegisterResourcePacksEvent(src));
             HollowLoggerKt.getLOGGER().info("HollowPack registered!");

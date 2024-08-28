@@ -36,8 +36,8 @@ import kotlinx.serialization.encoding.encodeStructure
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 //? if >=1.21 {
-/*import net.minecraft.core.RegistryAccess
-*///?} elif >=1.20.1 {
+import net.minecraft.core.RegistryAccess
+//?} elif >=1.20.1 {
 /*import net.minecraft.core.registries.BuiltInRegistries
 *///?}
 import net.minecraft.nbt.*
@@ -135,8 +135,8 @@ object ForTextComponent : KSerializer<Component> {
                 value
                 //? if >=1.21 {
                 
-                /*, RegistryAccess.EMPTY
-                *///?}
+                , RegistryAccess.EMPTY
+                //?}
             )
         )
 
@@ -145,8 +145,8 @@ object ForTextComponent : KSerializer<Component> {
             decoder.decodeString()
             //? if >=1.21 {
             
-            /*, RegistryAccess.EMPTY
-            *///?}
+            , RegistryAccess.EMPTY
+            //?}
         ) ?: "".mcText
 }
 

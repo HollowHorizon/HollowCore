@@ -25,8 +25,8 @@ package ru.hollowhorizon.hc.common.objects.tiles
 
 import net.minecraft.core.BlockPos
 //? if >=1.21 {
-/*import net.minecraft.core.HolderLookup
-*///?}
+import net.minecraft.core.HolderLookup
+//?}
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket
 import net.minecraft.world.level.block.entity.BlockEntity
@@ -43,24 +43,24 @@ abstract class HollowTileEntity protected constructor(
     override fun getUpdateTag(
         //? if >=1.21 {
         
-        /*provider: HolderLookup.Provider
-        *///?}
+        provider: HolderLookup.Provider
+        //?}
     ) = CompoundTag().apply(::saveNBT)
 
     override fun getUpdatePacket(): ClientboundBlockEntityDataPacket = ClientboundBlockEntityDataPacket.create(this)
 
     //? if <1.21 {
-    override fun load(tag: CompoundTag) {
+    /*override fun load(tag: CompoundTag) {
         loadNBT(tag)
         super.load(tag)
     }
-    //?} else {
+    *///?} else {
     
-        /*override fun loadAdditional(nbt: CompoundTag, holder: HolderLookup.Provider) {
+        override fun loadAdditional(nbt: CompoundTag, holder: HolderLookup.Provider) {
             loadNBT(nbt)
             super.loadAdditional(nbt, holder)
         }
-        *///?}
+        //?}
 
 
     abstract fun saveNBT(nbt: CompoundTag)

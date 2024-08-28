@@ -39,7 +39,7 @@ import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
 import ru.hollowhorizon.hc.common.network.sendAllInDimension
 //? if <=1.19.2
-import ru.hollowhorizon.hc.client.utils.math.level
+/*import ru.hollowhorizon.hc.client.utils.math.level*/
 
 @HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
 @Serializable

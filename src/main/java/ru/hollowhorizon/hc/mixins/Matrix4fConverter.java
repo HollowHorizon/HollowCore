@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(targets = "com.mojang.math.Matrix4f")
 public class Matrix4fConverter {
     //? if <=1.19.2 {
-    @Shadow
+    /*@Shadow
     protected float m00;
     @Shadow
     protected float m01;
@@ -69,5 +69,5 @@ public class Matrix4fConverter {
         m32 = m.m23();
         m33 = m.m33();
     }
-    //?}
+    *///?}
 }

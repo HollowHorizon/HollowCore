@@ -24,9 +24,9 @@
 package ru.hollowhorizon.hc.client.utils
 
 //? if >=1.21 {
-/*import net.minecraft.server.packs.PackLocationInfo
+import net.minecraft.server.packs.PackLocationInfo
 import net.minecraft.server.packs.PackSelectionConfig
-*///?}
+//?}
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import net.minecraft.resources.ResourceLocation
@@ -36,14 +36,14 @@ import net.minecraft.server.packs.metadata.MetadataSectionSerializer
 import net.minecraft.server.packs.repository.Pack
 import net.minecraft.server.packs.repository.PackCompatibility
 //? if >=1.20.1 {
-/*import net.minecraft.server.packs.repository.Pack.ResourcesSupplier
+import net.minecraft.server.packs.repository.Pack.ResourcesSupplier
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection
 
-*///?} else {
-import java.util.function.Predicate
-//?}
+//?} else {
+/*import java.util.function.Predicate
+*///?}
 import net.minecraft.server.packs.repository.PackSource
-import net.minecraft.server.packs.resources./*? if >=1.20.1 {*//*IoSupplier*//*?} else {*/Resource.IoSupplier/*?}*/
+import net.minecraft.server.packs.resources./*? if >=1.20.1 {*/IoSupplier/*?} else {*//*Resource.IoSupplier*//*?}*/
 import java.io.ByteArrayInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -90,30 +90,30 @@ object HollowPack : PackResources {
     }
 
     //? if >=1.20.1 {
-    /*override fun getRootResource(vararg fileName: String): IoSupplier<InputStream> {
+    override fun getRootResource(vararg fileName: String): IoSupplier<InputStream> {
         throw FileNotFoundException(fileName.joinToString())
     }
-    *///?} else {
-    override fun getRootResource(fileName: String): InputStream? {
+    //?} else {
+    /*override fun getRootResource(fileName: String): InputStream? {
         throw FileNotFoundException(fileName)
     }
-    //?}
+    *///?}
 
 
     //? if >=1.20.1 {
-    /*@Throws(IOException::class)
+    @Throws(IOException::class)
     override fun getResource(type: PackType, pLocation: ResourceLocation): IoSupplier<InputStream>? {
         return resourceMap[pLocation]
     }
-    *///?} else {
-    @Throws(IOException::class)
+    //?} else {
+    /*@Throws(IOException::class)
     override fun getResource(type: PackType, pLocation: ResourceLocation): InputStream {
         return resourceMap[pLocation]?.get() ?: throw FileNotFoundException("$pLocation (No resource found!)")
     }
-    //?}
+    *///?}
 
     //? if >=1.20.1 {
-    /*override fun listResources(
+    override fun listResources(
         packType: PackType,
         namespace: String,
         prefix: String,
@@ -121,8 +121,8 @@ object HollowPack : PackResources {
     ) {
         resourceMap.filter { it.key.namespace == namespace && it.key.path.startsWith(prefix) }.forEach(output::accept)
     }
-    *///?} else {
-    override fun getResources(
+    //?} else {
+    /*override fun getResources(
         type: PackType,
         namespace: String,
         path: String,
@@ -131,7 +131,7 @@ object HollowPack : PackResources {
         return resourceMap.keys.filter { it.namespace == namespace && it.path.startsWith(path) }
             .filter { filter.test(it) }.toMutableList()
     }
-    //?}
+    *///?}
 
     override fun getNamespaces(pType: PackType) = resourceMap.keys.map { it.namespace }.toSet()
 
@@ -150,24 +150,24 @@ object HollowPack : PackResources {
     }
 
     //? if >=1.21 {
-    /*override fun location(): PackLocationInfo {
+    override fun location(): PackLocationInfo {
         val name = "HollowCore Resources"
         return PackLocationInfo(name, name.mcText, PackSource.BUILT_IN, Optional.empty())
     }
-    *///?} elif >=1.20.1 {
+    //?} elif >=1.20.1 {
     /*override fun packId(): String {
         return "HollowCore Resources"
     }
     
     *///?} else {
-    override fun getName(): String {
+    /*override fun getName(): String {
         return "HollowCore Resources"
     }
 
     override fun hasResource(type: PackType, location: ResourceLocation): Boolean {
         return resourceMap.containsKey(location)
     }
-    //?}
+    *///?}
 
 
     override fun close() {}
@@ -177,7 +177,7 @@ object HollowPack : PackResources {
 
 fun PackResources.asPack(): Pack {
     //? if >=1.21 {
-    /*val resources = object : ResourcesSupplier {
+    val resources = object : ResourcesSupplier {
         override fun openPrimary(p0: PackLocationInfo): PackResources = this@asPack
         override fun openFull(p0: PackLocationInfo, p1: Pack.Metadata) = this@asPack
     }
@@ -188,7 +188,7 @@ fun PackResources.asPack(): Pack {
         PackSelectionConfig(true, Pack.Position.TOP, true)
     ) ?: throw FileNotFoundException("Could not find the pack resource $this")
     
-    *///?} elif >=1.20.1 {
+    //?} elif >=1.20.1 {
     /*val resources = ResourcesSupplier { this }
     return Pack.readMetaAndCreate(
         packId(), packId().literal, true, resources, PackType.CLIENT_RESOURCES,
@@ -196,7 +196,7 @@ fun PackResources.asPack(): Pack {
     ) ?: throw FileNotFoundException("Could not find the pack resource $this")
     *///?} else {
 
-    return Pack(
+    /*return Pack(
         name,
         true,
         {this},
@@ -208,5 +208,5 @@ fun PackResources.asPack(): Pack {
         PackSource.BUILT_IN
     )
 
-    //?}
+    *///?}
 }
