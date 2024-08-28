@@ -18,12 +18,10 @@ val modId = fromProperties("mod_id")
 val javaVersion = fromProperties("java_version")
 val minecraftVersion = stonecutter.current.project.substringBeforeLast('-')
 val modPlatform = stonecutter.current.project.substringAfterLast('-')
-val parchmentVersion = fromProperties("parchment_version")
 val license = fromProperties("license")
 val modName = fromProperties("mod_name")
 val modVersion = minecraftVersion + "-" + fromProperties("mod_version")
 val imguiVersion: String by rootProject
-val kotlinVersion: String by rootProject
 
 loom {
     silentMojangMappingsLicense()
