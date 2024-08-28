@@ -15,12 +15,16 @@ import java.util.List;
 
 @Mixin(PackRepository.class)
 public class PackRepositoryMixin {
-    @ModifyVariable(at = @At("HEAD"), method = "<init>", argsOnly = true)
+    @ModifyVariable(at = @At("HEAD"), method = "<init>*", argsOnly = true)
     private static RepositorySource[] onInit(RepositorySource[] providers) {
         List<RepositorySource> l = new ArrayList<>(Arrays.asList(providers));
 
 
-        l.add(src -> {
+        l.add((src
+        //? if <=1.19.2 {
+               , info
+        //?}
+        ) -> {
             EventBus.post(new RegisterResourcePacksEvent(src));
             HollowLoggerKt.getLOGGER().info("HollowPack registered!");
         });

@@ -32,28 +32,30 @@ import com.mojang.brigadier.builder.ArgumentBuilder
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.mojang.brigadier.builder.RequiredArgumentBuilder
 import com.mojang.brigadier.context.CommandContext
+import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands
+import net.minecraft.commands.SharedSuggestionProvider
 
 
-class CommandBuilder(private val dispatcher: CommandDispatcher<CommandSourceStack>) {
-    operator fun String.invoke(operation: CommandEditor.() -> Unit) {
-        val command = Commands.literal(this)
-        CommandEditor(command).operation()
+class CommandBuilder<T : SharedSuggestionProvider>(private val dispatcher: CommandDispatcher<T>) {
+    operator fun String.invoke(operation: CommandEditor<T>.() -> Unit) {
+        val command = LiteralArgumentBuilder.literal<T>(this)
+        CommandEditor<T>(command).operation()
         dispatcher.register(command)
     }
 }
 
-class CommandEditor(private val srcCommand: LiteralArgumentBuilder<CommandSourceStack>) {
+class CommandEditor<T : SharedSuggestionProvider>(private val srcCommand: LiteralArgumentBuilder<T>) {
     operator fun String.invoke(
-        vararg args: RequiredArgumentBuilder<CommandSourceStack, *>,
-        operation: CommandContext<CommandSourceStack>.() -> Unit,
+        vararg args: RequiredArgumentBuilder<T, *>,
+        operation: CommandContext<T>.() -> Unit,
     ) {
         if (args.isNotEmpty()) srcCommand.then(
-            Commands.literal(this).then(operation, *args)
-                .executes { ctx: CommandContext<CommandSourceStack> -> operation(ctx); 1 })
+            LiteralArgumentBuilder.literal<T>(this).then(operation, *args)
+                .executes { ctx: CommandContext<T> -> operation(ctx); 1 })
         else srcCommand.then(
-            Commands.literal(this).executes { ctx: CommandContext<CommandSourceStack> -> operation(ctx); 1 })
+            LiteralArgumentBuilder.literal<T>(this).executes { ctx -> operation(ctx); 1 })
     }
 }
 
@@ -71,27 +73,33 @@ fun <S, T : ArgumentBuilder<S, T>> ArgumentBuilder<S, T>.then(
     )
 }
 
-fun <T> arg(name: String, type: ArgumentType<T>): RequiredArgumentBuilder<CommandSourceStack, T> =
-    Commands.argument(name, type)
+fun <T, V : SharedSuggestionProvider> arg(name: String, type: ArgumentType<T>): RequiredArgumentBuilder<V, T> =
+    RequiredArgumentBuilder.argument(name, type)
 
 @JvmName("argString")
-fun <T> arg(
+fun <T, V : SharedSuggestionProvider> arg(
     name: String,
     type: ArgumentType<T>,
     suggests: Collection<String>,
+): RequiredArgumentBuilder<V, T> =
+    RequiredArgumentBuilder.argument<V, T>(name, type).apply {
+        suggests { _, builder: SuggestionsBuilder ->
+            suggests.forEach(builder::suggest)
+            builder.buildFuture()
+        }
+    }
+
+@JvmName("argInt")
+fun <T> arg(
+    name: String,
+    type: ArgumentType<T>,
+    suggests: Collection<Int>,
 ): RequiredArgumentBuilder<CommandSourceStack, T> =
     Commands.argument(name, type).suggests { _, builder ->
         suggests.forEach(builder::suggest)
         builder.buildFuture()
     }
 
-@JvmName("argInt")
-fun <T> arg(name: String, type: ArgumentType<T>, suggests: Collection<Int>): RequiredArgumentBuilder<CommandSourceStack, T> =
-    Commands.argument(name, type).suggests { _, builder ->
-        suggests.forEach(builder::suggest)
-        builder.buildFuture()
-    }
-
-fun CommandDispatcher<CommandSourceStack>.onRegisterCommands(builder: CommandBuilder.() -> Unit) {
+fun <T : SharedSuggestionProvider> CommandDispatcher<T>.onRegisterCommands(builder: CommandBuilder<T>.() -> Unit) {
     builder(CommandBuilder(this))
 }

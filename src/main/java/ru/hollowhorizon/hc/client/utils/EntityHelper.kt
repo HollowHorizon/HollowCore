@@ -43,6 +43,8 @@ import java.util.function.Predicate
 import kotlin.math.abs
 import kotlin.random.Random
 
+//? if <=1.19.2
+import ru.hollowhorizon.hc.client.utils.math.level
 
 tailrec fun Player.findRandomPos(radius: Int): Vec3 {
     val distance = Random.nextDouble(1.0, radius.toDouble())
@@ -58,7 +60,10 @@ tailrec fun Player.findRandomPos(radius: Int): Vec3 {
     val normalized = normalizeAngle(angle - yHeadRot)
 
     return if (abs(normalized) > 60.0) {
-        val block = level().getHeightmapPos(Heightmap.Types.WORLD_SURFACE_WG, BlockPos(pos.x.toInt(), pos.y.toInt(), pos.z.toInt()))
+        val block = level().getHeightmapPos(
+            Heightmap.Types.WORLD_SURFACE_WG,
+            BlockPos(pos.x.toInt(), pos.y.toInt(), pos.z.toInt())
+        )
         Vec3(pos.x, block.y.toDouble(), pos.z)
     } else findRandomPos(radius)
 }

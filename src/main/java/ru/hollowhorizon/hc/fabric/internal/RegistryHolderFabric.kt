@@ -3,11 +3,12 @@
 
 import net.minecraft.core.Registry
 //? if >1.21 {
-/^
-import net.minecraft.core.component.DataComponentType
+/^import net.minecraft.core.component.DataComponentType
 ^///?}
-import net.minecraft.core.particles.ParticleType
+
+//? if >=1.20.1
 import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.particles.ParticleType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.world.entity.EntityType
@@ -36,6 +37,7 @@ class RegistryHolderFabric<T : Any>(
     IRegistryHolder<T> {
     val registryType: Registry<T> = with(target) {
         when {
+            //? if >=1.20.1 {
             Block::class.java.isAssignableFrom(this) -> BuiltInRegistries.BLOCK
             Item::class.java.isAssignableFrom(this) -> BuiltInRegistries.ITEM
             EntityType::class.java.isAssignableFrom(this) -> BuiltInRegistries.ENTITY_TYPE
@@ -46,6 +48,18 @@ class RegistryHolderFabric<T : Any>(
             CreativeModeTab::class.java.isAssignableFrom(this) -> BuiltInRegistries.CREATIVE_MODE_TAB
             MenuType::class.java.isAssignableFrom(this) -> BuiltInRegistries.MENU
             ParticleType::class.java.isAssignableFrom(this) -> BuiltInRegistries.PARTICLE_TYPE
+            //?} else {
+            /^Block::class.java.isAssignableFrom(this) -> Registry.BLOCK
+            Item::class.java.isAssignableFrom(this) -> Registry.ITEM
+            EntityType::class.java.isAssignableFrom(this) -> Registry.ENTITY_TYPE
+            BlockEntityType::class.java.isAssignableFrom(this) -> Registry.BLOCK_ENTITY_TYPE
+            SoundEvent::class.java.isAssignableFrom(this) -> Registry.SOUND_EVENT
+            Feature::class.java.isAssignableFrom(this) -> Registry.FEATURE
+            RecipeSerializer::class.java.isAssignableFrom(this) -> Registry.RECIPE_SERIALIZER
+            MenuType::class.java.isAssignableFrom(this) -> Registry.MENU
+            ParticleType::class.java.isAssignableFrom(this) -> Registry.PARTICLE_TYPE
+            ^///?}
+
             //? if >1.21 {
             /^DataComponentType::class.java.isAssignableFrom(this) -> BuiltInRegistries.DATA_COMPONENT_TYPE
             ^///?}
@@ -59,11 +73,11 @@ class RegistryHolderFabric<T : Any>(
     private val result: T = Registry.register(registryType, location, supplier()).apply {
         when {
             Block::class.java.isAssignableFrom(target) -> {
-                if (autoModel) HollowPack.genBlockData.add(location)
+                if (autoModel) HollowPack.addBlockModel(location)
 
                 if (IBlockItemProperties::class.java.isAssignableFrom(target)) {
                     Registry.register(
-                        BuiltInRegistries.ITEM,
+                        /^? if >=1.20.1 {^/BuiltInRegistries.ITEM/^?} else {^//^Registry.ITEM^//^?}^/,
                         location,
                         BlockItem(this as Block, (this as IBlockItemProperties).properties)
                     )
@@ -71,7 +85,7 @@ class RegistryHolderFabric<T : Any>(
             }
 
             Item::class.java.isAssignableFrom(target) -> {
-                if (autoModel) HollowPack.genItemModels.add(location)
+                if (autoModel) HollowPack.addItemModel(location)
             }
         }
     }

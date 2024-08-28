@@ -45,7 +45,10 @@ public class SoundManagerMixin {
     )
     public List<Resource> onJsonLoading(ResourceManager instance, ResourceLocation location) {
         if (instance.getResource(location).isEmpty() && HollowSoundHandler.INSTANCE.getMODS().contains(location.getNamespace())) {
-            return List.of(new Resource(HollowPack.INSTANCE, HollowSoundHandler.createJson(instance, location.getNamespace())));
+            return List.of(new Resource(
+                    HollowPack.INSTANCE/*? if <=1.19.2 {*/.getName()/*?}*/,
+                    HollowSoundHandler.createJson(instance, location.getNamespace())
+            ));
         } else {
             return instance.getResourceStack(location);
         }

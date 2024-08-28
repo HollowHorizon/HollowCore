@@ -38,7 +38,9 @@
     "particles.MinecraftMixin",
     "particles.MixinGameRenderer",
     "particles.MixinItemInHandRenderer",
-    "particles.MixinLevelRenderer"
+    "particles.MixinLevelRenderer",
+    "Matrix3fConverter",
+    "Matrix4fConverter",
   ],
   "server": [],
   "injectors": {

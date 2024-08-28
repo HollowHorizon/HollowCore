@@ -1,15 +1,19 @@
 package ru.hollowhorizon.hc.forge.internal
 
 //? if forge && >=1.21 {
-import net.minecraft.core.component.DataComponentType
+/*import net.minecraft.core.component.DataComponentType
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.Registries
+*///?} elif forge && >=1.20.1 {
+/*
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.Registries*/
 //?}
 
 //? if forge {
 
 import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleType
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.world.entity.EntityType
@@ -81,19 +85,21 @@ class RegistryHolderForge<T : Any>(
                 location.namespace
             )
 
-            CreativeModeTab::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+            //? if >=1.20.1 {
+            /*CreativeModeTab::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 Registries.CREATIVE_MODE_TAB, location.namespace
-            )
+            )*/
+            //?}
 
             ParticleType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 ForgeRegistries.PARTICLE_TYPES,
                 location.namespace
             )
             //? if >=1.21 {
-            DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+            /*DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 BuiltInRegistries.DATA_COMPONENT_TYPE.key(), location.namespace
             )
-            //?}
+            *///?}
 
             registry != null -> DeferredRegister.create(registry.key(), location.namespace)
 
@@ -104,7 +110,7 @@ class RegistryHolderForge<T : Any>(
     private val result: net.minecraftforge.registries.RegistryObject<T> = registryType.register(location.path, supplier).apply {
         when {
             Block::class.java.isAssignableFrom(target) -> {
-                if (autoModel) HollowPack.genBlockData.add(location)
+                if (autoModel) HollowPack.addBlockModel(location)
 
                 if (IBlockItemProperties::class.java.isAssignableFrom(target)) {
                     val items: DeferredRegister<Item> =
@@ -119,7 +125,7 @@ class RegistryHolderForge<T : Any>(
             }
 
             Item::class.java.isAssignableFrom(target) -> {
-                if (autoModel) HollowPack.genItemModels.add(location)
+                if (autoModel) HollowPack.addItemModel(location)
             }
         }
         registryType.register(FMLJavaModLoadingContext.get().modEventBus)

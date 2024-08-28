@@ -89,7 +89,7 @@ class RegistryHolderNeoForge<T : Any>(
     private val result: DeferredHolder<T, T> = registryType.register(location.path, supplier).apply {
         when {
             Block::class.java.isAssignableFrom(target) -> {
-                if (autoModel) HollowPack.genBlockData.add(location)
+                if (autoModel) HollowPack.addBlockModel(location)
 
                 if (IBlockItemProperties::class.java.isAssignableFrom(target)) {
                     val items: DeferredRegister<Item> = DeferredRegister.createItems(location.namespace)
@@ -103,7 +103,7 @@ class RegistryHolderNeoForge<T : Any>(
             }
 
             Item::class.java.isAssignableFrom(target) -> {
-                if (autoModel) HollowPack.genItemModels.add(location)
+                if (autoModel) HollowPack.addItemModel(location)
             }
         }
         registryType.register(HollowCoreNeoForge.MOD_BUS)

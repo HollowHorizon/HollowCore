@@ -1,6 +1,7 @@
 //? if fabric {
 /*package ru.hollowhorizon.hc.fabric
 
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
@@ -9,16 +10,16 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.entity.EntityRenderers
 import net.minecraft.server.packs.PackType
+import org.jetbrains.kotlin.utils.addToStdlib.UnsafeCastFunction
+import org.jetbrains.kotlin.utils.addToStdlib.cast
 import ru.hollowhorizon.hc.common.events.EventBus.post
 import ru.hollowhorizon.hc.common.events.client.ItemTooltipEvent
 import ru.hollowhorizon.hc.common.events.post
-import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent
-import ru.hollowhorizon.hc.common.events.registry.RegisterKeyBindingsEvent
-import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
-import ru.hollowhorizon.hc.common.events.registry.RegisterShadersEvent
+import ru.hollowhorizon.hc.common.events.registry.*
 import ru.hollowhorizon.hc.common.events.tick.TickEvent
 import ru.hollowhorizon.hc.fabric.internal.DelegatedReloadListener
 
+@OptIn(UnsafeCastFunction::class)
 object FabricClientEvents {
     init {
         registerShaders()
@@ -31,6 +32,9 @@ object FabricClientEvents {
         post(RegisterKeyBindingsEvent(KeyBindingHelper::registerKeyBinding))
         ClientTickEvents.END_CLIENT_TICK.register(ClientTickEvents.EndTick { c: Minecraft ->
             post(TickEvent.Client(c))
+        })
+        ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher, registryAccess ->
+            post(RegisterClientCommandsEvent(dispatcher.cast(), registryAccess))
         })
     }
 
@@ -60,7 +64,7 @@ object FabricClientEvents {
             ItemTooltipEvent(tooltipFlag, stack, lines).post()
         })
         //?} else {
-        
+
         /^ItemTooltipCallback.EVENT.register(ItemTooltipCallback { stack, tooltipContext, tooltipType, lines ->
             ItemTooltipEvent(tooltipType, stack, lines
                 , tooltipContext

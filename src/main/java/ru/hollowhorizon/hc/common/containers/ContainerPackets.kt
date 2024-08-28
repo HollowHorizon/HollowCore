@@ -8,6 +8,8 @@ import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.client.utils.mcText
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
+//? if <=1.19.2
+import ru.hollowhorizon.hc.client.utils.math.serverLevel
 
 @Serializable
 @HollowPacketV2(HollowPacketV2.Direction.TO_SERVER)

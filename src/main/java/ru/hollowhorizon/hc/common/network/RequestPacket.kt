@@ -5,6 +5,8 @@ import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.common.events.Event
 import ru.hollowhorizon.hc.common.events.awaitEvent
 import ru.hollowhorizon.hc.common.events.post
+//? if <=1.19.2
+import ru.hollowhorizon.hc.client.utils.math.level
 
 abstract class RequestPacket<T : RequestPacket<T>> : HollowPacketV3<T>, Event {
     override fun handle(player: Player) {

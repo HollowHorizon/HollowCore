@@ -36,9 +36,10 @@ import kotlinx.serialization.encoding.encodeStructure
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 //? if >=1.21 {
-import net.minecraft.core.RegistryAccess
-//?}
-import net.minecraft.core.registries.BuiltInRegistries
+/*import net.minecraft.core.RegistryAccess
+*///?} elif >=1.20.1 {
+/*import net.minecraft.core.registries.BuiltInRegistries
+*///?}
 import net.minecraft.nbt.*
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
@@ -75,18 +76,6 @@ object ForResourceLocation : KSerializer<ResourceLocation> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Identifier", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: ResourceLocation) = encoder.encodeString(value.toString())
     override fun deserialize(decoder: Decoder): ResourceLocation = decoder.decodeString().rl
-}
-
-
-object ForSoundEvent : KSerializer<SoundEvent> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("SoundEvent", PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: SoundEvent) {
-        encoder.encodeString(BuiltInRegistries.SOUND_EVENT.getKey(value).toString())
-    }
-
-    override fun deserialize(decoder: Decoder): SoundEvent =
-        BuiltInRegistries.SOUND_EVENT.get(decoder.decodeString().rl)
-            ?: SoundEvents.ITEM_PICKUP
 }
 
 
@@ -146,8 +135,8 @@ object ForTextComponent : KSerializer<Component> {
                 value
                 //? if >=1.21 {
                 
-                , RegistryAccess.EMPTY
-                //?}
+                /*, RegistryAccess.EMPTY
+                *///?}
             )
         )
 
@@ -156,8 +145,8 @@ object ForTextComponent : KSerializer<Component> {
             decoder.decodeString()
             //? if >=1.21 {
             
-            , RegistryAccess.EMPTY
-            //?}
+            /*, RegistryAccess.EMPTY
+            *///?}
         ) ?: "".mcText
 }
 

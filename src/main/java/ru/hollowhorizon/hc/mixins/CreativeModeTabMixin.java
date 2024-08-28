@@ -17,7 +17,8 @@ import java.util.Set;
 
 @Mixin(CreativeModeTab.class)
 public class CreativeModeTabMixin {
-    @Shadow
+    //? if >=1.20.1 {
+    /*@Shadow
     private Collection<ItemStack> displayItems;
 
     @Shadow
@@ -34,4 +35,5 @@ public class CreativeModeTabMixin {
         displayItems = mutableDisplayStacks;
         displayItemsSearchTab = mutableSearchTabStacks;
     }
+    *///?}
 }

@@ -1,14 +1,17 @@
-//? if forge {
 package ru.hollowhorizon.hc.forge
+
+//? if forge && >=1.21 {
+/*import net.minecraft.world.item.Item
+*///?}
+
+//? if forge {
 
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ShaderInstance
-import net.minecraft.world.item.Item
 import net.minecraftforge.client.event.EntityRenderersEvent
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent
 import net.minecraftforge.common.MinecraftForge
-import net.minecraftforge.event.AddReloadListenerEvent
 import net.minecraftforge.event.TickEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import ru.hollowhorizon.hc.common.events.EventBus
@@ -68,9 +71,13 @@ object ForgeClientEvents {
             event.itemStack,
             event.toolTip,
             //? if >=1.21 {
-            Item.TooltipContext.of(Minecraft.getInstance().level)
-            //?}
+            /*Item.TooltipContext.of(Minecraft.getInstance().level)
+            *///?}
         ).post()
     }
 }
+//?}
+
+//? if forge && <=1.19.2 {
+val net.minecraftforge.client.event.RegisterShadersEvent.resourceProvider get() = resourceManager
 //?}

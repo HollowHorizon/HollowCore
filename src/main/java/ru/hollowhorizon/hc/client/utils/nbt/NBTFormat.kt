@@ -68,7 +68,6 @@ internal val TagModule
         }
         contextual(ForBlockPos)
         contextual(ForResourceLocation)
-        contextual(ForSoundEvent)
     }
 
 val MAPPINGS_SERIALIZER by lazy { NBTFormat() }

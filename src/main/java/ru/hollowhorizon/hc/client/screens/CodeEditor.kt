@@ -1,12 +1,15 @@
 package ru.hollowhorizon.hc.client.screens
 
+import com.mojang.blaze3d.vertex.PoseStack
 import imgui.ImGui
 import imgui.extension.texteditor.TextEditor
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
+//? if >=1.20.1 {
+/*import net.minecraft.client.gui.GuiGraphics
+*///?}
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
@@ -24,12 +27,18 @@ class CodeEditor : Screen(Component.empty()) {
     var index = 0
 
     @OptIn(DelicateCoroutinesApi::class)
-    override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
-
+    //? if >=1.20.1 {
+    /*override fun render(gui: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+    *///?} else {
+    override fun render(poseStack: PoseStack, mouseX: Int, mouseY: Int, partialTick: Float) {
+    //?}
         renderBackground(
-            guiGraphics
             //? if >=1.21 {
-            , mouseX, mouseY, partialTick
+            /*gui, mouseX, mouseY, partialTick
+            *///?} elif >=1.20.1 {
+            /*gui
+            *///?} else {
+            poseStack
             //?}
         )
 

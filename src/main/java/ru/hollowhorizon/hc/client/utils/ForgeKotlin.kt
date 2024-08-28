@@ -29,7 +29,6 @@ import com.mojang.blaze3d.vertex.PoseStack
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.renderer.texture.AbstractTexture
 import net.minecraft.client.server.IntegratedServer
@@ -41,21 +40,25 @@ import net.minecraft.network.chat.HoverEvent
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.MinecraftServer
-import net.minecraft.util.FormattedCharSequence
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemStack
-import org.joml.Matrix3f
-import org.joml.Matrix4f
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import java.io.InputStream
-import java.nio.FloatBuffer
 import kotlin.reflect.KClass
 
 //? if >=1.21 {
-import kotlin.jvm.optionals.getOrDefault
+/*import kotlin.jvm.optionals.getOrDefault
+*///?} elif <=1.19.2 {
+
+import ru.hollowhorizon.hc.mixins.Matrix3fConverter
+import ru.hollowhorizon.hc.mixins.Matrix4fConverter
+import org.joml.Matrix3f
+import org.joml.Matrix4f
+
 //?}
+
 
 val mc: Minecraft get() = Minecraft.getInstance()
 
@@ -102,10 +105,10 @@ operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T = when (
 val String.rl
     get() =
 //? if <1.21 {
-        /*ResourceLocation(this)
-*///?} else {
-ResourceLocation.parse(this)
-//?}
+        ResourceLocation(this)
+//?} else {
+/*ResourceLocation.parse(this)
+*///?}
 
 fun resource(resource: String) = "${HollowCore.MODID}:$resource".rl.stream
 
@@ -115,20 +118,18 @@ fun ResourceLocation.toIS(): InputStream {
 
 fun ItemStack.save(): CompoundTag {
     //? if <1.21 {
-    /*return CompoundTag().apply(::save)
-    *///?} else {
-
-    return save(registryAccess) as CompoundTag
-    //?}
+    return CompoundTag().apply(::save)
+    //?} else {
+    /*return save(registryAccess) as CompoundTag
+    *///?}
 }
 
 fun CompoundTag.readItem(): ItemStack {
     //? if <1.21 {
-    /*return ItemStack.of(this)
-    *///?} else {
-
-    return ItemStack.parse(registryAccess, this).getOrDefault(ItemStack.EMPTY)
-    //?}
+    return ItemStack.of(this)
+    //?} else {
+    /*return ItemStack.parse(registryAccess, this).getOrDefault(ItemStack.EMPTY)
+    *///?}
 }
 
 fun ResourceLocation.exists(): Boolean {
@@ -190,58 +191,11 @@ fun Screen.open() {
 
 fun ResourceLocation.toTexture(): AbstractTexture = mc.textureManager.getTexture(this)
 
-fun ResourceLocation.render(g: GuiGraphics, x: Int, y: Int, width: Int, height: Int) {
-
-    g.blit(this, x, y, 0F, 0F, width, height, width, height)
-}
 
 enum class Anchor {
     LEFT, CENTER, RIGHT
 }
 
-@JvmOverloads
-fun GuiGraphics.drawScaled(
-    anchor: Anchor = Anchor.CENTER,
-    text: FormattedCharSequence,
-    x: Int,
-    y: Int,
-    color: Int = 0xFFFFFF,
-    scale: Float = 1.0f,
-    shadow: Boolean = true,
-) {
-    val font = Minecraft.getInstance().font
-    pose().popPose()
-    pose().translate((x).toDouble(), (y).toDouble(), 0.0)
-    pose().scale(scale, scale, 0F)
-    when (anchor) {
-        Anchor.CENTER -> drawString(font, text, -font.width(text) / 2, -font.lineHeight / 2, color, shadow)
-        Anchor.RIGHT -> drawString(font, text, -font.width(text), 0, color, shadow)
-        Anchor.LEFT -> drawString(font, text, 0, 0, color, shadow)
-    }
-    pose().popPose()
-}
-
-@JvmOverloads
-fun GuiGraphics.drawScaled(
-    anchor: Anchor = Anchor.CENTER,
-    text: Component,
-    x: Int,
-    y: Int,
-    color: Int = 0xFFFFFF,
-    scale: Float = 1.0f,
-    shadow: Boolean = true,
-) {
-    val font = Minecraft.getInstance().font
-    pose().popPose()
-    pose().translate((x).toDouble(), (y).toDouble(), 0.0)
-    pose().scale(scale, scale, 0F)
-    when (anchor) {
-        Anchor.CENTER -> drawString(font, text, -font.width(text) / 2, -font.lineHeight / 2, color, shadow)
-        Anchor.RIGHT -> drawString(font, text, -font.width(text), 0, color, shadow)
-        Anchor.LEFT -> drawString(font, text, 0, 0, color, shadow)
-    }
-    pose().popPose()
-}
 
 fun Int.toRGBA(): RGBA {
     return RGBA(
@@ -276,9 +230,21 @@ fun <A, B> ((A) -> B).memoize(): (A) -> B {
 }
 
 //? if <=1.19.2 {
-/*fun Matrix4f.toMc() = com.mojang.math.Matrix4f().apply { load(this@toMc.get(FloatBuffer.allocate(16))) }
-fun com.mojang.math.Matrix4f.fromMc() = Matrix4f(FloatBuffer.allocate(16).apply { this@fromMc.load(this) })
 
-fun Matrix3f.toMc() = com.mojang.math.Matrix3f().apply { load(this@toMc.get(FloatBuffer.allocate(16))) }
-fun com.mojang.math.Matrix3f.fromMc() = Matrix3f(FloatBuffer.allocate(16).apply { this@fromMc.load(this) })
-*///?}
+fun Matrix4f.toMc(): com.mojang.math.Matrix4f {
+    val matrix = com.mojang.math.Matrix4f()
+    (matrix as Matrix4fConverter).`hollowcore$fromJoml`(this)
+    return matrix
+}
+
+fun com.mojang.math.Matrix4f.fromMc() = (this as Matrix4fConverter).`hollowcore$toJoml`()
+
+fun Matrix3f.toMc(): com.mojang.math.Matrix3f {
+    val matrix = com.mojang.math.Matrix3f()
+    (matrix as Matrix3fConverter).`hollowcore$fromJoml`(this)
+    return matrix
+}
+
+fun com.mojang.math.Matrix3f.fromMc() = (this as Matrix3fConverter).`hollowcore$toJoml`()
+
+//?}

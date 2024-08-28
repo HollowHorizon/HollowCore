@@ -26,7 +26,6 @@ package ru.hollowhorizon.hc.common.capabilities
 
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
@@ -34,8 +33,9 @@ import net.minecraft.world.level.Level
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.capabilities.containers.HollowContainer
 import ru.hollowhorizon.hc.common.network.sendAllInDimension
-import ru.hollowhorizon.hc.common.network.sendTrackingEntity
 import ru.hollowhorizon.hc.common.network.sendTrackingEntityAndSelf
+//? if <=1.19.2
+import ru.hollowhorizon.hc.client.utils.math.level
 
 @Suppress("API_STATUS_INTERNAL")
 open class CapabilityInstance {

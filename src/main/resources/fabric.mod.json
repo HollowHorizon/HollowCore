@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "hollowcore",
-  "version": "2.0",
-  "name": "HollowCore",
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
   "description": "TODO: make description",
   "authors": [
     "HollowHorizon"
@@ -29,11 +29,10 @@
   "depends": {
     "fabricloader": ">=0.15.11",
     "fabric-api": "*",
-    "minecraft": "*",
-    "java": ">=21"
+    "minecraft": "${mc_version}",
+    "java": ">=17"
   },
   "suggests": {
-    "another-mod": "*"
   }
 }
   

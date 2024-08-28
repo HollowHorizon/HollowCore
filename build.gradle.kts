@@ -1,5 +1,4 @@
 import groovy.lang.Closure
-import net.fabricmc.loom.api.LoomGradleExtensionAPI
 import net.fabricmc.loom.api.remapping.RemapperExtension
 import net.fabricmc.loom.api.remapping.RemapperParameters
 import net.fabricmc.loom.extension.LoomGradleExtensionImpl
@@ -10,25 +9,23 @@ plugins {
     java
     `maven-publish`
     id("architectury-plugin") version "3.4-SNAPSHOT"
-    id("dev.architectury.loom") version "1.7-SNAPSHOT" apply false
+    id("dev.architectury.loom") version "1.7-SNAPSHOT"
     kotlin("jvm")
     kotlin("plugin.serialization")
 }
-
-apply(plugin = "architectury-plugin")
-apply(plugin = "dev.architectury.loom")
 
 val modId = fromProperties("mod_id")
 val javaVersion = fromProperties("java_version")
 val minecraftVersion = stonecutter.current.project.substringBeforeLast('-')
 val modPlatform = stonecutter.current.project.substringAfterLast('-')
 val parchmentVersion = fromProperties("parchment_version")
+val license = fromProperties("license")
 val modName = fromProperties("mod_name")
-val modVersion = fromProperties("version")
+val modVersion = minecraftVersion + "-" + fromProperties("mod_version")
 val imguiVersion: String by rootProject
 val kotlinVersion: String by rootProject
 
-val loom: LoomGradleExtensionAPI = project.extensions.getByName<LoomGradleExtensionAPI>("loom").apply {
+loom {
     silentMojangMappingsLicense()
     if (modPlatform == "neoforge") (this as LoomGradleExtensionImpl).generateSrgTiny = false
     val awFile = rootProject.file("src/main/resources/$modId.accesswidener")
@@ -38,12 +35,17 @@ val loom: LoomGradleExtensionAPI = project.extensions.getByName<LoomGradleExtens
         "forge" -> forge {
             convertAccessWideners = true
             mixinConfig("hollowcore.mixins.json")
-            (this@apply as LoomGradleExtensionImpl).remapperExtensions.add(ForgeFixer)
+            (this@loom as LoomGradleExtensionImpl).remapperExtensions.add(ForgeFixer)
         }
 
         "neoforge" -> neoForge {
 
         }
+    }
+
+    runConfigs.all {
+        programArgs("--username=HollowHorizon")
+        runDir("../../run")
     }
 }
 
@@ -60,15 +62,8 @@ architectury {
 }
 
 base {
-    archivesName = modName
+    archivesName = "$modName-$modPlatform-$modVersion"
 }
-
-
-//tasks.register("doMerge") {
-//    dependsOn(":fabric:build", ":forge:build", ":neoforge:build")
-//    finalizedBy("mergeJars")
-//}
-//tasks.build.get().dependsOn("doMerge")
 
 repositories {
     mavenCentral()
@@ -152,7 +147,11 @@ afterEvaluate {
 
 val buildAndCollect = tasks.register<Copy>("buildAndCollect") {
     group = "build"
-    from(tasks.jar.get().archiveFile)
+    from(
+        tasks.remapJar.get().archiveFile,
+        tasks.remapSourcesJar.get().archiveFile,
+        tasks.jar.get().archiveFile
+    )
     into(rootProject.layout.buildDirectory.file("libs/$modVersion"))
     dependsOn("build")
 }
@@ -186,13 +185,31 @@ stonecutter {
     }
 }
 
+tasks.processResources {
+    from(project.sourceSets.main.get().resources)
+    when(modPlatform) {
+        "forge" -> exclude("fabric.mod.json", "META-INF/neoforge.mods.toml")
+        "neoforge" -> exclude("fabric.mod.json", "META-INF/mods.toml")
+        "fabric" -> exclude("META-INF/neoforge.mods.toml", "META-INF/mods.toml")
+    }
+
+    filesMatching(listOf("META-INF/mods.toml", "fabric.mod.json", "META-INF/neoforge.mods.toml")) {
+        expand(mapOf(
+            "mod_version" to modVersion,
+            "mod_id" to modId,
+            "mod_name" to modName,
+            "license" to license,
+            "mc_version" to minecraftVersion
+        ))
+    }
+}
+
 fun DependencyHandlerScope.includes(vararg libraries: String) {
     for (library in libraries) {
         "include"(library)
     }
 }
 
-fun kxExcludeRule(dependency: String) = "org.jetbrains.kotlinx" to "kotlinx-$dependency"
 fun fromProperties(id: String) = rootProject.properties[id].toString()
 
 
@@ -218,7 +235,7 @@ object ForgeFixer : RemapperExtensionHolder(object : RemapperParameters {}) {
         targetNamespace: String,
         objectFactory: ObjectFactory,
     ) {
-        // Under some strange circumstances there are errors with mapping source names, but that doesn't stop me from compiling the jar, does it?
+        // For some strange reason there are errors with source name mapping, but that doesn't stop me from compiling the jar, does it?
         tinyRemapperBuilder.ignoreConflicts(true)
     }
 }
@@ -273,6 +290,8 @@ fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
                 "1.19.2" -> {
                     "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
                     "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.77.0+$version")
+                    "modImplementation"("mods:sodium:0.4.4")
+                    "modImplementation"("mods:iris:1.6.11")
                     dependency("org.joml:joml:1.10.8")
                 }
 
@@ -284,11 +303,14 @@ fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
             when (version) {
                 "1.21" -> "forge"("net.minecraftforge:forge:$version-51.0.8")
                 "1.20.1" -> "forge"("net.minecraftforge:forge:$version-47.3.6")
-                "1.19.2" -> "forge"("net.minecraftforge:forge:$version-43.4.2")
+                "1.19.2" -> {
+                    dependency("org.joml:joml:1.10.8")
+                    "forge"("net.minecraftforge:forge:$version-43.4.2")
+                }
                 else -> throw IllegalStateException("Unsupported $loader version $version!")
             }
             // Мне надоело каждый раз постоянно вырезать руками лишние jar из classpath
-            implementation("ru.hollowhorizon:forgefixer:1.0.0")
+            if(minecraftVersion != "1.19.2") implementation("ru.hollowhorizon:forgefixer:1.0.0")
         }
 
         "neoforge" -> {

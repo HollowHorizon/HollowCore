@@ -24,29 +24,25 @@
 
 package ru.hollowhorizon.hc.common.commands
 
+
 import com.mojang.brigadier.arguments.StringArgumentType
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.components.toasts.SystemToast
-import net.minecraft.commands.arguments.EntityArgument
 import net.minecraft.commands.arguments.ResourceLocationArgument
 import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import net.minecraft.server.level.ServerPlayer
-import net.minecraft.world.level.Level
+import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssets
 import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
-import ru.hollowhorizon.hc.client.utils.literal
 import ru.hollowhorizon.hc.client.utils.rl
-import ru.hollowhorizon.hc.common.coroutines.scopeSync
 import ru.hollowhorizon.hc.common.effects.ParticleEmitterInfo
 import ru.hollowhorizon.hc.common.effects.ParticleHelper
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
-import ru.hollowhorizon.hc.common.events.awaitEvent
-import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterCommandsEvent
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.RequestPacket
-import ru.hollowhorizon.hc.common.network.request
+
+//? if <=1.19.2
+import ru.hollowhorizon.hc.client.utils.math.serverLevel
 
 @HollowPacketV2
 @Serializable
@@ -61,36 +57,6 @@ object HollowCommands {
     fun onRegisterCommands(event: RegisterCommandsEvent) {
         event.dispatcher.onRegisterCommands {
             "hollowcore" {
-                "test" {
-
-                    val tasks: List<suspend CoroutineScope.() -> Unit> = listOf(
-                        {
-                            awaitEvent<PlayerEvent.ChangeDimension> { it.to.dimension() != Level.NETHER }
-                        },
-                        {
-                            val result = ExampleDataPacket().request()
-
-                            Minecraft.getInstance().toasts.addToast(
-                                SystemToast(
-                                    //? if <1.21 {
-                                    /*SystemToast.SystemToastIds.PERIODIC_NOTIFICATION,
-                                    *///?} else {
-                                    
-                                    SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                    //?}
-                                    "Уведомление:".literal,
-                                    result.level.literal
-                                )
-                            )
-                        }
-                    )
-
-                    // Предположим это запущено с клиента
-                    scopeSync {
-                        tasks.forEach { it() }
-                    }
-                }
-
                 "stop-post" {
                     PostChain.shutdown()
                 }
@@ -103,33 +69,16 @@ object HollowCommands {
 
                 "particle"(
                     arg("pos", Vec3Argument.vec3()),
-                    arg("name", StringArgumentType.greedyString())
+                    arg("name", StringArgumentType.greedyString(), EffekAssets.entries().map { it.key.toString() })
                 ) {
                     val particle = StringArgumentType.getString(this, "name")
                     val pos = Vec3Argument.getVec3(this, "pos")
 
-                    val info = ParticleEmitterInfo(particle.rl)
-                        .position(pos)
-                    ParticleHelper.addParticle(source.level, info, true)
+                    val info = ParticleEmitterInfo(particle.rl).position(pos)
+                    ParticleHelper.addParticle(Minecraft.getInstance().level!!, info, true)
 
                 }
 
-                "particle"(
-                    arg("entities", EntityArgument.entities()),
-                    arg("target", StringArgumentType.word()),
-                    arg("name", StringArgumentType.greedyString())
-                ) {
-                    val particle = StringArgumentType.getString(this, "name")
-                    val target = StringArgumentType.getString(this, "target")
-                    val entities = EntityArgument.getEntities(this, "entities")
-                    entities.forEach {
-                        val info =
-                            ParticleEmitterInfo(particle.removeSuffix(".efkefc").rl)
-                                .bindOnEntity(it)
-                                .apply { bindOnTarget(target) }
-                        ParticleHelper.addParticle(source.level, info, true)
-                    }
-                }
             }
         }
     }

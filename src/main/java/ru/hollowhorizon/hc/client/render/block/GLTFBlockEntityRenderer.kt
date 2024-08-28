@@ -45,6 +45,10 @@ import ru.hollowhorizon.hc.client.utils.get
 import ru.hollowhorizon.hc.client.utils.memoize
 import ru.hollowhorizon.hc.client.utils.rl
 
+//? if <=1.19.2 {
+import ru.hollowhorizon.hc.client.utils.math.mulPose
+//?}
+
 
 class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Context) :
     BlockEntityRenderer<T> where T : BlockEntity, T : IAnimated {
