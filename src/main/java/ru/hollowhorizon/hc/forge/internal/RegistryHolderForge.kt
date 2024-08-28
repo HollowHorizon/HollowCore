@@ -1,10 +1,10 @@
 package ru.hollowhorizon.hc.forge.internal
 
 //? if forge && >=1.21 {
-import net.minecraft.core.component.DataComponentType
+/*import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
-//?} elif forge && >=1.20.1 {
+*///?} elif forge && >=1.20.1 {
 /*
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries*/
@@ -12,7 +12,7 @@ import net.minecraft.core.registries.Registries*/
 
 //? if forge {
 
-import net.minecraft.core.Registry
+/*import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
@@ -135,4 +135,4 @@ class RegistryHolderForge<T : Any>(
         return RegistryObject { result.get() }
     }
 }
-//?}
+*///?}

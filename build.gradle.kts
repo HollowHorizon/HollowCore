@@ -4,15 +4,22 @@ import net.fabricmc.loom.api.remapping.RemapperParameters
 import net.fabricmc.loom.extension.LoomGradleExtensionImpl
 import net.fabricmc.loom.extension.RemapperExtensionHolder
 import net.fabricmc.tinyremapper.TinyRemapper
+import org.gradle.configurationcache.extensions.capitalized
+import java.util.Properties
 
 plugins {
     java
     `maven-publish`
     id("architectury-plugin") version "3.4-SNAPSHOT"
     id("dev.architectury.loom") version "1.7-SNAPSHOT"
+    id("me.modmuss50.mod-publish-plugin")
     kotlin("jvm")
     kotlin("plugin.serialization")
 }
+
+val userConfig = Properties()
+val cfg = rootProject.file("user.properties")
+if (cfg.exists()) userConfig.load(cfg.inputStream())
 
 val modId = fromProperties("mod_id")
 val javaVersion = fromProperties("java_version")
@@ -199,6 +206,64 @@ tasks.processResources {
             "license" to license,
             "mc_version" to minecraftVersion
         ))
+    }
+}
+
+fun secretProperty(name:String) = providers.environmentVariable(name).orElse(userConfig.getProperty(name)).get()
+
+publishMods {
+    file = tasks.remapJar.get().archiveFile
+    additionalFiles.from(
+        tasks.remapSourcesJar.get().archiveFile,
+        tasks.jar.get().archiveFile
+    )
+    displayName =
+        "$modName ${modPlatform.capitalized()} ${fromProperties("mod_version")} for Minecraft $minecraftVersion"
+    version = fromProperties("mod_version")
+    changelog = rootProject.file("CHANGELOG.md").readText()
+    type = STABLE
+    modLoaders.add(modPlatform)
+
+    dryRun = false
+
+    modrinth {
+        projectId = fromProperties("publish.modrinth")
+        accessToken = secretProperty("MODRINTH_TOKEN")
+        minecraftVersions.add(minecraftVersion)
+        if (modPlatform == "fabric") {
+            requires("fabric-api")
+        }
+    }
+
+    curseforge {
+        projectId = fromProperties("publish.curseforge")
+        accessToken = secretProperty("CURSEFORGE_TOKEN")
+        minecraftVersions.add(minecraftVersion)
+        if (modPlatform == "fabric") {
+            requires("fabric-api")
+        }
+    }
+
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("HollowCore") {
+            groupId = "ru.hollowhorizon"
+            artifactId = "$modName-$modPlatform-$minecraftVersion"
+            version = fromProperties("mod_version")
+
+            from(components["java"])
+        }
+    }
+
+    repositories {
+        maven("https://maven.0mods.team/releases/") {
+            credentials {
+                username = secretProperty("MAVEN_USER")
+                password = secretProperty("MAVEN_PASSWORD")
+            }
+        }
     }
 }
 

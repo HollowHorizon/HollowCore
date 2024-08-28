@@ -30,7 +30,7 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.Level
 import ru.hollowhorizon.hc.common.network.packets.S2CAddParticle
 //? if <=1.19.2
-/*import ru.hollowhorizon.hc.client.utils.math.level*/
+import ru.hollowhorizon.hc.client.utils.math.level
 
 object ParticleHelper {
 

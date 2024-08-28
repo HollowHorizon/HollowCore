@@ -46,14 +46,14 @@ import ru.hollowhorizon.hc.client.models.internal.manager.*
 import ru.hollowhorizon.hc.client.utils.*
 
 //? if >=1.20.1 {
-import net.minecraft.world.item.ItemDisplayContext
+/*import net.minecraft.world.item.ItemDisplayContext
 
-//?} else {
-/*import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType as ItemDisplayContext
+*///?} else {
+import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType as ItemDisplayContext
 import ru.hollowhorizon.hc.client.utils.math.mulPose
 import ru.hollowhorizon.hc.client.utils.math.mulPoseMatrix
 import ru.hollowhorizon.hc.client.utils.math.mul
-*///?}
+//?}
 
 open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimated {
@@ -114,11 +114,11 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             model.nodes[node]?.let {
                 stack.use {
                     //? if <1.21 {
-                    /*stack.mulPoseMatrix(it.globalMatrix)
-                    *///?} else {
+                    stack.mulPoseMatrix(it.globalMatrix)
+                    //?} else {
                     
-                    stack.mulPose(it.globalMatrix)
-                    //?}
+                    /*stack.mulPose(it.globalMatrix)
+                    *///?}
                     GltfEntityUtil.render(entity, child, entity.tickCount, partialTick, stack, source, packedLight)
                 }
             }
@@ -164,11 +164,11 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         stack: PoseStack,
     ) {
         //? if <1.21 {
-        /*stack.mulPoseMatrix(capability.transform.matrix)
-        *///?} else {
+        stack.mulPoseMatrix(capability.transform.matrix)
+        //?} else {
         
-        stack.mulPose(capability.transform.matrix)
-        //?}
+        /*stack.mulPose(capability.transform.matrix)
+        *///?}
         stack.last().normal().mul(capability.transform.normalMatrix)
         stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
         updateAnimations(entity, capability, manager)

@@ -1,12 +1,12 @@
 package ru.hollowhorizon.hc.forge
 
 //? if forge && >=1.21 {
-import net.minecraft.world.item.Item
-//?}
+/*import net.minecraft.world.item.Item
+*///?}
 
 //? if forge {
 
-import net.minecraft.client.Minecraft
+/*import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ShaderInstance
 import net.minecraftforge.client.event.EntityRenderersEvent
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent
@@ -76,7 +76,7 @@ object ForgeClientEvents {
         ).post()
     }
 }
-//?}
+*///?}
 
 //? if forge && <=1.19.2 {
 /*val net.minecraftforge.client.event.RegisterShadersEvent.resourceProvider get() = resourceManager

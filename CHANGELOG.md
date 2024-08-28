@@ -1,0 +1,1 @@
+Rewrite on stonecutter with support minecraft 1.19.2, 1.20.1 and 1.21 on (Neo)Forge and Fabric
