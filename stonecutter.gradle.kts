@@ -1,7 +1,3 @@
-import kotlin.io.path.absolutePathString
-import kotlin.io.path.exists
-import kotlin.io.path.isDirectory
-
 plugins {
     id("dev.kikugie.stonecutter")
     kotlin("jvm") version "2.0.0" apply false

@@ -12,7 +12,6 @@ plugins {
     `maven-publish`
     id("architectury-plugin") version "3.4-SNAPSHOT"
     id("dev.architectury.loom") version "1.7-SNAPSHOT"
-    id("me.modmuss50.mod-publish-plugin")
     id("me.fallenbreath.yamlang") version "1.3.1"
     kotlin("jvm")
     kotlin("plugin.serialization")
@@ -226,43 +225,6 @@ tasks.processResources {
 
 fun secretProperty(name: String) = providers.environmentVariable(name).orElse(userConfig.getProperty(name)).get()
 
-publishMods {
-    file = tasks.remapJar.get().archiveFile
-    additionalFiles.from(
-        tasks.remapSourcesJar.get().archiveFile,
-        tasks.jar.get().archiveFile
-    )
-    displayName =
-        "$modName ${modPlatform.capitalized()} ${fromProperties("mod_version")} for Minecraft $minecraftVersion"
-    version = fromProperties("mod_version")
-    changelog = rootProject.file("CHANGELOG.md").readText()
-    type = STABLE
-    modLoaders.add(modPlatform)
-
-    dryRun = false
-
-    modrinth {
-        projectId = fromProperties("publish.modrinth")
-        accessToken = secretProperty("MODRINTH_TOKEN")
-        minecraftVersions.add(minecraftVersion)
-        if (modPlatform == "fabric") {
-            requires("fabric-api")
-        }
-    }
-
-    curseforge {
-        projectId = fromProperties("publish.curseforge")
-        accessToken = secretProperty("CURSEFORGE_TOKEN")
-        minecraftVersions.add(minecraftVersion)
-        if (modPlatform == "fabric") {
-            requires("fabric-api")
-        }
-    }
-
-    discord {
-    }
-
-}
 
 yamlang {
     targetSourceSets.set(mutableListOf(sourceSets["main"]))
@@ -271,7 +233,7 @@ yamlang {
 
 publishing {
     publications {
-        create<MavenPublication>("HollowCore") {
+        create<MavenPublication>(modName) {
             groupId = "ru.hollowhorizon"
             artifactId = "$modName-$modPlatform-$minecraftVersion"
             version = fromProperties("mod_version")
