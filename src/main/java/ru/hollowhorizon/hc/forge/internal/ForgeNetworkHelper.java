@@ -1,5 +1,5 @@
 //? if forge {
-package ru.hollowhorizon.hc.forge.internal;
+/*package ru.hollowhorizon.hc.forge.internal;
 
 import kotlin.Unit;
 
@@ -9,10 +9,10 @@ import net.minecraftforge.network.Channel;
 import net.minecraftforge.network.ChannelBuilder;
 import net.minecraftforge.network.PacketDistributor;
 //?} else {
-/*import net.minecraftforge.network.NetworkRegistry.ChannelBuilder;
+/^import net.minecraftforge.network.NetworkRegistry.ChannelBuilder;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
-*///?}
+^///?}
 import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.client.utils.JavaHacks;
 import ru.hollowhorizon.hc.common.network.HollowPacketV3Kt;
@@ -26,11 +26,11 @@ public class ForgeNetworkHelper {
             .serverAcceptedVersions(Channel.VersionTest.exact(4))
             
             //?} else {
-            /*.named(ForgeKotlinKt.getRl("hollowcore:hollow_packets"))
+            /^.named(ForgeKotlinKt.getRl("hollowcore:hollow_packets"))
             .networkProtocolVersion(() -> "4")
             .clientAcceptedVersions(v->v.equals("4"))
             .serverAcceptedVersions(v->v.equals("4"))
-            *///?}
+            ^///?}
             .simpleChannel();
 
     public static void register() {
@@ -42,19 +42,19 @@ public class ForgeNetworkHelper {
             //? if >=1.21 {
             hollowCoreChannel.send(hollowPacketV3, PacketDistributor.PLAYER.with(player));
             //?} else {
-            /*hollowCoreChannel.send(PacketDistributor.PLAYER.with(() -> player), hollowPacketV3);
-            *///?}
+            /^hollowCoreChannel.send(PacketDistributor.PLAYER.with(() -> player), hollowPacketV3);
+            ^///?}
             return Unit.INSTANCE;
         };
         HollowPacketV3Kt.sendPacketToServer = (hollowPacketV3) -> {
             //? if >=1.21 {
             hollowCoreChannel.send(hollowPacketV3, PacketDistributor.SERVER.noArg());
             //?} else {
-            /*hollowCoreChannel.send(PacketDistributor.SERVER.noArg(), hollowPacketV3);
-            *///?}
+            /^hollowCoreChannel.send(PacketDistributor.SERVER.noArg(), hollowPacketV3);
+            ^///?}
             return Unit.INSTANCE;
         };
         HollowPacketV3Kt.registerPackets.invoke();
     }
 }
-//?}
+*///?}

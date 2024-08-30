@@ -1,5 +1,5 @@
 //? if neoforge {
-/*package ru.hollowhorizon.hc.neoforge
+package ru.hollowhorizon.hc.neoforge
 
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ShaderInstance
@@ -64,4 +64,4 @@ object NeoForgeClientEvents {
         ).post()
     }
 }
-//}*/
+//}

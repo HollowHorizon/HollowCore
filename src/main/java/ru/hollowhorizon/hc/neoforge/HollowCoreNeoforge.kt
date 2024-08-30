@@ -1,5 +1,5 @@
 //? if neoforge {
-/*package ru.hollowhorizon.hc.neoforge
+package ru.hollowhorizon.hc.neoforge
 
 
 import net.neoforged.bus.api.IEventBus
@@ -36,6 +36,7 @@ class HollowCoreNeoForge(modBus: IEventBus) {
         ru.hollowhorizon.hc.client.utils.ModList.INSTANCE = NeoForgeModList
 
         HollowCore // Loading Main Class
+        GameRemapper.remap()
 
         NeoForgeEvents
 
@@ -46,4 +47,4 @@ class HollowCoreNeoForge(modBus: IEventBus) {
         lateinit var MOD_BUS: IEventBus
     }
 }
-*///?}
+//?}

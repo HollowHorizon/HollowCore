@@ -1,5 +1,5 @@
 //? if neoforge {
-/*package ru.hollowhorizon.hc.neoforge.internal
+package ru.hollowhorizon.hc.neoforge.internal
 
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
@@ -76,4 +76,4 @@ fun <T : HollowPacketV3<T>> registerPacket(registerer: PayloadRegistrar, type: C
         }
     }
 }
-*///?}
+//?}

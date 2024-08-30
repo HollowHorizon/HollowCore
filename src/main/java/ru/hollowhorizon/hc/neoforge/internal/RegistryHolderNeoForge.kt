@@ -1,5 +1,5 @@
 //? if neoforge {
-/*package ru.hollowhorizon.hc.neoforge.internal
+package ru.hollowhorizon.hc.neoforge.internal
 
 import net.minecraft.core.Registry
 import net.minecraft.core.component.DataComponentType
@@ -113,4 +113,4 @@ class RegistryHolderNeoForge<T : Any>(
         return RegistryObject { result.get() }
     }
 }
-*///?}
+//?}
