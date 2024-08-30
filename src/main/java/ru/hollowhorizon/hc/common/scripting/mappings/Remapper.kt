@@ -13,8 +13,17 @@ import kotlin.io.path.name
 
 object Remapper {
     private val MAPPINGS = loadMappings(
-        HollowCore::class.java.getResourceAsStream("/mappings.tiny")
-            ?: throw FileNotFoundException("mappings.tiny not found!")
+        //? if fabric && >=1.21 {
+        /*"mappings-1.21.tiny"
+        *///?} elif fabric && >=1.20.1 {
+        /*"mappings-1.20.1.tiny"
+        *///?} elif fabric && >=1.19.2 {
+        /*"mappings-1.19.2.tiny",
+        *///?} elif forge && >=1.20.1 {
+        "mappings-1.20.1.tsrg"
+        //?} else
+        /*"mappings-1.19.2.tsrg"*/
+        //?}
     )
     val OBFUSCATE_REMAPPER get() = buildRemapper(createMappings(MAPPINGS, "named", "intermediary"))
     val DEOBFUSCATE_REMAPPER get() = buildRemapper(createMappings(MAPPINGS, "intermediary", "named"))
@@ -25,6 +34,7 @@ object Remapper {
         .skipLocalVariableMapping(true)
         .keepInputData(false)
         .ignoreConflicts(true)
+        .ignoreFieldDesc(true)
         .extension(KotlinMetadataTinyRemapperExtension)
         .withMappings(mappings)
         .build()
@@ -34,8 +44,14 @@ object Remapper {
         return TinyUtils.createMappingProvider(tree, from, to)
     }
 
-    private fun loadMappings(stream: InputStream) = MemoryMappingTree().apply {
-        MappingReader.read(InputStreamReader(stream), MappingFormat.TINY_2_FILE, this)
+    private fun loadMappings(name: String, tsrg: Boolean = name.endsWith(".tsrg")) = MemoryMappingTree().apply {
+        MappingReader.read(
+            InputStreamReader(HollowCore::class.java.getResourceAsStream("/$name")
+                ?: throw FileNotFoundException("$name not found!")
+            ),
+            if (tsrg) MappingFormat.TSRG_FILE else MappingFormat.TINY_2_FILE,
+            this
+        )
     }
 
 

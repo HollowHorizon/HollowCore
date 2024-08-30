@@ -19,11 +19,11 @@ class InventoryConfig {
 
 @Serializable
 class Scripting {
-    var includeMods = mutableListOf("hollowcore", "hollowengine") //+ platformMods
+    var includeMods = mutableListOf("hollowcore", "hollowengine") + platformMods
 }
 
 private val platformMods = when (HollowCore.platform) {
     HollowCore.Platform.FABRIC -> arrayOf("fabric-api")
-    HollowCore.Platform.FORGE -> arrayOf("forge")
-    HollowCore.Platform.NEOFORGE -> arrayOf("neoforge")
+    HollowCore.Platform.FORGE -> arrayOf("forge", "minecraft")
+    HollowCore.Platform.NEOFORGE -> arrayOf("neoforge", "minecraft")
 }

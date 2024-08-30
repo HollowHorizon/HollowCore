@@ -122,6 +122,7 @@ object ImGuiHandler {
         io.addConfigFlags(ImGuiConfigFlags.NavEnableKeyboard) // Enable Keyboard Controls
         io.addConfigFlags(ImGuiConfigFlags.DockingEnable) // Enable Docking
         io.configViewportsNoTaskBarIcon = true
+        io.fonts.setFreeTypeRenderer(true)
 
         loadFont(30) { Graphics.FONT_SIZES[30] = it }
 
@@ -160,21 +161,21 @@ object ImGuiHandler {
         val monoFont = fontAtlas.addFontFromMemoryTTF(
             "${HollowCore.MODID}:fonts/$font.ttf".rl.stream.readAllBytes(), size.toFloat(), fontConfig, ranges
         )
-        fontConfig.mergeMode = true
+        //fontConfig.mergeMode = true
 
         //emoji
-        fontAtlas.addFontFromMemoryTTF(
-            "${HollowCore.MODID}:fonts/fa_regular.ttf".rl.stream.readAllBytes(),
-            size.toFloat() - 4,
-            fontConfig,
-            ranges
-        )
-        fontAtlas.addFontFromMemoryTTF(
-            "${HollowCore.MODID}:fonts/fa_solid.ttf".rl.stream.readAllBytes(),
-            size.toFloat() - 4,
-            fontConfig,
-            ranges
-        )
+//        fontAtlas.addFontFromMemoryTTF(
+//            "${HollowCore.MODID}:fonts/fa_regular.ttf".rl.stream.readAllBytes(),
+//            size.toFloat() - 4,
+//            fontConfig,
+//            ranges
+//        )
+//        fontAtlas.addFontFromMemoryTTF(
+//            "${HollowCore.MODID}:fonts/fa_solid.ttf".rl.stream.readAllBytes(),
+//            size.toFloat() - 4,
+//            fontConfig,
+//            ranges
+//        )
         fontAtlas.build()
 
         fontConfig.destroy()

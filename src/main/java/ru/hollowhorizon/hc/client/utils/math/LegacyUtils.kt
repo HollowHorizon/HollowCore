@@ -1,5 +1,5 @@
 //? if <=1.19.2 {
-package ru.hollowhorizon.hc.client.utils.math
+/*package ru.hollowhorizon.hc.client.utils.math
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
@@ -23,4 +23,4 @@ fun VertexConsumer.vertex(matrix: Matrix4f, x: Float, y: Float, z: Float): Verte
 fun com.mojang.math.Matrix3f.mul(matrix: Matrix3f) = mul(matrix.toMc())
 fun Entity.level(): Level = level
 fun ServerPlayer.serverLevel() = getLevel()
-//?}
+*///?}

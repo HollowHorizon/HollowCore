@@ -42,6 +42,7 @@ import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssets
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.render.shaders.ShadersLoader
 import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
+import ru.hollowhorizon.hc.client.screens.CodeEditor
 import ru.hollowhorizon.hc.client.screens.ImGuiScreen
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.rl
@@ -88,7 +89,7 @@ object HollowCoreClient {
 
     @SubscribeEvent
     fun onClientTick(event: TickEvent.Client) {
-        if (HollowCore.config.debugMode && KEY_V.isDown) Minecraft.getInstance().setScreen(ImGuiScreen())
+        if (HollowCore.config.debugMode && KEY_V.isDown) Minecraft.getInstance().setScreen(CodeEditor())
     }
 
     @SubscribeEvent

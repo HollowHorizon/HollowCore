@@ -1,0 +1,8 @@
+hollowcore:
+  config:
+    .: Конфигурация HollowEngine
+    show_compiler_warning: Показывать предупреждение об отсутствии Kotlin Compiler
+    debug_mode: Включить режим отладки
+    animations:
+      item_rotations: Поворот предметов
+      multiple_items: Отображение нескольких предметов в стеке

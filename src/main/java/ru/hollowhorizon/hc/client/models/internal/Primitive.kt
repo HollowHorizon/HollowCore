@@ -377,13 +377,13 @@ data class Primitive(
         if (hasShaders) GL20.glEnableVertexAttribArray(7) //координаты для глубины (pbr)
 
         //? if >=1.20.1 {
-        /*val modelView = Matrix4f(RenderSystem.getModelViewMatrix()).mul(stack.last().pose())
+        val modelView = Matrix4f(RenderSystem.getModelViewMatrix()).mul(stack.last().pose())
         shader.MODEL_VIEW_MATRIX?.set(modelView)
-        *///?} else {
-        val modelView = RenderSystem.getModelViewMatrix().copy()
+        //?} else {
+        /*val modelView = RenderSystem.getModelViewMatrix().copy()
         modelView.multiply(stack.last().pose())
         shader.MODEL_VIEW_MATRIX?.set(modelView)
-        //?}
+        *///?}
 
         shader.MODEL_VIEW_MATRIX?.upload()
 

@@ -36,7 +36,6 @@ class HollowCoreNeoForge(modBus: IEventBus) {
         ru.hollowhorizon.hc.client.utils.ModList.INSTANCE = NeoForgeModList
 
         HollowCore // Loading Main Class
-        HollowCore.platform = HollowCore.Platform.NEOFORGE
 
         NeoForgeEvents
 

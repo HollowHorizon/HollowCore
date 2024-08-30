@@ -40,22 +40,25 @@ val deobfJars: List<File>
         return deobfClassPath.walk().toList()
     }
 
+fun compilerJar() = deobfJars.first { it.name == "kotlin-compiler-embeddable-mcfriendly-2.0.0.jar" }
+
 abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : ScriptCompilationConfiguration({
     body()
 
     jvm {
+        val jars = scriptJars + deobfJars
+
         compilerOptions(
             "-opt-in=kotlin.time.ExperimentalTime,kotlin.ExperimentalStdlibApi",
             "-jvm-target=17",
             "-Xadd-modules=ALL-MODULE-PATH" //Loading kotlin from shadowed jar
         )
 
-        scriptJars.clear()
-        scriptJars.addAll(ModList.INSTANCE.mods.map { ModList.INSTANCE.getFile(it) }.distinct())
+        //? if forge || neoforge {
+        System.setProperty("kotlin.java.stdlib.jar", jars.first { it.name=="kotlin-stdlib-2.0.0.jar" }.absolutePath)
+        //?}
 
-        scriptJars.add(File("C:\\Users\\Artem\\Modding\\HollowCore\\versions\\1.21-forge\\build\\devlibs\\HollowCore-1.0.0-dev.jar"))
-
-        updateClasspath(scriptJars + deobfJars)
+        updateClasspath(jars)
         classpathFromClassloader(HollowCore::class.java.classLoader)
     }
 

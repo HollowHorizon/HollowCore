@@ -30,12 +30,7 @@ data class CompiledScript(
         }
     }
 
-    suspend fun execute(body: ScriptEvaluationConfiguration.Builder.() -> Unit = {
-        jvm {
-            loadDependencies(true)
-            scriptsInstancesSharing(true)
-        }
-    }): ResultWithDiagnostics<EvaluationResult> {
+    suspend fun execute(body: ScriptEvaluationConfiguration.Builder.() -> Unit = {}): ResultWithDiagnostics<EvaluationResult> {
         if (script == null) {
             return ResultWithDiagnostics.Failure(
                 arrayListOf(
@@ -86,6 +81,7 @@ suspend fun KJvmCompiledScript.obfuscate(name: String): kotlin.script.experiment
     val script = File("hollowcore/.classpath/$name.jar")
 
     val obf = script.loadScriptFromJar()
+    obf?.getClass(null) // инициализируем скрипт
     script.delete()
     return obf ?: throw IllegalStateException("Script can't be loaded!")
 }

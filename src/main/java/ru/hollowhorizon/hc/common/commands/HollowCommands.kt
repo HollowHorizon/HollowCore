@@ -42,7 +42,7 @@ import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.RequestPacket
 
 //? if <=1.19.2
-import ru.hollowhorizon.hc.client.utils.math.serverLevel
+/*import ru.hollowhorizon.hc.client.utils.math.serverLevel*/
 
 @HollowPacketV2
 @Serializable

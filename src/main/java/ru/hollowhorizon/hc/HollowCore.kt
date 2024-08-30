@@ -44,15 +44,20 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
 
-@OptIn(DelicateCoroutinesApi::class)
 object HollowCore {
     const val MODID: String = "hollowcore"
-    lateinit var platform: Platform
+    val platform: Platform =
+        //? if forge {
+        Platform.FORGE
+        //?} elif neoforge {
+        /*Platform.NEOFORGE*/
+        //?} else {
+        /*Platform.FABRIC
+        *///?}
 
     @JvmField
     val LOGGER: Logger = ru.hollowhorizon.hc.LOGGER
     val config by hollowConfig(::HollowCoreConfig, "hollowcore")
-    val EXECUTOR = ThreadPoolExecutor(4, 16, 60L, TimeUnit.SECONDS, SynchronousQueue())
 
     init {
         HollowCoreCommon
@@ -61,16 +66,6 @@ object HollowCore {
 
         HollowSoundHandler.MODS.add("hollowcore")
         HollowSoundHandler.MODS.add("hollowengine")
-
-        Remapper.remap(
-            Remapper.DEOBFUSCATE_REMAPPER,
-            ModList.INSTANCE.mods
-                .filter { it in config.scripting.includeMods }
-                .map { ModList.INSTANCE.getFile(it) }
-                .filter { it.name.endsWith(".jar") }
-                .toTypedArray(),
-            deobfClassPath.toPath()
-        )
     }
 
     enum class Platform {

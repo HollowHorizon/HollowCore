@@ -1,13 +1,13 @@
 //? if fabric {
-package ru.hollowhorizon.hc.fabric.internal
+/*package ru.hollowhorizon.hc.fabric.internal
 
 import net.minecraft.core.Registry
 //? if >1.21 {
-/*import net.minecraft.core.component.DataComponentType
-*///?}
+/^import net.minecraft.core.component.DataComponentType
+^///?}
 
 //? if >=1.20.1
-/*import net.minecraft.core.registries.BuiltInRegistries*/
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
@@ -38,7 +38,7 @@ class RegistryHolderFabric<T : Any>(
     val registryType: Registry<T> = with(target) {
         when {
             //? if >=1.20.1 {
-            /*Block::class.java.isAssignableFrom(this) -> BuiltInRegistries.BLOCK
+            Block::class.java.isAssignableFrom(this) -> BuiltInRegistries.BLOCK
             Item::class.java.isAssignableFrom(this) -> BuiltInRegistries.ITEM
             EntityType::class.java.isAssignableFrom(this) -> BuiltInRegistries.ENTITY_TYPE
             BlockEntityType::class.java.isAssignableFrom(this) -> BuiltInRegistries.BLOCK_ENTITY_TYPE
@@ -48,8 +48,8 @@ class RegistryHolderFabric<T : Any>(
             CreativeModeTab::class.java.isAssignableFrom(this) -> BuiltInRegistries.CREATIVE_MODE_TAB
             MenuType::class.java.isAssignableFrom(this) -> BuiltInRegistries.MENU
             ParticleType::class.java.isAssignableFrom(this) -> BuiltInRegistries.PARTICLE_TYPE
-            *///?} else {
-            Block::class.java.isAssignableFrom(this) -> Registry.BLOCK
+            //?} else {
+            /^Block::class.java.isAssignableFrom(this) -> Registry.BLOCK
             Item::class.java.isAssignableFrom(this) -> Registry.ITEM
             EntityType::class.java.isAssignableFrom(this) -> Registry.ENTITY_TYPE
             BlockEntityType::class.java.isAssignableFrom(this) -> Registry.BLOCK_ENTITY_TYPE
@@ -58,11 +58,11 @@ class RegistryHolderFabric<T : Any>(
             RecipeSerializer::class.java.isAssignableFrom(this) -> Registry.RECIPE_SERIALIZER
             MenuType::class.java.isAssignableFrom(this) -> Registry.MENU
             ParticleType::class.java.isAssignableFrom(this) -> Registry.PARTICLE_TYPE
-            //?}
+            ^///?}
 
             //? if >1.21 {
-            /*DataComponentType::class.java.isAssignableFrom(this) -> BuiltInRegistries.DATA_COMPONENT_TYPE
-            *///?}
+            /^DataComponentType::class.java.isAssignableFrom(this) -> BuiltInRegistries.DATA_COMPONENT_TYPE
+            ^///?}
 
             registry != null -> registry
 
@@ -77,7 +77,7 @@ class RegistryHolderFabric<T : Any>(
 
                 if (IBlockItemProperties::class.java.isAssignableFrom(target)) {
                     Registry.register(
-                        /*? if >=1.20.1 {*//*BuiltInRegistries.ITEM*//*?} else {*/Registry.ITEM/*?}*/,
+                        /^? if >=1.20.1 {^/BuiltInRegistries.ITEM/^?} else {^//^Registry.ITEM^//^?}^/,
                         location,
                         BlockItem(this as Block, (this as IBlockItemProperties).properties)
                     )
@@ -94,4 +94,4 @@ class RegistryHolderFabric<T : Any>(
         return RegistryObject { result }
     }
 }
-//?}
+*///?}

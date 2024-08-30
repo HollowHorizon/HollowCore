@@ -12,6 +12,6 @@ class ItemTooltipEvent(
     val toolTip: MutableList<Component>,
     //? if >=1.21 {
     
-    /*val context: Item.TooltipContext,
-    *///?}
+    val context: Item.TooltipContext,
+    //?}
 ) : Event

@@ -1,12 +1,18 @@
 //? if forge {
-/*package ru.hollowhorizon.hc.forge
+package ru.hollowhorizon.hc.forge
 
 import net.minecraftforge.fml.ModList
+import net.minecraftforge.fml.loading.FMLLoader
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.utils.isProduction
 import ru.hollowhorizon.hc.common.registry.getAnnotatedClasses
 import ru.hollowhorizon.hc.common.registry.getAnnotatedMethods
 import ru.hollowhorizon.hc.common.registry.getSubTypes
+import ru.hollowhorizon.hc.common.scripting.kotlin.deobfClassPath
+import ru.hollowhorizon.hc.common.scripting.kotlin.scriptJars
+import ru.hollowhorizon.hc.common.scripting.mappings.Remapper
 import java.lang.annotation.ElementType
+import kotlin.script.experimental.jvm.util.classPathFromTypicalResourceUrls
 
 object CoreInitializationForge {
     init {
@@ -39,4 +45,4 @@ object CoreInitializationForge {
         }
     }
 }
-*///?}
+//?}

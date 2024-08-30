@@ -5,7 +5,7 @@ import net.fabricmc.loom.extension.LoomGradleExtensionImpl
 import net.fabricmc.loom.extension.RemapperExtensionHolder
 import net.fabricmc.tinyremapper.TinyRemapper
 import org.gradle.configurationcache.extensions.capitalized
-import java.util.Properties
+import java.util.*
 
 plugins {
     java
@@ -13,6 +13,7 @@ plugins {
     id("architectury-plugin") version "3.4-SNAPSHOT"
     id("dev.architectury.loom") version "1.7-SNAPSHOT"
     id("me.modmuss50.mod-publish-plugin")
+    id("me.fallenbreath.yamlang") version "1.3.1"
     kotlin("jvm")
     kotlin("plugin.serialization")
 }
@@ -36,15 +37,17 @@ loom {
     val awFile = rootProject.file("src/main/resources/$modId.accesswidener")
     if (awFile.exists()) accessWidenerPath = awFile
 
+    mixin.useLegacyMixinAp = true
+    mixin.add(sourceSets.main.get(), "$modId.refmap.json")
+
     when (modPlatform) {
         "forge" -> forge {
             convertAccessWideners = true
-            mixinConfig("hollowcore.mixins.json")
+            mixinConfig("$modId.mixins.json")
             (this@loom as LoomGradleExtensionImpl).remapperExtensions.add(ForgeFixer)
         }
 
         "neoforge" -> neoForge {
-
         }
     }
 
@@ -122,6 +125,7 @@ dependencies {
     dependency("org.jetbrains.kotlin:kotlin-scripting-common:2.0.0")
     dependency("net.fabricmc:tiny-remapper:0.10.4")
     dependency("net.fabricmc:mapping-io:0.6.1")
+    dependency("gnu.trove:trove:1.0.2")
 
     // CONFIG //
     dependency("com.akuleshov7:ktoml-core-jvm:0.5.1")
@@ -137,7 +141,6 @@ dependencies {
     implementation("org.ow2.asm:asm-tree:9.7")
     implementation("org.anarres:jcpp:1.4.14")
     implementation("io.github.douira:glsl-transformer:2.0.1")
-    implementation("io.github.classgraph:classgraph:4.8.173")
 }
 
 afterEvaluate {
@@ -188,28 +191,40 @@ stonecutter {
     kotlin {
         jvmToolchain(if (j21) 21 else 17)
     }
+
+    arrayOf("gltf", "glb", "bin", "ttf", "so", "dll", "dylib", "ser", "efkefc", "obj", "mtl")
+        .forEach { stonecutter.exclude("*.$it") }
 }
 
 tasks.processResources {
     from(project.sourceSets.main.get().resources)
-    when(modPlatform) {
+    when (modPlatform) {
         "forge" -> exclude("fabric.mod.json", "META-INF/neoforge.mods.toml")
         "neoforge" -> exclude("fabric.mod.json", "META-INF/mods.toml")
         "fabric" -> exclude("META-INF/neoforge.mods.toml", "META-INF/mods.toml")
     }
 
-    filesMatching(listOf("META-INF/mods.toml", "fabric.mod.json", "META-INF/neoforge.mods.toml")) {
-        expand(mapOf(
-            "mod_version" to modVersion,
-            "mod_id" to modId,
-            "mod_name" to modName,
-            "license" to license,
-            "mc_version" to minecraftVersion
-        ))
+    filesMatching(
+        listOf(
+            "META-INF/mods.toml",
+            "fabric.mod.json",
+            "META-INF/neoforge.mods.toml",
+            "$modId.mixins.json"
+        )
+    ) {
+        expand(
+            mapOf(
+                "mod_version" to modVersion,
+                "mod_id" to modId,
+                "mod_name" to modName,
+                "license" to license,
+                "mc_version" to minecraftVersion
+            )
+        )
     }
 }
 
-fun secretProperty(name:String) = providers.environmentVariable(name).orElse(userConfig.getProperty(name)).get()
+fun secretProperty(name: String) = providers.environmentVariable(name).orElse(userConfig.getProperty(name)).get()
 
 publishMods {
     file = tasks.remapJar.get().archiveFile
@@ -244,6 +259,14 @@ publishMods {
         }
     }
 
+    discord {
+    }
+
+}
+
+yamlang {
+    targetSourceSets.set(mutableListOf(sourceSets["main"]))
+    inputDir.set("assets/${modId}/lang")
 }
 
 publishing {
@@ -360,6 +383,7 @@ fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
 
                 else -> throw IllegalStateException("Unsupported $loader version $version!")
             }
+            dependency("io.github.classgraph:classgraph:4.8.173")
         }
 
         "forge" -> {
@@ -370,10 +394,11 @@ fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
                     dependency("org.joml:joml:1.10.8")
                     "forge"("net.minecraftforge:forge:$version-43.4.2")
                 }
+
                 else -> throw IllegalStateException("Unsupported $loader version $version!")
             }
             // Мне надоело каждый раз постоянно вырезать руками лишние jar из classpath
-            if(minecraftVersion != "1.19.2") implementation("ru.hollowhorizon:forgefixer:1.0.0")
+            if (minecraftVersion != "1.19.2") implementation("ru.hollowhorizon:forgefixer:1.0.0")
         }
 
         "neoforge" -> {

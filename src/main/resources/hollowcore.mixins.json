@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "ru.hollowhorizon.hc.mixins",
-  "refmap": "${mod_name}-common-refmap.json",
+  "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "ClientLevelMixin",
@@ -23,12 +23,15 @@
     "capabilities.LevelMixin",
     "scripting.BindingTraceContextAccessor",
     "scripting.CompilationContextMixin",
+    "scripting.KotlinCoreEnvironmentMixin",
     "scripting.ScriptJvmCompilerImplsMixin",
     "scripting.SlicedMapImplAccessor"
   ],
   "client": [
     "FontManagerAccessor",
     "GuiMixin",
+    "Matrix3fMixin",
+    "Matrix4fMixin",
     "RenderSystemMixin",
     "ScreenAccessor",
     "ShaderInstanceAccessor",
@@ -38,9 +41,7 @@
     "particles.MinecraftMixin",
     "particles.MixinGameRenderer",
     "particles.MixinItemInHandRenderer",
-    "particles.MixinLevelRenderer",
-    "Matrix3fConverter",
-    "Matrix4fConverter",
+    "particles.MixinLevelRenderer"
   ],
   "server": [],
   "injectors": {

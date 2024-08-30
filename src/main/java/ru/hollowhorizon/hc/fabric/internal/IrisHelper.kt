@@ -11,7 +11,7 @@ object IrisHelper {
         (Iris.getPipelineManager().pipelineNullable as? ShaderRenderingPipeline)?.shouldOverrideShaders() == true
 }
 *///?} elif fabric && >=1.19.2 {
-import net.coderbot.iris.Iris
+/*import net.coderbot.iris.Iris
 import net.coderbot.iris.pipeline.newshader.NewWorldRenderingPipeline
 
 object IrisHelper {
@@ -19,4 +19,4 @@ object IrisHelper {
     fun shouldOverrideShaders() =
         (Iris.getPipelineManager().pipelineNullable as? NewWorldRenderingPipeline)?.shouldOverrideShaders() == true
 }
-//?}
+*///?}

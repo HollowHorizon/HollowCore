@@ -11,7 +11,7 @@ plugins {
     id("me.modmuss50.mod-publish-plugin") version "0.5.+" apply false
 }
 
-stonecutter active "1.19.2-fabric" /* [SC] DO NOT EDIT */
+stonecutter active "1.21-forge" /* [SC] DO NOT EDIT */
 
 stonecutter registerChiseled tasks.register("chiseledBuildAndCollect", stonecutter.chiseled) {
     group = "project"
@@ -26,9 +26,4 @@ stonecutter registerChiseled tasks.register("chiseledPublishMods", stonecutter.c
 stonecutter registerChiseled tasks.register("chiseledPublishMaven", stonecutter.chiseled) {
     group = "project"
     ofTask("publish")
-}
-
-stonecutter.configureEach {
-    arrayOf("gltf", "glb", "bin", "ttf", "so", "dll", "dylib", "ser", "efkefc", "obj", "mtl")
-        .forEach { stonecutter.exclude("*.$it") }
 }

@@ -1,5 +1,5 @@
 //? if fabric {
-package ru.hollowhorizon.hc.fabric;
+/*package ru.hollowhorizon.hc.fabric;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -26,10 +26,10 @@ public class HollowCoreFabric implements ModInitializer {
 
         var core = CoreInitializationFabric.INSTANCE;
         var init = HollowCore.INSTANCE; // Loading Main Class
-        HollowCore.platform = HollowCore.Platform.FABRIC;
+        GameRemapper.INSTANCE.remap();
         var events = FabricEvents.INSTANCE;
 
         NetworkHelper.register();
     }
 }
-//?}
+*///?}

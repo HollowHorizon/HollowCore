@@ -11,7 +11,7 @@ pluginManagement {
         maven("https://maven.neoforged.net/releases")
         maven("https://maven.architectury.dev")
         maven("https://maven.minecraftforge.net")
-        maven("https://maven.kikugie.dev/releases")
+        maven("https://maven.kikugie.dev/snapshots")
     }
 
     val kotlinVersion: String by settings
@@ -22,8 +22,8 @@ pluginManagement {
 }
 
 plugins {
+    id("dev.kikugie.stonecutter") version "0.5-alpha.4"
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
-    id("dev.kikugie.stonecutter") version "0.4.+"
 }
 
 extensions.configure<StonecutterSettings> {

@@ -1,5 +1,5 @@
 //? if forge {
-/*package ru.hollowhorizon.hc.forge;
+package ru.hollowhorizon.hc.forge;
 
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
@@ -17,20 +17,25 @@ import static ru.hollowhorizon.hc.client.utils.ForgeKotlinKt.*;
 public class HollowCoreForge {
     public HollowCoreForge() {
         ru.hollowhorizon.hc.client.utils.ModList.Companion.setINSTANCE(ForgeModList.INSTANCE);
-        var core = CoreInitializationForge.INSTANCE;
 
         HollowRegistryKt.createRegistry = ((resourceLocation, registry, aBoolean, function0, aClass) -> new RegistryHolderForge<>(resourceLocation, JavaHacks.forceCast(registry), aBoolean, JavaHacks.forceCast(function0), aClass));
         isModLoaded = ModList.get()::isLoaded;
-        isProduction_ = FMLLoader::isProduction;
+        isProduction_ = // На 1.20+ Forge почему-то решил больше не обфусцировать игру... Ну и зачем я тогда обфускатор скриптов писал?((
+                //? if <=1.20.1 {
+                /*FMLLoader::isProduction;
+                *///?} else {
+                () -> false;
+                //?}
         shouldOverrideShaders = () -> false;
 
+        var core = CoreInitializationForge.INSTANCE;
         var events = ForgeEvents.INSTANCE;
         var init = HollowCore.INSTANCE; // Loading Main Class
-        HollowCore.platform = HollowCore.Platform.FORGE;
 
+        GameRemapper.INSTANCE.remap();
         ForgeNetworkHelper.register();
 
         if (FMLEnvironment.dist.isClient()) new HollowCoreClientForge();
     }
 }
-*///?}
+//?}
