@@ -115,7 +115,7 @@ fun ResourceLocation.toIS(): InputStream {
 }
 
 fun ItemStack.save(): CompoundTag {
-    //? if <1.21 {
+    //? if <1.20.5 {
     /*return CompoundTag().apply(::save)
     *///?} else {
     return save(registryAccess) as CompoundTag
@@ -123,7 +123,7 @@ fun ItemStack.save(): CompoundTag {
 }
 
 fun CompoundTag.readItem(): ItemStack {
-    //? if <1.21 {
+    //? if <1.20.5 {
     /*return ItemStack.of(this)
     *///?} else {
     return ItemStack.parse(registryAccess, this).getOrDefault(ItemStack.EMPTY)
