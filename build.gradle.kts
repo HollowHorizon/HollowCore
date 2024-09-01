@@ -224,7 +224,6 @@ tasks.processResources {
     }
 }
 
-fun secretProperty(name: String) = providers.environmentVariable(name).orElse(userConfig.getProperty(name)).get()
 
 
 yamlang {
@@ -232,29 +231,6 @@ yamlang {
     inputDir.set("assets/${modId}/lang")
 }
 
-publishing {
-    publications {
-        create<MavenPublication>(modName) {
-            groupId = "ru.hollowhorizon"
-            artifactId = "$modName-$modPlatform-$minecraftVersion"
-            version = fromProperties("mod_version")
-
-            artifact(tasks.jar)
-            artifact(tasks.remapJar)
-            artifact(tasks.remapSourcesJar)
-
-        }
-    }
-
-    repositories {
-        maven("https://maven.0mods.team/releases/") {
-            credentials {
-                username = secretProperty("MAVEN_USER")
-                password = secretProperty("MAVEN_PASSWORD")
-            }
-        }
-    }
-}
 
 fun DependencyHandlerScope.includes(vararg libraries: String) {
     for (library in libraries) {
