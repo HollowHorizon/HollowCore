@@ -2,11 +2,15 @@
 /*package ru.hollowhorizon.hc.fabric
 
 import io.github.classgraph.ClassGraph
+import io.github.classgraph.ClassInfo
+import io.github.classgraph.MethodInfo
 import net.fabricmc.api.EnvType
 import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.loader.impl.FabricLoaderImpl
 import net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.isProduction
+import ru.hollowhorizon.hc.common.events.ClientOnly
 import ru.hollowhorizon.hc.common.registry.getAnnotatedClasses
 import ru.hollowhorizon.hc.common.registry.getAnnotatedMethods
 import ru.hollowhorizon.hc.common.registry.getSubTypes
@@ -14,6 +18,7 @@ import ru.hollowhorizon.hc.common.scripting.kotlin.deobfClassPath
 import ru.hollowhorizon.hc.common.scripting.kotlin.scriptJars
 import ru.hollowhorizon.hc.common.scripting.mappings.Remapper
 import sun.misc.Unsafe
+import java.lang.reflect.Method
 import java.nio.file.Path
 
 private val unsafe by lazy {
@@ -23,7 +28,7 @@ private val unsafe by lazy {
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <T> field(lookup: Any, name: String): T {
+fun <T> findField(lookup: Any, name: String): T {
     val lookupClass = lookup::class.java
     val field = lookupClass.getDeclaredField(name) // Why did you have to make it private?
     val offset = unsafe.objectFieldOffset(field)
@@ -34,10 +39,10 @@ object CoreInitializationFabric {
     init {
         val gameProvider =
             (FabricLoader.getInstance() as FabricLoaderImpl).gameProvider as MinecraftGameProvider
-        val libs: List<Path> = field(gameProvider, "miscGameLibraries")
-        val gameJars: List<Path> = field(gameProvider, "gameJars")
-        val logJars: Set<Path> = field(gameProvider, "logJars")
-        val parentClassPath: Collection<Path> = field(gameProvider, "validParentClassPath")
+        val libs: List<Path> = findField(gameProvider, "miscGameLibraries")
+        val gameJars: List<Path> = findField(gameProvider, "gameJars")
+        val logJars: Set<Path> = findField(gameProvider, "logJars")
+        val parentClassPath: Collection<Path> = findField(gameProvider, "validParentClassPath")
 
         if (isProduction) {
 
@@ -60,32 +65,50 @@ object CoreInitializationFabric {
 
         getSubTypes =
             {
-                graph.getSubclasses(it).filter { isClient || !it.name.contains("client") }
-                    .map { Class.forName(it.name) }
-                    .toSet()
+                graph.getSubclasses(it)
+                    .filter { isClient || !it.annotationInfo.all { it.name != ClientOnly::class.java.name } }
+                    .safeClasses().toSet()
             }
         getAnnotatedClasses =
             {
                 graph.getClassesWithAnnotation(it as Class<out Annotation>)
-                    .filter { isClient || !it.name.contains("client") }.map { Class.forName(it.name) }.toSet()
+                    .filter { isClient || it.annotationInfo.all { it.name != ClientOnly::class.java.name } }
+                    .safeClasses().toSet()
             }
         getAnnotatedMethods =
             { annotation ->
                 val classes = graph.getClassesWithMethodAnnotation(annotation as Class<out Annotation>)
 
                 classes.flatMap { it.methodInfo }
-                    .filter { isClient || (!it.name.contains("client") && !it.className.contains("client")) }
-                    .flatMap { type ->
-                        Class.forName(type.className).declaredMethods.filter {
-                            it.annotations.any {
-                                annotation.isInstance(
-                                    it
-                                )
-                            }
-                        }
-                    }.toSet()
+                    .filter { it.annotationInfo.any { it.name == annotation.name } }
+                    .filter { isClient || it.annotationInfo.all { it.name != ClientOnly::class.java.name } }
+                    .safeMethods(annotation)
+                    .toSet()
             }
 
+    }
+
+    fun Collection<MethodInfo>.safeMethods(annotation: Class<*>): List<Method> = mapNotNull {
+        try {
+            Class.forName(it.className).declaredMethods.filter {
+                it.annotations.any { annotation.isInstance(it) }
+            }
+        } catch (e: NoClassDefFoundError) {
+            HollowCore.LOGGER.warn("Class ${it.className} cannot be loaded! ${e.message}")
+            null
+        } catch (e: ClassNotFoundException) {
+            HollowCore.LOGGER.warn("Class ${it.className} cannot be loaded! ${e.message}")
+            null
+        }
+    }.flatten()
+
+    private fun Collection<ClassInfo>.safeClasses(): List<Class<*>> = mapNotNull {
+        try {
+            Class.forName(it.name)
+        } catch (e: NoClassDefFoundError) {
+            HollowCore.LOGGER.warn("Class ${it.name} cannot be loaded! ${e.message}")
+            null
+        }
     }
 }
 *///?}

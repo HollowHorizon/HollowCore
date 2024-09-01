@@ -24,7 +24,7 @@
 
 package ru.hollowhorizon.hc.common.scripting
 
-import imgui.ImGui
+import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptCompilerProxy
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.scripting.*
@@ -34,6 +34,7 @@ import java.io.File
 import java.io.PrintStream
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.FileScriptSource
+import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.StringScriptSource
 import kotlin.script.experimental.host.createCompilationConfigurationFromTemplate
 import kotlin.script.experimental.jvm.impl.KJvmCompiledScript
@@ -41,7 +42,6 @@ import kotlin.script.experimental.jvm.util.isError
 import kotlin.script.experimental.jvmhost.BasicJvmScriptJarGenerator
 import kotlin.script.experimental.jvmhost.JvmScriptCompiler
 import kotlin.script.experimental.jvmhost.loadScriptFromJar
-import kotlin.script.experimental.util.PropertiesCollection
 
 fun <R> ResultWithDiagnostics<R>.orException(): R = valueOr {
     throw IllegalStateException(
@@ -84,6 +84,7 @@ fun ResultWithDiagnostics.Failure.errors(): List<String> = reports.map { diagnos
 object ScriptingCompiler {
 
     suspend inline fun <reified T : Any> compileText(text: String): CompiledScript {
+
         val hostConfiguration = AbstractHollowScriptHost()
 
         val compilationConfiguration = createCompilationConfigurationFromTemplate(
@@ -92,8 +93,8 @@ object ScriptingCompiler {
             HollowCore::class
         ) {}
 
-
         val compiler = JvmScriptCompiler(hostConfiguration)
+
         val result = compiler(StringScriptSource(text), compilationConfiguration)
 
         result.reports.map {

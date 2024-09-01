@@ -49,7 +49,11 @@ object GltfModelLoader {
         val scenes = parseScenes(file, skins, materials)
         val animations = parseAnimations(file)
 
-        return Model(file.scene, scenes, animations, materials.toSet())
+        return Model(file.scene, scenes, animations, materials.toSet()).apply {
+            for (skin in skins) {
+                skin.joints.putAll(walkNodes().associateBy { it.index })
+            }
+        }
     }
 
     suspend fun parse(resource: ResourceLocation): Model {

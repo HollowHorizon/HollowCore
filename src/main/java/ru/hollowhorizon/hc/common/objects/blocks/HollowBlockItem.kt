@@ -27,8 +27,6 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 
 
-abstract class HollowBlockItem(properties: Properties) : HorizontalDirectionalBlock(properties), IBlockItemProperties
-
 interface IBlockItemProperties {
     val properties: Item.Properties
 }

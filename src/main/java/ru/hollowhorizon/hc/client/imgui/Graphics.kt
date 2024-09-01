@@ -160,7 +160,7 @@ object Graphics {
 
     fun image(textureId: Int, sizeX: Float, sizeY: Float, flip: Boolean = false) {
         if (flip) image(textureId, sizeX, sizeY, 0f, 1f, 1f, 0f)
-        else image(textureId, sizeX, sizeY)
+        else ImGui.image(textureId, sizeX, sizeY)
     }
 
     inline fun imageButton(textureId: Int, sizeX: Float, sizeY: Float, codeBlock: Graphics.() -> Unit) {

@@ -87,7 +87,6 @@ repositories {
     maven("https://maven.neoforged.net/releases")
     maven("https://maven.fabricmc.net/")
     maven("https://maven.cleanroommc.com")
-    maven("https://thedarkcolour.github.io/KotlinForForge/")
     flatDir { dirs(rootDir.resolve("libs")) }
 }
 
@@ -114,7 +113,7 @@ dependencies {
     dependency("org.jetbrains.kotlin:kotlin-scripting-jvm:2.0.0")
     dependency("org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.0.0")
     dependency("org.jetbrains.kotlin:kotlin-script-runtime:2.0.0")
-    dependency("org.jetbrains.kotlin:kotlin-compiler-embeddable-mcfriendly:2.0.0")
+    compileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable-mcfriendly:2.0.0") //TODO Придумай как поставлять эту библиотеку отдельно. Скриптинг нужен далеко не всем
     dependency("org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.0.0")
     dependency("org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.0.0")
     dependency("org.jetbrains.kotlin:kotlin-metadata-jvm:2.0.0")
@@ -134,6 +133,8 @@ dependencies {
     dependency("team.0mods:imgui-binding:$imguiVersion")
     dependency("team.0mods:imgui-lwjgl3:$imguiVersion")
     dependency("team.0mods:imgui-binding-natives:$imguiVersion")
+    dependency("com.tianscar.imageio:imageio-apng:1.0.1")
+
 
     // OTHER
     implementation("org.ow2.asm:asm:9.7")
@@ -238,7 +239,10 @@ publishing {
             artifactId = "$modName-$modPlatform-$minecraftVersion"
             version = fromProperties("mod_version")
 
-            from(components["java"])
+            artifact(tasks.jar)
+            artifact(tasks.remapJar)
+            artifact(tasks.remapSourcesJar)
+
         }
     }
 
@@ -292,6 +296,9 @@ fun DependencyHandlerScope.dependency(path: String) {
     val dependency = implementation(path) {
         exclude("org.jetbrains.kotlin")
         exclude("org.ow2.asm")
+        exclude("net.sourceforge.jaad.aac")
+        exclude("org.slf4j")
+        exclude("commons-logging")
     }
 
     dependency.takeIf { modPlatform == "forge" || modPlatform == "neoforge" }?.let {

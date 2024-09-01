@@ -1,18 +1,14 @@
 //? if forge {
-/*package ru.hollowhorizon.hc.forge
+package ru.hollowhorizon.hc.forge
 
 import net.minecraftforge.fml.ModList
-import net.minecraftforge.fml.loading.FMLLoader
+import net.minecraftforge.forgespi.language.ModFileScanData
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.utils.isProduction
 import ru.hollowhorizon.hc.common.registry.getAnnotatedClasses
 import ru.hollowhorizon.hc.common.registry.getAnnotatedMethods
 import ru.hollowhorizon.hc.common.registry.getSubTypes
-import ru.hollowhorizon.hc.common.scripting.kotlin.deobfClassPath
-import ru.hollowhorizon.hc.common.scripting.kotlin.scriptJars
-import ru.hollowhorizon.hc.common.scripting.mappings.Remapper
 import java.lang.annotation.ElementType
-import kotlin.script.experimental.jvm.util.classPathFromTypicalResourceUrls
+import java.lang.reflect.Method
 
 object CoreInitializationForge {
     init {
@@ -23,26 +19,55 @@ object CoreInitializationForge {
         val annotations = scanInfo.flatMap { it.annotations }
 
         getSubTypes = { subType ->
-            classes.filter { it.parent.className == subType.name }.map { Class.forName(it.clazz.className) }.toSet()
+            classes
+                .filter { it.parent.className == subType.name }
+                .safeClassesF().toSet()
         }
         getAnnotatedClasses = { annotation ->
             annotations
                 .filter { it.annotationType.className == annotation.name }
                 .filter { it.targetType == ElementType.TYPE }
-                .map { Class.forName(it.clazz.className) }
+                .safeClasses()
                 .toSet()
         }
         getAnnotatedMethods = { annotation ->
             annotations
                 .filter { it.annotationType.className == annotation.name }
                 .filter { it.targetType == ElementType.METHOD }
-                .flatMap {
-                    val name = it.memberName.substringBefore('(')
-                    Class.forName(it.clazz.className).declaredMethods
-                        .filter { m -> m.name == name }
-                }
+                .safeMethods()
                 .toSet()
         }
     }
+
+    fun Collection<ModFileScanData.AnnotationData>.safeMethods(): List<Method> = mapNotNull {
+        try {
+            val name = it.memberName.substringBefore('(')
+            Class.forName(it.clazz.className).declaredMethods
+                .filter { m -> m.name == name }
+        } catch (e: NoClassDefFoundError) {
+            HollowCore.LOGGER.warn("Class ${it.clazz.className} cannot be loaded! ${e.message}")
+            null
+        } catch (e: ClassNotFoundException) {
+            HollowCore.LOGGER.warn("Class ${it.clazz.className} cannot be loaded! ${e.message}")
+            null
+        }
+    }.flatten()
+
+    private fun Collection<ModFileScanData.AnnotationData>.safeClasses(): List<Class<*>> = mapNotNull {
+        try {
+            Class.forName(it.clazz.className)
+        } catch (e: NoClassDefFoundError) {
+            HollowCore.LOGGER.warn("Class ${it.clazz.className} cannot be loaded! ${e.message}")
+            null
+        }
+    }
+    private fun Collection<ModFileScanData.ClassData>.safeClassesF(): List<Class<*>> = mapNotNull {
+        try {
+            Class.forName(it.clazz.className)
+        } catch (e: NoClassDefFoundError) {
+            HollowCore.LOGGER.warn("Class ${it.clazz.className} cannot be loaded! ${e.message}")
+            null
+        }
+    }
 }
-*///?}
+//?}

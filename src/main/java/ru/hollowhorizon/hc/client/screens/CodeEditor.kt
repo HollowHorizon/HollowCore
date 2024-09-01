@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.client.screens
 
-import com.mojang.blaze3d.vertex.PoseStack
 import imgui.ImGui
 import imgui.extension.texteditor.TextEditor
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -13,6 +12,9 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
+import ru.hollowhorizon.hc.client.textures.IMAGES
+import ru.hollowhorizon.hc.client.textures.drawImage
+import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler
 import ru.hollowhorizon.hc.common.scripting.kotlin.CodeCompletionEvent
@@ -43,50 +45,66 @@ class CodeEditor : Screen(Component.empty()) {
         )
 
         ImGuiHandler.drawFrame {
-            button("Закрыть") { onClose() }
-            sameLine()
-            button("Запуск") {
-                val text = editor.text
-                val line = editor.cursorPosition.mLine
-                val column = editor.cursorPosition.mColumn
-                var newIndex = 0
-                var lineIndex = 0
-                for (textLine in editor.textLines) {
-                    if (lineIndex == line) break
-                    newIndex += textLine.length + 1
-                    lineIndex++
-                }
-                newIndex += column
-                index = newIndex - 1
-
-                if (index >= 0 && index < text.length) {
-                    GlobalScope.launch {
-                        currentCodeIndex = index
-                        ScriptingCompiler.compileText<HollowScript>(text).execute()
-                    }
-                }
-            }
-
-            editor.render("TextEditor")
-
-            val completions = ArrayList(completions)
-
-            if (completions.isNotEmpty()) {
-                if (ImGui.begin("completions")) {
-                    ImGui.beginChild("#internal", minecraft!!.window.height * 0.7f, minecraft!!.window.width / 3f)
-                    var close = false
-                    completions.forEach {
-                        if (it.draw()) {
-                            it.complete(editor)
-                            close = true
+            tabBar("Tabs") {
+                tabItem("Code") {
+                    button("Закрыть") { onClose() }
+                    sameLine()
+                    button("Запуск") {
+                        val text = editor.text
+                        val line = editor.cursorPosition.mLine
+                        val column = editor.cursorPosition.mColumn
+                        var newIndex = 0
+                        var lineIndex = 0
+                        for (textLine in editor.textLines) {
+                            if (lineIndex == line) break
+                            newIndex += textLine.length + 1
+                            lineIndex++
                         }
-                        ImGui.separator()
+                        newIndex += column
+                        index = newIndex - 1
+
+                        if (index >= 0 && index < text.length) {
+                            GlobalScope.launch {
+                                currentCodeIndex = index
+                                ScriptingCompiler.compileText<HollowScript>(text).execute()
+                            }
+                        }
                     }
-                    ImGui.endChild()
-                    if (close) ImGui.closeCurrentPopup()
-                    ImGui.end()
+
+                    editor.render("TextEditor")
+
+                    val completions = ArrayList(completions)
+
+                    if (completions.isNotEmpty()) {
+                        if (ImGui.begin("completions")) {
+                            ImGui.beginChild("#internal", minecraft!!.window.height * 0.7f, minecraft!!.window.width / 3f)
+                            var close = false
+                            completions.forEach {
+                                if (it.draw()) {
+                                    it.complete(editor)
+                                    close = true
+                                }
+                                ImGui.separator()
+                            }
+                            ImGui.endChild()
+                            if (close) ImGui.closeCurrentPopup()
+                            ImGui.end()
+                        }
+                    }
+                }
+
+                tabItem("Gif") {
+                    if (ImGui.button("reset")) {
+                        for (i in IMAGES) i.value.close()
+                        IMAGES.clear()
+                    }
+                    drawImage("hollowcore:textures/elephant.gif".rl, 500f, 500f)
+                    sameLine()
+                    drawImage("hollowcore:textures/elephant.png".rl, 500f, 500f)
                 }
             }
+
+
 
         }
     }

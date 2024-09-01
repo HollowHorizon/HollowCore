@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.common.scripting
 
-import net.minecraft.client.Minecraft
 import ru.hollowhorizon.hc.client.utils.isProduction
 import ru.hollowhorizon.hc.common.coroutines.scopeAsync
 import ru.hollowhorizon.hc.common.events.post
@@ -8,11 +7,12 @@ import ru.hollowhorizon.hc.common.events.scripting.*
 import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler.saveScriptToJar
 import ru.hollowhorizon.hc.common.scripting.mappings.Remapper
 import java.io.File
-import kotlin.script.experimental.api.*
+import kotlin.script.experimental.api.EvaluationResult
+import kotlin.script.experimental.api.ResultWithDiagnostics
+import kotlin.script.experimental.api.ScriptDiagnostic
+import kotlin.script.experimental.api.ScriptEvaluationConfiguration
 import kotlin.script.experimental.jvm.BasicJvmScriptEvaluator
 import kotlin.script.experimental.jvm.impl.KJvmCompiledScript
-import kotlin.script.experimental.jvm.jvm
-import kotlin.script.experimental.jvm.loadDependencies
 import kotlin.script.experimental.jvmhost.loadScriptFromJar
 
 data class CompiledScript(
@@ -65,7 +65,7 @@ data class CompiledScript(
 }
 
 suspend fun KJvmCompiledScript.obfuscate(name: String): kotlin.script.experimental.api.CompiledScript {
-    if(!isProduction) return this
+    if (!isProduction) return this
 
     val source = File("hollowcore/$name.jar")
     saveScriptToJar(source)

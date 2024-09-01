@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.common.scripting.kotlin
 
+import net.minecraftforge.fml.loading.FMLEnvironment
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.utils.ModList
 import java.io.File
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
@@ -10,6 +10,7 @@ import kotlin.script.experimental.host.FileScriptSource
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.getScriptingClass
 import kotlin.script.experimental.jvm.JvmGetScriptingClass
+import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
 import kotlin.script.experimental.jvm.jvm
 import kotlin.script.experimental.jvm.updateClasspath
 import kotlin.script.experimental.jvm.util.classpathFromClassloader
@@ -46,8 +47,6 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
     body()
 
     jvm {
-        val jars = scriptJars + deobfJars
-
         compilerOptions(
             "-opt-in=kotlin.time.ExperimentalTime,kotlin.ExperimentalStdlibApi",
             "-jvm-target=17",
@@ -55,7 +54,17 @@ abstract class AbstractHollowScriptConfiguration(body: Builder.() -> Unit) : Scr
         )
 
         //? if forge || neoforge {
-        System.setProperty("kotlin.java.stdlib.jar", jars.first { it.name=="kotlin-stdlib-2.0.0.jar" }.absolutePath)
+        if (!FMLEnvironment.production) {
+            updateClasspath(System.getProperty("java.class.path").split(";").map { File(it) }.toMutableSet())
+            dependenciesFromCurrentContext(wholeClasspath = true)
+            return@jvm
+        }
+        //?}
+
+        val jars = scriptJars + deobfJars
+
+        //? if forge || neoforge {
+        System.setProperty("kotlin.java.stdlib.jar", jars.first { it.name == "kotlin-stdlib-2.0.0.jar" }.absolutePath)
         //?}
 
         updateClasspath(jars)

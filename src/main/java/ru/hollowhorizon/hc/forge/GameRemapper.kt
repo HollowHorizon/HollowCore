@@ -2,10 +2,11 @@ package ru.hollowhorizon.hc.forge
 
 //? if forge {
 
-/*import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
+import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.fml.loading.FMLLoader
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.isProduction
@@ -20,11 +21,12 @@ import kotlin.io.path.exists
 
 object GameRemapper {
     fun remap() {
+        if(!FMLEnvironment.production) return
+
         val classPath = System.getProperty("java.class.path")
             .split(";")
             .map { File(it) }
             .toMutableSet()
-
 
         val jarsToRemap =
             FMLLoader.getLoadingModList().modFiles
@@ -33,9 +35,9 @@ object GameRemapper {
                 .toMutableSet()
 
         //? if <=1.20.1 {
-        /^jarsToRemap += FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map { File(it.absolutePathString()) }
+        /*jarsToRemap += FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map { File(it.absolutePathString()) }
             .toTypedArray()
-        ^///?} else {
+        *///?} else {
         jarsToRemap += FMLLoader.getLaunchHandler().minecraftPaths.map { File(it.absolutePathString()) }.toTypedArray()
         //?}
 
@@ -98,4 +100,4 @@ object GameRemapper {
         }
     }
 }
-*///?}
+//?}

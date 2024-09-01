@@ -31,10 +31,12 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.Mth
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntity
 import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.models.internal.ModelData
+import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
@@ -108,7 +110,14 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
         animationPlayer: GLTFAnimationPlayer,
         stack: PoseStack,
     ) {
-        //stack.mulPoseMatrix(capability.transform.matrix)
-        //stack.last().normal().mul(capability.transform.normalMatrix)
+        //? if <1.21 {
+        /*stack.mulPoseMatrix(capability.transform.matrix)
+        *///?} else {
+
+        stack.mulPose(capability.transform.matrix)
+        //?}
+        stack.last().normal().mul(capability.transform.normalMatrix)
+        stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
+        animationPlayer.currentLoopAnimation = AnimationType.IDLE
     }
 }

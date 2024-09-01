@@ -1,5 +1,5 @@
 //? if neoforge {
-package ru.hollowhorizon.hc.neoforge
+/*package ru.hollowhorizon.hc.neoforge
 
 import ru.hollowhorizon.hc.client.HollowCoreClient
 import ru.hollowhorizon.hc.client.utils.areShadersEnabled_
@@ -15,4 +15,4 @@ object HollowCoreClientNeoForge {
         HollowCoreClient // Loading Main Class
     }
 }
-//?}
+*///?}

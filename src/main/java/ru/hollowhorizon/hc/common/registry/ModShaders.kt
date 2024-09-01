@@ -29,13 +29,15 @@ import net.minecraft.SharedConstants
 import net.minecraft.client.renderer.ShaderInstance
 import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.events.ClientOnly
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterShadersEvent
 
+@ClientOnly
 object ModShaders {
     lateinit var GLTF_ENTITY: ShaderInstance
 
-    @SubscribeEvent(clientSideOnly = true)
+    @SubscribeEvent
     fun onShaderRegistry(event: RegisterShadersEvent) {
         event.register("$MODID:gltf_entity-${SharedConstants.getCurrentVersion().name}".rl, DefaultVertexFormat.NEW_ENTITY) {
             GLTF_ENTITY = it

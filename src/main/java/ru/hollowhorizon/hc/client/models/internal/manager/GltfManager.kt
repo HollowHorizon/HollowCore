@@ -40,7 +40,6 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.gltf.GltfModelLoader
 import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
 import ru.hollowhorizon.hc.client.models.internal.Model
-import ru.hollowhorizon.hc.client.textures.GIF_TEXTURES
 import ru.hollowhorizon.hc.client.textures.GlTexture
 import ru.hollowhorizon.hc.client.utils.resource
 import ru.hollowhorizon.hc.client.utils.rl
@@ -92,13 +91,11 @@ object GltfManager : ResourceManagerReloadListener {
                 models.putAll(loaded)
             }
 
-            HollowCore.LOGGER.info("Loaded ${models.size} models in ${time}")
+            HollowCore.LOGGER.info("Loaded ${models.size} models in $time")
         }
 
         models.forEach { it.value.modelTree.initGl() }
 
-        GIF_TEXTURES.forEach { it.value.releaseId() }
-        GIF_TEXTURES.clear()
     }
 
     fun initialize() {

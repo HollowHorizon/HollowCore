@@ -36,7 +36,6 @@
     "ScreenAccessor",
     "ShaderInstanceAccessor",
     "SoundManagerMixin",
-    "TextureManagerMixin",
     "WindowMixin",
     "particles.MinecraftMixin",
     "particles.MixinGameRenderer",
