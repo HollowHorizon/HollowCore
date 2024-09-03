@@ -46,7 +46,7 @@ class RegistryHolderForge<T : Any>(
     val registryType: DeferredRegister<T> = with(target) {
         when {
             Block::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.ITEMS,
+                ForgeRegistries.BLOCKS,
                 location.namespace
             )
 
