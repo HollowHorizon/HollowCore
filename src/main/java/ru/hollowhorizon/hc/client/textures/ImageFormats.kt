@@ -12,8 +12,8 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.client.renderer.texture.SimpleTexture
 import net.minecraft.resources.ResourceLocation
-import net.minecraft.util.FastColor.ABGR32
 import ru.hollowhorizon.hc.client.imgui.Graphics
+import ru.hollowhorizon.hc.client.utils.HollowColor
 import ru.hollowhorizon.hc.client.utils.stream
 import java.awt.image.BufferedImage
 import java.io.InputStream
@@ -41,7 +41,8 @@ class ImageFormat(val location: ResourceLocation) : SimpleTexture(location) {
     private fun decode(textures: InputStream): NativeImage {
         val ext = location.path.substringAfterLast('.')
 
-        val reader = if(ext == "png") PNGImageReader(PNGImageReaderSpi()) else ImageIO.getImageReadersByFormatName(ext).next()
+        val reader =
+            if (ext == "png") PNGImageReader(PNGImageReaderSpi()) else ImageIO.getImageReadersByFormatName(ext).next()
         reader.input = ImageIO.createImageInputStream(textures)
         framesCount = reader.getNumImages(true)
         val images = (0 until framesCount).map(reader::read)
@@ -72,7 +73,7 @@ class ImageFormat(val location: ResourceLocation) : SimpleTexture(location) {
                     val g = (((pixel shr 8) and 0xFF)) // G
                     val b = ((pixel and 0xFF)) // B
                     val a = (((pixel shr 24) and 0xFF)) // A
-                    nImage.setPixelRGBA(x + xOffset, yOffset + y + i * this.height, ABGR32.color(a, b, g, r))
+                    nImage.setPixelRGBA(x + xOffset, yOffset + y + i * this.height, HollowColor(a, b, g, r).toABGR())
                 }
             }
         }
@@ -105,11 +106,16 @@ private fun IIOMetadata.getFrameRate(): Int {
     val nNodes: Int = root.length
     for (j in 0 until nNodes) {
         val node = root.item(j)
-        if (node.nodeName.equals("GraphicControlExtension", ignoreCase = true) || node.nodeName.equals("fcTL", ignoreCase = true)) {
+        if (node.nodeName.equals("GraphicControlExtension", ignoreCase = true) || node.nodeName.equals(
+                "fcTL",
+                ignoreCase = true
+            )
+        ) {
             val item = node as IIOMetadataNode
-            val delay = if(item.hasAttribute("delayTime")) item.getAttribute("delayTime").toInt() else item.getAttribute("delay_den").toInt()
+            val delay = if (item.hasAttribute("delayTime")) item.getAttribute("delayTime")
+                .toInt() else item.getAttribute("delay_den").toInt()
             if (delay == 0) return 1
-            return if(item.hasAttribute("delayTime")) (100f / delay).toInt() else delay
+            return if (item.hasAttribute("delayTime")) (100f / delay).toInt() else delay
         }
     }
     return 1

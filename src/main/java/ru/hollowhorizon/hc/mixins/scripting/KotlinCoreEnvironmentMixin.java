@@ -1,6 +1,10 @@
 package ru.hollowhorizon.hc.mixins.scripting;
 
-import net.minecraftforge.fml.loading.FMLLoader;
+//? if forge {
+/*import net.minecraftforge.fml.loading.FMLLoader;
+*///?} elif neoforge {
+/*import net.neoforged.fml.loading.FMLLoader;*/
+//?}
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment;
 import org.jetbrains.kotlin.utils.PathUtil;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,10 +17,12 @@ import java.io.File;
 public class KotlinCoreEnvironmentMixin {
 
     //? if forge || neoforge {
-    @Redirect(method = "registerApplicationExtensionPointsAndExtensionsFrom", at = @At(value = "INVOKE", target = "Lorg/jetbrains/kotlin/utils/PathUtil;getResourcePathForClass(Ljava/lang/Class;)Ljava/io/File;"), remap = false)
-    //?}
+    /*@Redirect(method = "registerApplicationExtensionPointsAndExtensionsFrom", at = @At(value = "INVOKE", target = "Lorg/jetbrains/kotlin/utils/PathUtil;getResourcePathForClass(Ljava/lang/Class;)Ljava/io/File;"), remap = false)
+    *///?}
     private File getResourcePathForClass(Class<?> aClass) {
-        if(!FMLLoader.isProduction()) return PathUtil.getResourcePathForClass(aClass);
+        //? if forge || neoforge {
+        /*if(!FMLLoader.isProduction()) return PathUtil.getResourcePathForClass(aClass);
+        *///?}
         return HollowScriptConfigurationKt.compilerJar();
     }
 }

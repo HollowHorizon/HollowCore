@@ -27,6 +27,7 @@
 package ru.hollowhorizon.hc.common.capabilities
 
 import kotlinx.serialization.Serializable
+import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
 import net.minecraft.world.entity.player.Player
@@ -39,7 +40,7 @@ import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
 import ru.hollowhorizon.hc.common.network.sendAllInDimension
 //? if <=1.19.2
-/*import ru.hollowhorizon.hc.client.utils.math.level*/
+import ru.hollowhorizon.hc.client.utils.math.level
 
 @HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
 @Serializable
@@ -74,7 +75,7 @@ class SSyncEntityCapabilityPacket(
             ?: throw IllegalStateException("Entity with id $entityId not found: $this".apply(HollowCore.LOGGER::warn))
         val cap = (entity as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
 
-        if (cap.canAcceptFromClient(player)) {
+        if (cap.canAcceptFromClient(player, value)) {
             cap.deserializeNBT(value)
             CSyncEntityCapabilityPacket(
                 entityId, capability, value
@@ -98,7 +99,6 @@ class CSyncLevelCapabilityPacket(
             cap.deserializeNBT(value)
         }
     }
-
 }
 
 @HollowPacketV2(HollowPacketV2.Direction.TO_SERVER)
@@ -116,9 +116,25 @@ class SSyncLevelCapabilityPacket(
             ?: throw IllegalStateException("Level not found: $level".apply(HollowCore.LOGGER::warn))
         val cap = (level as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
 
-        if (cap.canAcceptFromClient(player)) {
+        if (cap.canAcceptFromClient(player, value)) {
             cap.deserializeNBT(value)
             CSyncLevelCapabilityPacket(capability, value).sendAllInDimension(level)
+        }
+    }
+
+}
+
+@HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
+@Serializable
+class CSyncServerCapabilityPacket(
+    val capability: String,
+    val value: @Serializable(ForTag::class) Tag,
+): HollowPacketV3<CSyncLevelCapabilityPacket> {
+    override fun handle(player: Player) {
+        Minecraft.getInstance().singleplayerServer?.let { server ->
+            val cap = (server as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
+
+            cap.deserializeNBT(value)
         }
     }
 

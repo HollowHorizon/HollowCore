@@ -71,7 +71,7 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
 
 *///?} elif fabric {
 
-/*import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
@@ -147,4 +147,4 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
         }
     }
 }
-*///?}
+//?}

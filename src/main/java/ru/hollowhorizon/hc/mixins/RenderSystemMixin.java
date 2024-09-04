@@ -12,8 +12,8 @@ public class RenderSystemMixin {
     @Inject(method = {
             "flipFrame",
             //? if <=1.19.2 {
-            /*"m_69495_"
-            *///?}
+            "m_69495_"
+            //?}
     }, at = @At("HEAD"), remap = false)
     private static void onRenderFrame(long l, CallbackInfo ci) {
         ImGuiHandler.INSTANCE.renderFrames();

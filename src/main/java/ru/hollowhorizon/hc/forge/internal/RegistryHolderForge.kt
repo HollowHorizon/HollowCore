@@ -1,10 +1,10 @@
 package ru.hollowhorizon.hc.forge.internal
 
 //? if forge && >=1.21 {
-import net.minecraft.core.component.DataComponentType
+/*import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
-//?} elif forge && >=1.20.1 {
+*///?} elif forge && >=1.20.1 {
 
 /*import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
@@ -12,7 +12,7 @@ import net.minecraft.core.registries.Registries
 
 //? if forge {
 
-import net.minecraft.core.Registry
+/*import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
@@ -86,20 +86,20 @@ class RegistryHolderForge<T : Any>(
             )
 
             //? if >=1.20.1 {
-            CreativeModeTab::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+            /^CreativeModeTab::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 Registries.CREATIVE_MODE_TAB, location.namespace
             )
-            //?}
+            ^///?}
 
             ParticleType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 ForgeRegistries.PARTICLE_TYPES,
                 location.namespace
             )
             //? if >=1.21 {
-            DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+            /^DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 BuiltInRegistries.DATA_COMPONENT_TYPE.key(), location.namespace
             )
-            //?}
+            ^///?}
 
             registry != null -> DeferredRegister.create(registry.key(), location.namespace)
 
@@ -135,4 +135,4 @@ class RegistryHolderForge<T : Any>(
         return RegistryObject { result.get() }
     }
 }
-//?}
+*///?}

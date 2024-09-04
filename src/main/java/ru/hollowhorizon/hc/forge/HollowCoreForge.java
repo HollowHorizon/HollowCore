@@ -1,5 +1,5 @@
 //? if forge {
-package ru.hollowhorizon.hc.forge;
+/*package ru.hollowhorizon.hc.forge;
 
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
@@ -22,10 +22,10 @@ public class HollowCoreForge {
         isModLoaded = ModList.get()::isLoaded;
         isProduction_ = // На 1.20+ Forge почему-то решил больше не обфусцировать игру... Ну и зачем я тогда обфускатор скриптов писал?((
                 //? if <=1.20.1 {
-                /*FMLLoader::isProduction;
-                *///?} else {
-                () -> false;
-                //?}
+                FMLLoader::isProduction;
+                //?} else {
+                /^() -> false;
+                ^///?}
         shouldOverrideShaders = () -> false;
 
         var core = CoreInitializationForge.INSTANCE;
@@ -38,4 +38,4 @@ public class HollowCoreForge {
         if (FMLEnvironment.dist.isClient()) new HollowCoreClientForge();
     }
 }
-//?}
+*///?}

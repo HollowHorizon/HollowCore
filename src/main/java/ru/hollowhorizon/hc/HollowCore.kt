@@ -50,10 +50,10 @@ object HollowCore {
         //? if forge {
         /*Platform.FORGE
         *///?} elif neoforge {
-        Platform.NEOFORGE
-        //?} else {
-        /*Platform.FABRIC
-        *///?}
+        /*Platform.NEOFORGE
+        *///?} else {
+        Platform.FABRIC
+        //?}
 
     @JvmField
     val LOGGER: Logger = ru.hollowhorizon.hc.LOGGER

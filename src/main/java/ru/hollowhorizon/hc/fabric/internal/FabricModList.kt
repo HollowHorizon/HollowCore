@@ -1,5 +1,5 @@
 //? if fabric {
-/*package ru.hollowhorizon.hc.fabric.internal
+package ru.hollowhorizon.hc.fabric.internal
 
 import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.loader.api.metadata.ModOrigin
@@ -60,4 +60,4 @@ fun FabricLoader.getNestedModFile(origin: ModOrigin): File {
 
     return newFile
 }
-*///?}
+//?}

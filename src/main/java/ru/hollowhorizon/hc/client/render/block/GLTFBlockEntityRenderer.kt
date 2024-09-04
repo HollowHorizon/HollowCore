@@ -48,8 +48,10 @@ import ru.hollowhorizon.hc.client.utils.memoize
 import ru.hollowhorizon.hc.client.utils.rl
 
 //? if <=1.19.2 {
-/*import ru.hollowhorizon.hc.client.utils.math.mulPose
-*///?}
+import ru.hollowhorizon.hc.client.utils.math.mulPose
+import ru.hollowhorizon.hc.client.utils.math.mulPoseMatrix
+import ru.hollowhorizon.hc.client.utils.math.mul
+//?}
 
 
 class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Context) :
@@ -111,11 +113,11 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
         stack: PoseStack,
     ) {
         //? if <1.21 {
-        /*stack.mulPoseMatrix(capability.transform.matrix)
-        *///?} else {
+        stack.mulPoseMatrix(capability.transform.matrix)
+        //?} else {
 
-        stack.mulPose(capability.transform.matrix)
-        //?}
+        /*stack.mulPose(capability.transform.matrix)
+        *///?}
         stack.last().normal().mul(capability.transform.normalMatrix)
         stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
         animationPlayer.currentLoopAnimation = AnimationType.IDLE
