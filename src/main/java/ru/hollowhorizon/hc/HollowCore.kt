@@ -48,10 +48,10 @@ object HollowCore {
     const val MODID: String = "hollowcore"
     val platform: Platform =
         //? if forge {
-        /*Platform.FORGE
-        *///?} elif neoforge {
-        Platform.NEOFORGE
-        //?} else {
+        Platform.FORGE
+        //?} elif neoforge {
+        /*Platform.NEOFORGE
+        *///?} else {
         /*Platform.FABRIC
         *///?}
 

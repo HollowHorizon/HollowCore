@@ -135,7 +135,6 @@ dependencies {
     dependency("team.0mods:imgui-binding-natives:$imguiVersion")
     dependency("com.tianscar.imageio:imageio-apng:1.0.1")
 
-
     // OTHER
     implementation("org.ow2.asm:asm:9.7")
     implementation("org.ow2.asm:asm-tree:9.7")
@@ -234,7 +233,7 @@ yamlang {
 
 fun DependencyHandlerScope.includes(vararg libraries: String) {
     for (library in libraries) {
-        "include"(library)
+        include(library)
     }
 }
 
@@ -280,7 +279,7 @@ fun DependencyHandlerScope.dependency(path: String) {
     dependency.takeIf { modPlatform == "forge" || modPlatform == "neoforge" }?.let {
         "forgeRuntimeLibrary"(it)
     }
-    "include"(dependency)
+    include(dependency)
 }
 
 fun DependencyHandlerScope.minecraft(version: String) = "minecraft"("com.mojang:minecraft:$version")
@@ -299,30 +298,30 @@ fun setupMappings(version: String): Dependency = loom.layered {
 
 fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
     minecraft(version)
-    "mappings"(setupMappings(version))
+    mappings(setupMappings(version))
 
     when (loader) {
         "fabric" -> {
             when (version) {
                 "1.21" -> {
-                    "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
-                    "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.102.0+$version")
-                    "modImplementation"("mods:sodium:0.6.0")
-                    "modImplementation"("mods:iris:1.8.0")
+                    modImplementation("net.fabricmc:fabric-loader:0.15.11")
+                    modImplementation("net.fabricmc.fabric-api:fabric-api:0.102.0+$version")
+                    modImplementation("mods:sodium:0.6.0")
+                    modImplementation("mods:iris:1.8.0")
                 }
 
                 "1.20.1" -> {
-                    "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
-                    "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.92.2+$version")
+                    modImplementation("net.fabricmc:fabric-loader:0.15.11")
+                    modImplementation("net.fabricmc.fabric-api:fabric-api:0.92.2+$version")
                     compileOnly("mods:sodium:0.5.11")
                     compileOnly("mods:iris:1.7.2")
                 }
 
                 "1.19.2" -> {
-                    "modImplementation"("net.fabricmc:fabric-loader:0.15.11")
-                    "modImplementation"("net.fabricmc.fabric-api:fabric-api:0.77.0+$version")
-                    "modImplementation"("mods:sodium:0.4.4")
-                    "modImplementation"("mods:iris:1.6.11")
+                    modImplementation("net.fabricmc:fabric-loader:0.15.11")
+                    modImplementation("net.fabricmc.fabric-api:fabric-api:0.77.0+$version")
+                    modImplementation("mods:sodium:0.4.4")
+                    modImplementation("mods:iris:1.6.11")
                     dependency("org.joml:joml:1.10.8")
                 }
 
