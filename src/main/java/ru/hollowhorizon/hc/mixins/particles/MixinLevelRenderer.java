@@ -58,14 +58,14 @@ public class MixinLevelRenderer {
         var capture = RenderStateCapture.LEVEL;
         var capturedPose = capture.pose.last();
         //? if >=1.20.1 {
-        /^capturedPose.pose().set(poseStack.last().pose());
+        capturedPose.pose().set(poseStack.last().pose());
         capturedPose.normal().set(poseStack.last().normal());
         capture.projection.set(projectionMatrix);
-        ^///?} else {
-        capturedPose.pose().load(poseStack.last().pose());
+        //?} else {
+        /^capturedPose.pose().load(poseStack.last().pose());
         capturedPose.normal().load(poseStack.last().normal());
         capture.projection.set(ForgeKotlinKt.fromMc(projectionMatrix.copy()));
-        //?}
+        ^///?}
         capture.camera = camera;
         capture.hasCapture = true;
 
