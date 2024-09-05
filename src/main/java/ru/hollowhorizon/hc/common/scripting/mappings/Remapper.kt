@@ -18,10 +18,10 @@ object Remapper {
         *///?} elif fabric && >=1.20.1 {
         /*"mappings-1.20.1.tiny"
         *///?} elif fabric && >=1.19.2 {
-        /*"mappings-1.19.2.tiny",
-        *///?} elif forge && >=1.20.1 {
-        "mappings-1.20.1.tsrg"
-        //?} else
+        "mappings-1.19.2.tiny",
+        //?} elif forge && >=1.20.1 {
+        /*"mappings-1.20.1.tsrg"
+        *///?} else
         /*"mappings-1.19.2.tsrg"*/
         //?}
     )

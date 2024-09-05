@@ -1,5 +1,5 @@
 //? if fabric {
-/*package ru.hollowhorizon.hc.fabric;
+package ru.hollowhorizon.hc.fabric;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -32,4 +32,4 @@ public class HollowCoreFabric implements ModInitializer {
         NetworkHelper.register();
     }
 }
-*///?}
+//?}

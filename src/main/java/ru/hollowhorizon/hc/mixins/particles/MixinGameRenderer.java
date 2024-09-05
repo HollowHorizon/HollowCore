@@ -39,9 +39,9 @@ import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer;
 import static ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.pasteToCurrentDepthFrom;
 
 //? if >=1.21 {
-import net.minecraft.client.DeltaTracker;
+/*import net.minecraft.client.DeltaTracker;
  
-//?}
+*///?}
 
 @Mixin(GameRenderer.class)
 public class MixinGameRenderer {
@@ -51,10 +51,10 @@ public class MixinGameRenderer {
 
     @Inject(method = "renderLevel", at = @At("TAIL"))
     //? if <1.21 {
-    /*private void renderLevelTail(float partialTicks, long finishTimeNano, PoseStack poseStack, CallbackInfo ci) {
-    *///?} else {
-    private void renderLevelTail(DeltaTracker deltaTracker, CallbackInfo ci) {
-    //?}
+    private void renderLevelTail(float partialTicks, long finishTimeNano, PoseStack poseStack, CallbackInfo ci) {
+    //?} else {
+    /*private void renderLevelTail(DeltaTracker deltaTracker, CallbackInfo ci) {
+    *///?}
 
         if (RenderContext.renderLevelDeferred() && RenderStateCapture.LEVEL.hasCapture) {
             RenderStateCapture.LEVEL.hasCapture = false;
@@ -63,10 +63,10 @@ public class MixinGameRenderer {
             assert RenderStateCapture.LEVEL.camera != null;
             EffekRenderer.onRenderWorldLast(
                     //? if <1.21 {
-                    /*partialTicks,
-                    *///?} else {
-                    deltaTracker.getRealtimeDeltaTicks(),
-                     //?}
+                    partialTicks,
+                    //?} else {
+                    /*deltaTracker.getRealtimeDeltaTicks(),
+                     *///?}
                     RenderStateCapture.LEVEL.pose, RenderStateCapture.LEVEL.projection, RenderStateCapture.LEVEL.camera);
         }
         final var minecraft = Minecraft.getInstance();
@@ -78,10 +78,10 @@ public class MixinGameRenderer {
             assert minecraft.player != null;
             ((EffekFpvRenderer) minecraft.gameRenderer.itemInHandRenderer).hollowcore$renderFpvEffek(
                     //? if <1.21 {
-                    /*partialTicks,
-                    *///?} else {
-                    deltaTracker.getRealtimeDeltaTicks(),
-                     //?}
+                    partialTicks,
+                    //?} else {
+                    /*deltaTracker.getRealtimeDeltaTicks(),
+                     *///?}
                     minecraft.player);
         }
     }

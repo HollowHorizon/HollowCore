@@ -4,16 +4,16 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 //? if <=1.19.2 {
-/*import ru.hollowhorizon.hc.api.Matrix4fAccessor;
-*///?}
+import ru.hollowhorizon.hc.api.Matrix4fAccessor;
+//?}
 
 @Mixin(targets = "com/mojang/math/Matrix4f")
 public class Matrix4fMixin
         //? if <=1.19.2
-        /*implements Matrix4fAccessor*/
+        implements Matrix4fAccessor
 {
     //? if <=1.19.2 {
-    /*@Shadow
+    @Shadow
     protected float m00;
     @Shadow
     protected float m01;
@@ -77,5 +77,5 @@ public class Matrix4fMixin
         m32 = m.m23();
         m33 = m.m33();
     }
-    *///?}
+    //?}
 }

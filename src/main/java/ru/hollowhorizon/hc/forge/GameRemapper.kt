@@ -2,7 +2,7 @@ package ru.hollowhorizon.hc.forge
 
 //? if forge {
 
-import kotlinx.serialization.ExperimentalSerializationApi
+/*import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -35,11 +35,11 @@ object GameRemapper {
                 .toMutableSet()
 
         //? if <=1.20.1 {
-        /*jarsToRemap += FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map { File(it.absolutePathString()) }
+        jarsToRemap += FMLLoader.getLaunchHandler().minecraftPaths.minecraftPaths.map { File(it.absolutePathString()) }
             .toTypedArray()
-        *///?} else {
-        jarsToRemap += FMLLoader.getLaunchHandler().minecraftPaths.map { File(it.absolutePathString()) }.toTypedArray()
-        //?}
+        //?} else {
+        /^jarsToRemap += FMLLoader.getLaunchHandler().minecraftPaths.map { File(it.absolutePathString()) }.toTypedArray()
+        ^///?}
 
         jarsToRemap
             .filter { it.isFile && it.name.endsWith(".jar") }
@@ -100,4 +100,4 @@ object GameRemapper {
         }
     }
 }
-//?}
+*///?}

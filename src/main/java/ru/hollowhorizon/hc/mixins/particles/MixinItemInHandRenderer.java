@@ -44,7 +44,7 @@ import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
 import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer;
 import ru.hollowhorizon.hc.client.utils.Captures;
 //? if <=1.19.2
-/*import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;*/
+import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 
 import static ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.copyCurrentDepthTo;
 
@@ -59,29 +59,29 @@ public class MixinItemInHandRenderer implements EffekFpvRenderer {
     }
 
     //? if >=1.20.1 {
-    @Inject(
+    /*@Inject(
             method = "renderArmWithItem",
             at = @At(value = "INVOKE", shift = At.Shift.AFTER, target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V")
     )
-    //?} else {
-    /*@Inject(
+    *///?} else {
+    @Inject(
             method = "renderArmWithItem",
             at = @At(value = "INVOKE", shift = At.Shift.AFTER, target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/block/model/ItemTransforms$TransformType;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V")
     )
-    *///?}
+    //?}
     private void setFpvRenderState(AbstractClientPlayer player, float partial, float g, InteractionHand hand, float h, ItemStack stack, float i, PoseStack poseStack, MultiBufferSource buffer, int j, CallbackInfo ci) {
         var stackTop = poseStack.last();
         var capture = Captures.INSTANCE.getCAPTURES().get(hand);
         capture.hasCapture = true;
         //? if >=1.20.1 {
-        capture.pose.last().pose().set(stackTop.pose());
+        /*capture.pose.last().pose().set(stackTop.pose());
         capture.pose.last().normal().set(stackTop.normal());
         capture.projection.set(RenderSystem.getProjectionMatrix());
-        //?} else {
-        /*capture.pose.last().pose().load(stackTop.pose());
+        *///?} else {
+        capture.pose.last().pose().load(stackTop.pose());
         capture.pose.last().normal().load(stackTop.normal());
         capture.projection.set(ForgeKotlinKt.fromMc(RenderSystem.getProjectionMatrix()));
-        *///?}
+        //?}
         capture.item = stack;
     }
 
@@ -99,7 +99,7 @@ public class MixinItemInHandRenderer implements EffekFpvRenderer {
     @Override
     public void hollowcore$renderFpvEffek(float partial, @NotNull LocalPlayer player) {
         //? if >=1.20.1 {
-        var oldSorting = RenderSystem.getVertexSorting();
+        /*var oldSorting = RenderSystem.getVertexSorting();
         var oldProjection = RenderSystem.getProjectionMatrix();
 
         var camera = Minecraft.getInstance().gameRenderer.getMainCamera();
@@ -118,8 +118,8 @@ public class MixinItemInHandRenderer implements EffekFpvRenderer {
         });
 
         RenderSystem.setProjectionMatrix(oldProjection, oldSorting);
-        //?} else {
-        /*var oldProjection = RenderSystem.getProjectionMatrix();
+        *///?} else {
+        var oldProjection = RenderSystem.getProjectionMatrix();
 
         var camera = Minecraft.getInstance().gameRenderer.getMainCamera();
         Captures.INSTANCE.getCAPTURES().forEach((hand, capture) -> {
@@ -137,6 +137,6 @@ public class MixinItemInHandRenderer implements EffekFpvRenderer {
         });
 
         RenderSystem.setProjectionMatrix(oldProjection);
-        *///?}
+        //?}
     }
 }

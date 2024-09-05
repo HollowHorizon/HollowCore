@@ -5,16 +5,16 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
 //? if <=1.19.2 {
-/*import ru.hollowhorizon.hc.api.Matrix3fAccessor;
-*///?}
+import ru.hollowhorizon.hc.api.Matrix3fAccessor;
+//?}
 
 @Mixin(targets = "com/mojang/math/Matrix3f")
 public class Matrix3fMixin
         //? if <=1.19.2
-        /*implements Matrix3fAccessor*/
+        implements Matrix3fAccessor
 {
     //? if <=1.19.2 {
-    /*@Shadow
+    @Shadow
     protected float m00;
     @Shadow
     protected float m01;
@@ -55,5 +55,5 @@ public class Matrix3fMixin
         m21 = m.m12();
         m22 = m.m22();
     }
-    *///?}
+    //?}
 }

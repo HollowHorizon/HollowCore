@@ -44,7 +44,7 @@ import kotlin.math.abs
 import kotlin.random.Random
 
 //? if <=1.19.2
-/*import ru.hollowhorizon.hc.client.utils.math.level*/
+import ru.hollowhorizon.hc.client.utils.math.level
 
 tailrec fun Player.findRandomPos(radius: Int): Vec3 {
     val distance = Random.nextDouble(1.0, radius.toDouble())

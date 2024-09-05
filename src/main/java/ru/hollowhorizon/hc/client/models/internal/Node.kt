@@ -13,8 +13,8 @@ import ru.hollowhorizon.hc.client.utils.toTexture
 import ru.hollowhorizon.hc.client.utils.use
 
 //? if <=1.19.2 {
-/*import ru.hollowhorizon.hc.client.utils.toMc
-*///?}
+import ru.hollowhorizon.hc.client.utils.toMc
+//?}
 
 class Node(
     val index: Int,
@@ -91,12 +91,12 @@ class Node(
 
         stack.use {
             //? if >=1.21 {
-            mulPose(localMatrix)
-            //?} elif >=1.20.1 {
+            /*mulPose(localMatrix)
+            *///?} elif >=1.20.1 {
             /*mulPoseMatrix(localMatrix)
             *///?} else {
-            /*mulPoseMatrix(localMatrix.toMc())
-            *///?}
+            mulPoseMatrix(localMatrix.toMc())
+            //?}
 
             mesh?.render(this@Node, stack, changedTexture)
             children.forEach { it.render(stack, nodeRenderer, data, changedTexture, light) }
@@ -112,15 +112,15 @@ class Node(
     ) {
         stack.use {
             //? if >=1.21 {
-            mulPose(localMatrix)
+            /*mulPose(localMatrix)
             last().normal().mul(normalMatrix)
-            //?} elif >=1.20.1 {
+            *///?} elif >=1.20.1 {
             /*mulPoseMatrix(localMatrix)
             last().normal().mul(normalMatrix)
             *///?} else {
-            /*mulPoseMatrix(localMatrix.toMc())
+            mulPoseMatrix(localMatrix.toMc())
             last().normal().mul(normalMatrix.toMc())
-            *///?}
+            //?}
 
             data.entity?.let {
                 nodeRenderer(it, stack, this@Node, source, light)

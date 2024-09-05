@@ -46,16 +46,15 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import java.io.InputStream
+import kotlin.jvm.optionals.getOrDefault
 import kotlin.reflect.KClass
 
-//? if >=1.21 {
-import kotlin.jvm.optionals.getOrDefault
-//?} elif <=1.19.2 {
-/*import org.joml.Matrix3f
+//? if <=1.19.2 {
+import org.joml.Matrix3f
 import org.joml.Matrix4f
 import ru.hollowhorizon.hc.api.Matrix3fAccessor
 import ru.hollowhorizon.hc.api.Matrix4fAccessor
-*///?}
+//?}
 
 
 val mc: Minecraft get() = Minecraft.getInstance()
@@ -84,7 +83,8 @@ lateinit var currentServer: MinecraftServer
 lateinit var shouldOverrideShaders: () -> Boolean
 
 val registryAccess: RegistryAccess
-    get() = if (currentServer is IntegratedServer) Minecraft.getInstance().connection?.registryAccess() ?: currentServer.registryAccess()
+    get() = if (currentServer is IntegratedServer) Minecraft.getInstance().connection?.registryAccess()
+        ?: currentServer.registryAccess()
     else currentServer.registryAccess()
 
 
@@ -103,10 +103,10 @@ operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T = when (
 val String.rl
     get() =
 //? if <1.21 {
-        /*ResourceLocation(this)
-*///?} else {
-ResourceLocation.parse(this)
-//?}
+    ResourceLocation(this)
+//?} else {
+        /*ResourceLocation.parse(this)
+*///?}
 
 fun resource(resource: String) = "${HollowCore.MODID}:$resource".rl.stream
 
@@ -116,18 +116,18 @@ fun ResourceLocation.toIS(): InputStream {
 
 fun ItemStack.save(): CompoundTag {
     //? if <1.21 {
-    /*return CompoundTag().apply(::save)
-    *///?} else {
-    return save(registryAccess) as CompoundTag
-    //?}
+    return CompoundTag().apply(::save)
+    //?} else {
+    /*return save(registryAccess) as CompoundTag
+    *///?}
 }
 
 fun CompoundTag.readItem(): ItemStack {
     //? if <1.21 {
-    /*return ItemStack.of(this)
-    *///?} else {
-    return ItemStack.parse(registryAccess, this).getOrDefault(ItemStack.EMPTY)
-    //?}
+    return ItemStack.of(this)
+    //?} else {
+    /*return ItemStack.parse(registryAccess, this).getOrDefault(ItemStack.EMPTY)
+    *///?}
 }
 
 fun ResourceLocation.exists(): Boolean {
@@ -195,8 +195,8 @@ enum class Anchor {
 }
 
 
-fun Int.toRGBA(): RGBA {
-    return RGBA(
+fun Int.toRGBA(): HollowColor {
+    return HollowColor(
         (this shr 16 and 255).toFloat() / 255.0f,
         (this shr 8 and 255).toFloat() / 255.0f,
         (this and 255).toFloat() / 255.0f,
@@ -204,13 +204,37 @@ fun Int.toRGBA(): RGBA {
     )
 }
 
-data class RGBA(val r: Float, val g: Float, val b: Float, val a: Float) {
-    fun toInt(): Int {
+fun Int.toABGR(): HollowColor {
+    return HollowColor(
+        (this and 255).toFloat() / 255.0f,
+        (this shr 8 and 255).toFloat() / 255.0f,
+        (this shr 16 and 255).toFloat() / 255.0f,
+        (this shr 24 and 255).toFloat() / 255.0f
+    )
+}
+
+
+data class HollowColor(val r: Float, val g: Float, val b: Float, val a: Float) {
+    constructor(r: Int, g: Int, b: Int, a: Int) : this(
+        r.toFloat() / 255f,
+        g.toFloat() / 255f,
+        b.toFloat() / 255f,
+        a.toFloat() / 255f
+    )
+
+    fun toRGBA(): Int {
         val red = (r * 255.0f + 0.5f).toInt() shl 16
         val green = (g * 255.0f + 0.5f).toInt() shl 8
         val blue = (b * 255.0f + 0.5f).toInt()
         val alpha = (a * 255.0f + 0.5f).toInt() shl 24
         return alpha or red or green or blue
+    }
+
+    fun toABGR(): Int {
+        return ((a * 255f).toInt() shl 24) or
+                ((b * 255f).toInt() shl 16) or
+                ((g * 255f).toInt() shl 8) or
+                (r * 255f).toInt()
     }
 }
 
@@ -229,7 +253,7 @@ fun <A, B> ((A) -> B).memoize(): (A) -> B {
 
 //? if <=1.19.2 {
 
-/*fun Matrix4f.toMc(): com.mojang.math.Matrix4f {
+fun Matrix4f.toMc(): com.mojang.math.Matrix4f {
     val matrix = com.mojang.math.Matrix4f()
     (matrix as Matrix4fAccessor).`hollowcore$fromJoml`(this)
     return matrix
@@ -245,4 +269,4 @@ fun Matrix3f.toMc(): com.mojang.math.Matrix3f {
 
 fun com.mojang.math.Matrix3f.fromMc() = (this as Matrix3fAccessor).`hollowcore$toJoml`()
 
-*///?}
+//?}

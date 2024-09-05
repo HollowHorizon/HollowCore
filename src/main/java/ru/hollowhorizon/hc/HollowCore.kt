@@ -48,12 +48,12 @@ object HollowCore {
     const val MODID: String = "hollowcore"
     val platform: Platform =
         //? if forge {
-        Platform.FORGE
-        //?} elif neoforge {
+        /*Platform.FORGE
+        *///?} elif neoforge {
         /*Platform.NEOFORGE
         *///?} else {
-        /*Platform.FABRIC
-        *///?}
+        Platform.FABRIC
+        //?}
 
     @JvmField
     val LOGGER: Logger = ru.hollowhorizon.hc.LOGGER

@@ -27,10 +27,10 @@ package ru.hollowhorizon.hc.client.sounds
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 //? if >=1.20.1 {
-import net.minecraft.server.packs.resources.IoSupplier
-//?} else {
-/*import net.minecraft.server.packs.resources.Resource.IoSupplier
-*///?}
+/*import net.minecraft.server.packs.resources.IoSupplier
+*///?} else {
+import net.minecraft.server.packs.resources.Resource.IoSupplier
+//?}
 import net.minecraft.server.packs.resources.ResourceManager
 import ru.hollowhorizon.hc.HollowCore
 import java.io.InputStream

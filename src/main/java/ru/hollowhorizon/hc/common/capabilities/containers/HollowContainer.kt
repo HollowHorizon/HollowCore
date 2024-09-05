@@ -25,7 +25,7 @@ open class HollowContainer(val capability: CapabilityInstance, val size: Int, pr
     }
 
     //? >=1.21 {
-    override fun serialize() =
+    /*override fun serialize() =
         ListTag().apply { addAll(items.map { if (!it.isEmpty) it.save() else CompoundTag() }) }
 
     override fun deserialize(tag: Tag) {
@@ -35,8 +35,8 @@ open class HollowContainer(val capability: CapabilityInstance, val size: Int, pr
 
             items[index] = tag.readItem()
         }
-    }//?} else {
-    /*override fun serialize() =
+    }*///?} else {
+    override fun serialize() =
         ListTag().apply {
             for(i in 0 until this@HollowContainer.size) {
                 add(getItem(i).save())
@@ -48,7 +48,7 @@ open class HollowContainer(val capability: CapabilityInstance, val size: Int, pr
             setItem(index, (tag as CompoundTag).readItem())
         }
     }
-    *///?}
+    //?}
 }
 
 fun CapabilityInstance.container(
