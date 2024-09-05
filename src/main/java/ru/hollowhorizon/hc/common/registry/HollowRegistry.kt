@@ -31,8 +31,9 @@ import ru.hollowhorizon.hc.LOGGER
 import kotlin.properties.ReadOnlyProperty
 
 open class HollowRegistry {
-
-    //Avoid fake NotNulls parameters like BlockEntityType.Builder::build
+    /**
+     * Avoid fake NotNulls parameters like BlockEntityType.Builder::build
+     */
     @Suppress("UNCHECKED_CAST")
     fun <T> promise(): T = null as T
 
@@ -44,8 +45,6 @@ open class HollowRegistry {
     ): IRegistryHolder<T> {
         return createRegistry(location, registry, autoModel, registryEntry, T::class.java) as IRegistryHolder<T>
     }
-
-    
 }
 
 lateinit var createRegistry: (ResourceLocation, Registry<*>?, Boolean, () -> Any, Class<*>) -> IRegistryHolder<*>
