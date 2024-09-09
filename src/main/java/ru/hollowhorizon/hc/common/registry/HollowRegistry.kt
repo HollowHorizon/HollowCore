@@ -26,11 +26,11 @@ package ru.hollowhorizon.hc.common.registry
 
 import net.minecraft.core.Registry
 import net.minecraft.resources.ResourceLocation
-import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.LOGGER
+import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.client.utils.rl
 import kotlin.properties.ReadOnlyProperty
 
-open class HollowRegistry {
+open class HollowRegistry(val modId: String = MODID) {
     /**
      * Avoid fake NotNulls parameters like BlockEntityType.Builder::build
      */
@@ -45,6 +45,13 @@ open class HollowRegistry {
     ): IRegistryHolder<T> {
         return createRegistry(location, registry, autoModel, registryEntry, T::class.java) as IRegistryHolder<T>
     }
+
+    inline fun <reified T: Any> register(
+        id: String,
+        autoModel: Boolean = true,
+        registry: Registry<in T>? = null,
+        noinline registryEntry: () -> T
+    ): IRegistryHolder<T> = register("$modId:$id".rl, autoModel, registry, registryEntry)
 }
 
 lateinit var createRegistry: (ResourceLocation, Registry<*>?, Boolean, () -> Any, Class<*>) -> IRegistryHolder<*>
