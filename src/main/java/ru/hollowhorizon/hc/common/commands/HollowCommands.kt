@@ -29,10 +29,17 @@ import net.minecraft.commands.arguments.EntityArgument
 import net.minecraft.commands.arguments.ResourceLocationArgument
 import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import net.minecraftforge.event.RegisterCommandsEvent
+import net.minecraftforge.fml.loading.FMLPaths
+import ru.hollowhorizon.hc.client.models.gltf.animations.PlayMode
+import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.gltf.manager.AnimationLayer
+import ru.hollowhorizon.hc.client.models.gltf.manager.LayerMode
 import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
+import ru.hollowhorizon.hc.client.utils.get
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.effects.ParticleEmitterInfo
 import ru.hollowhorizon.hc.common.effects.ParticleHelper
+import java.io.File
 
 object HollowCommands {
     fun onRegisterCommands(event: RegisterCommandsEvent) {
@@ -78,7 +85,82 @@ object HollowCommands {
                         ParticleHelper.addParticle(source.level, info, true)
                     }
                 }
+
+                "set-model"(
+                    arg("player", EntityArgument.player()),
+                    arg("model", StringArgumentType.greedyString(), listModels())
+                ) {
+                    val player = EntityArgument.getPlayer(this, "player")
+                    val model = StringArgumentType.getString(this, "model")
+
+                    player[AnimatedEntityCapability::class.java].model = model
+                }
+
+                "play-once"(
+                    arg("player", EntityArgument.player()),
+                    arg("animation", StringArgumentType.greedyString())
+                ) {
+                    val player = EntityArgument.getPlayer(this, "player")
+                    val animation = StringArgumentType.getString(this, "animation")
+                    val capability = player[AnimatedEntityCapability::class.java]
+                    if (!capability.layers.any { it.animation == animation }) {
+                        capability.layers += AnimationLayer(
+                            animation,
+                            LayerMode.ADD,
+                            PlayMode.ONCE,
+                            1.0f,
+                            0
+                        )
+                    }
+                }
+
+                "play-toggle"(
+                    arg("player", EntityArgument.player()),
+                    arg("animation", StringArgumentType.greedyString())
+                ) {
+                    val player = EntityArgument.getPlayer(this, "player")
+                    val animation = StringArgumentType.getString(this, "animation")
+                    val capability = player[AnimatedEntityCapability::class.java]
+                    if (!capability.layers.any { it.animation == animation }) {
+                        capability.layers += AnimationLayer(
+                            animation,
+                            LayerMode.ADD,
+                            PlayMode.LOOPED,
+                            1.0f,
+                            0
+                        )
+                    } else {
+                        capability.layers.removeIf { it.animation == animation }
+                    }
+                }
             }
         }
     }
+}
+
+fun listModels(): Collection<String> {
+    val list = mutableListOf<String>()
+    list += "hollowengine:models/entity/player_model.gltf"
+    list += "hollowengine:models/entity/player_model_slim.gltf"
+    list += "%EMPTY%"
+
+    list += File("hollowengine").resolve("assets").walk()
+        .filter { it.path.endsWith(".gltf") || it.path.endsWith(".glb") }
+        .toList()
+        .map {
+            it.toReadablePath().substring(7).replace(File.separator, "/").replaceFirst("/", ":")
+        }
+
+    return list
+}
+
+private fun File.toReadablePath(): String {
+    val folder = File("hollowengine").toPath()
+    val path = this.toPath()
+
+    return folder.relativize(path).toString().replace("\\", "/")
+}
+
+private fun String.fromReadablePath(): File {
+    return FMLPaths.GAMEDIR.get().resolve("hollowengine").resolve(this).toFile()
 }
