@@ -1,21 +1,23 @@
 package ru.hollowhorizon.hc.forge.internal
 
-//? if forge && >=1.21 {
-/*import net.minecraft.core.component.DataComponentType
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.core.registries.Registries
-*///?} elif forge && >=1.20.1 {
-/*import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.core.registries.Registries
-*///?} else {
-import net.minecraft.commands.synchronization.ArgumentTypeInfo
-import net.minecraft.core.Registry
-//?}
-
-
 //? if forge {
 
-/*import net.minecraft.core.Registry
+/*//? if >=1.21 {
+/^import net.minecraft.core.component.DataComponentType
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.Registries
+import net.minecraft.world.level.chunk.status.ChunkStatus
+^///?} elif >=1.20.1 {
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.Registries
+import net.minecraft.world.level.chunk.status.ChunkStatus
+//?} else {
+/^import net.minecraft.commands.synchronization.ArgumentTypeInfo
+import net.minecraft.world.level.chunk.ChunkStatus
+^///?}
+import net.minecraft.commands.synchronization.ArgumentTypeInfo
+
+import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
@@ -51,6 +53,7 @@ import net.minecraftforge.registries.DeferredRegister
 import net.minecraftforge.registries.ForgeRegistries
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.common.objects.blocks.IBlockItemProperties
+import ru.hollowhorizon.hc.common.registry.AutoModelType
 import ru.hollowhorizon.hc.common.registry.IRegistryHolder
 import ru.hollowhorizon.hc.common.registry.RegistryObject
 import kotlin.reflect.KProperty
@@ -59,7 +62,7 @@ import kotlin.reflect.KProperty
 class RegistryHolderForge<T : Any>(
     val location: ResourceLocation,
     val registry: Registry<T>? = null,
-    val autoModel: Boolean,
+    val autoModel: AutoModelType?,
     supplier: () -> T,
     val target: Class<T>,
 ) :
@@ -112,10 +115,10 @@ class RegistryHolderForge<T : Any>(
             )
 
             //? if >=1.20.1 {
-            /^CreativeModeTab::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+            CreativeModeTab::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 Registries.CREATIVE_MODE_TAB, location.namespace
             )
-            ^///?}
+            //?}
 
             ParticleType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 ForgeRegistries.PARTICLE_TYPES,
@@ -226,7 +229,7 @@ class RegistryHolderForge<T : Any>(
     private val result: net.minecraftforge.registries.RegistryObject<T> = registryType.register(location.path, supplier).apply {
         when {
             Block::class.java.isAssignableFrom(target) -> {
-                if (autoModel) HollowPack.addBlockModel(location)
+                if (autoModel != null) HollowPack.addBlockModel(location, autoModel)
 
                 if (IBlockItemProperties::class.java.isAssignableFrom(target)) {
                     val items: DeferredRegister<Item> =
@@ -241,7 +244,7 @@ class RegistryHolderForge<T : Any>(
             }
 
             Item::class.java.isAssignableFrom(target) -> {
-                if (autoModel) HollowPack.addItemModel(location)
+                if (autoModel != null) HollowPack.addItemModel(location, autoModel)
             }
         }
         registryType.register(FMLJavaModLoadingContext.get().modEventBus)

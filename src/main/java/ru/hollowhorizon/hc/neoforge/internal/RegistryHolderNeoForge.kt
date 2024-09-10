@@ -39,6 +39,7 @@ import net.neoforged.neoforge.registries.DeferredRegister
 import ru.hollowhorizon.hc.neoforge.HollowCoreNeoForge
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.common.objects.blocks.IBlockItemProperties
+import ru.hollowhorizon.hc.common.registry.AutoModelType
 import ru.hollowhorizon.hc.common.registry.IRegistryHolder
 import ru.hollowhorizon.hc.common.registry.RegistryObject
 import kotlin.reflect.KProperty
@@ -47,7 +48,7 @@ import kotlin.reflect.KProperty
 class RegistryHolderNeoForge<T : Any>(
     val location: ResourceLocation,
     val registry: Registry<T>? = null,
-    val autoModel: Boolean,
+    val autoModel: AutoModelType?,
     supplier: () -> T,
     val target: Class<T>,
 ) :
@@ -133,7 +134,7 @@ class RegistryHolderNeoForge<T : Any>(
                 location.namespace
             )
 
-            VillagerProfessiona::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+            VillagerProfession::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 BuiltInRegistries.VILLAGER_PROFESSION,
                 location.namespace
             )
@@ -197,7 +198,7 @@ class RegistryHolderNeoForge<T : Any>(
     private val result: DeferredHolder<T, T> = registryType.register(location.path, supplier).apply {
         when {
             Block::class.java.isAssignableFrom(target) -> {
-                if (autoModel) HollowPack.addBlockModel(location)
+                if (autoModel != null) HollowPack.addBlockModel(location, autoModel)
 
                 if (IBlockItemProperties::class.java.isAssignableFrom(target)) {
                     val items: DeferredRegister<Item> = DeferredRegister.createItems(location.namespace)
@@ -211,7 +212,7 @@ class RegistryHolderNeoForge<T : Any>(
             }
 
             Item::class.java.isAssignableFrom(target) -> {
-                if (autoModel) HollowPack.addItemModel(location)
+                if (autoModel != null) HollowPack.addItemModel(location, autoModel)
             }
         }
         registryType.register(HollowCoreNeoForge.MOD_BUS)

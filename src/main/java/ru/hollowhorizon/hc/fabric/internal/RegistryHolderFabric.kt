@@ -3,14 +3,14 @@ package ru.hollowhorizon.hc.fabric.internal
 
 import net.minecraft.commands.synchronization.ArgumentTypeInfo
 import net.minecraft.core.Registry
-//? if >1.21 {
+//? if >=1.21 {
 /*import net.minecraft.core.component.DataComponentType
 *///?}
 
 //? if >=1.20.1
-/*import net.minecraft.core.registries.BuiltInRegistries
+/*import net.minecraft.core.registries.BuiltInRegistries*/
 import net.minecraft.world.item.CreativeModeTab
-*/
+
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
@@ -44,6 +44,7 @@ import net.minecraft.world.level.levelgen.feature.treedecorators.TreeDecoratorTy
 import net.minecraft.world.level.material.Fluid
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.common.objects.blocks.IBlockItemProperties
+import ru.hollowhorizon.hc.common.registry.AutoModelType
 import ru.hollowhorizon.hc.common.registry.IRegistryHolder
 import ru.hollowhorizon.hc.common.registry.RegistryObject
 import kotlin.reflect.KProperty
@@ -52,7 +53,7 @@ import kotlin.reflect.KProperty
 class RegistryHolderFabric<T : Any>(
     val location: ResourceLocation,
     val registry: Registry<T>? = null,
-    val autoModel: Boolean,
+    val autoModel: AutoModelType?,
     supplier: () -> T,
     val target: Class<T>,
 ) :
@@ -128,7 +129,7 @@ class RegistryHolderFabric<T : Any>(
     private val result: T = Registry.register(registryType, location, supplier()).apply {
         when {
             Block::class.java.isAssignableFrom(target) -> {
-                if (autoModel) HollowPack.addBlockModel(location)
+                if (autoModel != null) HollowPack.addBlockModel(location, autoModel)
 
                 if (IBlockItemProperties::class.java.isAssignableFrom(target)) {
                     Registry.register(
@@ -140,7 +141,7 @@ class RegistryHolderFabric<T : Any>(
             }
 
             Item::class.java.isAssignableFrom(target) -> {
-                if (autoModel) HollowPack.addItemModel(location)
+                if (autoModel != null) HollowPack.addItemModel(location, autoModel)
             }
         }
     }

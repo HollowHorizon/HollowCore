@@ -39,7 +39,7 @@ open class HollowRegistry(val modId: String = MODID) {
 
     inline fun <reified T : Any> register(
         location: ResourceLocation,
-        autoModel: Boolean = true,
+        autoModel: AutoModelType? = AutoModelType.DEFAULT,
         registry: Registry<in T>? = null,
         noinline registryEntry: () -> T,
     ): IRegistryHolder<T> {
@@ -48,13 +48,13 @@ open class HollowRegistry(val modId: String = MODID) {
 
     inline fun <reified T: Any> register(
         id: String,
-        autoModel: Boolean = true,
+        autoModel: AutoModelType? = AutoModelType.DEFAULT,
         registry: Registry<in T>? = null,
         noinline registryEntry: () -> T
     ): IRegistryHolder<T> = register("$modId:$id".rl, autoModel, registry, registryEntry)
 }
 
-lateinit var createRegistry: (ResourceLocation, Registry<*>?, Boolean, () -> Any, Class<*>) -> IRegistryHolder<*>
+lateinit var createRegistry: (ResourceLocation, Registry<*>?, AutoModelType?, () -> Any, Class<*>) -> IRegistryHolder<*>
 
 interface IRegistryHolder<T> : ReadOnlyProperty<Any?, RegistryObject<T>>
 
