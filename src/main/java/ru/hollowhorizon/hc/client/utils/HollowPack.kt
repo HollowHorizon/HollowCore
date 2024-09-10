@@ -44,6 +44,7 @@ import java.util.function.Predicate
 //?}
 import net.minecraft.server.packs.repository.PackSource
 import net.minecraft.server.packs.resources./*? if >=1.20.1 {*//*IoSupplier*//*?} else {*/Resource.IoSupplier/*?}*/
+import ru.hollowhorizon.hc.common.registry.AutoModelType
 import java.io.ByteArrayInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -65,10 +66,10 @@ object HollowPack : PackResources {
             ofText("{\"blend\":{\"func\":\"add\",\"srcrgb\":\"one\",\"dstrgb\":\"zero\"},\"vertex\":\"sobel\",\"fragment\":\"$location\",\"attributes\":[\"Position\"],\"samplers\":[{\"name\":\"DiffuseSampler\"}],\"uniforms\":[{\"name\":\"ProjMat\",\"type\":\"matrix4x4\",\"count\":16,\"values\":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]},{\"name\":\"InSize\",\"type\":\"float\",\"count\":2,\"values\":[1.0,1.0]},{\"name\":\"OutSize\",\"type\":\"float\",\"count\":2,\"values\":[1.0,1.0]},{\"name\":\"Time\",\"type\":\"float\",\"count\":1,\"values\":[0.0]}]}")
     }
 
-    fun addItemModel(location: ResourceLocation) {
+    fun addItemModel(location: ResourceLocation, type: AutoModelType) {
         val modelLocation = "${location.namespace}:models/item/${location.path}.json".rl
         resourceMap[modelLocation] =
-            ofText("{\"parent\":\"item/handheld\",\"textures\":{\"layer0\":\"" + location.namespace + ":item/" + location.path + "\"}}")
+            ofText("{\"parent\":\"${type.modelId}\",\"textures\":{\"layer0\":\"" + location.namespace + ":item/" + location.path + "\"}}")
     }
 
     fun addParticleModel(location: ResourceLocation) {
@@ -76,13 +77,13 @@ object HollowPack : PackResources {
         resourceMap[particle] = ofText("{\"textures\":[\"$location\"]}")
     }
 
-    fun addBlockModel(location: ResourceLocation) {
+    fun addBlockModel(location: ResourceLocation, type: AutoModelType) {
         val blockstate = "${location.namespace}:blockstates/${location.path}.json".rl
         val model = "${location.namespace}:models/item/${location.path}.json".rl
         resourceMap[blockstate] =
             ofText("{\"variants\":{\"\":{\"model\":\"" + location.namespace + ":item/" + location.path + "\"}}}")
         resourceMap[model] =
-            ofText("{\"parent\":\"block/cube_all\",\"textures\":{\"all\":\"" + location.namespace + ":blocks/" + location.path + "\"}}")
+            ofText("{\"parent\":\"${if (type != AutoModelType.CUSTOM) "block/cube_all" else type.modelId}\",\"textures\":{\"all\":\"" + location.namespace + ":blocks/" + location.path + "\"}}")
     }
 
     fun addSoundJson(modid: String, sound: JsonObject) {

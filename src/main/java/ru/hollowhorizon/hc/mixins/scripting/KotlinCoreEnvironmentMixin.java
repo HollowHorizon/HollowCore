@@ -3,8 +3,8 @@ package ru.hollowhorizon.hc.mixins.scripting;
 //? if forge {
 /*import net.minecraftforge.fml.loading.FMLLoader;
 *///?} elif neoforge {
-/*import net.neoforged.fml.loading.FMLLoader;*/
-//?}
+/*import net.neoforged.fml.loading.FMLLoader;
+*///?}
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment;
 import org.jetbrains.kotlin.utils.PathUtil;
 import org.spongepowered.asm.mixin.Mixin;

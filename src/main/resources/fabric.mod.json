@@ -15,12 +15,8 @@
   "icon": "hollowcore.png",
   "environment": "*",
   "entrypoints": {
-    "main": [
-      "ru.hollowhorizon.hc.fabric.HollowCoreFabric"
-    ],
-    "client": [
-      "ru.hollowhorizon.hc.fabric.HollowCoreClientFabric"
-    ]
+    "main": ["ru.hollowhorizon.hc.fabric.HCFabric::onCommonInitialize"],
+    "client": ["ru.hollowhorizon.hc.fabric.HCFabric::onClientInitialize"]
   },
   "accessWidener": "hollowcore.accesswidener",
   "mixins": [
