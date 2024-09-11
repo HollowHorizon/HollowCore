@@ -1,4 +1,5 @@
 
+
 import groovy.lang.Closure
 import net.fabricmc.loom.api.remapping.RemapperExtension
 import net.fabricmc.loom.api.remapping.RemapperParameters
@@ -151,7 +152,6 @@ afterEvaluate {
     }
 }
 
-
 val buildAndCollect = tasks.register<Copy>("buildAndCollect") {
     group = "build"
     from(
@@ -251,7 +251,6 @@ yamlang {
     targetSourceSets.set(mutableListOf(sourceSets["main"]))
     inputDir.set("assets/${modId}/lang")
 }
-
 
 fun DependencyHandlerScope.includes(vararg libraries: String) {
     for (library in libraries) {
@@ -371,6 +370,25 @@ fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
             when (version) {
                 "1.21" -> "neoForge"("net.neoforged:neoforge:21.0.14-beta")
                 else -> throw IllegalStateException("Unsupported $loader version $version!")
+            }
+        }
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components.getByName("java"))
+            artifactId = project.base.archivesName.get()
+        }
+    }
+
+    repositories {
+        maven {
+            url = uri("https://maven.0mods.team/releases")
+            credentials {
+                username = System.getenv("MAVEN_USER")
+                password = System.getenv("MAVEN_PASSWORD")
             }
         }
     }
