@@ -43,6 +43,6 @@ jobs:
           prerelease: false
           title: "[MULTI-VERSIONED BUILD]"
           files: |
-            build/libs/1.19.2/*.jar
-            build/libs/1.20.1/*.jar
-            build/libs/1.21/*.jar
+            **/*.jar
+            !**/*-sources.jar
+            !**/*-dev.jar
