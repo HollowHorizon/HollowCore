@@ -82,6 +82,7 @@ object CoreInitializationFabric {
                 classes.flatMap { it.methodInfo }
                     .filter { it.annotationInfo.any { it.name == annotation.name } }
                     .filter { isClient || it.annotationInfo.all { it.name != ClientOnly::class.java.name } }
+                    .filter { isClient || it.classInfo.annotationInfo.all { it.name != ClientOnly::class.java.name } }
                     .safeMethods(annotation)
                     .toSet()
             }

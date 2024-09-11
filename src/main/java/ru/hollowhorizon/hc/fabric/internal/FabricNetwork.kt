@@ -5,6 +5,7 @@ package ru.hollowhorizon.hc.fabric.internal
 /*import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
+import net\.fabricmc\.loader\.api\.FabricLoader
 import net.minecraft.network.RegistryFriendlyByteBuf
 import net.minecraft.network.codec.StreamCodec
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
@@ -37,11 +38,14 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
             }
         }
     )
+
+    val isClient = FabricLoader.getInstance().environmentType == EnvType.CLIENT
+
     when (annotation.toTarget) {
         HollowPacketV2.Direction.TO_CLIENT -> {
             PayloadTypeRegistry.playS2C()
                 .register(location, codec)
-            ClientPlayNetworking.registerGlobalReceiver(location) { payload: T, context: ClientPlayNetworking.Context ->
+            if(isClient) ClientPlayNetworking.registerGlobalReceiver(location) { payload: T, context: ClientPlayNetworking.Context ->
                 payload.handle(context.player())
             }
         }
@@ -62,7 +66,7 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
             ServerPlayNetworking.registerGlobalReceiver(location) { payload: T, context: ServerPlayNetworking.Context ->
                 payload.handle(context.player())
             }
-            ClientPlayNetworking.registerGlobalReceiver(location) { payload: T, context: ClientPlayNetworking.Context ->
+            if(isClient) ClientPlayNetworking.registerGlobalReceiver(location) { payload: T, context: ClientPlayNetworking.Context ->
                 payload.handle(context.player())
             }
         }
@@ -71,8 +75,10 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
 
 *///?} elif fabric {
 
+import net.fabricmc.api.EnvType
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
+import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
@@ -105,10 +111,11 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
         }
     }
 
+    val isClient = FabricLoader.getInstance().environmentType == EnvType.CLIENT
 
     when (annotation.toTarget) {
         HollowPacketV2.Direction.TO_CLIENT -> {
-            ClientPlayNetworking.registerGlobalReceiver(
+            if(isClient) ClientPlayNetworking.registerGlobalReceiver(
                 location
             ) { client, handler, buf, responseSender ->
                 val player = client.player ?: Minecraft.getInstance().player
@@ -129,7 +136,7 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
         }
 
         HollowPacketV2.Direction.ANY -> {
-            ClientPlayNetworking.registerGlobalReceiver(
+            if(isClient) ClientPlayNetworking.registerGlobalReceiver(
                 location
             ) { client, handler, buf, responseSender ->
                 val player = client.player

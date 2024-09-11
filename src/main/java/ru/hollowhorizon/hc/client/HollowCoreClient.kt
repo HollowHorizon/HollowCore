@@ -39,6 +39,7 @@ import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
 import ru.hollowhorizon.hc.client.screens.CodeEditor
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.events.ClientOnly
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterKeyBindingsEvent
@@ -48,6 +49,7 @@ import ru.hollowhorizon.hc.common.events.tick.TickEvent
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor
 import ru.hollowhorizon.hc.common.registry.ModEntities
 
+@ClientOnly
 object HollowCoreClient {
 
     init {
