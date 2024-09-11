@@ -1,10 +1,10 @@
+
 import groovy.lang.Closure
 import net.fabricmc.loom.api.remapping.RemapperExtension
 import net.fabricmc.loom.api.remapping.RemapperParameters
 import net.fabricmc.loom.extension.LoomGradleExtensionImpl
 import net.fabricmc.loom.extension.RemapperExtensionHolder
 import net.fabricmc.tinyremapper.TinyRemapper
-import org.gradle.configurationcache.extensions.capitalized
 import java.util.*
 
 plugins {
@@ -203,6 +203,30 @@ tasks.processResources {
         "fabric" -> exclude("META-INF/neoforge.mods.toml", "META-INF/mods.toml")
     }
 
+    fun removeForCurrentPlatform() = if (modPlatform == "fabric")
+        "mappings-$minecraftVersion.tsrg"
+    else "mappings-SminecraftVersion.tiny"
+
+    when(minecraftVersion) {
+        "1.19.2" -> {
+            val excludation = mutableListOf("mappings-1.20.1.tiny", "mappings-1.20.1.tsrg", "mappings-1.21.tiny")
+            excludation += removeForCurrentPlatform()
+            exclude(excludation)
+        }
+
+        "1.20.1"-> {
+            val excludation = mutableListOf("mappings-1.19.2.tiny", "mappings-1.19.2.tsrg", "mappings-1.21.tiny")
+            excludation += removeForCurrentPlatform()
+            exclude(excludation)
+        }
+
+        "1.21" -> {
+            val excludation = mutableListOf("mappings-1.20.1.tiny", "mappings-1.20.1.tsrg", "mappings-1.19.2.tiny", "mappings-1.19.2.tsrg")
+            excludation += removeForCurrentPlatform()
+            exclude(excludation)
+        }
+    }
+
     filesMatching(
         listOf(
             "META-INF/mods.toml",
@@ -222,8 +246,6 @@ tasks.processResources {
         )
     }
 }
-
-
 
 yamlang {
     targetSourceSets.set(mutableListOf(sourceSets["main"]))

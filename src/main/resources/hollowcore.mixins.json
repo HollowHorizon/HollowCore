@@ -5,13 +5,11 @@
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "ClientLevelMixin",
     "CreativeModeTabMixin",
     "DimensionDataStorageAccessor",
     "ListTagAccessor",
     "LivingEntityMixin",
     "MinecraftServerMixin",
-    "MultiplayerGameModeMixin",
     "PackRepositoryMixin",
     "PlayerMixin",
     "ServerLevelMixin",
@@ -28,10 +26,12 @@
     "scripting.SlicedMapImplAccessor"
   ],
   "client": [
+    "ClientLevelMixin",
     "FontManagerAccessor",
     "GuiMixin",
     "Matrix3fMixin",
     "Matrix4fMixin",
+    "MultiplayerGameModeMixin",
     "RenderSystemMixin",
     "ScreenAccessor",
     "ShaderInstanceAccessor",
