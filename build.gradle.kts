@@ -1,5 +1,3 @@
-
-
 import groovy.lang.Closure
 import net.fabricmc.loom.api.remapping.RemapperExtension
 import net.fabricmc.loom.api.remapping.RemapperParameters
@@ -28,7 +26,7 @@ val minecraftVersion = stonecutter.current.project.substringBeforeLast('-')
 val modPlatform = stonecutter.current.project.substringAfterLast('-')
 val license = fromProperties("license")
 val modName = fromProperties("mod_name")
-val modVersion = minecraftVersion + "-" + fromProperties("mod_version")
+val modVersion = fromProperties("mod_version")
 val imguiVersion: String by rootProject
 
 loom {
@@ -73,7 +71,7 @@ group = fromProperties("mod_group")
 version = modVersion
 
 base {
-    archivesName = "$modName-$modPlatform"
+    archivesName = "$modName-$modPlatform-$minecraftVersion"
 }
 
 repositories {
