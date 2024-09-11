@@ -11,6 +11,7 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.JavaHacks
 import ru.hollowhorizon.hc.client.utils.isModLoaded
 import ru.hollowhorizon.hc.client.utils.isProduction_
+import ru.hollowhorizon.hc.common.registry.AutoModelType
 import ru.hollowhorizon.hc.common.registry.createRegistry
 import ru.hollowhorizon.hc.neoforge.internal.NeoForgeModList
 import ru.hollowhorizon.hc.neoforge.internal.RegistryHolderNeoForge
@@ -21,7 +22,7 @@ class HollowCoreNeoForge(modBus: IEventBus) {
         CoreInitializationNeoForge
 
         MOD_BUS = modBus
-        createRegistry = { resourceLocation, registry, automodel: Boolean, generator, aClass: Class<*> ->
+        createRegistry = { resourceLocation, registry, automodel: AutoModelType?, generator, aClass: Class<*> ->
             RegistryHolderNeoForge(
                 resourceLocation,
                 JavaHacks.forceCast(registry),
