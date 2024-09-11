@@ -2,16 +2,7 @@ name: mavenPublish
 on:
   push:
     branches: [ "stonecutter" ]
-  workflow_dispatch:
-    inputs:
-      no-maven:
-        description: 'Do not compile & maven publish'
-        required: true
-        default: 'false'
-      no-actions:
-        description: 'Do not any actions'
-        required: true
-        default: 'false'
+
 jobs:
   build:
     strategy:
@@ -21,6 +12,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: checkout repository
+        if: |
+          (!contains(github.event.head_commit.message, '[no-maven]')) || (!contains(github.event.head_commit.message, '[no-actions]'))
         uses: actions/checkout@v4
       - name: validate gradle wrapper
         uses: gradle/wrapper-validation-action@v1
@@ -32,8 +25,6 @@ jobs:
         run: chmod +x ./gradlew
       - name: Release to Maven
         uses: gradle/gradle-build-action@v2
-        if: |
-          (!contains(github.event.head_commit, '[no-maven]') || github.event.inputs.no-maven != 'true') || (!contains(github.event.head_commit, '[no-actions]') || github.event.inputs.no-actions != 'true')
         env:
           MAVEN_USER: ${{ secrets.MAVEN_USER }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
