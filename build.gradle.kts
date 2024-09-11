@@ -69,8 +69,11 @@ architectury {
     }
 }
 
+group = fromProperties("mod_group")
+version = modVersion
+
 base {
-    archivesName = "$modName-$modPlatform-$modVersion"
+    archivesName = "$modName-$modPlatform"
 }
 
 repositories {

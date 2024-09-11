@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
+        if: |
+          (!contains(github.event.head_commit, '[no-maven]') || github.event.inputs.no-maven != 'true') || (!contains(github.event.head_commit, '[no-actions]') || github.event.inputs.no-actions != 'true')
       - name: validate gradle wrapper
         uses: gradle/wrapper-validation-action@v1
       - name: setup jdk ${{ matrix.java }}
