@@ -20,7 +20,7 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
-      - name: Release to Maven and CurseForge
+      - name: Release to Maven
         uses: gradle/gradle-build-action@v2
         env:
           MAVEN_USER: ${{ secrets.MAVEN_USER }}
