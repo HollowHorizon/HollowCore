@@ -4,6 +4,16 @@ on:
     branches: [ "stonecutter" ]
   pull_request:
     branches: [ "stonecutter" ]
+  workflow_dispatch:
+    inputs:
+      no-build:
+        description: 'Do not compile & publish'
+        required: true
+        default: 'false'
+      no-actions:
+        description: 'Do not any actions'
+        required: true
+        default: 'false'
 
 jobs:
   build:

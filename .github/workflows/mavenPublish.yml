@@ -2,6 +2,16 @@ name: mavenPublish
 on:
   push:
     branches: [ "stonecutter" ]
+  workflow_dispatch:
+    inputs:
+      no-maven:
+        description: 'Do not compile & maven publish'
+        required: true
+        default: 'false'
+      no-actions:
+        description: 'Do not any actions'
+        required: true
+        default: 'false'
 jobs:
   build:
     strategy:
