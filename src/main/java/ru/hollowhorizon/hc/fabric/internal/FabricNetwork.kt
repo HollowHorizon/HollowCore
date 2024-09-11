@@ -2,7 +2,8 @@ package ru.hollowhorizon.hc.fabric.internal
 
 //? if fabric && >=1.21 {
 
-/*import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
+/*import net.fabricmc.api.EnvType
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.fabricmc.loader.api.FabricLoader
