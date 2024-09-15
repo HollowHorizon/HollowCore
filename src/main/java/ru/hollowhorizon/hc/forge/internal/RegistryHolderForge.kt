@@ -3,15 +3,15 @@ package ru.hollowhorizon.hc.forge.internal
 //? if forge {
 
 /*//? if >=1.21 {
-/^import net.minecraft.core.component.DataComponentType
+import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.world.level.chunk.status.ChunkStatus
-^///?} elif >=1.20.1 {
-import net.minecraft.core.registries.BuiltInRegistries
+//?} elif >=1.20.1 {
+/^import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.world.level.chunk.ChunkStatus
-//?} else {
+^///?} else {
 /^import net.minecraft.world.level.chunk.ChunkStatus
 ^///?}
 import net.minecraft.commands.synchronization.ArgumentTypeInfo
@@ -124,10 +124,10 @@ class RegistryHolderForge<T : Any>(
                 location.namespace
             )
             //? if >=1.21 {
-            /^DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+            DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 BuiltInRegistries.DATA_COMPONENT_TYPE.key(), location.namespace
             )
-            ^///?}
+            //?}
 
             MobEffect::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 ForgeRegistries.MOB_EFFECTS,
@@ -236,7 +236,7 @@ class RegistryHolderForge<T : Any>(
                     items.register(
                         location.path
                     ) {
-                        BlockItem(this as Block, (this as IBlockItemProperties).properties)
+                        BlockItem(this.get() as Block, (this as IBlockItemProperties).properties)
                     }
                     items.register(FMLJavaModLoadingContext.get().modEventBus)
                 }
@@ -246,7 +246,6 @@ class RegistryHolderForge<T : Any>(
                 if (autoModel != null) HollowPack.addItemModel(location, autoModel)
             }
         }
-        registryType.register(FMLJavaModLoadingContext.get().modEventBus)
     }
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): RegistryObject<T> {
