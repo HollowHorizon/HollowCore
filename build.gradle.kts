@@ -379,8 +379,11 @@ fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            from(components.getByName("java"))
-            artifactId = project.base.archivesName.get()
+            groupId = "ru.hollowhorizon"
+            artifactId = "$modName-$modPlatform-$minecraftVersion"
+            version = fromProperties("mod_version")
+
+            from(components["java"])
         }
     }
 
