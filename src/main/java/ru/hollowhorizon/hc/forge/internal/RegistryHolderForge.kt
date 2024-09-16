@@ -246,6 +246,7 @@ class RegistryHolderForge<T : Any>(
                 if (autoModel != null) HollowPack.addItemModel(location, autoModel)
             }
         }
+        registryType.register(FMLJavaModLoadingContext.get().modEventBus)
     }
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): RegistryObject<T> {
