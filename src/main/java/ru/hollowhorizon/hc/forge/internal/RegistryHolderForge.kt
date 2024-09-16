@@ -236,7 +236,7 @@ class RegistryHolderForge<T : Any>(
                     items.register(
                         location.path
                     ) {
-                        BlockItem(this.get() as Block, (this as IBlockItemProperties).properties)
+                        BlockItem(this.get() as Block, (this.get() as IBlockItemProperties).properties)
                     }
                     items.register(FMLJavaModLoadingContext.get().modEventBus)
                 }
