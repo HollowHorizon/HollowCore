@@ -60,34 +60,50 @@ object HollowPack : PackResources {
 
     private fun ofText(text: String) = IoSupplier<InputStream> { ByteArrayInputStream(text.toByteArray()) }
     fun generatePostShader(location: ResourceLocation) {
-        resourceMap["${location.namespace}:shaders/post/${location.path}.json".rl] =
-            ofText("{\"targets\": [\"swap\"],\"passes\": [{\"name\": \"$location\",\"intarget\": \"minecraft:main\",\"outtarget\": \"swap\",\"uniforms\": []},{\"name\": \"$location\",\"intarget\": \"swap\",\"outtarget\": \"minecraft:main\",\"uniforms\": []}]}")
-        resourceMap["${location.namespace}:shaders/program/${location.path}.json".rl] =
-            ofText("{\"blend\":{\"func\":\"add\",\"srcrgb\":\"one\",\"dstrgb\":\"zero\"},\"vertex\":\"sobel\",\"fragment\":\"$location\",\"attributes\":[\"Position\"],\"samplers\":[{\"name\":\"DiffuseSampler\"}],\"uniforms\":[{\"name\":\"ProjMat\",\"type\":\"matrix4x4\",\"count\":16,\"values\":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]},{\"name\":\"InSize\",\"type\":\"float\",\"count\":2,\"values\":[1.0,1.0]},{\"name\":\"OutSize\",\"type\":\"float\",\"count\":2,\"values\":[1.0,1.0]},{\"name\":\"Time\",\"type\":\"float\",\"count\":1,\"values\":[0.0]}]}")
+        addCustomJSON(
+            "${location.namespace}:shaders/post/${location.path}.json".rl,
+            "{\"targets\": [\"swap\"],\"passes\": [{\"name\": \"$location\",\"intarget\": \"minecraft:main\",\"outtarget\": \"swap\",\"uniforms\": []},{\"name\": \"$location\",\"intarget\": \"swap\",\"outtarget\": \"minecraft:main\",\"uniforms\": []}]}"
+        )
+
+        addCustomJSON(
+            "${location.namespace}:shaders/program/${location.path}.json".rl,
+            "{\"blend\":{\"func\":\"add\",\"srcrgb\":\"one\",\"dstrgb\":\"zero\"},\"vertex\":\"sobel\",\"fragment\":\"$location\",\"attributes\":[\"Position\"],\"samplers\":[{\"name\":\"DiffuseSampler\"}],\"uniforms\":[{\"name\":\"ProjMat\",\"type\":\"matrix4x4\",\"count\":16,\"values\":[1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0]},{\"name\":\"InSize\",\"type\":\"float\",\"count\":2,\"values\":[1.0,1.0]},{\"name\":\"OutSize\",\"type\":\"float\",\"count\":2,\"values\":[1.0,1.0]},{\"name\":\"Time\",\"type\":\"float\",\"count\":1,\"values\":[0.0]}]}"
+        )
     }
 
-    fun addItemModel(location: ResourceLocation, type: AutoModelType) {
-        val modelLocation = "${location.namespace}:models/item/${location.path}.json".rl
-        resourceMap[modelLocation] =
-            ofText("{\"parent\":\"${type.modelId}\",\"textures\":{\"layer0\":\"" + location.namespace + ":item/" + location.path + "\"}}")
-    }
+    fun addItemModel(location: ResourceLocation, type: AutoModelType) = addCustomItemModel(location, "{\"parent\":\"${type.modelId}\",\"textures\":{\"layer0\":\"" + location.namespace + ":item/" + location.path + "\"}}")
 
     fun addParticleModel(location: ResourceLocation) {
         val particle = "${location.namespace}:particles/${location.path}.json".rl
-        resourceMap[particle] = ofText("{\"textures\":[\"$location\"]}")
+        addCustomJSON(particle, "{\"textures\":[\"$location\"]}")
     }
 
     fun addBlockModel(location: ResourceLocation, type: AutoModelType) {
-        val blockstate = "${location.namespace}:blockstates/${location.path}.json".rl
-        val model = "${location.namespace}:models/item/${location.path}.json".rl
-        resourceMap[blockstate] =
-            ofText("{\"variants\":{\"\":{\"model\":\"" + location.namespace + ":item/" + location.path + "\"}}}")
-        resourceMap[model] =
-            ofText("{\"parent\":\"${if (type != AutoModelType.CUSTOM) "block/cube_all" else type.modelId}\",\"textures\":{\"all\":\"" + location.namespace + ":blocks/" + location.path + "\"}}")
+        addCustomBlockstate(location, "{\"variants\":{\"\":{\"model\":\"" + location.namespace + ":block/" + location.path + "\"}}}")
+        addCustomBlock(location, "{\"parent\":\"${if (type != AutoModelType.CUSTOM) "block/cube_all" else type.modelId}\",\"textures\":{\"all\":\"" + location.namespace + ":block/" + location.path + "\"}}")
     }
 
     fun addSoundJson(modid: String, sound: JsonObject) {
-        resourceMap["$modid:sounds.json".rl] = ofText(sound.toString())
+        addCustomJSON("$modid:sounds.json".rl, sound.toString())
+    }
+
+    fun addCustomJSON(modelPath: ResourceLocation, content: String) {
+        resourceMap[modelPath] = ofText(content)
+    }
+
+    fun addCustomItemModel(location: ResourceLocation, content: String) {
+        val model = "${location.namespace}:models/item/${location.path}.json".rl
+        addCustomJSON(model, content)
+    }
+
+    fun addCustomBlockstate(location: ResourceLocation, content: String) {
+        val blockstate = "${location.namespace}:blockstates/${location.path}.json".rl
+        addCustomJSON(blockstate, content)
+    }
+
+    fun addCustomBlock(location: ResourceLocation, content: String) {
+        val model = "${location.namespace}:models/block/${location.path}.json".rl
+        addCustomJSON(model, content)
     }
 
     //? if >=1.20.1 {
