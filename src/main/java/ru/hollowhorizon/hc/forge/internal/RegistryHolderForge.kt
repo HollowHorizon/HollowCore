@@ -239,6 +239,9 @@ class RegistryHolderForge<T : Any>(
                         BlockItem(this.get() as Block, (this.get() as IBlockItemProperties).properties)
                     }
                     items.register(FMLJavaModLoadingContext.get().modEventBus)
+
+                    if (autoModel != null)
+                        HollowPack.addCustomItemModel(location, "{\"parent\":\"${ if (autoModel != AutoModelType.CUSTOM) "${location.namespace}:block/${location.path}" else autoModel.modelId}\"}")
                 }
             }
 
