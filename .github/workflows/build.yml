@@ -46,9 +46,5 @@ jobs:
             build/libs/1.19.2/*.jar
             build/libs/1.20.1/*.jar
             build/libs/1.21/*.jar
-            !build/libs/1.19.2/*-dev.jar
-            !build/libs/1.20.1/*-dev.jar
-            !build/libs/1.21/*-dev.jar
-            !build/libs/1.19.2/*-sources.jar
-            !build/libs/1.20.1/*-sources.jar
-            !build/libs/1.21/*-sources.jar
+            !**/*-dev.jar
+            !**/*-sources.jar
