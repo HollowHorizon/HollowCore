@@ -3,17 +3,17 @@ package ru.hollowhorizon.hc.forge.internal
 //? if forge {
 
 /*//? if >=1.21 {
-import net.minecraft.core.component.DataComponentType
+/^import net.minecraft.core.component.DataComponentType
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.world.level.chunk.status.ChunkStatus
-//?} elif >=1.20.1 {
+^///?} elif >=1.20.1 {
 /^import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.world.level.chunk.ChunkStatus
 ^///?} else {
-/^import net.minecraft.world.level.chunk.ChunkStatus
-^///?}
+import net.minecraft.world.level.chunk.ChunkStatus
+//?}
 import net.minecraft.commands.synchronization.ArgumentTypeInfo
 
 import net.minecraft.core.Registry
@@ -114,20 +114,20 @@ class RegistryHolderForge<T : Any>(
             )
 
             //? if >=1.20.1 {
-            CreativeModeTab::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+            /^CreativeModeTab::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 Registries.CREATIVE_MODE_TAB, location.namespace
             )
-            //?}
+            ^///?}
 
             ParticleType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 ForgeRegistries.PARTICLE_TYPES,
                 location.namespace
             )
             //? if >=1.21 {
-            DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
+            /^DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 BuiltInRegistries.DATA_COMPONENT_TYPE.key(), location.namespace
             )
-            //?}
+            ^///?}
 
             MobEffect::class.java.isAssignableFrom(this) -> DeferredRegister.create(
                 ForgeRegistries.MOB_EFFECTS,
