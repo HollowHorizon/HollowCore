@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
+        if: |
+          !contains(github.event.head_commit.message, '[no maven]')
       - name: validate gradle wrapper
         uses: gradle/wrapper-validation-action@v1
       - name: setup jdk ${{ matrix.java }}
@@ -25,8 +27,6 @@ jobs:
         run: chmod +x ./gradlew
       - name: Release to Maven
         uses: gradle/gradle-build-action@v2
-        if: |
-          !contains(github.event.head_commit.message, '[no maven]')
         env:
           MAVEN_USER: ${{ secrets.MAVEN_USER }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}

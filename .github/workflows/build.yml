@@ -40,13 +40,11 @@ jobs:
             !merged/*-sources.jar
       - name: Create Release
         id: create_release
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@latest
         with:
           allowUpdates: true
-          draft: false
           name: "[MULTI-VERSIONED BUILD]"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: "latest"
-          artifacts: |
-            merged/*.jar
+          artifacts: merged/*.jar
           artifactContentType: application/java-archive
