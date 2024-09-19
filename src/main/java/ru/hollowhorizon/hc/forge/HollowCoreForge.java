@@ -22,10 +22,10 @@ public class HollowCoreForge {
         isModLoaded = ModList.get()::isLoaded;
         isProduction_ = // На 1.20+ Forge почему-то решил больше не обфусцировать игру... Ну и зачем я тогда обфускатор скриптов писал?((
                 //? if <=1.20.1 {
-                /^FMLLoader::isProduction;
-                ^///?} else {
-                () -> false;
-                //?}
+                FMLLoader::isProduction;
+                //?} else {
+                /^() -> false;
+                ^///?}
         shouldOverrideShaders = () -> false;
 
         var core = CoreInitializationForge.INSTANCE;

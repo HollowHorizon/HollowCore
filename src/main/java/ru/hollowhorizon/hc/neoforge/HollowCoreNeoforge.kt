@@ -1,7 +1,6 @@
 //? if neoforge {
 /*package ru.hollowhorizon.hc.neoforge
 
-
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.fml.ModList
 import net.neoforged.fml.common.Mod

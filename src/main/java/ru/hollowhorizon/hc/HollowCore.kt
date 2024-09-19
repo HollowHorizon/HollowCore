@@ -23,26 +23,12 @@
  */
 package ru.hollowhorizon.hc
 
-
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.apache.logging.log4j.Logger
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
-import ru.hollowhorizon.hc.client.utils.ModList
 import ru.hollowhorizon.hc.common.HollowCoreCommon
 import ru.hollowhorizon.hc.common.config.HollowCoreConfig
 import ru.hollowhorizon.hc.common.config.hollowConfig
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor.initMod
-import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler
-import ru.hollowhorizon.hc.common.scripting.kotlin.HollowScript
-import ru.hollowhorizon.hc.common.scripting.kotlin.deobfClassPath
-import ru.hollowhorizon.hc.common.scripting.mappings.Remapper
-import java.io.File
-import java.util.concurrent.SynchronousQueue
-import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit
-
 
 object HollowCore {
     const val MODID: String = "hollowcore"

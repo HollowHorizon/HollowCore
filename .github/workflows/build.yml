@@ -34,21 +34,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Artifacts
-          path: build/libs/
-      - name: automatic upload
-        uses: marvinpinto/action-automatic-releases@latest
-        with: 
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
-          prerelease: false
-          title: "[MULTI-VERSIONED BUILD]"
-          files: |
-            build/libs/1.19.2/*.jar
-            build/libs/1.20.1/*.jar
-            build/libs/1.21/*.jar
-            !build/libs/1.19.2/*-dev.jar
-            !build/libs/1.20.1/*-dev.jar
-            !build/libs/1.21/*-dev.jar
-            !build/libs/1.19.2/*-sources.jar
-            !build/libs/1.20.1/*-sources.jar
-            !build/libs/1.21/*-sources.jar
+          path: |
+            merged/*.jar
+            !merged/*-dev.jar
+            !merged/*-sources.jar
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          name: "[MULTI-VERSIONED BUILD]"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: "latest"
+          artifacts: "merged/*.jar"
+          artifactContentType: application/java-archive
