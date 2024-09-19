@@ -160,7 +160,7 @@ val buildAndCollect = tasks.register<Copy>("buildAndCollect") {
         tasks.remapSourcesJar.get().archiveFile,
         tasks.jar.get().archiveFile
     )
-    into(rootProject.layout.buildDirectory.file("libs/$minecraftVersion"))
+    into(rootProject.layout.buildDirectory.file("../merged"))
     dependsOn("build")
 }
 
