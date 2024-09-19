@@ -49,6 +49,4 @@ jobs:
           tag: "latest"
           artifacts: |
             merged/*.jar
-            !merged/*-dev.jar
-            !merged/*-sources.jar
           artifactContentType: application/java-archive

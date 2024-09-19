@@ -1,7 +1,6 @@
 package ru.hollowhorizon.hc.forge.internal
 //? if forge && >=1.21 {
 
-
 /*import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf

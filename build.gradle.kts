@@ -21,7 +21,6 @@ val cfg = rootProject.file("user.properties")
 if (cfg.exists()) userConfig.load(cfg.inputStream())
 
 val modId = fromProperties("mod_id")
-val javaVersion = fromProperties("java_version")
 val minecraftVersion = stonecutter.current.project.substringBeforeLast('-')
 val modPlatform = stonecutter.current.project.substringAfterLast('-')
 val license = fromProperties("license")
@@ -156,11 +155,16 @@ afterEvaluate {
 val buildAndCollect = tasks.register<Copy>("buildAndCollect") {
     group = "build"
     from(
-        tasks.remapJar.get().archiveFile,
-        tasks.remapSourcesJar.get().archiveFile,
-        tasks.jar.get().archiveFile
+        tasks.remapJar.get().archiveFile
     )
     into(rootProject.layout.buildDirectory.file("../merged"))
+
+    // We don't need extra files in production, do we?
+    /*from(
+        tasks.jar.get().archiveFile,
+        tasks.remapSourcesJar.get().archiveFile,
+    )
+    into(rootProject.layout.buildDirectory.file("../merged_dev"))*/
     dependsOn("build")
 }
 
@@ -204,27 +208,20 @@ tasks.processResources {
         "fabric" -> exclude("META-INF/neoforge.mods.toml", "META-INF/mods.toml")
     }
 
-    fun removeForCurrentPlatform() = if (modPlatform == "fabric")
-        "mappings-$minecraftVersion.tsrg"
-    else "mappings-SminecraftVersion.tiny"
+    val excl = if (modPlatform == "fabric") "tsrg" else "tiny"
 
-    when(minecraftVersion) {
-        "1.19.2" -> {
-            val excludation = mutableListOf("mappings-1.20.1.tiny", "mappings-1.20.1.tsrg", "mappings-1.21.tiny")
-            excludation += removeForCurrentPlatform()
-            exclude(excludation)
-        }
+    val resFile = rootProject.file("src/main/resources")
+    if (resFile.isDirectory) {
+        resFile.listFiles()?.forEach {
+            if (it.name.contains("mappings")) {
+                val splittedName = it.name.split('/').last()
 
-        "1.20.1"-> {
-            val excludation = mutableListOf("mappings-1.19.2.tiny", "mappings-1.19.2.tsrg", "mappings-1.21.tiny")
-            excludation += removeForCurrentPlatform()
-            exclude(excludation)
-        }
+                // Check current minecraft version
+                if (!splittedName.split('-')[1].contains(minecraftVersion)) exclude(splittedName)
 
-        "1.21" -> {
-            val excludation = mutableListOf("mappings-1.20.1.tiny", "mappings-1.20.1.tsrg", "mappings-1.19.2.tiny", "mappings-1.19.2.tsrg")
-            excludation += removeForCurrentPlatform()
-            exclude(excludation)
+                // Check environment
+                if (splittedName.endsWith(excl)) exclude(splittedName)
+            }
         }
     }
 
