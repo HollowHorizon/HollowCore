@@ -42,7 +42,6 @@ jobs:
         id: create_release
         uses: ncipollo/release-action@v1
         with:
-          allowUpdates: true
           name: "[MULTI-VERSIONED BUILD]"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: "latest"
