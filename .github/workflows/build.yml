@@ -45,5 +45,6 @@ jobs:
           name: "[MULTI-VERSIONED BUILD]"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: "latest"
+          removeArtifacts: true
           artifacts: "merged/*.jar"
           artifactContentType: application/java-archive
