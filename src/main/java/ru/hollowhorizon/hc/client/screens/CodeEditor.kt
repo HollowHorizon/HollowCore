@@ -1,24 +1,19 @@
 package ru.hollowhorizon.hc.client.screens
 
+//? if >=1.20.1 {
+/*import net.minecraft.client.gui.GuiGraphics
+*///?}
+import com.mojang.blaze3d.vertex.PoseStack
 import imgui.ImGui
 import imgui.extension.texteditor.TextEditor
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.minecraft.client.Minecraft
-//? if >=1.20.1 {
-/*import net.minecraft.client.gui.GuiGraphics
-*///?}
-import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
-import ru.hollowhorizon.hc.client.render.multiblock.drawMultiblock
-import ru.hollowhorizon.hc.client.textures.IMAGES
-import ru.hollowhorizon.hc.client.textures.drawImage
-import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
-import ru.hollowhorizon.hc.common.registry.ModMultiblocks
 import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler
 import ru.hollowhorizon.hc.common.scripting.kotlin.CodeCompletionEvent
 import ru.hollowhorizon.hc.common.scripting.kotlin.HollowScript
@@ -36,7 +31,7 @@ class CodeEditor : Screen(Component.empty()) {
     /*override fun render(gui: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
     *///?} else {
     override fun render(poseStack: PoseStack, mouseX: Int, mouseY: Int, partialTick: Float) {
-    //?}
+        //?}
         renderBackground(
             //? if >=1.21 {
             /*gui, mouseX, mouseY, partialTick
@@ -80,7 +75,11 @@ class CodeEditor : Screen(Component.empty()) {
 
                     if (completions.isNotEmpty()) {
                         if (ImGui.begin("completions")) {
-                            ImGui.beginChild("#internal", minecraft!!.window.height * 0.7f, minecraft!!.window.width / 3f)
+                            ImGui.beginChild(
+                                "#internal",
+                                minecraft!!.window.height * 0.7f,
+                                minecraft!!.window.width / 3f
+                            )
                             var close = false
                             completions.forEach {
                                 if (it.draw()) {
@@ -97,10 +96,8 @@ class CodeEditor : Screen(Component.empty()) {
                 }
 
                 tabItem("Multiblock") {
-                    drawMultiblock(ModMultiblocks.mithrilineFurnace.get(), 500f, 500f)
                 }
             }
-
 
 
         }
