@@ -13,10 +13,12 @@ import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
+import ru.hollowhorizon.hc.client.render.multiblock.drawMultiblock
 import ru.hollowhorizon.hc.client.textures.IMAGES
 import ru.hollowhorizon.hc.client.textures.drawImage
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.registry.ModMultiblocks
 import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler
 import ru.hollowhorizon.hc.common.scripting.kotlin.CodeCompletionEvent
 import ru.hollowhorizon.hc.common.scripting.kotlin.HollowScript
@@ -94,14 +96,8 @@ class CodeEditor : Screen(Component.empty()) {
                     }
                 }
 
-                tabItem("Gif") {
-                    if (ImGui.button("reset")) {
-                        for (i in IMAGES) i.value.close()
-                        IMAGES.clear()
-                    }
-                    drawImage("hollowcore:textures/elephant.gif".rl, 500f, 500f)
-                    sameLine()
-                    drawImage("hollowcore:textures/elephant.png".rl, 500f, 500f)
+                tabItem("Multiblock") {
+                    drawMultiblock(ModMultiblocks.mithrilineFurnace.get(), 500f, 500f)
                 }
             }
 

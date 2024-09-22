@@ -40,6 +40,7 @@ import net.minecraft.network.chat.HoverEvent
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.MinecraftServer
+import net.minecraft.util.RandomSource
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemStack
 import ru.hollowhorizon.hc.HollowCore
@@ -74,6 +75,8 @@ val isPhysicalServer get() = !isPhysicalClient
 val hasShaders get() = isModLoaded("oculus") || isModLoaded("iris") || isModLoaded("optifine")
 
 val areShadersEnabled get() = hasShaders && areShadersEnabled_()
+
+val RANDOM = RandomSource.create()
 
 lateinit var isProduction_: () -> Boolean
 lateinit var isPhysicalClient_: () -> Boolean

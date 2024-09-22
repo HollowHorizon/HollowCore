@@ -108,7 +108,7 @@ public abstract class MinecraftServerMixin implements ICapabilityDispatcher {
         //? if >=1.21 {
         /*var file = storageSource.getLevelDirectory().path().resolve("server_capability.dat").toFile();
         *///?} elif fabric {
-        var file = storageSource.getIconFile().get().getParent().resolve(storageSource.getLevelId()).resolve("server_capability.dat").toFile();
+        var file = storageSource.getIconFile().get().getParent().resolve("server_capability.dat").toFile();
         //?} else {
         /*var file = storageSource.getWorldDir().resolve(storageSource.getLevelId()).resolve("server_capability.dat").toFile();
         *///?}
@@ -129,11 +129,14 @@ public abstract class MinecraftServerMixin implements ICapabilityDispatcher {
         //? if >=1.21 {
         /*var file = storageSource.getLevelDirectory().path().resolve("server_capability.dat").toFile();
          *///?} elif fabric {
-        var file = storageSource.getIconFile().get().getParent().resolve(storageSource.getLevelId()).resolve("server_capability.dat").toFile();
+        var file = storageSource.getIconFile().get().getParent().resolve("server_capability.dat").toFile();
         //?} else {
         /*var file = storageSource.getWorldDir().resolve(storageSource.getLevelId()).resolve("server_capability.dat").toFile();
          *///?}
-        try (var output = new FileOutputStream(file)) {
+
+        try {
+            if(!file.exists()) file.createNewFile();
+            var output = new FileOutputStream(file);
             var tag = new CompoundTag();
             ICapabilityDispatcherKt.serializeCapabilities(this, tag);
             NBTFormatKt.save(tag, output);

@@ -39,6 +39,7 @@ import ru.hollowhorizon.hc.common.network.registerPackets
 import java.lang.invoke.MethodHandles
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.lang.reflect.ParameterizedType
 
 object HollowModProcessor {
     private var isInitialized = false
@@ -81,6 +82,12 @@ object HollowModProcessor {
             annotation.value.forEach {
                 CAPABILITIES.computeIfAbsent(it.java) { ArrayList() }.add(generator)
             }
+        }
+
+        registerClassHandler<Registry> { clazz, t ->
+            val type = (clazz.genericSuperclass as ParameterizedType).actualTypeArguments[0] as Class<*>
+            val instance = clazz.kotlin.objectInstance as CoreRegistry<*>
+            REGISTRIES[type] = instance
         }
 
         registerClassHandler<Polymorphic> { type, annotation ->
