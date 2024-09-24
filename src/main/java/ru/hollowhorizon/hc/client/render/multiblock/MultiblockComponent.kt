@@ -99,7 +99,7 @@ fun Graphics.drawMultiblock(
             for (z in 0..<mbZ) {
                 for (x in 0..<mbX) {
                     val id = x + z * mbZ + y * mbZ * mbX
-                    val block = multiblock.blocks[id]
+                    val block = multiblock.blocks[id].default()
                     stack.pushPose()
                     stack.translate(x.toDouble(), y.toDouble(), z.toDouble())
 
