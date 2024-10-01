@@ -196,33 +196,6 @@ object GltfModelLoader {
         }
     }
 
-    fun tryLoad(id: ResourceLocation, unbakedCache: MutableMap<ResourceLocation, UnbakedModel>): Boolean {
-        if (id.namespace == "hollowcore") {
-            unbakedCache[id] = object: UnbakedModel {
-                override fun getDependencies(): MutableCollection<ResourceLocation> = mutableSetOf()
-
-                override fun getMaterials(
-                    modelGetter: Function<ResourceLocation, UnbakedModel>,
-                    missingTextureErrors: MutableSet<Pair<String, String>>,
-                ): MutableCollection<net.minecraft.client.resources.model.Material> {
-                    return mutableSetOf()
-                }
-
-                override fun bake(
-                    modelBakery: ModelBakery,
-                    spriteGetter: Function<net.minecraft.client.resources.model.Material, TextureAtlasSprite>,
-                    transform: ModelState,
-                    location: ResourceLocation,
-                ): BakedModel {
-                    return runBlocking { BakedConverter.convert(parse("${id.namespace}:models/block/${id.path}.gltf".rl), spriteGetter) }
-                }
-
-            }
-            return true
-        }
-        return false
-    }
-
 }
 
 val NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE = IdentityHashMap<Node, Matrix4f>()
