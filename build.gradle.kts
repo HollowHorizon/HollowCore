@@ -137,7 +137,6 @@ dependencies {
     dependency("com.tianscar.imageio:imageio-apng:1.0.1")
 
     // OTHER
-    dependency("effekseer.swig:Swig:1.0")
     implementation("org.ow2.asm:asm:9.7")
     implementation("org.ow2.asm:asm-tree:9.7")
     implementation("org.anarres:jcpp:1.4.14")
