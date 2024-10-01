@@ -24,8 +24,14 @@
 
 package ru.hollowhorizon.hc.client.models.gltf
 
+import com.mojang.datafixers.util.Pair
 import kotlinx.coroutines.*
 import net.minecraft.client.renderer.texture.DynamicTexture
+import net.minecraft.client.renderer.texture.TextureAtlasSprite
+import net.minecraft.client.resources.model.BakedModel
+import net.minecraft.client.resources.model.ModelBakery
+import net.minecraft.client.resources.model.ModelState
+import net.minecraft.client.resources.model.UnbakedModel
 import net.minecraft.resources.ResourceLocation
 import org.joml.*
 import ru.hollowhorizon.hc.HollowCore.MODID
@@ -34,6 +40,7 @@ import ru.hollowhorizon.hc.client.utils.exists
 import ru.hollowhorizon.hc.client.utils.isModLoaded
 import ru.hollowhorizon.hc.client.utils.rl
 import java.util.*
+import java.util.function.Function
 
 
 object GltfModelLoader {
@@ -51,7 +58,16 @@ object GltfModelLoader {
 
         return Model(file.scene, scenes, animations, materials.toSet()).apply {
             for (skin in skins) {
-                skin.joints.putAll(walkNodes().associateBy { it.index })
+                for ((i, id) in skin.jointsIds.withIndex()) {
+                    skin.joints[i] = walkNodes().first { it.index == id }
+                }
+                walkNodes().forEach { node ->
+                    node.skin?.let { skin ->
+                        node.mesh?.primitives?.forEach {
+                            it.jointCount = skin.jointsIds.size
+                        }
+                    }
+                }
             }
         }
     }
@@ -178,6 +194,33 @@ object GltfModelLoader {
             val channels = animation.channels.map { parseChannel(file, it, animation.samplers) }
             Animation(animation.name, channels)
         }
+    }
+
+    fun tryLoad(id: ResourceLocation, unbakedCache: MutableMap<ResourceLocation, UnbakedModel>): Boolean {
+        if (id.namespace == "hollowcore") {
+            unbakedCache[id] = object: UnbakedModel {
+                override fun getDependencies(): MutableCollection<ResourceLocation> = mutableSetOf()
+
+                override fun getMaterials(
+                    modelGetter: Function<ResourceLocation, UnbakedModel>,
+                    missingTextureErrors: MutableSet<Pair<String, String>>,
+                ): MutableCollection<net.minecraft.client.resources.model.Material> {
+                    return mutableSetOf()
+                }
+
+                override fun bake(
+                    modelBakery: ModelBakery,
+                    spriteGetter: Function<net.minecraft.client.resources.model.Material, TextureAtlasSprite>,
+                    transform: ModelState,
+                    location: ResourceLocation,
+                ): BakedModel {
+                    return runBlocking { BakedConverter.convert(parse("${id.namespace}:models/block/${id.path}.gltf".rl), spriteGetter) }
+                }
+
+            }
+            return true
+        }
+        return false
     }
 
 }

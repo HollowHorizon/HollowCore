@@ -13,6 +13,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
 import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
+import ru.hollowhorizon.hc.client.screens.debug.TextureViewer
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler
 import ru.hollowhorizon.hc.common.scripting.kotlin.CodeCompletionEvent
@@ -95,7 +96,8 @@ class CodeEditor : Screen(Component.empty()) {
                     }
                 }
 
-                tabItem("Multiblock") {
+                tabItem("Текстуры") {
+                    TextureViewer.draw()
                 }
             }
 

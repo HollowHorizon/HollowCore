@@ -16,10 +16,7 @@ import net.minecraftforge.event.TickEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import ru.hollowhorizon.hc.common.events.EventBus
 import ru.hollowhorizon.hc.common.events.post
-import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent
-import ru.hollowhorizon.hc.common.events.registry.RegisterKeyBindingsEvent
-import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
-import ru.hollowhorizon.hc.common.events.registry.RegisterShadersEvent
+import ru.hollowhorizon.hc.common.events.registry.*
 
 object ForgeClientEvents {
     init {
@@ -33,7 +30,9 @@ object ForgeClientEvents {
 
     private fun onEntityRenderers(event: EntityRenderersEvent.RegisterRenderers) {
         RegisterEntityRenderersEvent(event::registerEntityRenderer).post()
+        RegisterBlockEntityRenderersEvent(event::registerBlockEntityRenderer).post()
     }
+
 
     private fun registerReloadListeners(event: RegisterClientReloadListenersEvent) {
         val hcevent = RegisterReloadListenersEvent.Client()

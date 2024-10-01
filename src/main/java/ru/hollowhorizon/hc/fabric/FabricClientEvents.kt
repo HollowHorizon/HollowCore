@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers
 import net.minecraft.client.renderer.entity.EntityRenderers
 import net.minecraft.server.packs.PackType
 import org.jetbrains.kotlin.utils.addToStdlib.UnsafeCastFunction
@@ -27,6 +28,10 @@ object FabricClientEvents {
         RegisterEntityRenderersEvent { entity, renderer ->
             EntityRenderers.register(entity, renderer)
         }.post()
+        RegisterBlockEntityRenderersEvent { entity, renderer ->
+            BlockEntityRenderers.register(entity, renderer)
+        }.post()
+
         renderTooltips()
 
         post(RegisterKeyBindingsEvent(KeyBindingHelper::registerKeyBinding))

@@ -24,9 +24,8 @@
 package ru.hollowhorizon.hc.common.objects.blocks
 
 import net.minecraft.world.item.Item
-import net.minecraft.world.level.block.HorizontalDirectionalBlock
 
 
-interface IBlockItemProperties {
+interface BlockItemProperties {
     val properties: Item.Properties
 }

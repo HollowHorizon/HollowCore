@@ -10,10 +10,7 @@ import net.neoforged.neoforge.common.NeoForge
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent
 import ru.hollowhorizon.hc.common.events.EventBus
 import ru.hollowhorizon.hc.common.events.post
-import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
-import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent
-import ru.hollowhorizon.hc.common.events.registry.RegisterKeyBindingsEvent
-import ru.hollowhorizon.hc.common.events.registry.RegisterShadersEvent
+import ru.hollowhorizon.hc.common.events.registry.*
 
 object NeoForgeClientEvents {
     init {
@@ -53,6 +50,7 @@ object NeoForgeClientEvents {
 
     private fun onEntityRenderers(event: EntityRenderersEvent.RegisterRenderers) {
         RegisterEntityRenderersEvent(event::registerEntityRenderer).post()
+        RegisterBlockEntityRenderersEvent(event::registerBlockEntityRenderer).post()
     }
 
     private fun onRenderTooltips(event: ItemTooltipEvent) {

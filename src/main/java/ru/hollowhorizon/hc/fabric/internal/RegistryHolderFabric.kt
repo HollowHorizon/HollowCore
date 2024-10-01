@@ -9,7 +9,6 @@ import net.minecraft.core.Registry
 
 //? if >=1.20.1
 /*import net.minecraft.core.registries.BuiltInRegistries*/
-import net.minecraft.world.item.CreativeModeTab
 
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.resources.ResourceLocation
@@ -43,7 +42,7 @@ import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvi
 import net.minecraft.world.level.levelgen.feature.treedecorators.TreeDecoratorType
 import net.minecraft.world.level.material.Fluid
 import ru.hollowhorizon.hc.client.utils.HollowPack
-import ru.hollowhorizon.hc.common.objects.blocks.IBlockItemProperties
+import ru.hollowhorizon.hc.common.objects.blocks.BlockItemProperties
 import ru.hollowhorizon.hc.common.registry.AutoModelType
 import ru.hollowhorizon.hc.common.registry.IRegistryHolder
 import ru.hollowhorizon.hc.common.registry.RegistryObject
@@ -131,11 +130,11 @@ class RegistryHolderFabric<T : Any>(
             Block::class.java.isAssignableFrom(target) -> {
                 if (autoModel != null) HollowPack.addBlockModel(location, autoModel)
 
-                if (IBlockItemProperties::class.java.isAssignableFrom(target)) {
+                if (BlockItemProperties::class.java.isAssignableFrom(target)) {
                     Registry.register(
                         /*? if >=1.20.1 {*//*BuiltInRegistries.ITEM*//*?} else {*/Registry.ITEM/*?}*/,
                         location,
-                        BlockItem(this as Block, (this as IBlockItemProperties).properties)
+                        BlockItem(this as Block, (this as BlockItemProperties).properties)
                     )
                 }
             }
