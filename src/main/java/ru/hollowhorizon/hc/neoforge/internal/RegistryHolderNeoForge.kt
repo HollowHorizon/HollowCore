@@ -38,7 +38,7 @@ import net.neoforged.neoforge.registries.DeferredHolder
 import net.neoforged.neoforge.registries.DeferredRegister
 import ru.hollowhorizon.hc.neoforge.HollowCoreNeoForge
 import ru.hollowhorizon.hc.client.utils.HollowPack
-import ru.hollowhorizon.hc.common.objects.blocks.IBlockItemProperties
+import ru.hollowhorizon.hc.common.objects.blocks.BlockItemProperties
 import ru.hollowhorizon.hc.common.registry.AutoModelType
 import ru.hollowhorizon.hc.common.registry.IRegistryHolder
 import ru.hollowhorizon.hc.common.registry.RegistryObject
@@ -200,12 +200,12 @@ class RegistryHolderNeoForge<T : Any>(
             Block::class.java.isAssignableFrom(target) -> {
                 if (autoModel != null) HollowPack.addBlockModel(location, autoModel)
 
-                if (IBlockItemProperties::class.java.isAssignableFrom(target)) {
+                if (BlockItemProperties::class.java.isAssignableFrom(target)) {
                     val items: DeferredRegister<Item> = DeferredRegister.createItems(location.namespace)
                     items.register(
                         location.path
                     ) { _ ->
-                        BlockItem(this as Block, (this as IBlockItemProperties).properties)
+                        BlockItem(this as Block, (this as BlockItemProperties).properties)
                     }
                     items.register(HollowCoreNeoForge.MOD_BUS)
                 }

@@ -51,7 +51,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import net.minecraftforge.registries.DeferredRegister
 import net.minecraftforge.registries.ForgeRegistries
 import ru.hollowhorizon.hc.client.utils.HollowPack
-import ru.hollowhorizon.hc.common.objects.blocks.IBlockItemProperties
+import ru.hollowhorizon.hc.common.objects.blocks.BlockItemProperties
 import ru.hollowhorizon.hc.common.registry.AutoModelType
 import ru.hollowhorizon.hc.common.registry.IRegistryHolder
 import ru.hollowhorizon.hc.common.registry.RegistryObject
@@ -230,13 +230,13 @@ class RegistryHolderForge<T : Any>(
             Block::class.java.isAssignableFrom(target) -> {
                 if (autoModel != null) HollowPack.addBlockModel(location, autoModel)
 
-                if (IBlockItemProperties::class.java.isAssignableFrom(target)) {
+                if (BlockItemProperties::class.java.isAssignableFrom(target)) {
                     val items: DeferredRegister<Item> =
                         DeferredRegister.create(ForgeRegistries.ITEMS, location.namespace)
                     items.register(
                         location.path
                     ) {
-                        BlockItem(this.get() as Block, (this.get() as IBlockItemProperties).properties)
+                        BlockItem(this.get() as Block, (this.get() as BlockItemProperties).properties)
                     }
                     items.register(FMLJavaModLoadingContext.get().modEventBus)
                 }
