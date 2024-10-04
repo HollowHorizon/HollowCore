@@ -39,31 +39,11 @@ internal fun <T> NBTFormat.writeNbt(value: T, serializer: SerializationStrategy<
 
     if (value == null) return EndTag.INSTANCE
 
-    if (isPrimitiveType(value)) {
-        when (value) {
-            is Byte -> result = ByteTag.valueOf(value)
-            is Short -> result = ShortTag.valueOf(value)
-            is Int -> result = IntTag.valueOf(value)
-            is Long -> result = LongTag.valueOf(value)
-            is Float -> result = FloatTag.valueOf(value)
-            is Double -> result = DoubleTag.valueOf(value)
-            is Boolean -> result = ByteTag.valueOf(value)
-            is Char -> result = StringTag.valueOf(value.toString())
-            is String -> result = StringTag.valueOf(value)
-        }
-        return result
-    } else if (value is Enum<*>) return StringTag.valueOf(value.name)
-
     val encoder = NBTWriter(this) { result = it }
+    encoder.push("value")
     encoder.encodeSerializableValue(serializer, value)
-    return result
-}
-
-fun <T> isPrimitiveType(value: T): Boolean {
-    return when (value) {
-        is Byte, is Short, is Int, is Long, is Float, is Double, is Boolean, is Char, is String -> true
-        else -> false
-    }
+    encoder.end()
+    return (result as CompoundTag).get("value") ?: EndTag.INSTANCE
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -101,6 +81,8 @@ private sealed class AbstractNBTWriter(
     override fun encodeTaggedValue(tag: String, value: Any) {
         putElement(tag, StringTag.valueOf(value.toString()))
     }
+
+    fun push(tag: String) = pushTag(tag)
 
     override fun elementName(descriptor: SerialDescriptor, index: Int): String {
         return if (descriptor.kind is PolymorphicKind) index.toString() else super.elementName(descriptor, index)
@@ -147,6 +129,10 @@ private open class NBTWriter(format: NBTFormat, nodeConsumer: (Tag) -> Unit) :
 
     override fun putElement(key: String, element: Tag) {
         content.put(key, element)
+    }
+
+    fun end() {
+        nodeConsumer(content)
     }
 
     override fun getCurrent(): Tag = content

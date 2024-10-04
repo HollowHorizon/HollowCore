@@ -28,6 +28,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import kotlinx.serialization.json.Json
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.client.utils.stream
 import java.io.InputStream
@@ -74,3 +75,7 @@ fun json(vararg elements: Boolean) = JsonArray().apply { elements.forEach(::add)
 fun json(stream: InputStream): JsonElement = JsonParser.parseReader(InputStreamReader(stream))
 
 fun json(location: ResourceLocation) = json(location.stream)
+
+val JsonFormat = Json {
+    prettyPrint = true
+}

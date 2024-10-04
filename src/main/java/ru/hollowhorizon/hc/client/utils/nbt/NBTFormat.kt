@@ -31,6 +31,7 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.modules.*
+import net.minecraft.core.BlockPos
 import net.minecraft.nbt.*
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -68,6 +69,14 @@ internal val TagModule
         }
         contextual(ForBlockPos)
         contextual(ForResourceLocation)
+        contextual(ForVec3)
+        contextual(ForTextComponent)
+        contextual(ForItemStack)
+        contextual(ForEntity)
+        contextual(ForMatrix4f)
+        contextual(ForVector3d)
+        contextual(ForVector3f)
+        contextual(ForUuid)
     }
 
 val MAPPINGS_SERIALIZER by lazy { NBTFormat() }
@@ -149,7 +158,6 @@ inline fun <reified T> NBTFormat.deserialize(tag: Tag): T {
 }
 
 @Suppress("UnstableApiUsage", "UNCHECKED_CAST")
-@OptIn(ExperimentalSerializationApi::class)
 fun <T : Any> NBTFormat.deserializeNoInline(tag: Tag, cl: Class<out T>): T {
     val typeToken = TypeToken.of(cl)
     return deserialize(serializersModule.serializer(typeToken.type), tag) as T
@@ -160,3 +168,8 @@ internal fun compoundTagInvalidKeyKind(keyDescriptor: SerialDescriptor) = Illega
     "Value of type ${keyDescriptor.serialName} can't be used in a compound tag as map key. " +
             "It should have either primitive or enum kind, but its kind is ${keyDescriptor.kind}."
 )
+
+fun main() {
+    println(NBTFormat.serialize(1L))
+    println(NBTFormat.serialize(BlockPos(1, 1, 1)))
+}
