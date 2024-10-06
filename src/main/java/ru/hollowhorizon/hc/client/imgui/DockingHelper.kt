@@ -45,7 +45,7 @@ object DockingHelper {
         )
         val dockspaceID = ImGui.getID("MyWindow_DockSpace_${DOCKING_ID++}")
         val workspaceWindowClass = ImGuiWindowClass()
-        workspaceWindowClass.setClassId(dockspaceID)
+        workspaceWindowClass.classId = dockspaceID
         workspaceWindowClass.dockingAllowUnclassed = false
 
         if (imgui.internal.ImGui.dockBuilderGetNode(dockspaceID).ptr == 0L) {

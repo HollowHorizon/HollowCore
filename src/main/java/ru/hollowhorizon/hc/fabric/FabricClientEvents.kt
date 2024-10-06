@@ -6,21 +6,21 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers
 import net.minecraft.client.renderer.entity.EntityRenderers
 import net.minecraft.server.packs.PackType
-import org.jetbrains.kotlin.utils.addToStdlib.UnsafeCastFunction
-import org.jetbrains.kotlin.utils.addToStdlib.cast
+import ru.hollowhorizon.hc.client.utils.JavaHacks
 import ru.hollowhorizon.hc.common.events.EventBus.post
 import ru.hollowhorizon.hc.common.events.client.ItemTooltipEvent
+import ru.hollowhorizon.hc.common.events.client.ScreenEvent
 import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.registry.*
 import ru.hollowhorizon.hc.common.events.tick.TickEvent
 import ru.hollowhorizon.hc.fabric.internal.DelegatedReloadListener
 
-@OptIn(UnsafeCastFunction::class)
 object FabricClientEvents {
     init {
         registerShaders()
@@ -39,7 +39,12 @@ object FabricClientEvents {
             post(TickEvent.Client(c))
         })
         ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher, registryAccess ->
-            post(RegisterClientCommandsEvent(dispatcher.cast(), registryAccess))
+            post(RegisterClientCommandsEvent(JavaHacks.forceCast(dispatcher), registryAccess))
+        })
+        ScreenEvents.BEFORE_INIT.register(ScreenEvents.BeforeInit { client, screen, scaledWidth, scaledHeight ->
+            val event = ScreenEvent.Open(screen)
+            event.post()
+            if (event.screen !== screen) client.setScreen(event.screen)
         })
     }
 

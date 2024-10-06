@@ -31,7 +31,6 @@ object HCFabric {
 
         CoreInitializationFabric
         HollowCore
-        GameRemapper.remap()
         FabricEvents
 
         NetworkHelper.register()

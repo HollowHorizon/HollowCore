@@ -14,9 +14,6 @@ import ru.hollowhorizon.hc.common.events.ClientOnly
 import ru.hollowhorizon.hc.common.registry.getAnnotatedClasses
 import ru.hollowhorizon.hc.common.registry.getAnnotatedMethods
 import ru.hollowhorizon.hc.common.registry.getSubTypes
-import ru.hollowhorizon.hc.common.scripting.kotlin.deobfClassPath
-import ru.hollowhorizon.hc.common.scripting.kotlin.scriptJars
-import ru.hollowhorizon.hc.common.scripting.mappings.Remapper
 import sun.misc.Unsafe
 import java.lang.reflect.Method
 import java.nio.file.Path
@@ -43,19 +40,6 @@ object CoreInitializationFabric {
         val gameJars: List<Path> = findField(gameProvider, "gameJars")
         val logJars: Set<Path> = findField(gameProvider, "logJars")
         val parentClassPath: Collection<Path> = findField(gameProvider, "validParentClassPath")
-
-        if (isProduction) {
-
-            Remapper.remap(
-                Remapper.DEOBFUSCATE_REMAPPER,
-                gameJars.map { it.toFile() }.toTypedArray(),
-                deobfClassPath.toPath()
-            )
-
-            scriptJars.addAll((libs + logJars + parentClassPath).map { it.toFile() })
-        } else {
-            scriptJars.addAll((libs + gameJars + logJars + parentClassPath).map { it.toFile() })
-        }
 
         val graph = ClassGraph()
             .enableAllInfo()

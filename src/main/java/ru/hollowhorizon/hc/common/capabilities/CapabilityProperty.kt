@@ -96,9 +96,3 @@ open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : 
         return false
     }
 }
-
-fun main() {
-    AnimatedEntityCapability::class.declaredMemberProperties.forEach { property: KProperty<*> ->
-        println(property)
-    }
-}

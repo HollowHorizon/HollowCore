@@ -15,16 +15,9 @@ import net.minecraft.network.chat.Component
 import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
 import ru.hollowhorizon.hc.client.screens.debug.TextureViewer
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
-import ru.hollowhorizon.hc.common.scripting.ScriptingCompiler
-import ru.hollowhorizon.hc.common.scripting.kotlin.CodeCompletionEvent
-import ru.hollowhorizon.hc.common.scripting.kotlin.HollowScript
-import ru.hollowhorizon.hc.common.scripting.kotlin.currentCodeIndex
-import ru.hollowhorizon.hc.common.scripting.util.CodeCompletion
-
 class CodeEditor : Screen(Component.empty()) {
     var popup: Boolean = false
     val editor = TextEditor()
-    var completions = arrayListOf<CodeCompletion>()
     var index = 0
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -62,38 +55,11 @@ class CodeEditor : Screen(Component.empty()) {
                         newIndex += column
                         index = newIndex - 1
 
-                        if (index >= 0 && index < text.length) {
-                            GlobalScope.launch {
-                                currentCodeIndex = index
-                                ScriptingCompiler.compileText<HollowScript>(text).execute()
-                            }
-                        }
                     }
 
                     editor.render("TextEditor")
 
-                    val completions = ArrayList(completions)
 
-                    if (completions.isNotEmpty()) {
-                        if (ImGui.begin("completions")) {
-                            ImGui.beginChild(
-                                "#internal",
-                                minecraft!!.window.height * 0.7f,
-                                minecraft!!.window.width / 3f
-                            )
-                            var close = false
-                            completions.forEach {
-                                if (it.draw()) {
-                                    it.complete(editor)
-                                    close = true
-                                }
-                                ImGui.separator()
-                            }
-                            ImGui.endChild()
-                            if (close) ImGui.closeCurrentPopup()
-                            ImGui.end()
-                        }
-                    }
                 }
 
                 tabItem("Текстуры") {
@@ -107,13 +73,5 @@ class CodeEditor : Screen(Component.empty()) {
 
     override fun shouldCloseOnEsc(): Boolean {
         return false
-    }
-}
-
-@SubscribeEvent
-fun onComplete(event: CodeCompletionEvent) {
-    (Minecraft.getInstance().screen as? CodeEditor)?.let {
-        it.completions.clear()
-        it.completions.addAll(event.completions)
     }
 }

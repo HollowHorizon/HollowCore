@@ -75,8 +75,8 @@ object Graphics {
     internal val cursorStack: Deque<ImVec2> = Queues.newArrayDeque()
     val FONT_SIZES = HashMap<Int, ImFont>()
 
-    val screenWidth get() = Minecraft.getInstance().window.width
-    val screenHeight get() = Minecraft.getInstance().window.height
+    val screenWidth get() = Minecraft.getInstance().window.width.toFloat()
+    val screenHeight get() = Minecraft.getInstance().window.height.toFloat()
 
 
     fun pushCursor() = cursorStack.push(getCursorPos())

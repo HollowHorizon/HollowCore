@@ -32,7 +32,6 @@ public class HollowCoreForge {
         var events = ForgeEvents.INSTANCE;
         var init = HollowCore.INSTANCE; // Loading Main Class
 
-        GameRemapper.INSTANCE.remap();
         ForgeNetworkHelper.register();
 
         if (FMLEnvironment.dist.isClient()) new HollowCoreClientForge();

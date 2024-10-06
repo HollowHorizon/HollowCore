@@ -18,12 +18,7 @@
     "StructureBlockMixin",
     "capabilities.BlockEntityMixin",
     "capabilities.EntityMixin",
-    "capabilities.LevelMixin",
-    "scripting.BindingTraceContextAccessor",
-    "scripting.CompilationContextMixin",
-    "scripting.KotlinCoreEnvironmentMixin",
-    "scripting.ScriptJvmCompilerImplsMixin",
-    "scripting.SlicedMapImplAccessor"
+    "capabilities.LevelMixin"
   ],
   "client": [
     "ClientLevelMixin",
