@@ -24,6 +24,14 @@
 
 package ru.hollowhorizon.hc.client.render.entity
 
+//? if >=1.20.1 {
+/*import net.minecraft.world.item.ItemDisplayContext
+*///?} else {
+
+import ru.hollowhorizon.hc.client.utils.math.mulPose
+import ru.hollowhorizon.hc.client.utils.math.mulPoseMatrix
+import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType as ItemDisplayContext
+//?}
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ItemInHandRenderer
@@ -34,26 +42,15 @@ import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.LivingEntity
 import org.joml.Quaternionf
-import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.Node
+import ru.hollowhorizon.hc.client.models.internal.RenderContext
 import ru.hollowhorizon.hc.client.models.internal.animations.SubModelPlayer
-import ru.hollowhorizon.hc.client.models.internal.manager.*
+import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.SubModel
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.client.utils.memoize
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.use
-
-//? if >=1.20.1 {
-/*import net.minecraft.world.item.ItemDisplayContext
-
-*///?} else {
-
-import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType as ItemDisplayContext
-import ru.hollowhorizon.hc.client.utils.math.mulPose
-import ru.hollowhorizon.hc.client.utils.math.mulPoseMatrix
-import ru.hollowhorizon.hc.client.utils.math.mul
-
-//?}
 
 object GltfEntityUtil {
     lateinit var itemRenderer: ItemInHandRenderer
@@ -72,30 +69,31 @@ object GltfEntityUtil {
 
         val realModel = GltfManager.getOrCreate(model.model.rl)
 
-        realModel.visuals = ::drawVisuals
 
         //? if <1.21 {
         stack.mulPoseMatrix(model.transform.matrix)
         //?} else {
-        
+
         /*stack.mulPose(model.transform.matrix)
         *///?}
 
         SubModelPlayer.update(realModel, model, tickCount, partialTick)
 
         realModel.render(
-            stack,
-            ModelData(null, null, itemRenderer, null),
-            { texture: ResourceLocation ->
-                val result = model.textures[texture.path]?.let {
-                    if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
-                    else it.rl
-                } ?: texture
+            RenderContext(
+                stack,
+                { texture: ResourceLocation ->
+                    val result = model.textures[texture.path]?.let {
+                        if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
+                        else it.rl
+                    } ?: texture
 
-                Minecraft.getInstance().textureManager.getTexture(result).id
-            }.memoize(),
-            source,
-            packedLight, OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
+                    Minecraft.getInstance().textureManager.getTexture(result).id
+                }.memoize(),
+                source,
+                packedLight,
+                OverlayTexture.NO_OVERLAY
+            )
         )
 
         model.subModels.forEach { (bone, model) ->
@@ -104,7 +102,7 @@ object GltfEntityUtil {
                     //? if <1.21 {
                     stack.mulPoseMatrix(it.globalMatrix)
                     //?} else {
-                    
+
                     /*stack.mulPose(it.globalMatrix)
                     *///?}
                     render(entity, model, tickCount, partialTick, stack, source, packedLight)

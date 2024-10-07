@@ -24,6 +24,7 @@
     "ClientLevelMixin",
     "FontManagerAccessor",
     "GuiMixin",
+    "ItemRendererMixin",
     "Matrix3fMixin",
     "Matrix4fMixin",
     "MultiplayerGameModeMixin",

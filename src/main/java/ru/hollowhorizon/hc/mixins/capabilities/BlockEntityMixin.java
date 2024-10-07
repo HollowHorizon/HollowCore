@@ -43,7 +43,7 @@ public class BlockEntityMixin implements ICapabilityDispatcher {
 
     @Inject(method = "load", at = @At("TAIL"))
     private void serializeExtra(CompoundTag tag, CallbackInfo ci) {
-        ICapabilityDispatcherKt.serializeCapabilities(this, tag);
+        ICapabilityDispatcherKt.deserializeCapabilities(this, tag);
     }
     //?} else {
     /*@Inject(method = "saveCustomOnly", at = @At("TAIL"))

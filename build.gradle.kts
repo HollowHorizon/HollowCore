@@ -88,6 +88,7 @@ repositories {
     maven("https://maven.neoforged.net/releases")
     maven("https://maven.fabricmc.net/")
     maven("https://maven.cleanroommc.com")
+    maven("https://cursemaven.com")
     flatDir { dirs(rootDir.resolve("libs")) }
 }
 
@@ -325,6 +326,7 @@ fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
                     modImplementation("net.fabricmc.fabric-api:fabric-api:0.77.0+$version")
                     modImplementation("mods:sodium:0.4.4")
                     modImplementation("mods:iris:1.6.11")
+                    modImplementation("curse.maven:spark-361579:4505310")
                     dependency("org.joml:joml:1.10.8")
                 }
 

@@ -44,6 +44,7 @@ import java.util.function.Predicate
 //?}
 import net.minecraft.server.packs.repository.PackSource
 import net.minecraft.server.packs.resources./*? if >=1.20.1 {*//*IoSupplier*//*?} else {*/Resource.IoSupplier/*?}*/
+import ru.hollowhorizon.hc.client.utils.json.json
 import ru.hollowhorizon.hc.common.registry.AutoModelType
 import java.io.ByteArrayInputStream
 import java.io.FileNotFoundException
@@ -71,7 +72,7 @@ object HollowPack : PackResources {
         )
     }
 
-    fun addItemModel(location: ResourceLocation, type: AutoModelType) = addCustomItemModel(location, "{\"parent\":\"${type.modelId}\",\"textures\":{\"layer0\":\"" + location.namespace + ":item/" + location.path + "\"}}")
+    fun addItemModel(location: ResourceLocation, type: AutoModelType) = addCustomItemModel(location, "{\"parent\":\"${type.modelId()}\",\"textures\":{\"layer0\":\"" + location.namespace + ":item/" + location.path + "\"}}")
 
     fun addParticleModel(location: ResourceLocation) {
         val particle = "${location.namespace}:particles/${location.path}.json".rl
@@ -79,8 +80,18 @@ object HollowPack : PackResources {
     }
 
     fun addBlockModel(location: ResourceLocation, type: AutoModelType) {
-        addCustomBlockstate(location, "{\"variants\":{\"\":{\"model\":\"" + location.namespace + ":block/" + location.path + "\"}}}")
-        addCustomBlock(location, "{\"parent\":\"${if (type != AutoModelType.CUSTOM) "block/cube_all" else type.modelId}\",\"textures\":{\"all\":\"" + location.namespace + ":block/" + location.path + "\"}}")
+        when(type.blockStateId()) {
+            "default" -> addCustomBlockstate(location, "{\"variants\":{\"\":{\"model\":\"" + location.namespace + ":block/" + location.path + "\"}}}")
+            "directional" -> addCustomBlockstate(location, """
+                {"variants":{
+                    "facing=east":{"model":"${location.namespace}:block/${location.path}","y":90},
+                    "facing=north":{"model":"${location.namespace}:block/${location.path}","y":0},
+                    "facing=south":{"model":"${location.namespace}:block/${location.path}","y":180},
+                    "facing=west":{"model":"${location.namespace}:block/${location.path}","y":270}
+                }}
+            """.trimIndent())
+        }
+        addCustomBlock(location, "{\"parent\":\"${type.modelId()}\",\"textures\":{\"all\":\"" + location.namespace + ":block/" + location.path + "\"}}")
     }
 
     fun addSoundJson(modid: String, sound: JsonObject) {
@@ -175,7 +186,7 @@ object HollowPack : PackResources {
     /*override fun packId(): String {
         return "HollowCore Resources"
     }
-    
+
     *///?} else {
     override fun getName(): String {
         return "HollowCore Resources"
@@ -204,7 +215,7 @@ fun PackResources.asPack(): Pack {
         PackType.CLIENT_RESOURCES,
         PackSelectionConfig(true, Pack.Position.TOP, true)
     ) ?: throw FileNotFoundException("Could not find the pack resource $this")
-    
+
     *///?} elif >=1.20.1 {
     /*val resources = ResourcesSupplier { this }
     return Pack.readMetaAndCreate(

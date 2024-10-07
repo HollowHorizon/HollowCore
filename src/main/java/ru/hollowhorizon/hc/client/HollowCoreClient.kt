@@ -27,10 +27,8 @@ package ru.hollowhorizon.hc.client
 import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.screens.TitleScreen
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.imgui.GuiEditor
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.render.RenderLoader
 import ru.hollowhorizon.hc.client.render.effekseer.EffekseerNatives
@@ -39,12 +37,9 @@ import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.render.shaders.ShadersLoader
 import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
 import ru.hollowhorizon.hc.client.screens.CodeEditor
-import ru.hollowhorizon.hc.client.screens.ImGuiScreen
 import ru.hollowhorizon.hc.client.utils.HollowPack
-import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.events.ClientOnly
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
-import ru.hollowhorizon.hc.common.events.client.ScreenEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterKeyBindingsEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
@@ -61,7 +56,7 @@ object HollowCoreClient {
 
         EffekseerNatives.install()
         RenderSystem.recordRenderCall(RenderLoader::onInitialize)
-
+        //BlockRenderTypes[ModBlocks.EXAMPLE.get()] = RenderType.translucent()
         //ImGuiHandler.frames += Renderable { example() }
     }
 

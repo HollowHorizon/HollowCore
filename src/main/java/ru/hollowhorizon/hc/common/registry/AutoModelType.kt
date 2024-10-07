@@ -1,23 +1,19 @@
 package ru.hollowhorizon.hc.common.registry
 
-import ru.hollowhorizon.hc.LOGGER
-
 /**
  * Possibility to select automatic model generation.
  */
-enum class AutoModelType(
-    @set:JvmName("_setModelId")
-    var modelId: String
-) {
-    DEFAULT("item/generated"),
-    HANDHELD("item/handheld"),
-    CUSTOM("");
+fun interface AutoModelType {
+    fun modelId(): String
+    fun blockStateId(): String = "default"
 
-    fun setModelId(model: String): AutoModelType {
-        if (this == CUSTOM)
-            this.modelId = model
-        else LOGGER.warn("Custom model id can be set only if type == CUSTOM")
-
-        return this
+    companion object {
+        val DEFAULT = AutoModelType { "item/generated" }
+        val HANDHELD = AutoModelType { "item/handheld" }
+        val CUBE_ALL = AutoModelType { "block/cube_all" }
+        fun custom(type: String, blockState: String = "default") = object: AutoModelType {
+            override fun modelId() = type
+            override fun blockStateId() = blockState
+        }
     }
 }

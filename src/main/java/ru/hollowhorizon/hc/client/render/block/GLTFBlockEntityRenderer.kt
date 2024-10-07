@@ -24,6 +24,12 @@
 
 package ru.hollowhorizon.hc.client.render.block
 
+//? if <=1.19.2 {
+import ru.hollowhorizon.hc.client.utils.math.mul
+import ru.hollowhorizon.hc.client.utils.math.mulPose
+import ru.hollowhorizon.hc.client.utils.math.mulPoseMatrix
+//?}
+
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
@@ -31,11 +37,10 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
-import net.minecraft.util.Mth
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntity
 import org.joml.Quaternionf
-import ru.hollowhorizon.hc.client.models.internal.ModelData
+import ru.hollowhorizon.hc.client.models.internal.RenderContext
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
@@ -46,12 +51,6 @@ import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.client.utils.get
 import ru.hollowhorizon.hc.client.utils.memoize
 import ru.hollowhorizon.hc.client.utils.rl
-
-//? if <=1.19.2 {
-import ru.hollowhorizon.hc.client.utils.math.mulPose
-import ru.hollowhorizon.hc.client.utils.math.mulPoseMatrix
-import ru.hollowhorizon.hc.client.utils.math.mul
-//?}
 
 
 class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Context) :
@@ -65,7 +64,7 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
         pPackedOverlay: Int,
     ) {
         val level = entity.level ?: return
-        if(entity.isRemoved) return
+        if (entity.isRemoved) return
         val capability = entity[AnimatedEntityCapability::class]
         val modelPath = capability.model
         if (modelPath == GLTFEntityRenderer.NO_MODEL) return
@@ -74,9 +73,9 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
 
         stack.pushPose()
 
+        stack.translate(0.5, 0.0, 0.5)
         preRender(entity, capability, model.animationPlayer, stack)
 
-        stack.translate(0.5, 0.5, 0.5)
         when (level.getBlockState(entity.blockPos).getOptionalValue(HorizontalDirectionalBlock.FACING)
             .orElseGet { Direction.NORTH }) {
             Direction.SOUTH -> stack.mulPose(Quaternionf(0.0f, 1.0f, 0.0f, 0.0f))
@@ -88,19 +87,20 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
         model.update(capability, level.gameTime.toInt(), partialTick)
 
         model.render(
-            stack,
-            ModelData(null, null, Minecraft.getInstance().gameRenderer.itemInHandRenderer, null),
-            { texture: ResourceLocation ->
-                val result = capability.textures[texture.path]?.let {
-                    if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
-                    else it.rl
-                } ?: texture
+            RenderContext(
+                stack,
+                { texture: ResourceLocation ->
+                    val result = capability.textures[texture.path]?.let {
+                        if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
+                        else it.rl
+                    } ?: texture
 
-                Minecraft.getInstance().textureManager.getTexture(result).id
-            }.memoize(),
-            pBufferSource,
-            pPackedLight,
-            pPackedOverlay
+                    Minecraft.getInstance().textureManager.getTexture(result).id
+                }.memoize(),
+                pBufferSource,
+                pPackedLight,
+                pPackedOverlay
+            )
         )
 
         stack.popPose()
@@ -119,7 +119,6 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
         /*stack.mulPose(capability.transform.matrix)
         *///?}
         stack.last().normal().mul(capability.transform.normalMatrix)
-        stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
         animationPlayer.currentLoopAnimation = AnimationType.IDLE
     }
 }

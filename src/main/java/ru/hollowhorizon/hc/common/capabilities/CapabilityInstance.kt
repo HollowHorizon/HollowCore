@@ -56,7 +56,7 @@ open class CapabilityInstance {
     fun synchronize() {
         if(isOneSided) return
 
-        var tag = serializeNBT()
+        val tag = serializeNBT()
 
         when (val target = provider) {
             is Entity -> {

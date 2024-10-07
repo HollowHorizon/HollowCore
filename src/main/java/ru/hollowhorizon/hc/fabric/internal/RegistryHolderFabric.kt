@@ -137,6 +137,9 @@ class RegistryHolderFabric<T : Any>(
                         location,
                         BlockItem(this as Block, (this as BlockItemProperties).properties)
                     )
+                    if(autoModel != null) {
+                        HollowPack.addItemModel(location, AutoModelType.custom("builtin/entity"))
+                    }
                 }
             }
 

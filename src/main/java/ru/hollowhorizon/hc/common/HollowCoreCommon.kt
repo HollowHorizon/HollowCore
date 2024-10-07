@@ -34,7 +34,6 @@ import ru.hollowhorizon.hc.common.registry.ModEntities
 object HollowCoreCommon {
     @SubscribeEvent
     fun onRegisterAttributes(event: RegisterEntityAttributesEvent) {
-        HollowCore.LOGGER.info("Registered attributes")
         event.register(ModEntities.TEST_ENTITY.get(), Mob.createMobAttributes().add(Attributes.MOVEMENT_SPEED, 0.2).build())
     }
 }

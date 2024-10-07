@@ -118,10 +118,10 @@ object GltfModelLoader {
                             if (prim.indices != -1) file.accessors[prim.indices] else null,
                             prim.mode,
                             if (prim.material != -1) materials[prim.material] else Material(),
-                            prim.targets.map {
-                                it.map {
-                                    it.key to file.accessors[it.value].let { accessor ->
-                                        when (it.key) {
+                            prim.targets.map { map ->
+                                map.map { entry ->
+                                    entry.key to file.accessors[entry.value].let { accessor ->
+                                        when (entry.key) {
                                             GltfMesh.Primitive.ATTRIBUTE_POSITION, GltfMesh.Primitive.ATTRIBUTE_NORMAL -> {
                                                 Vec3fAccessor(accessor).list.flatMap { listOf(it.x, it.y, it.z) }
                                                     .toFloatArray()
@@ -136,7 +136,8 @@ object GltfModelLoader {
                                         }
                                     }
                                 }.toMap()
-                            }
+                            },
+                            node.weights?.toFloatArray() ?: floatArrayOf()
                         )
                     }
 
@@ -197,10 +198,6 @@ object GltfModelLoader {
     }
 
 }
-
-val NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE = IdentityHashMap<Node, Matrix4f>()
-
-var CURRENT_NORMAL = Matrix3f()
 
 val hasFirstPersonModel = isModLoaded("firstperson")
 

@@ -37,8 +37,8 @@ import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.FlyingAnimal
 import org.joml.Quaternionf
-import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.Node
+import ru.hollowhorizon.hc.client.models.internal.RenderContext
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.animations.PlayMode
@@ -89,25 +89,26 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         val lerpBodyRot = Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot)
         stack.mulPose(Quaternionf().rotateY(-lerpBodyRot * Mth.DEG_TO_RAD))
 
-        model.visuals = ::drawVisuals
-
         model.update(capability, entity.tickCount, partialTick)
         model.entityUpdate(entity, capability, partialTick)
 
         model.render(
-            stack,
-            ModelData(entity.offhandItem, entity.mainHandItem, itemInHandRenderer, entity),
-            { texture: ResourceLocation ->
-                val result = capability.textures[texture.path]?.let {
-                    if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
-                    else it.rl
-                } ?: texture
+            RenderContext(
+                stack,
+                { texture: ResourceLocation ->
+                    val result = capability.textures[texture.path]?.let {
+                        if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
+                        else it.rl
+                    } ?: texture
 
-                Minecraft.getInstance().textureManager.getTexture(result).id
-            }.memoize(),
-            source,
-            packedLight,
-            OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
+                    Minecraft.getInstance().textureManager.getTexture(result).id
+                }.memoize(),
+                source,
+                packedLight,
+                OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10),
+                ::drawVisuals,
+                entity
+            )
         )
 
         capability.subModels.forEach { (node, child) ->

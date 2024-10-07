@@ -25,45 +25,49 @@
 package ru.hollowhorizon.hc.client.render.item
 
 
-
+//? if <=1.19.2 {
+//?} else {
+/*import net.minecraft.world.item.ItemDisplayContext
+*///?}
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.block.model.ItemTransforms
+import net.minecraft.core.BlockPos
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
+import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.block.EntityBlock
 import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.handlers.TickHandler
-import ru.hollowhorizon.hc.client.models.internal.ModelData
+import ru.hollowhorizon.hc.client.models.internal.RenderContext
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.client.utils.get
+import ru.hollowhorizon.hc.client.utils.memoize
+import ru.hollowhorizon.hc.client.utils.rl
+
 //? if <=1.19.2 {
 import ru.hollowhorizon.hc.client.utils.math.mul
 import ru.hollowhorizon.hc.client.utils.math.mulPose
 import ru.hollowhorizon.hc.client.utils.math.mulPoseMatrix
-//?} else {
-/*import net.minecraft.world.item.ItemDisplayContext
-*///?}
-import ru.hollowhorizon.hc.client.utils.memoize
-import ru.hollowhorizon.hc.client.utils.rl
+//?}
 
 
-
-
-class GLTFItemRenderer() : BlockEntityWithoutLevelRenderer(
+object GLTFItemRenderer : BlockEntityWithoutLevelRenderer(
     Minecraft.getInstance().blockEntityRenderDispatcher,
     Minecraft.getInstance().entityModels
 ) {
 
     override fun renderByItem(
-        item: ItemStack,
+        itemStack: ItemStack,
         //? if <=1.19.2 {
         transformType: ItemTransforms.TransformType,
         //?} else {
@@ -74,7 +78,17 @@ class GLTFItemRenderer() : BlockEntityWithoutLevelRenderer(
         packedLight: Int,
         packedOverlay: Int,
     ) {
-        val capability = item[AnimatedEntityCapability::class]
+        val item = itemStack.item
+        if (item !is BlockItem) return
+
+        val block = item.block
+        if (block !is EntityBlock) return
+
+        val state = block.newBlockEntity(BlockPos.ZERO, block.defaultBlockState())
+        if (state !is IAnimated) return
+
+
+        val capability = state[AnimatedEntityCapability::class]
         val modelPath = capability.model
         if (modelPath == GLTFEntityRenderer.NO_MODEL) return
 
@@ -82,23 +96,25 @@ class GLTFItemRenderer() : BlockEntityWithoutLevelRenderer(
 
         stack.pushPose()
 
+        stack.translate(0.5, 0.0, 0.5)
         preRender(capability, model.animationPlayer, stack)
         model.update(capability, TickHandler.currentTicks, TickHandler.partialTick)
 
         model.render(
-            stack,
-            ModelData(null, null, Minecraft.getInstance().gameRenderer.itemInHandRenderer, null),
-            { texture: ResourceLocation ->
-                val result = capability.textures[texture.path]?.let {
-                    if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
-                    else it.rl
-                } ?: texture
+            RenderContext(
+                stack,
+                { texture: ResourceLocation ->
+                    val result = capability.textures[texture.path]?.let {
+                        if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
+                        else it.rl
+                    } ?: texture
 
-                Minecraft.getInstance().textureManager.getTexture(result).id
-            }.memoize(),
-            buffer,
-            packedLight,
-            packedOverlay
+                    Minecraft.getInstance().textureManager.getTexture(result).id
+                }.memoize(),
+                buffer,
+                packedLight,
+                packedOverlay
+            )
         )
 
         stack.popPose()

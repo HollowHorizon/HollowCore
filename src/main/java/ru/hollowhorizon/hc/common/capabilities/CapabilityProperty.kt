@@ -26,8 +26,8 @@ package ru.hollowhorizon.hc.common.capabilities
 
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.EndTag
+import net.minecraft.world.level.block.entity.BlockEntity
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.utils.JavaHacks
 import ru.hollowhorizon.hc.client.utils.nbt.INBTSerializable
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
@@ -35,7 +35,6 @@ import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
-import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.javaType
 import kotlin.reflect.jvm.jvmErasure
 
@@ -65,6 +64,8 @@ open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : 
         if (defaultType == null) defaultType =
             if (this.value == null) property.returnType.javaType as Class<out V> else this.value!!.javaClass
         thisRef.isChanged = true
+        val provider = thisRef.provider
+        if (provider is BlockEntity) provider.setChanged()
     }
 
     fun serialize(tag: CompoundTag) {
