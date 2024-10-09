@@ -268,13 +268,13 @@ fun renderItemDecorations(stack: ItemStack, poseStack: PoseStack, x: Int, y: Int
     val vertexConsumer: VertexConsumer = src.getBuffer(renderType)
 
     //? if <1.21 {
-    vertexConsumer.vertex(matrix4f, minX.toFloat(), minY.toFloat(), z.toFloat()).color(color)
+    /^vertexConsumer.vertex(matrix4f, minX.toFloat(), minY.toFloat(), z.toFloat()).color(color)
     vertexConsumer.vertex(matrix4f, minX.toFloat(), maxY.toFloat(), z.toFloat()).color(color)
     vertexConsumer.vertex(matrix4f, maxX.toFloat(), maxY.toFloat(), z.toFloat()).color(color)
     vertexConsumer.vertex(matrix4f, maxX.toFloat(), minY.toFloat(), z.toFloat()).color(color)
-    //?} else {
+    ^///?} else {
     
-    /^vertexConsumer.addVertex(matrix4f, minX.toFloat(), minY.toFloat(), z.toFloat()).setColor(color)
+    vertexConsumer.addVertex(matrix4f, minX.toFloat(), minY.toFloat(), z.toFloat()).setColor(color)
     vertexConsumer.addVertex(matrix4f, minX.toFloat(), maxY.toFloat(), z.toFloat()).setColor(color)
     vertexConsumer.addVertex(matrix4f, maxX.toFloat(), maxY.toFloat(), z.toFloat()).setColor(color)
     vertexConsumer.addVertex(matrix4f, maxX.toFloat(), minY.toFloat(), z.toFloat()).setColor(color)
@@ -282,6 +282,6 @@ fun renderItemDecorations(stack: ItemStack, poseStack: PoseStack, x: Int, y: Int
     RenderSystem.disableDepthTest()
     src.endBatch()
     RenderSystem.enableDepthTest()
-    ^///?}
+    //?}
 }
 *///?}

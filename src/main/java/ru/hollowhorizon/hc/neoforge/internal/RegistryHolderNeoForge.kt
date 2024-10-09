@@ -208,6 +208,11 @@ class RegistryHolderNeoForge<T : Any>(
                         BlockItem(this as Block, (this as BlockItemProperties).properties)
                     }
                     items.register(HollowCoreNeoForge.MOD_BUS)
+
+                    if(autoModel != null) {
+                        if(autoModel == AutoModelType.CUBE_ALL) HollowPack.addItemModel(location, AutoModelType.custom("${location.namespace}:block/${location.path}"))
+                        else HollowPack.addItemModel(location, AutoModelType.custom("builtin/entity"))
+                    }
                 }
             }
 
