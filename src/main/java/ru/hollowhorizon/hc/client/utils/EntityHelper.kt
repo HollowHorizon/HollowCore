@@ -24,6 +24,8 @@
 
 package ru.hollowhorizon.hc.client.utils
 
+//? if <=1.19.2
+import ru.hollowhorizon.hc.client.utils.math.level
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.util.Mth
@@ -42,9 +44,6 @@ import net.minecraft.world.phys.shapes.Shapes
 import java.util.function.Predicate
 import kotlin.math.abs
 import kotlin.random.Random
-
-//? if <=1.19.2
-import ru.hollowhorizon.hc.client.utils.math.level
 
 tailrec fun Player.findRandomPos(radius: Int): Vec3 {
     val distance = Random.nextDouble(1.0, radius.toDouble())
@@ -68,9 +67,8 @@ tailrec fun Player.findRandomPos(radius: Int): Vec3 {
     } else findRandomPos(radius)
 }
 
-fun normalizeAngle(angle: Double): Double {
-    return (angle + 2 * Math.PI) % (2 * Math.PI)
-}
+fun normalizeAngle(angle: Double): Double = (angle + 2 * Math.PI) % (2 * Math.PI)
+
 
 fun isInFrontOfEntity(entity: LivingEntity, target: Entity): Boolean {
     val vecTargetsPos: Vec3 = target.position()
@@ -82,7 +80,6 @@ fun isInFrontOfEntity(entity: LivingEntity, target: Entity): Boolean {
 
 fun LivingEntity.isInSight(other: LivingEntity): Boolean {
     if (viewBlocked(this, other)) return false
-
     return isInFrontOfEntity(this, other)
 }
 

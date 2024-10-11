@@ -37,7 +37,7 @@ import java.util.*
 
 object SkinDownloader {
     fun downloadSkin(skin: String): ResourceLocation {
-        val hasHollowEngine = isModLoaded("hollowengine")
+        val hasHollowEngine = ModList.isLoaded("hollowengine")
         val mod = if (hasHollowEngine) "hollowengine" else MODID
         val textureLocation = "$mod:skins/${skin.lowercase()}.png".rl
         val original =

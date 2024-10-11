@@ -44,7 +44,6 @@ import java.util.function.Predicate
 //?}
 import net.minecraft.server.packs.repository.PackSource
 import net.minecraft.server.packs.resources./*? if >=1.20.1 {*//*IoSupplier*//*?} else {*/Resource.IoSupplier/*?}*/
-import ru.hollowhorizon.hc.client.utils.json.json
 import ru.hollowhorizon.hc.common.registry.AutoModelType
 import java.io.ByteArrayInputStream
 import java.io.FileNotFoundException

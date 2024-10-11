@@ -34,13 +34,6 @@ fun <T> findField(lookup: Any, name: String): T {
 
 object CoreInitializationFabric {
     init {
-        val gameProvider =
-            (FabricLoader.getInstance() as FabricLoaderImpl).gameProvider as MinecraftGameProvider
-        val libs: List<Path> = findField(gameProvider, "miscGameLibraries")
-        val gameJars: List<Path> = findField(gameProvider, "gameJars")
-        val logJars: Set<Path> = findField(gameProvider, "logJars")
-        val parentClassPath: Collection<Path> = findField(gameProvider, "validParentClassPath")
-
         val graph = ClassGraph()
             .enableAllInfo()
             .scan()

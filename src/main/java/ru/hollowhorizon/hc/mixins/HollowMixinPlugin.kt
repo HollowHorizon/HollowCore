@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.mixins
 import org.objectweb.asm.tree.ClassNode
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo
-import ru.hollowhorizon.hc.client.utils.isModLoaded
 
 class HollowMixinPlugin : IMixinConfigPlugin {
     override fun onLoad(mixinPackage: String) {

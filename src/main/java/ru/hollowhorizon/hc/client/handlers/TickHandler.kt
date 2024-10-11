@@ -48,7 +48,7 @@ object TickHandler {
             return 20f
             //?} elif >=1.21 {
             /*return (Minecraft.getInstance().level?.tickRateManager()?.tickrate()?.coerceAtLeast(20f)
-                ?: 20f) //В deltaFrame уже учтены значения ниже 20
+                ?: 20f) // В deltaFrame уже учтены значения ниже 20
             *///?}
         }
 

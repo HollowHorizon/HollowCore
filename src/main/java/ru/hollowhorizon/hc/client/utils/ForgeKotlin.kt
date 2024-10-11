@@ -66,22 +66,34 @@ enum class Axis(val x: Float, val y: Float, val z: Float) {
     Z(0f, 0f, 1f);
 }
 
-val isProduction get() = isProduction_()
+val isProduction: Boolean get() {
+    //? if neoforge {
+    /*return net.neoforged.fml.loading.FMLLoader.isProduction()
+    *///?} elif forge {
+    /*return net.minecraftforge.fml.loading.FMLLoader.isProduction()
+    *///?} else {
+    return !net.fabricmc.loader.api.FabricLoader.getInstance().isDevelopmentEnvironment
+    //?}
+}
 val isLogicalClient get() = isPhysicalClient && RenderSystem.isOnRenderThread()
-val isLogicalServer get() = !isLogicalClient
-val isPhysicalClient get() = !isPhysicalClient_()
-val isPhysicalServer get() = !isPhysicalClient
+val isPhysicalClient: Boolean get() {
+    //? if neoforge {
+    /*return net.neoforged.fml.loading.FMLLoader.getDist().isClient
+    *///?} elif forge {
+    /*return net.minecraftforge.fml.loading.FMLLoader.getDist().isClient
+    *///?} else {
+    return net.fabricmc.loader.api.FabricLoader.getInstance().environmentType == net.fabricmc.api.EnvType.CLIENT
+    //?}
+}
 
-val hasShaders get() = isModLoaded("oculus") || isModLoaded("iris") || isModLoaded("optifine")
+val hasShaders get() = ModList.isLoaded("oculus") || ModList.isLoaded("iris") || ModList.isLoaded("optifine")
 
 val areShadersEnabled get() = hasShaders && areShadersEnabled_()
 
 val RANDOM = RandomSource.create()
 
-lateinit var isProduction_: () -> Boolean
-lateinit var isPhysicalClient_: () -> Boolean
 lateinit var areShadersEnabled_: () -> Boolean
-lateinit var isModLoaded: (modid: String) -> Boolean
+
 lateinit var currentServer: MinecraftServer
 lateinit var shouldOverrideShaders: () -> Boolean
 
@@ -91,7 +103,6 @@ val registryAccess: RegistryAccess
     else currentServer.registryAccess()
 
 
-fun fromJava(clazz: Class<*>) = clazz.kotlin
 
 operator fun <O, T : CapabilityInstance> O.get(capability: KClass<T>): T = get(capability.java)
 
@@ -139,8 +150,6 @@ fun ResourceLocation.exists(): Boolean {
 
 val ResourceLocation.stream: InputStream
     get() = HollowJavaUtils.getResource(this)
-
-val PLACEHOLDER: MutableComponent get() = Component.empty()
 
 @Deprecated("Use String.literal instead.", ReplaceWith("this.literal"))
 val String.mcText: MutableComponent get() = Component.literal(this)
@@ -191,11 +200,6 @@ fun Screen.open() {
 }
 
 fun ResourceLocation.toTexture(): AbstractTexture = mc.textureManager.getTexture(this)
-
-
-enum class Anchor {
-    LEFT, CENTER, RIGHT
-}
 
 
 fun Int.toRGBA(): HollowColor {

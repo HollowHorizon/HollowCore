@@ -31,7 +31,6 @@ import net.minecraft.world.item.ArmorItem
 import net.minecraft.world.item.ItemStack
 import java.util.*
 
-@Suppress("UnstableApiUsage")
 fun ItemStack.getArmorTexture(entity: Entity, slot: EquipmentSlot): ResourceLocation {
     val item = item as ArmorItem
     //? if <1.21 {

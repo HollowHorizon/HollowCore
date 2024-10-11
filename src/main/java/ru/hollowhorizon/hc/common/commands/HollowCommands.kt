@@ -25,14 +25,14 @@
 package ru.hollowhorizon.hc.common.commands
 
 
+//? if <=1.19.2
+import ru.hollowhorizon.hc.client.utils.math.serverLevel
 import com.mojang.brigadier.arguments.StringArgumentType
 import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft
-import net.minecraft.commands.arguments.ResourceLocationArgument
 import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import net.minecraft.server.level.ServerPlayer
 import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssets
-import ru.hollowhorizon.hc.client.render.shaders.post.PostChain
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.effects.ParticleEmitterInfo
 import ru.hollowhorizon.hc.common.effects.ParticleHelper
@@ -40,9 +40,6 @@ import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterCommandsEvent
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.RequestPacket
-
-//? if <=1.19.2
-import ru.hollowhorizon.hc.client.utils.math.serverLevel
 
 @HollowPacketV2
 @Serializable
@@ -57,16 +54,6 @@ object HollowCommands {
     fun onRegisterCommands(event: RegisterCommandsEvent) {
         event.dispatcher.onRegisterCommands {
             "hollowcore" {
-                "stop-post" {
-                    PostChain.shutdown()
-                }
-
-                "start-post"(
-                    arg("name", ResourceLocationArgument.id())
-                ) {
-                    PostChain.apply(ResourceLocationArgument.getId(this, "name"))
-                }
-
                 "particle"(
                     arg("pos", Vec3Argument.vec3()),
                     arg("name", StringArgumentType.greedyString(), EffekAssets.entries().map { it.key.toString() })

@@ -34,7 +34,6 @@ class ImageFormat(val location: ResourceLocation) : SimpleTexture(location) {
     init {
         val image = decode(location.stream)
         val texture = DynamicTexture(image)
-        //texture.upload()
         texID = texture.id
     }
 

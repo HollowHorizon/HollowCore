@@ -24,7 +24,7 @@
 
 package ru.hollowhorizon.hc.client.utils
 
-import com.google.gson.JsonElement
+import com.google.gson.JsonParser
 import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.Block
@@ -34,8 +34,7 @@ import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.BooleanOp
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
-import ru.hollowhorizon.hc.client.utils.json.json
-import java.util.function.Consumer
+import java.io.InputStreamReader
 import java.util.function.UnaryOperator
 
 
@@ -44,27 +43,29 @@ object VoxelShapeHelper {
 
     fun loadFromLocation(location: ResourceLocation): VoxelShape {
         val shapes: MutableList<VoxelShape> = ArrayList()
-        json(location).asJsonObject.getAsJsonArray("elements").forEach(Consumer { element: JsonElement ->
-            val o = element.asJsonObject
-            val from = o.getAsJsonArray("from")
-            val x1 = from[0].asInt
-            val y1 = from[1].asInt
-            val z1 = from[2].asInt
-            val to = o.getAsJsonArray("to")
-            val x2 = to[0].asInt
-            val y2 = to[1].asInt
-            val z2 = to[2].asInt
-            shapes.add(
-                Block.box(
-                    x1.toDouble(),
-                    y1.toDouble(),
-                    z1.toDouble(),
-                    x2.toDouble(),
-                    y2.toDouble(),
-                    z2.toDouble()
+        JsonParser.parseReader(InputStreamReader(location.toIS())).asJsonObject
+            .getAsJsonArray("elements")
+            .forEach { element ->
+                val o = element.asJsonObject
+                val from = o.getAsJsonArray("from")
+                val x1 = from[0].asInt
+                val y1 = from[1].asInt
+                val z1 = from[2].asInt
+                val to = o.getAsJsonArray("to")
+                val x2 = to[0].asInt
+                val y2 = to[1].asInt
+                val z2 = to[2].asInt
+                shapes.add(
+                    Block.box(
+                        x1.toDouble(),
+                        y1.toDouble(),
+                        z1.toDouble(),
+                        x2.toDouble(),
+                        y2.toDouble(),
+                        z2.toDouble()
+                    )
                 )
-            )
-        })
+            }
         val root = shapes[0]
         shapes.removeAt(0)
         return Shapes.or(root, *shapes.toTypedArray<VoxelShape>())

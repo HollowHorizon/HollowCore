@@ -24,23 +24,15 @@
 
 package ru.hollowhorizon.hc.client.models.gltf
 
-import com.mojang.datafixers.util.Pair
 import kotlinx.coroutines.*
 import net.minecraft.client.renderer.texture.DynamicTexture
-import net.minecraft.client.renderer.texture.TextureAtlasSprite
-import net.minecraft.client.resources.model.BakedModel
-import net.minecraft.client.resources.model.ModelBakery
-import net.minecraft.client.resources.model.ModelState
-import net.minecraft.client.resources.model.UnbakedModel
 import net.minecraft.resources.ResourceLocation
 import org.joml.*
 import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.client.models.internal.*
 import ru.hollowhorizon.hc.client.utils.exists
-import ru.hollowhorizon.hc.client.utils.isModLoaded
 import ru.hollowhorizon.hc.client.utils.rl
 import java.util.*
-import java.util.function.Function
 
 
 object GltfModelLoader {
@@ -198,8 +190,6 @@ object GltfModelLoader {
     }
 
 }
-
-val hasFirstPersonModel = isModLoaded("firstperson")
 
 fun Vector3f.toArray() = floatArrayOf(x, y, z)
 fun Vector4f.toArray() = floatArrayOf(x, y, z, w)
