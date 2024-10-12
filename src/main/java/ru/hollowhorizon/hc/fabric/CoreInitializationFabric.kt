@@ -6,17 +6,13 @@ import io.github.classgraph.ClassInfo
 import io.github.classgraph.MethodInfo
 import net.fabricmc.api.EnvType
 import net.fabricmc.loader.api.FabricLoader
-import net.fabricmc.loader.impl.FabricLoaderImpl
-import net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.utils.isProduction
 import ru.hollowhorizon.hc.common.events.ClientOnly
 import ru.hollowhorizon.hc.common.registry.getAnnotatedClasses
 import ru.hollowhorizon.hc.common.registry.getAnnotatedMethods
 import ru.hollowhorizon.hc.common.registry.getSubTypes
 import sun.misc.Unsafe
 import java.lang.reflect.Method
-import java.nio.file.Path
 
 private val unsafe by lazy {
     val theUnsafe = Unsafe::class.java.getDeclaredField("theUnsafe")

@@ -29,9 +29,6 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.Tesselator
 import com.mojang.blaze3d.vertex.VertexFormat
-//? if >=1.21 {
-/*import com.mojang.blaze3d.vertex.BufferUploader
-*///?}
 import net.minecraft.client.renderer.GameRenderer
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -258,13 +255,8 @@ class Spline3D(points: List<Vector3d>, rotations: List<Vector3f>) {
         RenderSystem.setShader { GameRenderer.getPositionTexShader() }
         val tessellator = Tesselator.getInstance()
 
-        val bufferbuilder = tessellator
-            //? if <1.21 {
-            .builder
+        val bufferbuilder = tessellator.builder
         bufferbuilder.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR)
-        //?} else {
-        /*.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR)
-        *///?}
         var last: Vector3d? = null
         for (i in 0..100) {
             val p = i / 100.0
@@ -276,12 +268,6 @@ class Spline3D(points: List<Vector3d>, rotations: List<Vector3f>) {
 
             last = pos
         }
-        //? if <1.21 {
         tessellator.end()
-        //?} else {
-
-        /*BufferUploader.drawWithShader(bufferbuilder.build() ?: throw IllegalStateException("Mesh is null"))
-        tessellator.clear()
-        *///?}
     }
 }

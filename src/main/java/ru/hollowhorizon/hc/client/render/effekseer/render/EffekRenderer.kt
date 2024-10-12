@@ -100,10 +100,10 @@ object EffekRenderer {
         if (type == ParticleEmitter.Type.WORLD) pose.translate(-position.x(), -position.y(), -position.z())
 
         //? if >=1.20.1 {
-        /*pose.last().pose().get(CAMERA_TRANSFORM_BUFFER)
-        *///?} else {
-        pose.last().pose().store(CAMERA_TRANSFORM_BUFFER)
-        //?}
+        pose.last().pose().get(CAMERA_TRANSFORM_BUFFER)
+        //?} else {
+        /*pose.last().pose().store(CAMERA_TRANSFORM_BUFFER)
+        *///?}
 
         transposeMatrix(CAMERA_TRANSFORM_BUFFER)
         CAMERA_TRANSFORM_BUFFER[CAMERA_TRANSFORM_DATA]

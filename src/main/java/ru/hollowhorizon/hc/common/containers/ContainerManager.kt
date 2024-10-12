@@ -36,7 +36,7 @@ interface ContainerManager {
 
         if (holdStack.isEmpty && !item.isEmpty) {
             //? if >=1.20.1
-            /*if (!fromContainer.canTakeItem(toContainer, id, item)) return false*/
+            if (!fromContainer.canTakeItem(toContainer, id, item)) return false
 
             if (fromContainer is HollowContainer) {
                 val event = ContainerEvent.OnTake(player, fromContainer, id)

@@ -1,8 +1,5 @@
 package ru.hollowhorizon.hc.client.models.internal
 
-//? if <=1.19.2 {
-import ru.hollowhorizon.hc.client.utils.toMc
-//?}
 
 import org.joml.Matrix4f
 import org.joml.Quaternionf
@@ -22,16 +19,8 @@ class Node(
 
     fun renderDecorations(context: RenderContext) {
         context.stack.use {
-            //? if >=1.21 {
-            /*mulPose(localMatrix)
+            mulPoseMatrix(localMatrix)
             last().normal().mul(normalMatrix)
-            *///?} elif >=1.20.1 {
-            /*mulPoseMatrix(localMatrix)
-            last().normal().mul(normalMatrix)
-            *///?} else {
-            mulPoseMatrix(localMatrix.toMc())
-            last().normal().mul(normalMatrix.toMc())
-            //?}
 
             context.entity?.let {
                 context.nodeRenderer(it, this, this@Node, context.buffer, context.packedLight)

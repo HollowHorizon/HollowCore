@@ -20,11 +20,7 @@ public class PackRepositoryMixin {
         List<RepositorySource> l = new ArrayList<>(Arrays.asList(providers));
 
 
-        l.add((src
-        //? if <=1.19.2 {
-               , info
-        //?}
-        ) -> {
+        l.add(src -> {
             EventBus.post(new RegisterResourcePacksEvent(src));
             HollowLoggerKt.getLOGGER().info("HollowPack registered!");
         });

@@ -3,20 +3,16 @@ package ru.hollowhorizon.hc.client.utils
 //? if fabric {
 import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.loader.api.metadata.ModOrigin
-import java.io.FileNotFoundException
-import java.util.jar.JarFile
-import kotlin.jvm.optionals.getOrNull
 //?} elif forge {
 /*import net.minecraftforge.fml.ModList
 *///?} elif neoforge {
 /*import net.neoforged.fml.ModList
 *///?}
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
-import java.nio.file.AccessDeniedException
-import java.nio.file.Files
-import java.nio.file.Path
-import kotlin.io.path.absolutePathString
+import java.util.jar.JarFile
+import kotlin.jvm.optionals.getOrNull
 
 object ModList {
     fun isLoaded(modId: String): Boolean {
@@ -24,9 +20,9 @@ object ModList {
         return FabricLoader.getInstance().isModLoaded(modId)
         //?} elif forge || neoforge {
         /*return ModList.get().isLoaded(modId)
-        *///?} else {
-        //?}
+        *///?}
     }
+
     fun getFile(modId: String): File {
         //? if fabric {
         return FabricLoader.getInstance().getModFile(modId)
@@ -37,13 +33,14 @@ object ModList {
         *///?}
     }
 
-    val mods: List<String> get() {
-        //? if fabric {
-        return FabricLoader.getInstance().allMods.map { it.metadata.id }
-        //?} elif forge || neoforge {
-        /*return ModList.get().mods.map { it.modId }
-        *///?}
-    }
+    val mods: List<String>
+        get() {
+            //? if fabric {
+            return FabricLoader.getInstance().allMods.map { it.metadata.id }
+            //?} elif forge || neoforge {
+            /*return ModList.get().mods.map { it.modId }
+            *///?}
+        }
 
 }
 

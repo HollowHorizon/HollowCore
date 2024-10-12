@@ -47,15 +47,7 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import java.io.InputStream
-import kotlin.jvm.optionals.getOrDefault
 import kotlin.reflect.KClass
-
-//? if <=1.19.2 {
-import org.joml.Matrix3f
-import org.joml.Matrix4f
-import ru.hollowhorizon.hc.api.Matrix3fAccessor
-import ru.hollowhorizon.hc.api.Matrix4fAccessor
-//?}
 
 
 val mc: Minecraft get() = Minecraft.getInstance()
@@ -66,25 +58,27 @@ enum class Axis(val x: Float, val y: Float, val z: Float) {
     Z(0f, 0f, 1f);
 }
 
-val isProduction: Boolean get() {
-    //? if neoforge {
-    /*return net.neoforged.fml.loading.FMLLoader.isProduction()
-    *///?} elif forge {
-    /*return net.minecraftforge.fml.loading.FMLLoader.isProduction()
-    *///?} else {
-    return !net.fabricmc.loader.api.FabricLoader.getInstance().isDevelopmentEnvironment
-    //?}
-}
+val isProduction: Boolean
+    get() {
+        //? if neoforge {
+        /*return net.neoforged.fml.loading.FMLLoader.isProduction()
+        *///?} elif forge {
+        /*return net.minecraftforge.fml.loading.FMLLoader.isProduction()
+        *///?} else {
+        return !net.fabricmc.loader.api.FabricLoader.getInstance().isDevelopmentEnvironment
+        //?}
+    }
 val isLogicalClient get() = isPhysicalClient && RenderSystem.isOnRenderThread()
-val isPhysicalClient: Boolean get() {
-    //? if neoforge {
-    /*return net.neoforged.fml.loading.FMLLoader.getDist().isClient
-    *///?} elif forge {
-    /*return net.minecraftforge.fml.loading.FMLLoader.getDist().isClient
-    *///?} else {
-    return net.fabricmc.loader.api.FabricLoader.getInstance().environmentType == net.fabricmc.api.EnvType.CLIENT
-    //?}
-}
+val isPhysicalClient: Boolean
+    get() {
+        //? if neoforge {
+        /*return net.neoforged.fml.loading.FMLLoader.getDist().isClient
+        *///?} elif forge {
+        /*return net.minecraftforge.fml.loading.FMLLoader.getDist().isClient
+        *///?} else {
+        return net.fabricmc.loader.api.FabricLoader.getInstance().environmentType == net.fabricmc.api.EnvType.CLIENT
+        //?}
+    }
 
 val hasShaders get() = ModList.isLoaded("oculus") || ModList.isLoaded("iris") || ModList.isLoaded("optifine")
 
@@ -103,7 +97,6 @@ val registryAccess: RegistryAccess
     else currentServer.registryAccess()
 
 
-
 operator fun <O, T : CapabilityInstance> O.get(capability: KClass<T>): T = get(capability.java)
 
 @Suppress("UNCHECKED_CAST")
@@ -114,13 +107,7 @@ operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T = when (
     else -> throw IllegalStateException("Unsupported capability type: $capability")
 }
 
-val String.rl
-    get() =
-//? if <1.21 {
-    ResourceLocation(this)
-//?} else {
-        /*ResourceLocation.parse(this)
-*///?}
+val String.rl get() = ResourceLocation(this)
 
 fun resource(resource: String) = "${HollowCore.MODID}:$resource".rl.stream
 
@@ -128,21 +115,9 @@ fun ResourceLocation.toIS(): InputStream {
     return HollowJavaUtils.getResource(this)
 }
 
-fun ItemStack.save(): CompoundTag {
-    //? if <1.21 {
-    return CompoundTag().apply(::save)
-    //?} else {
-    /*return save(registryAccess) as CompoundTag
-    *///?}
-}
+fun ItemStack.save() = CompoundTag().apply(::save)
 
-fun CompoundTag.readItem(): ItemStack {
-    //? if <1.21 {
-    return ItemStack.of(this)
-    //?} else {
-    /*return ItemStack.parse(registryAccess, this).getOrDefault(ItemStack.EMPTY)
-    *///?}
-}
+fun CompoundTag.readItem() = ItemStack.of(this)
 
 fun ResourceLocation.exists(): Boolean {
     return mc.resourceManager.getResource(this).isPresent
@@ -257,23 +232,3 @@ fun <A, B> ((A) -> B).memoize(): (A) -> B {
         cache.getOrPut(it) { this(it) }
     }
 }
-
-//? if <=1.19.2 {
-
-fun Matrix4f.toMc(): com.mojang.math.Matrix4f {
-    val matrix = com.mojang.math.Matrix4f()
-    (matrix as Matrix4fAccessor).`hollowcore$fromJoml`(this)
-    return matrix
-}
-
-fun com.mojang.math.Matrix4f.fromMc() = (this as Matrix4fAccessor).`hollowcore$toJoml`()
-
-fun Matrix3f.toMc(): com.mojang.math.Matrix3f {
-    val matrix = com.mojang.math.Matrix3f()
-    (matrix as Matrix3fAccessor).`hollowcore$fromJoml`(this)
-    return matrix
-}
-
-fun com.mojang.math.Matrix3f.fromMc() = (this as Matrix3fAccessor).`hollowcore$toJoml`()
-
-//?}

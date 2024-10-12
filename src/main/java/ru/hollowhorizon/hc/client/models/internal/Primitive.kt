@@ -11,14 +11,7 @@ import ru.hollowhorizon.hc.client.utils.math.MikkTSpaceContext
 import ru.hollowhorizon.hc.client.utils.math.MikktspaceTangentGenerator
 import ru.hollowhorizon.hc.client.utils.toTexture
 import java.nio.FloatBuffer
-
-//? if <=1.19.2 {
-
-import ru.hollowhorizon.hc.client.utils.toMc
-import com.mojang.math.Matrix3f
- //?} else {
-/*import org.joml.Matrix3f
-*///?}
+import org.joml.Matrix3f
 
 class Primitive(
     val attributes: Map<String, GltfAccessor>,
@@ -378,27 +371,15 @@ class Primitive(
             if (tangentBuffer != -1) GL33.glEnableVertexAttribArray(9) //Тангенты
             if (hasShaders) GL20.glEnableVertexAttribArray(7) //координаты для глубины (pbr)
 
-            //? if >=1.20.1 {
-            /*val modelView = Matrix4f(RenderSystem.getModelViewMatrix()).mul(stack.last().pose()).mul(globalMatrix)
+            val modelView = Matrix4f(RenderSystem.getModelViewMatrix()).mul(stack.last().pose()).mul(globalMatrix)
             shader.MODEL_VIEW_MATRIX?.set(modelView)
-            *///?} else {
-            val modelView = RenderSystem.getModelViewMatrix().copy()
-            modelView.multiply(stack.last().pose())
-            modelView.multiply(globalMatrix.toMc())
-            shader.MODEL_VIEW_MATRIX?.set(modelView)
-            //?}
 
             shader.MODEL_VIEW_MATRIX?.upload()
 
             //Нормали
             shader.getUniform("NormalMat")?.let {
-                //? if <=1.19.2 {
-                val normal = stack.last().normal().copy()
-                normal.mul(Matrix3f(globalMatrix.toMc()))
-                //?} else {
-                /*val normal = Matrix3f(stack.last().normal())
+                val normal = Matrix3f(stack.last().normal())
                 normal.mul(Matrix3f(globalMatrix))
-                *///?}
                 it.set(normal)
                 it.upload()
             }

@@ -15,10 +15,6 @@ import ru.hollowhorizon.hc.client.imgui.Graphics
 import ru.hollowhorizon.hc.client.imgui.PROPERTIES
 import ru.hollowhorizon.hc.client.imgui.animatable
 import ru.hollowhorizon.hc.client.utils.RANDOM
-//? if <=1.19.2 {
-import ru.hollowhorizon.hc.client.utils.math.mulPose
-import ru.hollowhorizon.hc.client.utils.math.translate
-//?}
 import ru.hollowhorizon.hc.common.multiblock.Multiblock
 import kotlin.math.max
 

@@ -24,11 +24,6 @@
 
 package ru.hollowhorizon.hc.client.render.block
 
-//? if <=1.19.2 {
-import ru.hollowhorizon.hc.client.utils.math.mul
-import ru.hollowhorizon.hc.client.utils.math.mulPose
-import ru.hollowhorizon.hc.client.utils.math.mulPoseMatrix
-//?}
 
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
@@ -112,12 +107,7 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
         animationPlayer: GLTFAnimationPlayer,
         stack: PoseStack,
     ) {
-        //? if <1.21 {
         stack.mulPoseMatrix(capability.transform.matrix)
-        //?} else {
-
-        /*stack.mulPose(capability.transform.matrix)
-        *///?}
         stack.last().normal().mul(capability.transform.normalMatrix)
         animationPlayer.currentLoopAnimation = AnimationType.IDLE
     }

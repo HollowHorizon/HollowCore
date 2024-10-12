@@ -24,9 +24,6 @@
 
 package ru.hollowhorizon.hc.common.commands
 
-
-//? if <=1.19.2
-import ru.hollowhorizon.hc.client.utils.math.serverLevel
 import com.mojang.brigadier.arguments.StringArgumentType
 import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft

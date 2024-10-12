@@ -1,13 +1,12 @@
 package ru.hollowhorizon.hc.mixins;
 
+import net.minecraft.core.LayeredRegistryAccess;
 import net.minecraft.core.Registry;
-
-
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-
-
+import net.minecraft.server.RegistryLayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.progress.ChunkProgressListener;
 import net.minecraft.world.level.Level;
@@ -29,25 +28,13 @@ import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.events.EventBus;
 import ru.hollowhorizon.hc.common.events.level.LevelEvent;
 
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-//? if >=1.20.1 {
-/*import net.minecraft.core.LayeredRegistryAccess;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.server.RegistryLayer;
-*///?} else {
-import net.minecraft.world.level.storage.WorldData;
-
-import java.util.Map;
-//?}
 
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerMixin implements ICapabilityDispatcher {
@@ -64,8 +51,7 @@ public abstract class MinecraftServerMixin implements ICapabilityDispatcher {
     @Final
     protected LevelStorageSource.LevelStorageAccess storageSource;
 
-    //? if >=1.20.1 {
-    /*@Shadow
+    @Shadow
     @Final
     private Map<ResourceKey<Level>, ServerLevel> levels;
 
@@ -77,7 +63,6 @@ public abstract class MinecraftServerMixin implements ICapabilityDispatcher {
     public abstract LayeredRegistryAccess<RegistryLayer> registries();
 
 
-
     @Inject(method = "createLevels", at = @At("TAIL"))
     private void onSave(ChunkProgressListener $$0, CallbackInfo ci) {
         Registry<LevelStem> registry = registries.compositeAccess().registryOrThrow(Registries.LEVEL_STEM);
@@ -86,32 +71,17 @@ public abstract class MinecraftServerMixin implements ICapabilityDispatcher {
             EventBus.post(new LevelEvent.Load(level));
         }
     }
-    *///?} else {
-    @Shadow @Final protected WorldData worldData;
 
-    @Shadow @Final private Map<ResourceKey<Level>, ServerLevel> levels;
-
-    @Inject(method = "createLevels", at = @At("TAIL"))
-    private void onSave(ChunkProgressListener $$0, CallbackInfo ci) {
-        Registry<LevelStem> registry = worldData.worldGenSettings().dimensions();
-        for (ResourceKey<LevelStem> key : registry.registryKeySet()) {
-            var level = levels.get(key);
-            EventBus.post(new LevelEvent.Load(level));
-        }
-    }
-    //?}
 
     @Inject(method = "loadLevel", at = @At("TAIL"))
     private void onLoad(CallbackInfo ci) {
         ICapabilityDispatcherKt.initialize(this);
 
-        //? if >=1.21 {
-        /*var file = storageSource.getLevelDirectory().path().resolve("server_capability.dat").toFile();
-        *///?} elif fabric {
+        //? if fabric {
         var file = storageSource.getIconFile().get().getParent().resolve("server_capability.dat").toFile();
         //?} else {
         /*var file = storageSource.getWorldDir().resolve(storageSource.getLevelId()).resolve("server_capability.dat").toFile();
-        *///?}
+         *///?}
         if (file.exists()) {
             try {
                 var stream = new FileInputStream(file);
@@ -126,16 +96,14 @@ public abstract class MinecraftServerMixin implements ICapabilityDispatcher {
 
     @Inject(method = "stopServer", at = @At("HEAD"))
     private void onSave(CallbackInfo ci) {
-        //? if >=1.21 {
-        /*var file = storageSource.getLevelDirectory().path().resolve("server_capability.dat").toFile();
-         *///?} elif fabric {
+        //? if fabric {
         var file = storageSource.getIconFile().get().getParent().resolve("server_capability.dat").toFile();
         //?} else {
         /*var file = storageSource.getWorldDir().resolve(storageSource.getLevelId()).resolve("server_capability.dat").toFile();
          *///?}
 
         try {
-            if(!file.exists()) file.createNewFile();
+            if (!file.exists()) file.createNewFile();
             var output = new FileOutputStream(file);
             var tag = new CompoundTag();
             ICapabilityDispatcherKt.serializeCapabilities(this, tag);

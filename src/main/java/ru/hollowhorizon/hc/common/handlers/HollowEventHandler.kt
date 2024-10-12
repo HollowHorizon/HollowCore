@@ -119,14 +119,7 @@ object HollowEventHandler {
 
     @SubscribeEvent
     fun onEntityTick(event: TickEvent.Entity) {
-        if (event.entity
-                //? if >=1.20.1 {
-                /*.level()
-                *///?} else {
-                .level
-                //?}
-                .isClientSide
-        ) {
+        if (event.entity.level().isClientSide) {
             ENTITY_TAGS[event.entity.id]?.let { map ->
                 val capabilities = (event.entity as ICapabilityDispatcher).capabilities
                 map.forEach { (name, tag) ->

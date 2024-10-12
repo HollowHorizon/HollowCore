@@ -54,8 +54,6 @@ object HollowCoreClient {
 
         EffekseerNatives.install()
         RenderSystem.recordRenderCall(RenderLoader::onInitialize)
-        //BlockRenderTypes[ModBlocks.EXAMPLE.get()] = RenderType.translucent()
-        //ImGuiHandler.frames += Renderable { example() }
     }
 
     @SubscribeEvent

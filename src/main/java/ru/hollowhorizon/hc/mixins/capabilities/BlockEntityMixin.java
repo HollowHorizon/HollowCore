@@ -1,8 +1,5 @@
 package ru.hollowhorizon.hc.mixins.capabilities;
 
-//? if >=1.21 {
-/*import net.minecraft.core.HolderLookup;
-*///?}
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +32,6 @@ public class BlockEntityMixin implements ICapabilityDispatcher {
         ICapabilityDispatcherKt.initialize(this);
     }
 
-    //? if <1.21 {
     @Inject(method = "saveWithoutMetadata", at = @At("TAIL"))
     private void serializeExtra(CallbackInfoReturnable<CompoundTag> cir) {
         ICapabilityDispatcherKt.serializeCapabilities(this, cir.getReturnValue());
@@ -45,25 +41,4 @@ public class BlockEntityMixin implements ICapabilityDispatcher {
     private void serializeExtra(CompoundTag tag, CallbackInfo ci) {
         ICapabilityDispatcherKt.deserializeCapabilities(this, tag);
     }
-    //?} else {
-    /*@Inject(method = "saveCustomOnly", at = @At("TAIL"))
-    private void serializeExtra(HolderLookup.Provider registries, CallbackInfoReturnable<CompoundTag> cir) {
-        ICapabilityDispatcherKt.serializeCapabilities(this, cir.getReturnValue());
-    }
-
-    @Inject(method = "saveWithoutMetadata", at = @At("TAIL"))
-    private void serialize(HolderLookup.Provider registries, CallbackInfoReturnable<CompoundTag> cir) {
-        ICapabilityDispatcherKt.serializeCapabilities(this, cir.getReturnValue());
-    }
-    @Inject(method = "loadCustomOnly", at = @At("TAIL"))
-    private void deserializeExtra(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
-        ICapabilityDispatcherKt.deserializeCapabilities(this, tag);
-    }
-
-    @Inject(method = "loadWithComponents", at = @At("TAIL"))
-    private void deserialize(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
-        ICapabilityDispatcherKt.deserializeCapabilities(this, tag);
-    }
-    *///?}
-
 }

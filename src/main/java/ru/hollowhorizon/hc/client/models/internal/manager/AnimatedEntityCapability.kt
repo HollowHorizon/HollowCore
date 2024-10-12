@@ -38,6 +38,22 @@ import ru.hollowhorizon.hc.client.utils.nbt.serialize
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
 
+/**
+ * Представляет хранилище данных для анимированного объекта, предоставляя различные свойства,
+ * связанные с анимационными слоями, текстурами и трансформациями.
+ *
+ * @property definedLayer Внутренный слой для автоматических анимаций.
+ * @property headLayer Внутренний слой, специально для анимаций головы.
+ * @property rawPose Текущая поза объекта, может быть null.
+ * @property model Модель, объекта с значением по умолчанию "%NO_MODEL%" - нет модели.
+ * @property layers Список слоев анимаций.
+ * @property textures Карта идентификаторов текстур и их соответствующих путей.
+ * @property animations Карта типов анимаций и их соответствующих идентификаторов.
+ * @property transform Трансформация, применяемая к объекту.
+ * @property subModels Карта идентификаторов подмоделей и их соответствующих подмоделей.
+ * @property switchHeadRot Флаг, указывающий, следует ли переключать вращение головы.
+ * @property pose Сырая поза объекта, синхронизируется и может быть null.
+ */
 @HollowCapabilityV2(IAnimated::class, Player::class)
 class AnimatedEntityCapability : CapabilityInstance() {
     internal val definedLayer = DefinedLayer()

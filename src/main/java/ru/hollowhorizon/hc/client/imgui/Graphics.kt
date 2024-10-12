@@ -24,16 +24,8 @@
 
 package ru.hollowhorizon.hc.client.imgui
 
-//? if >=1.21 {
-/*import com.mojang.blaze3d.vertex.VertexSorting
-import net.minecraft.network.chat.contents.PlainTextContents
-*///?} elif >=1.20.1 {
-/*import com.mojang.blaze3d.vertex.VertexSorting
+import com.mojang.blaze3d.vertex.VertexSorting
 import net.minecraft.network.chat.contents.LiteralContents
-*///?} else {
-import net.minecraft.network.chat.contents.LiteralContents
-import ru.hollowhorizon.hc.client.utils.toMc
-//?}
 
 import com.google.common.collect.Queues
 import com.mojang.blaze3d.platform.NativeImage
@@ -454,30 +446,14 @@ object Graphics {
 
         RenderSystem.backupProjectionMatrix()
         RenderSystem.setProjectionMatrix(
-            //? if >=1.20.1 {
-            /*Matrix4f().setOrtho(
-                0.0F, buffer.width.toFloat(), buffer.height.toFloat(), 0.0F, 1000.0F, 3000.0F
-            ), VertexSorting.ORTHOGRAPHIC_Z
-            *///?} else {
             Matrix4f().setOrtho(
                 0.0F, buffer.width.toFloat(), buffer.height.toFloat(), 0.0F, 1000.0F, 3000.0F
-            ).toMc()
-            //?}
+            ), VertexSorting.ORTHOGRAPHIC_Z
         )
         val matrix4fstack = RenderSystem.getModelViewStack()
-        //? if >=1.21 {
-        /*matrix4fstack.pushMatrix()
-        matrix4fstack.translation(0.0f, 0.0f, -2000.0f)
-        *///?} elif >=1.20.1 {
-
-        /*matrix4fstack.pushPose()
-        matrix4fstack.setIdentity()
-        matrix4fstack.translate(0.0f, 0.0f, -2000.0f)
-        *///?} else {
         matrix4fstack.pushPose()
         matrix4fstack.setIdentity()
-        matrix4fstack.translate(0.0, 0.0, -2000.0)
-        //?}
+        matrix4fstack.translate(0.0f, 0.0f, -2000.0f)
         RenderSystem.applyModelViewMatrix()
         if (enableScissor) RenderSystem.enableScissor(
             cursor.x.toInt(), (buffer.height - cursor.y - height).toInt(),
@@ -490,11 +466,7 @@ object Graphics {
         if (enableScissor) RenderSystem.disableScissor()
         RenderSystem.restoreProjectionMatrix()
 
-        //? if <1.21 {
         matrix4fstack.popPose()
-        //?} else {
-        /*matrix4fstack.popMatrix()
-        *///?}
 
         RenderSystem.applyModelViewMatrix()
 
@@ -585,23 +557,13 @@ object Graphics {
             var weight = item.count / item.maxStackSize.toFloat()
             if (item.maxStackSize == 1) weight = 0f
             val stack = PoseStack()
-            if (properties.alwaysOnTop) {
-                //? if >=1.21 {
-                /*stack.translate(0f, 0f, 200f)
-                *///?} else {
-                stack.translate(0.0, 0.0, 200.0)
-                //?}
-            }
+            if (properties.alwaysOnTop) stack.translate(0.0, 0.0, 200.0)
 
             val enableCounts = HollowCore.config.inventory.enableItemCounts
 
             if (weight > 0.3f && enableCounts) {
                 stack.pushPose()
-                //? if >=1.21 {
-                /*stack.translate(0f, 0f, -100f)
-                *///?} else {
                 stack.translate(0.0, 0.0, -100.0)
-                //?}
                 item.render(
                     cursor.x + width / 5f, cursor.y, width, height,
                     (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale * 0.65f,
@@ -612,11 +574,7 @@ object Graphics {
 
             if (weight > 0.6f && enableCounts) {
                 stack.pushPose()
-                //? if >=1.21 {
-                /*stack.translate(0f, 0f, -100f)
-                *///?} else {
                 stack.translate(0.0, 0.0, -100.0)
-                //?}
                 item.render(
                     cursor.x - width / 5, cursor.y - height / 10, width, height,
                     (if (hovered || properties.disableResize) 1.0f else 0.9f) * properties.scale * 0.75f,
@@ -673,7 +631,6 @@ object Graphics {
                     )
 
                     dummy(0f, borderSize / 2)
-                    //? if <1.21 {
                     item.getTooltipLines(
                         player, TooltipFlag.Default.NORMAL
                     ).forEach {
@@ -681,14 +638,6 @@ object Graphics {
                         text(it)
 
                     }
-                    //?} else {
-                    /*item.getTooltipLines(
-                        Item.TooltipContext.of(player.level()), player, TooltipFlag.Default.NORMAL
-                    ).forEach {
-                        setCursorPosX(getCursorPosX() + borderSize * 2)
-                        text(it)
-                    }
-                    *///?}
                     dummy(borderSize, borderSize)
                 }
             }
@@ -736,7 +685,9 @@ object Graphics {
     }
 
     private fun drawText(text: Component, alpha: Float = 1f, shadow: Boolean) {
-        val textColor = color(text.style.color?.value ?: colorConvertFloat4ToU32(getStyle().getColor(ImGuiCol.Text))) or ((alpha * 255f).toInt() shl 24)
+        val textColor = color(
+            text.style.color?.value ?: colorConvertFloat4ToU32(getStyle().getColor(ImGuiCol.Text))
+        ) or ((alpha * 255f).toInt() shl 24)
         withColors(
             ImGuiCol.Text to textColor
         ) {
@@ -745,13 +696,7 @@ object Graphics {
             val isObfuscated = text.style.isObfuscated
 
             when (val content = text.contents) {
-                //? if <1.21 {
-                is LiteralContents,
-                    //?} else {
-
-                    /*is PlainTextContents,
-                        *///?}
-                -> {
+                is LiteralContents -> {
                     val string = if (isObfuscated) obfuscatedString(content.text().length) else content.text()
                     val length = calcTextSize(string)
                     val startPos = getCursorScreenPos()
@@ -784,10 +729,9 @@ object Graphics {
                     else ImGui.text(string)
                 }
 
-                //? if <=1.20.1 {
                 ComponentContents.EMPTY -> {
                     newLine()
-                }//?}
+                }
             }
 
 
@@ -797,13 +741,7 @@ object Graphics {
                     ClickEvent.Action.OPEN_FILE -> Util.getPlatform().openFile(File(it.value))
                     ClickEvent.Action.RUN_COMMAND -> {
                         val connection = Minecraft.getInstance().connection
-                        if (connection != null) {
-                            //? if >=1.20.1 {
-                            /*connection.sendCommand(it.value)
-                            *///?} else {
-                            connection.commands.execute(it.value, connection.suggestionsProvider)
-                            //?}
-                        }
+                        connection?.sendCommand(it.value)
                     }
 
                     ClickEvent.Action.COPY_TO_CLIPBOARD -> Minecraft.getInstance().keyboardHandler.clipboard = it.value
@@ -825,12 +763,7 @@ object Graphics {
 
 
             if (isHovered) text.style.hoverEvent?.let {
-                val name =
-                    //? if <1.21 {
-                    it.action.name
-                //?} else {
-                /*it.action.serializedName
-            *///?}
+                val name = it.action.name
                 when (name) {
                     "show_text" -> {
                         beginTooltip()
@@ -859,11 +792,7 @@ object Graphics {
                         it.getValue(HoverEvent.Action.SHOW_ENTITY)?.let {
                             val entity = Minecraft.getInstance().level?.entitiesForRendering()
                                 ?.find { a -> a.uuid == it.id } as? LivingEntity
-                            //? if <1.21 {
                             if (it.name != null) text(it.name!!)
-                            //?} else {
-                            /*if (it.name.isPresent) text(it.name.get())
-                            *///?}
                             if (entity != null) entity(entity, 128f, 128f)
                         }
                         endTooltip()

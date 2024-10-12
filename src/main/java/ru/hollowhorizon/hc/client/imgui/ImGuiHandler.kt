@@ -161,21 +161,6 @@ object ImGuiHandler {
         val monoFont = fontAtlas.addFontFromMemoryTTF(
             "${HollowCore.MODID}:fonts/$font.ttf".rl.stream.readAllBytes(), size.toFloat(), fontConfig, ranges
         )
-        //fontConfig.mergeMode = true
-
-        //emoji
-//        fontAtlas.addFontFromMemoryTTF(
-//            "${HollowCore.MODID}:fonts/fa_regular.ttf".rl.stream.readAllBytes(),
-//            size.toFloat() - 4,
-//            fontConfig,
-//            ranges
-//        )
-//        fontAtlas.addFontFromMemoryTTF(
-//            "${HollowCore.MODID}:fonts/fa_solid.ttf".rl.stream.readAllBytes(),
-//            size.toFloat() - 4,
-//            fontConfig,
-//            ranges
-//        )
         fontAtlas.build()
 
         fontConfig.destroy()

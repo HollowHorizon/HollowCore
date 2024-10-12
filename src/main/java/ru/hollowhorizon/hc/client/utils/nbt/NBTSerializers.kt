@@ -35,11 +35,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
-//? if >=1.21 {
-/*import net.minecraft.core.RegistryAccess
-*///?} elif >=1.20.1 {
-/*import net.minecraft.core.registries.BuiltInRegistries
-*///?}
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.nbt.*
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
@@ -130,24 +126,10 @@ object ForStringNBT : KSerializer<StringTag> {
 object ForTextComponent : KSerializer<Component> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("StringNBT", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: Component) =
-        encoder.encodeString(
-            Component.Serializer.toJson(
-                value
-                //? if >=1.21 {
-                
-                /*, RegistryAccess.EMPTY
-                *///?}
-            )
-        )
+        encoder.encodeString(Component.Serializer.toJson(value))
 
     override fun deserialize(decoder: Decoder) =
-        Component.Serializer.fromJson(
-            decoder.decodeString()
-            //? if >=1.21 {
-            
-            /*, RegistryAccess.EMPTY
-            *///?}
-        ) ?: "".mcText
+        Component.Serializer.fromJson(decoder.decodeString()) ?: "".mcText
 }
 
 

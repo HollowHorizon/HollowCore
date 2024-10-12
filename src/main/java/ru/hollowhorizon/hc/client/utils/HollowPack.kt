@@ -23,10 +23,6 @@
  */
 package ru.hollowhorizon.hc.client.utils
 
-//? if >=1.21 {
-/*import net.minecraft.server.packs.PackLocationInfo
-import net.minecraft.server.packs.PackSelectionConfig
-*///?}
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import net.minecraft.resources.ResourceLocation
@@ -34,16 +30,9 @@ import net.minecraft.server.packs.PackResources
 import net.minecraft.server.packs.PackType
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer
 import net.minecraft.server.packs.repository.Pack
-import net.minecraft.server.packs.repository.PackCompatibility
-//? if >=1.20.1 {
-/*import net.minecraft.server.packs.repository.Pack.ResourcesSupplier
-import net.minecraft.server.packs.metadata.pack.PackMetadataSection
-
-*///?} else {
-import java.util.function.Predicate
-//?}
+import net.minecraft.server.packs.repository.Pack.ResourcesSupplier
 import net.minecraft.server.packs.repository.PackSource
-import net.minecraft.server.packs.resources./*? if >=1.20.1 {*//*IoSupplier*//*?} else {*/Resource.IoSupplier/*?}*/
+import net.minecraft.server.packs.resources.IoSupplier
 import ru.hollowhorizon.hc.common.registry.AutoModelType
 import java.io.ByteArrayInputStream
 import java.io.FileNotFoundException
@@ -71,7 +60,10 @@ object HollowPack : PackResources {
         )
     }
 
-    fun addItemModel(location: ResourceLocation, type: AutoModelType) = addCustomItemModel(location, "{\"parent\":\"${type.modelId()}\",\"textures\":{\"layer0\":\"" + location.namespace + ":item/" + location.path + "\"}}")
+    fun addItemModel(location: ResourceLocation, type: AutoModelType) = addCustomItemModel(
+        location,
+        "{\"parent\":\"${type.modelId()}\",\"textures\":{\"layer0\":\"" + location.namespace + ":item/" + location.path + "\"}}"
+    )
 
     fun addParticleModel(location: ResourceLocation) {
         val particle = "${location.namespace}:particles/${location.path}.json".rl
@@ -79,18 +71,27 @@ object HollowPack : PackResources {
     }
 
     fun addBlockModel(location: ResourceLocation, type: AutoModelType) {
-        when(type.blockStateId()) {
-            "default" -> addCustomBlockstate(location, "{\"variants\":{\"\":{\"model\":\"" + location.namespace + ":block/" + location.path + "\"}}}")
-            "directional" -> addCustomBlockstate(location, """
+        when (type.blockStateId()) {
+            "default" -> addCustomBlockstate(
+                location,
+                "{\"variants\":{\"\":{\"model\":\"" + location.namespace + ":block/" + location.path + "\"}}}"
+            )
+
+            "directional" -> addCustomBlockstate(
+                location, """
                 {"variants":{
                     "facing=east":{"model":"${location.namespace}:block/${location.path}","y":90},
                     "facing=north":{"model":"${location.namespace}:block/${location.path}","y":0},
                     "facing=south":{"model":"${location.namespace}:block/${location.path}","y":180},
                     "facing=west":{"model":"${location.namespace}:block/${location.path}","y":270}
                 }}
-            """.trimIndent())
+            """.trimIndent()
+            )
         }
-        addCustomBlock(location, "{\"parent\":\"${type.modelId()}\",\"textures\":{\"all\":\"" + location.namespace + ":block/" + location.path + "\"}}")
+        addCustomBlock(
+            location,
+            "{\"parent\":\"${type.modelId()}\",\"textures\":{\"all\":\"" + location.namespace + ":block/" + location.path + "\"}}"
+        )
     }
 
     fun addSoundJson(modid: String, sound: JsonObject) {
@@ -116,31 +117,17 @@ object HollowPack : PackResources {
         addCustomJSON(model, content)
     }
 
-    //? if >=1.20.1 {
-    /*override fun getRootResource(vararg fileName: String): IoSupplier<InputStream> {
+    override fun getRootResource(vararg fileName: String): IoSupplier<InputStream> {
         throw FileNotFoundException(fileName.joinToString())
     }
-    *///?} else {
-    override fun getRootResource(fileName: String): InputStream? {
-        throw FileNotFoundException(fileName)
-    }
-    //?}
 
 
-    //? if >=1.20.1 {
-    /*@Throws(IOException::class)
+    @Throws(IOException::class)
     override fun getResource(type: PackType, pLocation: ResourceLocation): IoSupplier<InputStream>? {
         return resourceMap[pLocation]
     }
-    *///?} else {
-    @Throws(IOException::class)
-    override fun getResource(type: PackType, pLocation: ResourceLocation): InputStream {
-        return resourceMap[pLocation]?.get() ?: throw FileNotFoundException("$pLocation (No resource found!)")
-    }
-    //?}
 
-    //? if >=1.20.1 {
-    /*override fun listResources(
+    override fun listResources(
         packType: PackType,
         namespace: String,
         prefix: String,
@@ -148,17 +135,6 @@ object HollowPack : PackResources {
     ) {
         resourceMap.filter { it.key.namespace == namespace && it.key.path.startsWith(prefix) }.forEach(output::accept)
     }
-    *///?} else {
-    override fun getResources(
-        type: PackType,
-        namespace: String,
-        path: String,
-        filter: Predicate<ResourceLocation>
-    ): MutableCollection<ResourceLocation> {
-        return resourceMap.keys.filter { it.namespace == namespace && it.path.startsWith(path) }
-            .filter { filter.test(it) }.toMutableList()
-    }
-    //?}
 
     override fun getNamespaces(pType: PackType) = resourceMap.keys.map { it.namespace }.toSet()
 
@@ -176,64 +152,14 @@ object HollowPack : PackResources {
         return null
     }
 
-    //? if >=1.21 {
-    /*override fun location(): PackLocationInfo {
-        val name = "HollowCore Resources"
-        return PackLocationInfo(name, name.mcText, PackSource.BUILT_IN, Optional.empty())
-    }
-    *///?} elif >=1.20.1 {
-    /*override fun packId(): String {
-        return "HollowCore Resources"
-    }
-
-    *///?} else {
-    override fun getName(): String {
-        return "HollowCore Resources"
-    }
-
-    override fun hasResource(type: PackType, location: ResourceLocation): Boolean {
-        return resourceMap.containsKey(location)
-    }
-    //?}
-
-
+    override fun packId() = "HollowCore Resources"
     override fun close() {}
 
     val resources = asPack()
 }
 
-fun PackResources.asPack(): Pack {
-    //? if >=1.21 {
-    /*val resources = object : ResourcesSupplier {
-        override fun openPrimary(p0: PackLocationInfo): PackResources = this@asPack
-        override fun openFull(p0: PackLocationInfo, p1: Pack.Metadata) = this@asPack
-    }
-    return Pack.readMetaAndCreate(
-        this.location(),
-        resources,
-        PackType.CLIENT_RESOURCES,
-        PackSelectionConfig(true, Pack.Position.TOP, true)
-    ) ?: throw FileNotFoundException("Could not find the pack resource $this")
-
-    *///?} elif >=1.20.1 {
-    /*val resources = ResourcesSupplier { this }
-    return Pack.readMetaAndCreate(
-        packId(), packId().literal, true, resources, PackType.CLIENT_RESOURCES,
+fun PackResources.asPack() =
+    Pack.readMetaAndCreate(
+        packId(), packId().literal, true, { this }, PackType.CLIENT_RESOURCES,
         Pack.Position.TOP, PackSource.BUILT_IN
     ) ?: throw FileNotFoundException("Could not find the pack resource $this")
-    *///?} else {
-
-    return Pack(
-        name,
-        true,
-        {this},
-        name.literal,
-        "Generated resources for HollowCore".literal,
-        PackCompatibility.COMPATIBLE,
-        Pack.Position.TOP,
-        true,
-        PackSource.BUILT_IN
-    )
-
-    //?}
-}

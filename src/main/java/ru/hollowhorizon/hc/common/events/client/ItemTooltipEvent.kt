@@ -9,9 +9,5 @@ import ru.hollowhorizon.hc.common.events.Event
 class ItemTooltipEvent(
     val flags: TooltipFlag,
     val itemStack: ItemStack,
-    val toolTip: MutableList<Component>,
-    //? if >=1.21 {
-    
-    /*val context: Item.TooltipContext,
-    *///?}
+    val toolTip: MutableList<Component>
 ) : Event

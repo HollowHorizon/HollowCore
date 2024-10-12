@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.common.registry
 
-import net.minecraft.world.item.ItemStack
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.capabilities.CAPABILITIES
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
@@ -18,8 +17,5 @@ object ModCapabilities {
             }
     }
 
-    private fun Class<*>.isValid(dispatcher: ICapabilityDispatcher): Boolean {
-        return if (dispatcher is ItemStack) isInstance(dispatcher.item)
-        else isInstance(dispatcher)
-    }
+    private fun Class<*>.isValid(dispatcher: ICapabilityDispatcher) = isInstance(dispatcher)
 }

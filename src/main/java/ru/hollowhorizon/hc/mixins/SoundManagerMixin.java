@@ -49,7 +49,7 @@ public class SoundManagerMixin {
                 return instance.getResourceStack(location);
 
             return List.of(new Resource(
-                    HollowPack.INSTANCE/*? if <=1.19.2 {*/.getName()/*?}*/,
+                    HollowPack.INSTANCE/*? if <=1.19.2 {*//*.getName()*//*?}*/,
                     HollowSoundHandler.createJson(instance, location.getNamespace())
             ));
         } else {

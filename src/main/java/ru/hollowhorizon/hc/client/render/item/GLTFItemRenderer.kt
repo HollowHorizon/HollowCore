@@ -25,19 +25,15 @@
 package ru.hollowhorizon.hc.client.render.item
 
 
-//? if <=1.19.2 {
-//?} else {
-/*import net.minecraft.world.item.ItemDisplayContext
-*///?}
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer
 import net.minecraft.client.renderer.MultiBufferSource
-import net.minecraft.client.renderer.block.model.ItemTransforms
 import net.minecraft.core.BlockPos
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.EntityBlock
 import org.joml.Quaternionf
@@ -54,25 +50,14 @@ import ru.hollowhorizon.hc.client.utils.get
 import ru.hollowhorizon.hc.client.utils.memoize
 import ru.hollowhorizon.hc.client.utils.rl
 
-//? if <=1.19.2 {
-import ru.hollowhorizon.hc.client.utils.math.mul
-import ru.hollowhorizon.hc.client.utils.math.mulPose
-import ru.hollowhorizon.hc.client.utils.math.mulPoseMatrix
-//?}
-
 
 object GLTFItemRenderer : BlockEntityWithoutLevelRenderer(
-    Minecraft.getInstance().blockEntityRenderDispatcher,
-    Minecraft.getInstance().entityModels
+    Minecraft.getInstance().blockEntityRenderDispatcher, Minecraft.getInstance().entityModels
 ) {
 
     override fun renderByItem(
         itemStack: ItemStack,
-        //? if <=1.19.2 {
-        transformType: ItemTransforms.TransformType,
-        //?} else {
-        /*transforms: ItemDisplayContext,
-        *///?}
+        transforms: ItemDisplayContext,
         stack: PoseStack,
         buffer: MultiBufferSource,
         packedLight: Int,
@@ -102,18 +87,14 @@ object GLTFItemRenderer : BlockEntityWithoutLevelRenderer(
 
         model.render(
             RenderContext(
-                stack,
-                { texture: ResourceLocation ->
+                stack, { texture: ResourceLocation ->
                     val result = capability.textures[texture.path]?.let {
                         if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
                         else it.rl
                     } ?: texture
 
                     Minecraft.getInstance().textureManager.getTexture(result).id
-                }.memoize(),
-                buffer,
-                packedLight,
-                packedOverlay
+                }.memoize(), buffer, packedLight, packedOverlay
             )
         )
 
@@ -125,12 +106,8 @@ object GLTFItemRenderer : BlockEntityWithoutLevelRenderer(
         animationPlayer: GLTFAnimationPlayer,
         stack: PoseStack,
     ) {
-        //? if <1.21 {
         stack.mulPoseMatrix(capability.transform.matrix)
-        //?} else {
 
-        /*stack.mulPose(capability.transform.matrix)
-        *///?}
         stack.last().normal().mul(capability.transform.normalMatrix)
         stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
         animationPlayer.currentLoopAnimation = AnimationType.IDLE

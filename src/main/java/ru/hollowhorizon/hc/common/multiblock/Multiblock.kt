@@ -1,16 +1,9 @@
 package ru.hollowhorizon.hc.common.multiblock
 
-//? if >=1.20.1 {
-/*import net.minecraft.core.registries.Registries
-import net.minecraft.core.registries.BuiltInRegistries
-*///?} else {
-import net.minecraft.data.BuiltinRegistries
-import net.minecraft.core.Registry
-//?}
-
-import ru.hollowhorizon.hc.client.utils.registryAccess
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.Registries
 import net.minecraft.tags.TagKey
 import net.minecraft.world.level.BlockAndTintGetter
 import net.minecraft.world.level.ColorResolver
@@ -149,15 +142,11 @@ class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
     }
 
     override fun getBlockTint(pos: BlockPos, color: ColorResolver): Int {
-        //? if >=1.20.1 {
-        /*return color.getColor(
+        return color.getColor(
             registryAccess.registry(Registries.BIOME).get().getOrThrow(Biomes.PLAINS),
             pos.x.toDouble(),
             pos.z.toDouble()
         )
-        *///?} else {
-        return color.getColor(BuiltinRegistries.BIOME.getOrThrow(Biomes.PLAINS), pos.x.toDouble(), pos.z.toDouble())
-        //?}
     }
 
     interface Matcher {
@@ -179,10 +168,10 @@ class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
 
         override fun default(): BlockState {
             //? if >=1.20.1 {
-            /*return BuiltInRegistries.BLOCK
-            *///?} else {
-            return registryAccess.registry(Registry.BLOCK_REGISTRY).get()
-            //?}
+            return BuiltInRegistries.BLOCK
+                //?} else {
+                /*return registryAccess.registry(Registry.BLOCK_REGISTRY).get()
+                *///?}
                 .getTag(tag).get().firstOrNull()?.value()
                 ?.defaultBlockState() ?: Blocks.AIR.defaultBlockState()
         }

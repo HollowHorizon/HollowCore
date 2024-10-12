@@ -24,15 +24,9 @@
 
 package ru.hollowhorizon.hc.client.render.entity
 
-//? if >=1.20.1 {
-/*import net.minecraft.world.item.ItemDisplayContext
-*///?} else {
-
-import ru.hollowhorizon.hc.client.utils.math.mulPose
-import ru.hollowhorizon.hc.client.utils.math.mulPoseMatrix
-import net.minecraft.client.renderer.block.model.ItemTransforms.TransformType as ItemDisplayContext
-//?}
 import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.world.item.ItemDisplayContext
+
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ItemInHandRenderer
 import net.minecraft.client.renderer.MultiBufferSource
@@ -70,41 +64,27 @@ object GltfEntityUtil {
         val realModel = GltfManager.getOrCreate(model.model.rl)
 
 
-        //? if <1.21 {
         stack.mulPoseMatrix(model.transform.matrix)
-        //?} else {
-
-        /*stack.mulPose(model.transform.matrix)
-        *///?}
 
         SubModelPlayer.update(realModel, model, tickCount, partialTick)
 
         realModel.render(
             RenderContext(
-                stack,
-                { texture: ResourceLocation ->
+                stack, { texture: ResourceLocation ->
                     val result = model.textures[texture.path]?.let {
                         if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
                         else it.rl
                     } ?: texture
 
                     Minecraft.getInstance().textureManager.getTexture(result).id
-                }.memoize(),
-                source,
-                packedLight,
-                OverlayTexture.NO_OVERLAY
+                }.memoize(), source, packedLight, OverlayTexture.NO_OVERLAY
             )
         )
 
         model.subModels.forEach { (bone, model) ->
             realModel.nodes[bone]?.let {
                 stack.use {
-                    //? if <1.21 {
                     stack.mulPoseMatrix(it.globalMatrix)
-                    //?} else {
-
-                    /*stack.mulPose(it.globalMatrix)
-                    *///?}
                     render(entity, model, tickCount, partialTick, stack, source, packedLight)
                 }
             }
@@ -113,11 +93,8 @@ object GltfEntityUtil {
 
     private fun drawVisuals(entity: LivingEntity, stack: PoseStack, node: Node, source: MultiBufferSource, light: Int) {
         if ((node.name?.contains("left", ignoreCase = true) == true || node.name?.contains(
-                "right",
-                ignoreCase = true
-            ) == true) &&
-            node.name.contains("hand", ignoreCase = true) &&
-            node.name.contains("item", ignoreCase = true)
+                "right", ignoreCase = true
+            ) == true) && node.name.contains("hand", ignoreCase = true) && node.name.contains("item", ignoreCase = true)
         ) {
             val isLeft = node.name.contains("left", ignoreCase = true)
             val item = (if (isLeft) entity.getItemInHand(InteractionHand.OFF_HAND) else entity.getItemInHand(

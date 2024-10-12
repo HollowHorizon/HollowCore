@@ -24,8 +24,6 @@
 
 package ru.hollowhorizon.hc.client.utils
 
-//? if <=1.19.2
-import ru.hollowhorizon.hc.client.utils.math.level
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.util.Mth

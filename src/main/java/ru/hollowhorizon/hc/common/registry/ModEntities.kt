@@ -26,8 +26,6 @@ package ru.hollowhorizon.hc.common.registry
 
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.MobCategory
-import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity
 
 object ModEntities : HollowRegistry() {
