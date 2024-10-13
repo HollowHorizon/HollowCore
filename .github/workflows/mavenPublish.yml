@@ -1,7 +1,7 @@
 name: mavenPublish
 on:
   push:
-    branches: [ "stonecutter" ]
+    branches: [ "1.20.1" ]
 
 jobs:
   build:

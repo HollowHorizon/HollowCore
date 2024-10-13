@@ -1,9 +1,9 @@
 name: build
 on: 
   push:
-    branches: [ "stonecutter" ]
+    branches: [ "1.20.1" ]
   pull_request:
-    branches: [ "stonecutter" ]
+    branches: [ "1.20.1" ]
 
 jobs:
   build:
@@ -42,7 +42,7 @@ jobs:
         id: create_release
         uses: ncipollo/release-action@v1
         with:
-          name: "[MULTI-VERSIONED BUILD]"
+          name: "[HollowCore 1.20.1 Latest Release]"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: "latest"
           removeArtifacts: true

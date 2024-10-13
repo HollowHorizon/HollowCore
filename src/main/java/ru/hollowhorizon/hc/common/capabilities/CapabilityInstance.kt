@@ -27,7 +27,6 @@ package ru.hollowhorizon.hc.common.capabilities
 import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
-import net.minecraft.server.MinecraftServer
 import net.minecraft.server.dedicated.DedicatedServer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player

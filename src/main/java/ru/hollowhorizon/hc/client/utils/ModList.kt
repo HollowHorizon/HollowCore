@@ -3,16 +3,17 @@ package ru.hollowhorizon.hc.client.utils
 //? if fabric {
 import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.loader.api.metadata.ModOrigin
-//?} elif forge {
-/*import net.minecraftforge.fml.ModList
-*///?} elif neoforge {
-/*import net.neoforged.fml.ModList
-*///?}
-import java.io.File
 import java.io.FileNotFoundException
-import java.io.FileOutputStream
 import java.util.jar.JarFile
 import kotlin.jvm.optionals.getOrNull
+//?} elif forge {
+/*import net.minecraftforge.fml.ModList
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
+*///?}
+import java.io.File
+import java.io.FileOutputStream
 
 object ModList {
     fun isLoaded(modId: String): Boolean {
@@ -105,9 +106,9 @@ fun FabricLoader.getNestedModFile(origin: ModOrigin): File {
 
         return listOf(newFile)
     } catch (e: AccessDeniedException) {
-        return listOf(File(e.file))
+        return listOf(e.file)
     } catch (e: Exception) {
-        if(path.fileSystem::class.java.name == "cpw.mods.niofs.union.UnionFileSystem") {
+        if (path.fileSystem::class.java.name == "cpw.mods.niofs.union.UnionFileSystem") {
             val system = path.fileSystem::class.java.getDeclaredField("basepaths")
             system.isAccessible = true
             return (system.get(path.fileSystem) as List<Path>).map { it.toFile() }
