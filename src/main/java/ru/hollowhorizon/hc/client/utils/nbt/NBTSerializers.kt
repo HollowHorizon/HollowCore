@@ -35,12 +35,9 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.encoding.encodeStructure
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
-import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.nbt.*
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
-import net.minecraft.sounds.SoundEvent
-import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.monster.Zombie
 import net.minecraft.world.item.ItemStack
@@ -308,7 +305,6 @@ object ForItemStack : KSerializer<ItemStack> {
         else tag!!.readItem()
     }
 }
-
 
 object ForUuid : KSerializer<UUID> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Uuid") {

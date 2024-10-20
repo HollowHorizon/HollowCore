@@ -44,7 +44,7 @@ jobs:
         with:
           name: "[HollowCore 1.20.1 Latest Release]"
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: "latest"
+          tag: "latest-1.20.1"
           removeArtifacts: true
           allowUpdates: true
           artifacts: "merged/*.jar"

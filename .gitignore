@@ -67,3 +67,4 @@ logs/
 !libs/firstperson-2.3.2.jar
 user.properties
 merged/*
+.settings/*
