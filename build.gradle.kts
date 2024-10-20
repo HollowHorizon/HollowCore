@@ -373,9 +373,9 @@ publishing {
     }
 
     repositories {
-        maven {
+        if(System.getenv("MAVEN_PASSWORD") != null) maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/HollowHorizon/HollowCore") // Замените на ваше имя пользователя и репозиторий
+            url = uri("https://maven.pkg.github.com/HollowHorizon/HollowCore")
 
             credentials {
                 username = System.getenv("MAVEN_USER") // Имя пользователя
