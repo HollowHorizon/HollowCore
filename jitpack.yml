@@ -1,4 +1,5 @@
 jdk:
   - openjdk21
 install:
+  - chmod +x gradlew
   - ./gradlew chiseledPublishMaven
