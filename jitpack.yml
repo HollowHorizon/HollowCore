@@ -1,4 +1,4 @@
 jdk:
   - openjdk21
-build:
-  - ./gradlew project:chiseledPublishMaven
+install:
+  - ./gradlew chiseledPublishMaven
