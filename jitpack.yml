@@ -2,5 +2,5 @@ jdk:
   - openjdk21
 
 install:
-  - chmod +x gradlew
-  - ./gradlew chiseledPublishMaven
+  - chmod +x gradlew # Без этого он жалуется, что прав нет((
+  - ./gradlew chiseledPublishMaven # Билдим все моды под все версии

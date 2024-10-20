@@ -373,13 +373,15 @@ publishing {
     }
 
     repositories {
-//        maven {
-//            url = uri("https://maven.0mods.team/releases")
-//            credentials {
-//                username = System.getenv("MAVEN_USER")
-//                password = System.getenv("MAVEN_PASSWORD")
-//            }
-//        }
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/HollowHorizon/HollowCore") // Замените на ваше имя пользователя и репозиторий
+
+            credentials {
+                username = System.getenv("MAVEN_USER") // Имя пользователя
+                password = System.getenv("MAVEN_PASSWORD") // Токен
+            }
+        }
         mavenLocal()
     }
 
