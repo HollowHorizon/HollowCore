@@ -1,0 +1,36 @@
+name: Tag Commit
+
+on:
+  push:
+    branches:
+      - 1.20.1
+
+jobs:
+  create_tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Get the mod version from gradle.properties
+        id: get_version
+        run: |
+          MOD_VERSION=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2)
+          echo "MOD_VERSION=$MOD_VERSION" >> $GITHUB_ENV
+
+      - name: Delete existing tag if it exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Удаляем тег, если он уже существует
+          git tag -d "$MOD_VERSION" || true
+          git push origin --delete "$MOD_VERSION" || true
+
+      - name: Create and push new tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Создаём новый тег с версией мода
+          git tag "$MOD_VERSION"
+          git push origin "$MOD_VERSION"
