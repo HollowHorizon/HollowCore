@@ -66,6 +66,7 @@ object ImGuiHandler {
         imguiBackgroundBuffer.clear(Minecraft.ON_OSX)
         imguiForegroundBuffer.clear(Minecraft.ON_OSX)
 
+        imGuiGl3.newFrame()
         imGuiGlfw.newFrame()
         ImGui.newFrame()
 
