@@ -52,11 +52,7 @@ object ImGuiHandler {
         val window = Minecraft.getInstance().window.window
         initializeImGui()
         imGuiGlfw.init(window, true)
-        if (!Minecraft.ON_OSX) {
-            imGuiGl3.init("#version 330 core")
-        } else {
-            imGuiGl3.init("#version 120")
-        }
+        imGuiGl3.init()
 
         ImNodes.createContext()
         setupStyle(ImGui.getStyle())
@@ -64,7 +60,7 @@ object ImGuiHandler {
     }
 
     fun renderFrames() {
-        if(frames.isEmpty()) return
+        if (frames.isEmpty()) return
 
         imguiWindowBuffer.clear(Minecraft.ON_OSX)
         imguiBackgroundBuffer.clear(Minecraft.ON_OSX)
