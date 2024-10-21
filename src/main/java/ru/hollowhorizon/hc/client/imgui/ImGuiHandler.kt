@@ -52,7 +52,7 @@ object ImGuiHandler {
         val window = Minecraft.getInstance().window.window
         initializeImGui()
         imGuiGlfw.init(window, true)
-        imGuiGl3.init("#version 130")
+        imGuiGl3.init()
 
         ImNodes.createContext()
         setupStyle(ImGui.getStyle())
@@ -79,7 +79,6 @@ object ImGuiHandler {
 
         if (Graphics.cursorStack.isNotEmpty()) throw StackOverflowError("Cursor stack must be empty!")
 
-        ImGui.render()
         endFrame()
 
         DockingHelper.DOCKING_ID = 0
