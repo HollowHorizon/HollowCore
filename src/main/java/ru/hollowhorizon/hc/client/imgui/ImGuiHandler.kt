@@ -52,7 +52,7 @@ object ImGuiHandler {
         val window = Minecraft.getInstance().window.window
         initializeImGui()
         imGuiGlfw.init(window, true)
-        imGuiGl3.init()
+        imGuiGl3.init("#version 130")
 
         ImNodes.createContext()
         setupStyle(ImGui.getStyle())
