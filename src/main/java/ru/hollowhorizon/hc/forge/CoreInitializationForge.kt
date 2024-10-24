@@ -2,8 +2,12 @@
 /*package ru.hollowhorizon.hc.forge
 
 import net.minecraftforge.fml.ModList
+import net.minecraftforge.fml.loading.FMLEnvironment
+import net.minecraftforge.fml.loading.FMLLoader
 import net.minecraftforge.forgespi.language.ModFileScanData
+import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.common.events.ClientOnly
 import ru.hollowhorizon.hc.common.registry.getAnnotatedClasses
 import ru.hollowhorizon.hc.common.registry.getAnnotatedMethods
 import ru.hollowhorizon.hc.common.registry.getSubTypes
@@ -18,15 +22,19 @@ object CoreInitializationForge {
         val classes = scanInfo.flatMap { it.classes }
         val annotations = scanInfo.flatMap { it.annotations }
 
+        val isClient = FMLEnvironment.dist.isClient
+
         getSubTypes = { subType ->
             classes
                 .filter { it.parent.className == subType.name }
+                .filter { isClient || !it.clazz.hasAnnotation(ClientOnly::class.java) }
                 .safeClassesF().toSet()
         }
         getAnnotatedClasses = { annotation ->
             annotations
                 .filter { it.annotationType.className == annotation.name }
                 .filter { it.targetType == ElementType.TYPE }
+                .filter { isClient || !it.clazz.hasAnnotation(ClientOnly::class.java) }
                 .safeClasses()
                 .toSet()
         }
@@ -34,6 +42,7 @@ object CoreInitializationForge {
             annotations
                 .filter { it.annotationType.className == annotation.name }
                 .filter { it.targetType == ElementType.METHOD }
+                .filter { isClient || !it.clazz.hasAnnotation(ClientOnly::class.java) }
                 .safeMethods()
                 .toSet()
         }
@@ -42,7 +51,7 @@ object CoreInitializationForge {
     fun Collection<ModFileScanData.AnnotationData>.safeMethods(): List<Method> = mapNotNull {
         try {
             val name = it.memberName.substringBefore('(')
-            Class.forName(it.clazz.className).declaredMethods
+            Class.forName(it.clazz.className, false, HollowCore::class.java.classLoader).declaredMethods
                 .filter { m -> m.name == name }
         } catch (e: NoClassDefFoundError) {
             HollowCore.LOGGER.warn("Class ${it.clazz.className} cannot be loaded! ${e.message}")
@@ -55,7 +64,7 @@ object CoreInitializationForge {
 
     private fun Collection<ModFileScanData.AnnotationData>.safeClasses(): List<Class<*>> = mapNotNull {
         try {
-            Class.forName(it.clazz.className)
+            Class.forName(it.clazz.className, false, HollowCore::class.java.classLoader)
         } catch (e: NoClassDefFoundError) {
             HollowCore.LOGGER.warn("Class ${it.clazz.className} cannot be loaded! ${e.message}")
             null
@@ -63,11 +72,15 @@ object CoreInitializationForge {
     }
     private fun Collection<ModFileScanData.ClassData>.safeClassesF(): List<Class<*>> = mapNotNull {
         try {
-            Class.forName(it.clazz.className)
+            Class.forName(it.clazz.className, false, HollowCore::class.java.classLoader)
         } catch (e: NoClassDefFoundError) {
             HollowCore.LOGGER.warn("Class ${it.clazz.className} cannot be loaded! ${e.message}")
             null
         }
     }
+}
+
+private fun Type.hasAnnotation(java: Class<out Annotation>): Boolean {
+    return Class.forName(className, false, HollowCore::class.java.classLoader).isAnnotationPresent(java)
 }
 *///?}

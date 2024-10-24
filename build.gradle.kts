@@ -49,7 +49,7 @@ loom {
     }
 
     runConfigs.all {
-        programArgs("--username=HollowHorizon")
+        if(environment == "client") programArgs("--username=TheHollowHorizon")
         runDir("../../run")
     }
 }
@@ -346,8 +346,7 @@ fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
 
                 else -> throw IllegalStateException("Unsupported $loader version $version!")
             }
-            // Мне надоело каждый раз постоянно вырезать руками лишние jar из classpath
-            if (minecraftVersion != "1.19.2") implementation("ru.hollowhorizon:forgefixer:1.0.0")
+
         }
 
         "neoforge" -> {
