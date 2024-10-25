@@ -1,9 +1,11 @@
 package ru.hollowhorizon.hc.common.events
 
+import com.google.common.collect.HashMultimap
 import java.lang.invoke.LambdaMetafactory
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 import java.util.function.Consumer
 
 fun interface EventListener<T : Event> {
@@ -11,6 +13,27 @@ fun interface EventListener<T : Event> {
 
     fun onEvent(event: T)
 }
+
+private val EVENTS = HashMultimap.create<Any, EventListener<Event>>()
+
+fun Any.subscribeEvents() {
+    val handles = MethodHandles.lookup()
+    val listeners = this.javaClass.declaredMethods
+        .filter { method -> method.isStatic() }
+        .map { method ->
+            val listener = handles.createStaticEventListener(method)
+            EventBus.registerNoInline(method.parameterTypes[0] as Class<Event>, listener)
+            listener
+        }
+    EVENTS.putAll(this, listeners)
+}
+
+fun Any.unsubscribeEvents() {
+    EVENTS[this].forEach { listener -> EventBus.unregister(listener) }
+    EVENTS.removeAll(this)
+}
+
+private fun Method.isStatic() = Modifier.isStatic(this.modifiers)
 
 @Suppress("UNCHECKED_CAST")
 fun MethodHandles.Lookup.createEventListener(
