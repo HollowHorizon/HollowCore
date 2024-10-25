@@ -20,6 +20,7 @@ fun Any.subscribeEvents() {
     val handles = MethodHandles.lookup()
     val listeners = this.javaClass.declaredMethods
         .filter { method -> method.isStatic() }
+        .filter { method -> method.isAnnotationPresent(SubscribeEvent::class.java) }
         .map { method ->
             val listener = handles.createStaticEventListener(method)
             EventBus.registerNoInline(method.parameterTypes[0] as Class<Event>, listener)
