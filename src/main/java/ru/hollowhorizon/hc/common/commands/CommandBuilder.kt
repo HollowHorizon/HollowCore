@@ -80,11 +80,11 @@ fun <T, V : SharedSuggestionProvider> arg(name: String, type: ArgumentType<T>): 
 fun <T, V : SharedSuggestionProvider> arg(
     name: String,
     type: ArgumentType<T>,
-    suggests: Collection<String>,
+    suggests: () -> Collection<String>,
 ): RequiredArgumentBuilder<V, T> =
     RequiredArgumentBuilder.argument<V, T>(name, type).apply {
         suggests { _, builder: SuggestionsBuilder ->
-            suggests.forEach(builder::suggest)
+            suggests().forEach(builder::suggest)
             builder.buildFuture()
         }
     }

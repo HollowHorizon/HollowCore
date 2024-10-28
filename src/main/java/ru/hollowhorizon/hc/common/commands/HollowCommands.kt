@@ -53,7 +53,7 @@ object HollowCommands {
             "hollowcore" {
                 "particle"(
                     arg("pos", Vec3Argument.vec3()),
-                    arg("name", StringArgumentType.greedyString(), EffekAssets.entries().map { it.key.toString() })
+                    arg("name", StringArgumentType.greedyString()) { EffekAssets.entries().map { it.key.toString() } }
                 ) {
                     val particle = StringArgumentType.getString(this, "name")
                     val pos = Vec3Argument.getVec3(this, "pos")
