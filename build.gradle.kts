@@ -374,13 +374,22 @@ publishing {
     }
 
     repositories {
-        if(System.getenv("MAVEN_PASSWORD") != null) maven {
+        if (System.getenv("MAVEN_PASSWORD") != null) maven {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/HollowHorizon/HollowCore")
 
             credentials {
                 username = System.getenv("MAVEN_USER") // Имя пользователя
                 password = System.getenv("MAVEN_PASSWORD") // Токен
+            }
+        }
+        if (System.getenv("MAVEN_PASSWORD_ZM") != null) maven {
+            name = "ZeroModsMaven"
+            url = uri("https://maven.0mods.team/releases")
+
+            credentials {
+                username = System.getenv("MAVEN_USER_ZM") // Имя пользователя
+                password = System.getenv("MAVEN_PASSWORD_ZM") // Токен
             }
         }
         mavenLocal()
