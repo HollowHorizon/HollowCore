@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.client.screens
 
 import imgui.extension.texteditor.TextEditor
 import kotlinx.coroutines.DelicateCoroutinesApi
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
@@ -36,10 +37,10 @@ class CodeEditor : Screen(Component.empty()) {
                         }
                         newIndex += column
                         index = newIndex - 1
-
                     }
+                    entity(Minecraft.getInstance().player!!, 250f, 250f)
 
-                    editor.render("TextEditor")
+                    //editor.render("TextEditor")
 
 
                 }

@@ -40,6 +40,7 @@ import net.minecraft.world.item.ItemStack
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3d
+import org.joml.Vector3f
 import ru.hollowhorizon.hc.client.handlers.TickHandler
 import kotlin.math.atan
 import kotlin.math.min
@@ -57,6 +58,8 @@ object OpenGLUtils {
     }
 }
 
+private val CUSTOM_IMGUI_LIGHT_0: Vector3f = Vector3f(-0.3f, 1f, 1f).normalize()
+private val CUSTOM_IMGUI_LIGHT_1: Vector3f = Vector3f(0.3f, -1f, -1f).normalize()
 
 fun LivingEntity.render(
     x: Float,
@@ -77,12 +80,15 @@ fun LivingEntity.render(
     val yOffset = y + height + offsetY
     stack.translate(xOffset, yOffset, 0f)
     val newScale = min(width / bbWidth, height / bbHeight) * 0.95f * scale
-    stack.scale(newScale, -newScale, newScale)
-
+    //stack.mulPoseMatrix(Matrix4f().scaling(1f, -1f, 1f))
+    stack.mulPoseMatrix(Matrix4f().scaling(newScale, -newScale, newScale))
     val rotationX = atan((xOffset - mouseX) / 150.0f) * rotationFactor
     val rotationY = atan((yOffset - height / 2 - mouseY) / 150.0f) * rotationFactor
 
-    Lighting.setupForEntityInInventory()
+    RenderSystem.setShaderLights(
+        CUSTOM_IMGUI_LIGHT_0,
+        CUSTOM_IMGUI_LIGHT_1
+    )
     val renderDispatcher = Minecraft.getInstance().entityRenderDispatcher
 
     val yBodyRotOld: Float = yBodyRot
