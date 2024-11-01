@@ -30,5 +30,7 @@ jobs:
         env:
           MAVEN_USER: ${{ secrets.MAVEN_USER }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          MAVEN_USER_ZM: ${{ secrets.MAVEN_USER_ZM }}
+          MAVEN_PASSWORD_ZM: ${{ secrets.MAVEN_PASSWORD_ZM }}
         with:
           arguments: chiseledPublishMaven
