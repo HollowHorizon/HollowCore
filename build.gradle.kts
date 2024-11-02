@@ -16,6 +16,7 @@ plugins {
     kotlin("plugin.serialization")
 }
 
+val kotlinVersion = fromProperties("kotlinVersion")
 val userConfig = Properties()
 val cfg = rootProject.file("user.properties")
 if (cfg.exists()) userConfig.load(cfg.inputStream())
@@ -105,13 +106,13 @@ dependencies {
     compileOnly("org.spongepowered:mixin:0.8.7")
 
     // KOTLIN //
-    dependency("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.0")
-    dependency("org.jetbrains.kotlin:kotlin-reflect:1.9.22")
-    dependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.0.0")
-    dependency("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
-    dependency("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.1")
-    dependency("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
-    dependency("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
+    dependency("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+    dependency("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+    dependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion")
+    dependency("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+    dependency("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3")
+    dependency("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    dependency("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 
     // CONFIG //
     dependency("com.akuleshov7:ktoml-core-jvm:0.5.1")
