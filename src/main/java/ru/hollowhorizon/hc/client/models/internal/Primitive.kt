@@ -1,6 +1,9 @@
 package ru.hollowhorizon.hc.client.models.internal
 
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.resources.ResourceLocation
+import org.joml.Matrix3f
 import org.joml.Matrix4f
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
@@ -11,7 +14,6 @@ import ru.hollowhorizon.hc.client.utils.math.MikkTSpaceContext
 import ru.hollowhorizon.hc.client.utils.math.MikktspaceTangentGenerator
 import ru.hollowhorizon.hc.client.utils.toTexture
 import java.nio.FloatBuffer
-import org.joml.Matrix3f
 
 class Primitive(
     val attributes: Map<String, GltfAccessor>,
@@ -223,7 +225,7 @@ class Primitive(
             GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, texCoordsBuffer)
             GL33.glBufferData(GL33.GL_ARRAY_BUFFER, buffer, GL33.GL_STATIC_DRAW)
             GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 0, 0)
-            if(texCoord1 == null) {
+            if (texCoord1 == null) {
                 GL33.glVertexAttribPointer(8, 2, GL33.GL_FLOAT, false, 0, 0)
             }
         }
@@ -329,124 +331,124 @@ class Primitive(
         GL15.glBindBuffer(GL31.GL_TEXTURE_BUFFER, 0)
     }
 
-    fun compile(context: RenderCommands, node: Node) {
-        if (morphTargets.isNotEmpty()) context.drawCommands += { updateMorphTargets() }
-        context.drawCommands += {
-            val globalMatrix = node.globalMatrix
+    fun render(
+        stack: PoseStack,
+        node: Node,
+        consumer: (ResourceLocation) -> Int,
+    ) {
+        if (morphTargets.isNotEmpty()) updateMorphTargets()
 
-            val shader = AnimatedModel.SHADER
-            //Всякие настройки смешивания, материалы и т.п.
-            val texture = consumer(material.texture)
+        val shader = AnimatedModel.SHADER
+        //Всякие настройки смешивания, материалы и т.п.
+        val texture = consumer(material.texture)
 
-            GL33.glVertexAttrib4f(1, material.color.x(), material.color.y(), material.color.z(), material.color.w())
+        GL33.glVertexAttrib4f(1, material.color.x(), material.color.y(), material.color.z(), material.color.w())
 
-            var normal = 0
-            var specular = 0
+        var normal = 0
+        var specular = 0
 
-            if (areShadersEnabled) {
-                //т.к. Iris использует отличные от Optifine id текстур стоит взять их из самого шейдера
-                GL33.glGetUniformLocation(shader.id, "normals").takeIf { it != -1 }?.let {
-                    GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
-                    normal = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-                    GL33.glBindTexture(GL33.GL_TEXTURE_2D, material.normalTexture.toTexture().id)
-                }
-                GL33.glGetUniformLocation(shader.id, "specular").takeIf { it != -1 }?.let {
-                    GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
-                    specular = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-                    GL33.glBindTexture(GL33.GL_TEXTURE_2D, material.specularTexture.toTexture().id)
-                }
+        if (areShadersEnabled) {
+            //т.к. Iris использует отличные от Optifine id текстур стоит взять их из самого шейдера
+            GL33.glGetUniformLocation(shader.id, "normals").takeIf { it != -1 }?.let {
+                GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
+                normal = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
+                GL33.glBindTexture(GL33.GL_TEXTURE_2D, material.normalTexture.toTexture().id)
             }
-
-            GL13.glActiveTexture(COLOR_MAP_INDEX)
-            RenderSystem.bindTexture(texture)
-
-            if (material.doubleSided) RenderSystem.disableCull()
-            //Подключение VAO и IBO
-            GL33.glBindVertexArray(vao)
-            if (indexBuffer != -1) GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
-
-            GL33.glEnableVertexAttribArray(0) // Вершины (или цвет)
-            if (texCoordsBuffer != -1) GL33.glEnableVertexAttribArray(2) // Текстурные координаты
-            GL33.glEnableVertexAttribArray(5) // Нормали
-            if (tangentBuffer != -1) GL33.glEnableVertexAttribArray(9) //Тангенты
-            if (hasShaders) GL20.glEnableVertexAttribArray(7) //координаты для глубины (pbr)
-
-            val modelView = Matrix4f(RenderSystem.getModelViewMatrix()).mul(stack.last().pose()).mul(globalMatrix)
-            shader.MODEL_VIEW_MATRIX?.set(modelView)
-
-            shader.MODEL_VIEW_MATRIX?.upload()
-
-            //Нормали
-            shader.getUniform("NormalMat")?.let {
-                val normal = Matrix3f(stack.last().normal())
-                normal.mul(Matrix3f(globalMatrix))
-                it.set(normal)
-                it.upload()
+            GL33.glGetUniformLocation(shader.id, "specular").takeIf { it != -1 }?.let {
+                GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
+                specular = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
+                GL33.glBindTexture(GL33.GL_TEXTURE_2D, material.specularTexture.toTexture().id)
             }
-
-            //Отрисовка
-            if (indexBuffer != -1) GL33.glDrawElements(GL33.GL_TRIANGLES, indexCount, GL33.GL_UNSIGNED_INT, 0L)
-            else GL33.glDrawArrays(GL33.GL_TRIANGLES, 0, positionsCount)
-
-            if (material.doubleSided) RenderSystem.enableCull()
-
-            if (hasShaders) {
-                //т.к. Iris использует отличные от Optifine id текстур стоит взять их из самого шейдера
-                GL33.glGetUniformLocation(shader.id, "normals").takeIf { it != -1 }?.let {
-                    GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
-                    GL33.glBindTexture(GL33.GL_TEXTURE_2D, normal)
-                }
-                GL33.glGetUniformLocation(shader.id, "specular").takeIf { it != -1 }?.let {
-                    GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
-                    GL33.glBindTexture(GL33.GL_TEXTURE_2D, specular)
-                }
-            }
-
-            GL33.glCullFace(GL33.GL_BACK)
-
-            //Отключение параметров выше
-            GL33.glDisableVertexAttribArray(0)
-            if (texCoordsBuffer != -1) GL33.glDisableVertexAttribArray(2)
-            GL33.glDisableVertexAttribArray(5)
-            if (tangentBuffer != -1) GL33.glDisableVertexAttribArray(8)
-            if (hasShaders) GL20.glDisableVertexAttribArray(7)
         }
+
+        GL13.glActiveTexture(COLOR_MAP_INDEX)
+        RenderSystem.bindTexture(texture)
+
+        if (material.doubleSided) RenderSystem.disableCull()
+        //Подключение VAO и IBO
+        GL33.glBindVertexArray(vao)
+        if (indexBuffer != -1) GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
+
+        GL33.glEnableVertexAttribArray(0) // Вершины (или цвет)
+        if (texCoordsBuffer != -1) GL33.glEnableVertexAttribArray(2) // Текстурные координаты
+        GL33.glEnableVertexAttribArray(5) // Нормали
+        if (tangentBuffer != -1) GL33.glEnableVertexAttribArray(9) //Тангенты
+        if (hasShaders) GL20.glEnableVertexAttribArray(8) //координаты для глубины (pbr)
+
+        val modelView = Matrix4f(RenderSystem.getModelViewMatrix()).mul(stack.last().pose())
+        shader.MODEL_VIEW_MATRIX?.set(modelView)
+
+        shader.MODEL_VIEW_MATRIX?.upload()
+
+        //Нормали
+        shader.getUniform("NormalMat")?.let {
+            val normal = Matrix3f(stack.last().normal())
+            //normal.mul(Matrix3f(globalMatrix))
+            it.set(normal)
+            it.upload()
+        }
+
+        //Отрисовка
+        if (indexBuffer != -1) GL33.glDrawElements(GL33.GL_TRIANGLES, indexCount, GL33.GL_UNSIGNED_INT, 0L)
+        else GL33.glDrawArrays(GL33.GL_TRIANGLES, 0, positionsCount)
+
+        if (material.doubleSided) RenderSystem.enableCull()
+
+        if (hasShaders) {
+            //т.к. Iris использует отличные от Optifine id текстур стоит взять их из самого шейдера
+            GL33.glGetUniformLocation(shader.id, "normals").takeIf { it != -1 }?.let {
+                GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
+                GL33.glBindTexture(GL33.GL_TEXTURE_2D, normal)
+            }
+            GL33.glGetUniformLocation(shader.id, "specular").takeIf { it != -1 }?.let {
+                GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
+                GL33.glBindTexture(GL33.GL_TEXTURE_2D, specular)
+            }
+        }
+
+        GL33.glCullFace(GL33.GL_BACK)
+
+        //Отключение параметров выше
+        GL33.glDisableVertexAttribArray(0)
+        if (texCoordsBuffer != -1) GL33.glDisableVertexAttribArray(2)
+        GL33.glDisableVertexAttribArray(5)
+        if (tangentBuffer != -1) GL33.glDisableVertexAttribArray(9)
+        if (hasShaders) GL20.glDisableVertexAttribArray(8)
+
     }
 
     private fun updateMorphTargets() {
         morphCommands.forEach { it(weights) }
     }
 
-    fun transformSkinning(node: Node, commands: RenderCommands) {
-        commands.skinningCommands += {
-            val texBind = GL33.glGetInteger(GL33.GL_ACTIVE_TEXTURE)
+    fun transformSkinning(node: Node) {
+        val texBind = GL33.glGetInteger(GL33.GL_ACTIVE_TEXTURE)
 
-            GL13.glActiveTexture(GL13.GL_TEXTURE0)
-            GL33.glBindBuffer(GL33.GL_TEXTURE_BUFFER, jointMatrixBuffer)
-            GL33.glBufferSubData(GL33.GL_TEXTURE_BUFFER, 0, computeMatrices(node))
+        GL13.glActiveTexture(GL13.GL_TEXTURE0)
+        GL33.glBindBuffer(GL33.GL_TEXTURE_BUFFER, jointMatrixBuffer)
+        GL33.glBufferSubData(GL33.GL_TEXTURE_BUFFER, 0, computeMatrices(node))
 
-            GL33.glBindTexture(GL33.GL_TEXTURE_BUFFER, glTexture)
+        GL33.glBindTexture(GL33.GL_TEXTURE_BUFFER, glTexture)
 
-            GL30.glBindBufferBase(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 0, vertexBuffer)
-            GL30.glBindBufferBase(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 1, normalBuffer)
+        GL30.glBindBufferBase(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 0, vertexBuffer)
+        GL30.glBindBufferBase(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 1, normalBuffer)
 
-            GL30.glBeginTransformFeedback(GL11.GL_POINTS)
-            GL30.glBindVertexArray(skinningVao)
+        GL30.glBeginTransformFeedback(GL11.GL_POINTS)
+        GL30.glBindVertexArray(skinningVao)
 
-            GL33.glEnableVertexAttribArray(0)
-            GL33.glEnableVertexAttribArray(1)
-            GL33.glEnableVertexAttribArray(2)
-            GL33.glEnableVertexAttribArray(3)
-            GL11.glDrawArrays(GL11.GL_POINTS, 0, positionsCount)
-            GL33.glDisableVertexAttribArray(0)
-            GL33.glDisableVertexAttribArray(1)
-            GL33.glDisableVertexAttribArray(2)
-            GL33.glDisableVertexAttribArray(3)
+        GL33.glEnableVertexAttribArray(0)
+        GL33.glEnableVertexAttribArray(1)
+        GL33.glEnableVertexAttribArray(2)
+        GL33.glEnableVertexAttribArray(3)
+        GL11.glDrawArrays(GL11.GL_POINTS, 0, positionsCount)
+        GL33.glDisableVertexAttribArray(0)
+        GL33.glDisableVertexAttribArray(1)
+        GL33.glDisableVertexAttribArray(2)
+        GL33.glDisableVertexAttribArray(3)
 
-            GL30.glBindVertexArray(0)
-            GL30.glEndTransformFeedback()
-            GL13.glActiveTexture(texBind)
-        }
+        GL30.glBindVertexArray(0)
+        GL30.glEndTransformFeedback()
+        GL13.glActiveTexture(texBind)
     }
 
     private fun computeMatrices(node: Node): FloatBuffer {

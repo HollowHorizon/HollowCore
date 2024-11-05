@@ -24,6 +24,7 @@
 
 package ru.hollowhorizon.hc.client.render.entity
 
+//? if >=1.20.1 {
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
@@ -36,17 +37,15 @@ import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.FlyingAnimal
+import net.minecraft.world.item.ItemDisplayContext
 import org.joml.Quaternionf
+import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.Node
-import ru.hollowhorizon.hc.client.models.internal.RenderContext
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.animations.PlayMode
 import ru.hollowhorizon.hc.client.models.internal.manager.*
 import ru.hollowhorizon.hc.client.utils.*
-
-//? if >=1.20.1 {
-import net.minecraft.world.item.ItemDisplayContext
 
 
 open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
@@ -83,26 +82,24 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         val lerpBodyRot = Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot)
         stack.mulPose(Quaternionf().rotateY(-lerpBodyRot * Mth.DEG_TO_RAD))
 
+        model.visuals = ::drawVisuals
         model.update(capability, entity.tickCount, partialTick)
         model.entityUpdate(entity, capability, partialTick)
 
         model.render(
-            RenderContext(
-                stack,
-                { texture: ResourceLocation ->
-                    val result = capability.textures[texture.path]?.let {
-                        if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
-                        else it.rl
-                    } ?: texture
+            stack,
+            ModelData(entity.offhandItem, entity.mainHandItem, itemInHandRenderer, entity),
+            { texture: ResourceLocation ->
+                val result = capability.textures[texture.path]?.let {
+                    if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
+                    else it.rl
+                } ?: texture
 
-                    Minecraft.getInstance().textureManager.getTexture(result).id
-                }.memoize(),
-                source,
-                packedLight,
-                OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10),
-                ::drawVisuals,
-                entity
-            )
+                Minecraft.getInstance().textureManager.getTexture(result).id
+            }.memoize(),
+            source,
+            packedLight,
+            OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
         )
 
         capability.subModels.forEach { (node, child) ->
@@ -117,7 +114,13 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         stack.popPose()
     }
 
-    protected open fun drawVisuals(entity: LivingEntity, stack: PoseStack, node: Node, source: MultiBufferSource, light: Int) {
+    protected open fun drawVisuals(
+        entity: LivingEntity,
+        stack: PoseStack,
+        node: Node,
+        source: MultiBufferSource,
+        light: Int,
+    ) {
         if ((node.name?.contains("left", ignoreCase = true) == true || node.name?.contains(
                 "right",
                 ignoreCase = true

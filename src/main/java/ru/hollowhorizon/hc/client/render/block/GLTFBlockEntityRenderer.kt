@@ -35,7 +35,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntity
 import org.joml.Quaternionf
-import ru.hollowhorizon.hc.client.models.internal.RenderContext
+import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
@@ -82,20 +82,19 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
         model.update(capability, level.gameTime.toInt(), partialTick)
 
         model.render(
-            RenderContext(
-                stack,
-                { texture: ResourceLocation ->
-                    val result = capability.textures[texture.path]?.let {
-                        if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
-                        else it.rl
-                    } ?: texture
+            stack,
+            ModelData(null, null, null, null),
+            { texture: ResourceLocation ->
+                val result = capability.textures[texture.path]?.let {
+                    if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
+                    else it.rl
+                } ?: texture
 
-                    Minecraft.getInstance().textureManager.getTexture(result).id
-                }.memoize(),
-                pBufferSource,
-                pPackedLight,
-                pPackedOverlay
-            )
+                Minecraft.getInstance().textureManager.getTexture(result).id
+            }.memoize(),
+            pBufferSource,
+            pPackedLight,
+            pPackedOverlay
         )
 
         stack.popPose()

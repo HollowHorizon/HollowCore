@@ -38,7 +38,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.EntityBlock
 import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.handlers.TickHandler
-import ru.hollowhorizon.hc.client.models.internal.RenderContext
+import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
@@ -86,16 +86,17 @@ object GLTFItemRenderer : BlockEntityWithoutLevelRenderer(
         model.update(capability, TickHandler.currentTicks, TickHandler.partialTick)
 
         model.render(
-            RenderContext(
-                stack, { texture: ResourceLocation ->
-                    val result = capability.textures[texture.path]?.let {
-                        if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
-                        else it.rl
-                    } ?: texture
+            stack,
+            ModelData(null, null, null, null),
+            { texture: ResourceLocation ->
+                val result = capability.textures[texture.path]?.let {
+                    if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
+                    else it.rl
+                } ?: texture
 
-                    Minecraft.getInstance().textureManager.getTexture(result).id
-                }.memoize(), buffer, packedLight, packedOverlay
-            )
+                Minecraft.getInstance().textureManager.getTexture(result).id
+            }.memoize(), buffer, packedLight, packedOverlay
+
         )
 
         stack.popPose()

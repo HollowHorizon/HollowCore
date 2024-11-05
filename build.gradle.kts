@@ -320,8 +320,8 @@ fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
                     modImplementation("net.fabricmc:fabric-loader:0.15.11")
                     modImplementation("net.fabricmc.fabric-api:fabric-api:0.92.2+$version")
                     include("net.fabricmc.fabric-api:fabric-api:0.92.2+$version")
-                    compileOnly("mods:sodium:0.5.11")
-                    compileOnly("mods:iris:1.7.2")
+                    modImplementation("mods:sodium:0.5.11")
+                    modImplementation("mods:iris:1.7.2")
                 }
 
                 "1.19.2" -> {

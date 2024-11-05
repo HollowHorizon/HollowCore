@@ -25,8 +25,6 @@
 package ru.hollowhorizon.hc.client.render.entity
 
 import com.mojang.blaze3d.vertex.PoseStack
-import net.minecraft.world.item.ItemDisplayContext
-
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.ItemInHandRenderer
 import net.minecraft.client.renderer.MultiBufferSource
@@ -35,9 +33,10 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.ItemDisplayContext
 import org.joml.Quaternionf
+import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.Node
-import ru.hollowhorizon.hc.client.models.internal.RenderContext
 import ru.hollowhorizon.hc.client.models.internal.animations.SubModelPlayer
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.internal.manager.SubModel
@@ -69,16 +68,19 @@ object GltfEntityUtil {
         SubModelPlayer.update(realModel, model, tickCount, partialTick)
 
         realModel.render(
-            RenderContext(
-                stack, { texture: ResourceLocation ->
-                    val result = model.textures[texture.path]?.let {
-                        if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
-                        else it.rl
-                    } ?: texture
+            stack,
+            ModelData(entity.offhandItem, entity.mainHandItem, itemRenderer, entity),
+            { texture: ResourceLocation ->
+                val result = model.textures[texture.path]?.let {
+                    if (it.startsWith("skins/")) SkinDownloader.downloadSkin(it.substring(6))
+                    else it.rl
+                } ?: texture
 
-                    Minecraft.getInstance().textureManager.getTexture(result).id
-                }.memoize(), source, packedLight, OverlayTexture.NO_OVERLAY
-            )
+                Minecraft.getInstance().textureManager.getTexture(result).id
+            }.memoize(),
+            source,
+            packedLight,
+            OverlayTexture.NO_OVERLAY
         )
 
         model.subModels.forEach { (bone, model) ->

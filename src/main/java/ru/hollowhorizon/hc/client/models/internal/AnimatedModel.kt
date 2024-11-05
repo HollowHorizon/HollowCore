@@ -30,9 +30,12 @@ import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
+import net.minecraft.client.renderer.ItemInHandRenderer
 import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.item.ItemStack
 import org.joml.Matrix4f
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -47,9 +50,17 @@ import ru.hollowhorizon.hc.common.registry.ModShaders
 
 typealias NodeRenderer = (LivingEntity, PoseStack, Node, MultiBufferSource, Int) -> Unit
 
+class ModelData(
+    val leftHand: ItemStack?,
+    val rightHand: ItemStack?,
+    val itemInHandRenderer: ItemInHandRenderer?,
+    val entity: LivingEntity?,
+)
+
 class AnimatedModel(val modelTree: Model) {
     val nodes = modelTree.walkNodes().associateBy { (it.name ?: "Unnamed") }
     val animationPlayer = GLTFAnimationPlayer(this)
+    var visuals: NodeRenderer = { _, _, _, _, _ -> }
     private val hasSkinning = nodes.values.any { it.skin != null }
 
     fun update(capability: AnimatedEntityCapability, currentTick: Int, partialTick: Float) {
@@ -61,17 +72,21 @@ class AnimatedModel(val modelTree: Model) {
         animationPlayer.updateEntity(entity, capability, partialTick)
     }
 
-    val renderCommands = RenderCommands().apply {
-        if (hasSkinning) transformSkinning(this)
-        modelTree.scenes.forEach { it.compile(this@apply) }
-    }
-
-    fun render(context: RenderContext) {
+    fun render(
+        stack: PoseStack,
+        modelData: ModelData,
+        consumer: (ResourceLocation) -> Int,
+        source: MultiBufferSource,
+        light: Int,
+        overlay: Int,
+    ) {
         NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.clear()
 
-        nodes.values.forEach { it.renderDecorations(context) }
+        modelTree.scenes.forEach { scene ->
+            scene.nodes.forEach { node -> node.renderDecorations(stack, visuals, modelData, source, light) }
+        }
 
-        renderCommands.skinningCommands.forEach { it() }
+        transformSkinning()
 
         val activeTexture = GlStateManager._getActiveTexture()
 
@@ -82,13 +97,13 @@ class AnimatedModel(val modelTree: Model) {
         GL33.glVertexAttrib4f(1, 1.0F, 1.0F, 1.0F, 1.0F) // Цвет
         GL33.glVertexAttribI2i(
             3,
-            context.packedOverlay and '\uffff'.code,
-            context.packedOverlay shr 16 and '\uffff'.code
+            overlay and '\uffff'.code,
+            overlay shr 16 and '\uffff'.code
         ) // Оверлей при ударе
         GL33.glVertexAttribI2i(
             4,
-            context.packedLight and '\uffff'.code,
-            context.packedLight shr 16 and '\uffff'.code
+            light and '\uffff'.code,
+            light shr 16 and '\uffff'.code
         ) // Освещение
 
         GlStateManager._activeTexture(GL33.GL_TEXTURE2)
@@ -104,7 +119,9 @@ class AnimatedModel(val modelTree: Model) {
         val texture = GlStateManager.TEXTURES[GlStateManager.activeTexture].binding
 
         drawWithShader(SHADER) {
-            renderCommands.drawCommands.forEach { it(context) }
+            modelTree.scenes.forEach {
+                it.render(stack, visuals, modelData, consumer, light)
+            }
         }
 
         GlStateManager._activeTexture(GL33.GL_TEXTURE2)
@@ -121,16 +138,12 @@ class AnimatedModel(val modelTree: Model) {
         GlStateManager._glUseProgram(0)
     }
 
-    private fun transformSkinning(commands: RenderCommands) {
-        commands.skinningCommands += {
-            GL33.glUseProgram(GltfManager.glProgramSkinning)
-            GL33.glEnable(GL33.GL_RASTERIZER_DISCARD)
-        }
-        modelTree.scenes.forEach { it.transformSkinning(commands) }
-        commands.skinningCommands += {
-            GL33.glBindBuffer(GL33.GL_TEXTURE_BUFFER, 0)
-            GL33.glDisable(GL33.GL_RASTERIZER_DISCARD)
-        }
+    private fun transformSkinning() {
+        GL33.glUseProgram(GltfManager.glProgramSkinning)
+        GL33.glEnable(GL33.GL_RASTERIZER_DISCARD)
+        modelTree.scenes.forEach { it.transformSkinning() }
+        GL33.glBindBuffer(GL33.GL_TEXTURE_BUFFER, 0)
+        GL33.glDisable(GL33.GL_RASTERIZER_DISCARD)
     }
 
     fun destroy() {
