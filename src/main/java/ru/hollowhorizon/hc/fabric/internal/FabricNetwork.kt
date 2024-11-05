@@ -39,12 +39,17 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
             if (isClient) ClientPlayNetworking.registerGlobalReceiver(
                 location
             ) { client, _, buf, _ ->
-                val player = client.player ?: Minecraft.getInstance().player
-                if (player == null) {
-                    HollowCore.LOGGER.warn("No player found in minecraft... How do you receive that ${type.simpleName}?")
-                    return@registerGlobalReceiver
+                val packet = deserializer(buf)
+                client.execute {
+                    val player = client.player
+
+                    if (player == null) {
+                        HollowCore.LOGGER.warn("No player found in minecraft... How do you receive that ${type.simpleName}?")
+                        return@execute
+                    }
+
+                    packet.handle(player)
                 }
-                deserializer(buf).handle(player)
             }
         }
 
