@@ -1,43 +1,42 @@
 package ru.hollowhorizon.hc.common.events
 
-import ru.hollowhorizon.hc.client.utils.Lock
 import ru.hollowhorizon.hc.common.coroutines.onMainThreadSync
 import ru.hollowhorizon.hc.common.coroutines.scopeSync
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.KClass
 
 
 object EventBus {
-    val lock = Lock()
     val listeners = HashMap<KClass<out Event>, MutableList<EventListener<out Event>>>()
 
-    inline fun <reified T : Event> register(listener: EventListener<T>) = lock.withLock {
-        val list = listeners.getOrPut(T::class) { mutableListOf() }
+    inline fun <reified T : Event> register(listener: EventListener<T>) {
+        val list = listeners.getOrPut(T::class) { CopyOnWriteArrayList() }
         list.add(listener)
         list.sortBy { it.priority }
     }
 
-    fun registerNoInline(type: Class<Event>, listener: EventListener<Event>) = lock.withLock {
-        val list = listeners.getOrPut(type.kotlin) { mutableListOf() }
+    fun registerNoInline(type: Class<Event>, listener: EventListener<Event>) {
+        val list = listeners.getOrPut(type.kotlin) { CopyOnWriteArrayList() }
         list.add(listener)
         list.sortBy { it.priority }
     }
 
-    inline fun <reified T : Event> unregister(listener: EventListener<T>) = lock.withLock {
+    inline fun <reified T : Event> unregister(listener: EventListener<T>) {
         listeners[T::class]?.remove(listener)
     }
 
 
     @Suppress("UNCHECKED_CAST")
     @JvmStatic
-    fun <T : Event> post(event: T) = lock.withLock {
+    fun <T : Event> post(event: T) {
         val cancelable = event as? Cancelable
 
         listeners.computeIfAbsent(event::class) { mutableListOf() }
             .forEach {
                 (it as EventListener<T>).onEvent(event)
-                if (cancelable?.isCanceled == true) return@withLock
+                if (cancelable?.isCanceled == true) return
             }
     }
 }
