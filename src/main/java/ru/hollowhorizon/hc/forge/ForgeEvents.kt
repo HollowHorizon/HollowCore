@@ -7,6 +7,7 @@ import net.minecraftforge.event.RegisterCommandsEvent
 import net.minecraftforge.event.TickEvent
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent
 import net.minecraftforge.event.server.ServerAboutToStartEvent
+import net.minecraftforge.event.server.ServerStoppingEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import ru.hollowhorizon.hc.client.utils.currentServer
 import ru.hollowhorizon.hc.common.events.EventBus.post
@@ -22,6 +23,7 @@ object ForgeEvents {
         FMLJavaModLoadingContext.get().modEventBus.addListener(ForgeEvents::registerAttributes)
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::registerReloadListeners)
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::onServerStart)
+        MinecraftForge.EVENT_BUS.addListener(ForgeEvents::onServerStop)
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::registerCommands)
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::onServerTick)
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::onEntityTracking)
@@ -74,7 +76,11 @@ object ForgeEvents {
 
     private fun onServerStart(event: ServerAboutToStartEvent) {
         currentServer = event.server
-        ServerEvent.Started(currentServer).post()
+        ServerEvent.Starting(currentServer).post()
+    }
+
+    private fun onServerStop(event: ServerStoppingEvent) {
+        ServerEvent.Stoping(event.server).post()
     }
 }
 *///?}

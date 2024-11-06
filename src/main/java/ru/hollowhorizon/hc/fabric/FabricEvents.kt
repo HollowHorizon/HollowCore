@@ -39,7 +39,10 @@ object FabricEvents {
         })
         ServerLifecycleEvents.SERVER_STARTING.register(ServerLifecycleEvents.ServerStarting {
             currentServer = it
-            ServerEvent.Started(currentServer).post()
+            ServerEvent.Starting(currentServer).post()
+        })
+        ServerLifecycleEvents.SERVER_STOPPING.register(ServerLifecycleEvents.ServerStopping {
+            ServerEvent.Stoping(it).post()
         })
     }
 

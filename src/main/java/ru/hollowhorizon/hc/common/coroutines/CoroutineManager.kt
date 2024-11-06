@@ -45,7 +45,7 @@ suspend fun suspendBy(condition: () -> Boolean) {
 var isServerLoaded = false
 
 @SubscribeEvent
-fun onServerStart(event: ServerEvent.Started) {
+fun onServerStart(event: ServerEvent.Starting) {
     mcCoroutineDispatcher = event.server.asCoroutineDispatcher()
     mcCoroutineScope = CoroutineScope(SupervisorJob() + mcCoroutineDispatcher)
     isServerLoaded = true
