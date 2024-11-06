@@ -36,6 +36,6 @@ enum class TextureType(val impl: EffekseerTextureType) {
     val nativeOrdinal get() = impl.swigValue()
 
     companion object {
-        fun fromNativeOrdinal(ord: Int) = values().firstOrNull { it.nativeOrdinal == ord }
+        fun fromNativeOrdinal(ord: Int) = entries.firstOrNull { it.nativeOrdinal == ord }
     }
 }

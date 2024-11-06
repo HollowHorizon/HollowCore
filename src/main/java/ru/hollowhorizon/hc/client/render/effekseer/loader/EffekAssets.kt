@@ -31,7 +31,6 @@ import net.minecraft.server.packs.resources.SimplePreparableReloadListener
 import net.minecraft.util.profiling.ProfilerFiller
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.render.effekseer.EffectDefinition
 import ru.hollowhorizon.hc.client.render.effekseer.EffekseerEffect
 import ru.hollowhorizon.hc.client.render.effekseer.TextureType
@@ -64,10 +63,7 @@ object EffekAssets : SimplePreparableReloadListener<EffekAssets.Preparations>() 
         return (location.namespace + ":" + filePath).rl
     }
 
-    private val LOGGER: Logger = LogManager.getLogger(
-        EffekAssets::class.java.simpleName
-    )
-
+    private val LOGGER: Logger = LogManager.getLogger(EffekAssets::class.java.simpleName)
     private val loadedEffects: MutableMap<ResourceLocation, EffectDefinition> = LinkedHashMap()
 
 
@@ -76,38 +72,33 @@ object EffekAssets : SimplePreparableReloadListener<EffekAssets.Preparations>() 
         name: ResourceLocation,
         efkefc: Resource,
     ): Optional<EffekseerEffect> {
-        try {
-            efkefc.open().use { input ->
-                val effect = EffekseerEffect()
-                val success = effect.load(input, 1f)
-                if (!success) {
-                    LOGGER.error("Failed to load $name")
-                    return Optional.empty()
-                }
-                try {
-                    for (texType in TextureType.entries) {
-                        val count = effect.textureCount(texType)
-                        load(manager,
-                            name,
-                            count,
-                            { effect.getTexturePath(it, texType) },
-                            { b: ByteArray, len: Int, i: Int ->
-                                effect.loadTexture(b, len, i, texType)
-                            })
-                    }
-                    load(manager, name, effect.modelCount(), effect::getModelPath, effect::loadModel)
-                    load(manager, name, effect.curveCount(), effect::getCurvePath, effect::loadCurve)
-                    load(manager, name, effect.materialCount(), effect::getMaterialPath, effect::loadMaterial)
-                    return Optional.of(effect)
-                } catch (ex: FileNotFoundException) {
-                    LOGGER.error("Failed to load $name", ex)
-                    effect.close()
-                    return Optional.empty()
-                }
+        efkefc.open().use { input ->
+            val effect = EffekseerEffect()
+            val success = effect.load(input, 1f)
+            if (!success) {
+                LOGGER.error("Failed to load $name")
+                return Optional.empty()
             }
-        } catch (ex: IOException) {
-            HollowCore.LOGGER.error("Failed to load $name", ex)
-            return Optional.empty()
+            for (texType in TextureType.entries) {
+                val count = effect.textureCount(texType)
+                load(
+                    manager, name, count,
+                    { effect.getTexturePath(it, texType) },
+                    { b: ByteArray, len: Int, i: Int -> effect.loadTexture(b, len, i, texType) },
+                    AssetType.TEXTURE
+                )
+            }
+            load(manager, name, effect.modelCount(), effect::getModelPath, effect::loadModel, AssetType.MODEL)
+            load(manager, name, effect.curveCount(), effect::getCurvePath, effect::loadCurve, AssetType.CURVE)
+            load(
+                manager,
+                name,
+                effect.materialCount(),
+                effect::getMaterialPath,
+                effect::loadMaterial,
+                AssetType.MATERIAL
+            )
+            return Optional.of(effect)
         }
     }
 
@@ -117,29 +108,20 @@ object EffekAssets : SimplePreparableReloadListener<EffekAssets.Preparations>() 
         name: ResourceLocation, count: Int,
         pathGetter: IntFunction<String>,
         loadMethod: (ByteArray, Int, Int) -> Boolean,
+        assetType: AssetType,
     ) {
         val modid = name.namespace
         for (i in 0 until count) {
             val effekAssetPath = pathGetter.apply(i)
             val mcAssetPath = "$DIRECTORY/$effekAssetPath".replace('\\', '/').replace("//", "/")
-            val fallbackMcAssetPath =
-                "$DIRECTORY/${name.path.substringBeforeLast('/')}/$effekAssetPath".replace('\\', '/').replace("//", "/")
 
-            val main = "$modid:${mcAssetPath.lowercase().replace('-', '_')}".rl
-            val fallback = "$modid:${fallbackMcAssetPath.lowercase().replace('-', '_')}".rl
-            val resource = getResourceOrUseFallbackPath(
-                manager,
-                main,
-                fallback
-            ).orElseThrow { FileNotFoundException("Failed to load $main or $fallback") }
+            val location = "$modid:${mcAssetPath.lowercase().replace('-', '_')}".rl
+            val resource = manager.getResource(location)
+                .orElseThrow { FileNotFoundException("Failed to load $location") }
             resource.open().use { input ->
                 val bytes = input.readAllBytes()
                 val success = loadMethod(bytes, bytes.size, i)
-                if (!success) {
-                    val info = String.format("Failed to load effek data %s", effekAssetPath)
-                    LOGGER.debug(String.format("\n%s\nmc asset path is \"%s\"", info, mcAssetPath))
-                    throw EffekLoadException(info)
-                }
+                if (!success) throw EffekLoadException("Failed to load $assetType from $effekAssetPath!")
             }
         }
     }
@@ -175,6 +157,10 @@ object EffekAssets : SimplePreparableReloadListener<EffekAssets.Preparations>() 
             }
         unloadAll()
         loadedEffects.putAll(prep.loadedEffects)
+    }
+
+    enum class AssetType {
+        TEXTURE, MODEL, CURVE, MATERIAL
     }
 }
 
