@@ -1,7 +1,9 @@
 package ru.hollowhorizon.hc.common.events.entity.player
 
+import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.entity.player.Player.BedSleepingProblem
 import ru.hollowhorizon.hc.common.events.Event
 
 open class PlayerEvent(val player: Player) : Event {
@@ -9,4 +11,7 @@ open class PlayerEvent(val player: Player) : Event {
 
     class Join(player: Player) : PlayerEvent(player)
     class ChangeDimension(player: Player, val from: ServerLevel, val to: ServerLevel) : PlayerEvent(player)
+
+    class SleepInBed(player: Player, var problem: BedSleepingProblem? = null, val pos: BlockPos) : PlayerEvent(player)
+    class Wakeup(player: Player, val wakeImmediately: Boolean, val updateLevelForSleepingPlayers: Boolean) : PlayerEvent(player)
 }
