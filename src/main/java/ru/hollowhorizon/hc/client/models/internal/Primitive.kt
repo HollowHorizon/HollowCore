@@ -383,7 +383,7 @@ class Primitive(
         //Нормали
         shader.getUniform("NormalMat")?.let {
             val normal = Matrix3f(stack.last().normal())
-            //normal.mul(Matrix3f(globalMatrix))
+            normal.mul(Matrix3f(node.globalMatrix))
             it.set(normal)
             it.upload()
         }

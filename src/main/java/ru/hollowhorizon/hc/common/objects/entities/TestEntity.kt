@@ -56,7 +56,7 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
 
     init {
         this[AnimatedEntityCapability::class].apply {
-            model = "${HollowCore.MODID}:models/entity/player_model.gltf"
+            model = "${HollowCore.MODID}:models/entity/npc.gltf"
             //animations[AnimationType.IDLE] = "hello"
             transform = Transform.create {}
         }
@@ -80,6 +80,10 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
         super.tick()
 
         if (!level().isClientSide) {
+            server?.playerList?.players?.firstOrNull()?.let {
+                lookControl.setLookAt(it)
+            }
+
             val container = this[TestEntityCapability::class].slots
             val isValid = container.getItem(0).item == Items.DIRT &&
                     container.getItem(1).item == Items.DIRT &&

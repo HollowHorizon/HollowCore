@@ -24,7 +24,6 @@
 
 package ru.hollowhorizon.hc.client.render.entity
 
-//? if >=1.20.1 {
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
@@ -209,7 +208,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             entity.isSleeping -> AnimationType.SLEEP
             entity.vehicle != null -> AnimationType.SIT
             entity.fallFlyingTicks > 4 -> AnimationType.FALL
-            entity.deltaMovement.length() > 0.075 -> {
+            entity.isMoving() -> {
                 when {
                     entity.isVisuallySwimming -> AnimationType.SWIM
                     entity.isShiftKeyDown -> AnimationType.WALK_SNEAKED
@@ -225,4 +224,6 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     companion object {
         const val NO_MODEL = "%NO_MODEL%"
     }
+
+    private fun T.isMoving(): Boolean = deltaMovement.length() > 0.075 || yBodyRot != yBodyRotO
 }
