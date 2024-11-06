@@ -12,6 +12,7 @@
     "MinecraftServerMixin",
     "PackRepositoryMixin",
     "PlayerMixin",
+    "ServerGamePacketListenerImplMixin",
     "ServerLevelMixin",
     "ServerPlayerGameModeMixin",
     "ServerPlayerMixin",
