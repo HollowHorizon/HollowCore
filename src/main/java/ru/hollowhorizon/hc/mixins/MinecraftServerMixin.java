@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.mixins;
 
+import com.mojang.datafixers.DataFixer;
 import net.minecraft.core.LayeredRegistryAccess;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -7,8 +8,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.RegistryLayer;
+import net.minecraft.server.Services;
+import net.minecraft.server.WorldStem;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.progress.ChunkProgressListener;
+import net.minecraft.server.level.progress.ChunkProgressListenerFactory;
+import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.storage.LevelStorageSource;
@@ -31,6 +36,7 @@ import ru.hollowhorizon.hc.common.events.level.LevelEvent;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -63,18 +69,8 @@ public abstract class MinecraftServerMixin implements ICapabilityDispatcher {
     public abstract LayeredRegistryAccess<RegistryLayer> registries();
 
 
-    @Inject(method = "createLevels", at = @At("TAIL"))
-    private void onSave(ChunkProgressListener $$0, CallbackInfo ci) {
-        Registry<LevelStem> registry = registries.compositeAccess().registryOrThrow(Registries.LEVEL_STEM);
-        for (ResourceKey<LevelStem> key : registry.registryKeySet()) {
-            var level = levels.get(key);
-            EventBus.post(new LevelEvent.Load(level));
-        }
-    }
-
-
-    @Inject(method = "loadLevel", at = @At("TAIL"))
-    private void onLoad(CallbackInfo ci) {
+    @Inject(method = "<init>", at=@At("TAIL"))
+    private void onInit(Thread serverThread, LevelStorageSource.LevelStorageAccess storageSource, PackRepository packRepository, WorldStem worldStem, Proxy proxy, DataFixer fixerUpper, Services services, ChunkProgressListenerFactory progressListenerFactory, CallbackInfo ci) {
         ICapabilityDispatcherKt.initialize(this);
 
         //? if fabric {
@@ -91,6 +87,15 @@ public abstract class MinecraftServerMixin implements ICapabilityDispatcher {
             } catch (IOException e) {
                 HollowCore.LOGGER.error("Can't load {}", file.getName(), e);
             }
+        }
+    }
+
+    @Inject(method = "createLevels", at = @At("TAIL"))
+    private void onSave(ChunkProgressListener $$0, CallbackInfo ci) {
+        Registry<LevelStem> registry = registries.compositeAccess().registryOrThrow(Registries.LEVEL_STEM);
+        for (ResourceKey<LevelStem> key : registry.registryKeySet()) {
+            var level = levels.get(key);
+            EventBus.post(new LevelEvent.Load(level));
         }
     }
 
