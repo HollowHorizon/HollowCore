@@ -27,13 +27,9 @@ package ru.hollowhorizon.hc.client.render.effekseer
 import net.minecraft.resources.ResourceLocation
 import java.io.Closeable
 import java.util.*
-import java.util.random.RandomGenerator
 import java.util.stream.Stream
-import kotlin.math.abs
 
 class EffectDefinition : Closeable {
-
-
     @JvmOverloads
     fun play(
         type: ParticleEmitter.Type = ParticleEmitter.Type.WORLD,
@@ -50,17 +46,15 @@ class EffectDefinition : Closeable {
         return emitter
     }
 
-    fun getManager(type: ParticleEmitter.Type): EffekseerManager {
-        return managers[type] ?: throw IllegalStateException("No manager for type $type")
-    }
+    fun getManager(type: ParticleEmitter.Type) =
+        managers[type] ?: throw IllegalStateException("No manager for type $type")
 
-    fun emitters(): Stream<ParticleEmitter> {
-        return emitterContainers().flatMap { it.stream() }
-    }
 
-    fun emitters(type: ParticleEmitter.Type): Stream<ParticleEmitter> {
-        return emitterContainers(type).flatMap { obj: Collection<ParticleEmitter> -> obj.stream() }
-    }
+    fun emitters(): Stream<ParticleEmitter> = emitterContainers().flatMap { it.stream() }
+
+
+    fun emitters(type: ParticleEmitter.Type): Stream<ParticleEmitter> =
+        emitterContainers(type).flatMap { obj: Collection<ParticleEmitter> -> obj.stream() }
 
     fun emitterContainers(): Stream<MutableCollection<ParticleEmitter>> {
         return Stream.concat(
@@ -99,11 +93,10 @@ class EffectDefinition : Closeable {
         EnumMap<ParticleEmitter.Type, MutableSet<ParticleEmitter>>(ParticleEmitter.Type::class.java)
     private val namedEmitters =
         EnumMap<ParticleEmitter.Type, MutableMap<ResourceLocation?, ParticleEmitter>>(ParticleEmitter.Type::class.java)
-    private val magicLoadBalancer = (abs((RNG.nextInt() ushr 2).toDouble()) % GC_DELAY).toInt()
     private var gcTicks = 0
 
     init {
-        for (type in ParticleEmitter.Type.values()) {
+        for (type in ParticleEmitter.Type.entries) {
             oneShotEmitters[type] = LinkedHashSet()
             namedEmitters[type] = LinkedHashMap()
         }
@@ -128,7 +121,7 @@ class EffectDefinition : Closeable {
 
         if (type == ParticleEmitter.Type.WORLD) {
             gcTicks = (gcTicks + 1) % GC_DELAY
-            if (gcTicks == magicLoadBalancer) {
+            if (gcTicks == 0) {
                 emitterContainers().forEach { container -> container.removeIf { !it.exists() } }
             }
         }
@@ -156,7 +149,6 @@ class EffectDefinition : Closeable {
     }
 
     companion object {
-        private val RNG: RandomGenerator = Random()
         private const val GC_DELAY = 20
     }
 }

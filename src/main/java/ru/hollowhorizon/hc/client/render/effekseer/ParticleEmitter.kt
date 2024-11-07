@@ -118,17 +118,13 @@ class ParticleEmitter(private val handle: Int, private val manager: EffekseerMan
         )
     }
 
-    fun exists(): Boolean {
-        return manager.impl.Exists(this.handle)
-    }
+    fun exists() = manager.impl.Exists(this.handle)
 
     fun setDynamicInput(index: Int, value: Float) {
         manager.impl.SetDynamicInput(this.handle, index, value)
     }
 
-    fun getDynamicInput(index: Int): Float {
-        return manager.impl.GetDynamicInput(this.handle, index)
-    }
+    fun getDynamicInput(index: Int) = manager.impl.GetDynamicInput(this.handle, index)
 
     fun interface PreDrawCallback {
         fun accept(emitter: ParticleEmitter, partialTicks: Float)

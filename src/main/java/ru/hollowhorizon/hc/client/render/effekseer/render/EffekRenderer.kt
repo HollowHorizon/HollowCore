@@ -26,7 +26,6 @@ package ru.hollowhorizon.hc.client.render.effekseer.render
 
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Camera
-import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.InteractionHand
@@ -46,9 +45,7 @@ object EffekRenderer {
     private val INIT = AtomicBoolean()
 
     fun init() {
-        if (INIT.compareAndExchange(false, true)) {
-            return
-        }
+        if (INIT.compareAndExchange(false, true)) return
         if (!Effekseer.init()) throw ExceptionInInitializerError("Failed to initialize Effekseer")
         Runtime.getRuntime().addShutdownHook(Thread(Effekseer::terminate, "ShutdownHook Effekseer::terminate"))
     }
@@ -99,11 +96,7 @@ object EffekRenderer {
 
         if (type == ParticleEmitter.Type.WORLD) pose.translate(-position.x(), -position.y(), -position.z())
 
-        //? if >=1.20.1 {
         pose.last().pose().get(CAMERA_TRANSFORM_BUFFER)
-        //?} else {
-        /*pose.last().pose().store(CAMERA_TRANSFORM_BUFFER)
-        *///?}
 
         transposeMatrix(CAMERA_TRANSFORM_BUFFER)
         CAMERA_TRANSFORM_BUFFER[CAMERA_TRANSFORM_DATA]
@@ -160,7 +153,7 @@ object EffekRenderer {
         m.put(0xF, m33)
     }
 
-    private val lastDrawTimeByNanos = LongArray(ParticleEmitter.Type.values().size)
+    private val lastDrawTimeByNanos = LongArray(ParticleEmitter.Type.entries.size)
 
     private fun getDeltaTime(type: ParticleEmitter.Type): Float {
         val last = lastDrawTimeByNanos[type.ordinal]
