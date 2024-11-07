@@ -145,26 +145,26 @@ object Graphics {
         u0: Float = 0f, v0: Float = 0f,
         u1: Float = width, v1: Float = height,
     ) {
-        val id = texture.toTexture().id
+        val id = texture.toTexture().id.toLong()
 
         image(id, width, height, u0 / imageWidth, v0 / imageHeight, u1 / imageWidth, v1 / imageHeight, 1f, 1f, 1f, 1f)
     }
 
     fun image(textureId: Int, sizeX: Float, sizeY: Float, flip: Boolean = false) {
-        if (flip) image(textureId, sizeX, sizeY, 0f, 1f, 1f, 0f)
-        else ImGui.image(textureId, sizeX, sizeY)
+        if (flip) image(textureId.toLong(), sizeX, sizeY, 0f, 1f, 1f, 0f)
+        else ImGui.image(textureId.toLong(), sizeX, sizeY)
     }
 
     inline fun imageButton(textureId: Int, sizeX: Float, sizeY: Float, codeBlock: Graphics.() -> Unit) {
-        if (imageButton(textureId, sizeX, sizeY)) codeBlock(Graphics)
+        if (imageButton(textureId.toLong(), sizeX, sizeY)) codeBlock(Graphics)
     }
 
     inline fun imageButton(texture: ResourceLocation, sizeX: Float, sizeY: Float, codeBlock: Graphics.() -> Unit) {
-        if (imageButton(texture.toTexture().id, sizeX, sizeY)) codeBlock(Graphics)
+        if (imageButton(texture.toTexture().id.toLong(), sizeX, sizeY)) codeBlock(Graphics)
     }
 
     inline fun imageFlipButton(textureID: Int, sizeX: Float, sizeY: Float, codeBlock: Graphics.() -> Unit) {
-        if (imageButton(textureID, sizeX, sizeY, 0f, 1f, 1f, 0f)) codeBlock(Graphics)
+        if (imageButton(textureID.toLong(), sizeX, sizeY, 0f, 1f, 1f, 0f)) codeBlock(Graphics)
     }
 
     inline fun imageFlipButton(
@@ -173,7 +173,7 @@ object Graphics {
         sizeY: Float,
         codeBlock: Graphics.() -> Unit,
     ) {
-        if (imageButton(texture.toTexture().id, sizeX, sizeY, 0f, 1f, 1f, 0f)) codeBlock(Graphics)
+        if (imageButton(texture.toTexture().id.toLong(), sizeX, sizeY, 0f, 1f, 1f, 0f)) codeBlock(Graphics)
     }
 
     inline fun checkBox(name: String, isActive: Boolean, codeBlock: Graphics.() -> Unit) {
@@ -487,7 +487,7 @@ object Graphics {
             val screenPos = getCursorScreenPos()
 
             list.addImage(
-                buffer.colorTextureId, screenPos.x, screenPos.y,
+                buffer.colorTextureId.toLong(), screenPos.x, screenPos.y,
                 screenPos.x + width, screenPos.y + height, u0, v0, u1, v1,
                 colorConvertFloat4ToU32(red, green, blue, alpha)
             )

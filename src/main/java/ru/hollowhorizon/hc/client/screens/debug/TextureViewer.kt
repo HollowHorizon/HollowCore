@@ -108,7 +108,7 @@ object TextureViewer {
         val height: Int = glGetTexLevelParameteri(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT)
         val size = ImGui.getContentRegionAvailX()
         ImGui.image(
-            selectedId,
+            selectedId.toLong(),
             size,
             size * height.toFloat() / width.toFloat(),
             (if (flipX) 1 else 0).toFloat(),

@@ -52,5 +52,5 @@ inline fun treeNode(text: String = "", params: Int = 0, action: () -> Unit) {
 }
 
 fun image(texture: ResourceLocation, width: Float, height: Float) {
-    ImGui.image(texture.toTexture().id, width, height)
+    ImGui.image(texture.toTexture().id.toLong(), width, height)
 }

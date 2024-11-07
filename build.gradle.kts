@@ -76,6 +76,7 @@ base {
 
 repositories {
     mavenCentral()
+    mavenLocal()
     maven("https://repo.spongepowered.org/repository/maven-public/")
     maven("https://maven.0mods.team/releases")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")

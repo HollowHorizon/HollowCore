@@ -93,7 +93,7 @@ fun Graphics.drawImage(location: ResourceLocation, width: Float, height: Float) 
 
 
     ImGui.image(
-        image.id,
+        image.id.toLong(),
         size, ImVec2(0f, y0), ImVec2(1f, y1),
         ImVec4(1f, 1f, 1f, 1f), ImVec4(1f, 1f, 1f, 1f)
     )
