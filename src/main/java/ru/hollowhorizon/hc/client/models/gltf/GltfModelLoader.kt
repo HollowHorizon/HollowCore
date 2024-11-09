@@ -36,9 +36,6 @@ import java.util.*
 
 
 object GltfModelLoader {
-    val TEXTURE_MAP = HashMap<ResourceLocation, DynamicTexture>()
-
-
     suspend fun load(file: GltfFile, location: ResourceLocation): Model {
         val skins = parseSkins(file)
         val materials = file.materials.map { material ->

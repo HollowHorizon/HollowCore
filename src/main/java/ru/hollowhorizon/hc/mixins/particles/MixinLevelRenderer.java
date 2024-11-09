@@ -26,23 +26,38 @@ package ru.hollowhorizon.hc.mixins.particles;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
+import net.minecraft.client.CameraType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ru.hollowhorizon.hc.client.particles.ParticleVertexConsumerProvider;
+import ru.hollowhorizon.hc.api.ParticlesProvider;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderContext;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
 import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer;
+import ru.hollowhorizon.hc.client.utils.math.Quaternion;
 
+import javax.annotation.Nullable;
+import java.util.UUID;
+
+import static dev.folomeev.kotgl.matrix.vectors.Vectors.vec3;
 import static ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.copyCurrentDepthTo;
 
 
 @Mixin(LevelRenderer.class)
 public class MixinLevelRenderer {
+    @Shadow
+    @Nullable
+    private ClientLevel level;
+
     @Inject(method = "renderLevel", at = @At("RETURN"))
     private void onRenderLevelLast(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f projectionMatrix, CallbackInfo ci) {
         var capture = RenderStateCapture.LEVEL;
@@ -58,5 +73,22 @@ public class MixinLevelRenderer {
         } else {
             EffekRenderer.onRenderWorldLast(partialTick, capture.pose, capture.projection, capture.camera);
         }
+
+        if (!(level instanceof ParticlesProvider)) return;
+
+        var system = ((ParticlesProvider) level).getSystem();
+        if (system.isEmpty()) return;
+
+        system.update();
+
+        if (!system.hasAnythingToRender()) return;
+
+        UUID cameraUuid = camera.getEntity().getUUID();
+        var cameraRotMc = camera.rotation();
+        var position = camera.getPosition();
+
+        boolean isFirstPerson = Minecraft.getInstance().options.getCameraType() == CameraType.FIRST_PERSON;
+        system.render(poseStack, vec3((float) position.x, (float) position.y, (float) position.z), new Quaternion(cameraRotMc.x(), cameraRotMc.y(), cameraRotMc.z(), cameraRotMc.w()), ParticleVertexConsumerProvider.INSTANCE, cameraUuid, isFirstPerson);
+
     }
 }

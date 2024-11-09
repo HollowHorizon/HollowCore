@@ -30,6 +30,7 @@ import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.render.RenderLoader
 import ru.hollowhorizon.hc.client.render.effekseer.EffekseerNatives
 import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssets
@@ -60,6 +61,7 @@ object HollowCoreClient {
     fun onRegisterReloadListener(event: RegisterReloadListenersEvent.Client) {
         event.register(EffekAssets)
         event.register(GltfManager)
+        event.register(BedrockParticles)
     }
 
     @SubscribeEvent

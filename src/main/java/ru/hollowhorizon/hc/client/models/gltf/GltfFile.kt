@@ -5,6 +5,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.utils.json.JsonFormat
+import ru.hollowhorizon.hc.client.utils.nbt.ListOrSingle
 import ru.hollowhorizon.hc.client.utils.stream
 import java.util.*
 
@@ -99,22 +101,22 @@ private fun loadGlb(data: Uint8Buffer): GltfFile {
 
 @Serializable
 data class GltfFile(
-    val extensionsUsed: List<String> = emptyList(),
-    val extensionsRequired: List<String> = emptyList(),
+    val extensionsUsed: ListOrSingle<String> = emptyList(),
+    val extensionsRequired: ListOrSingle<String> = emptyList(),
     val accessors: List<GltfAccessor> = emptyList(),
     val animations: List<GltfAnimation> = emptyList(),
     val asset: GltfAsset,
     val buffers: List<GltfBuffer> = emptyList(),
     val bufferViews: List<GltfBufferView> = emptyList(),
-    val images: List<GltfImage> = emptyList(),
-    val materials: List<GltfMaterial> = emptyList(),
+    val images: ListOrSingle<GltfImage> = emptyList(),
+    val materials: ListOrSingle<GltfMaterial> = emptyList(),
     val meshes: List<GltfMesh> = emptyList(),
     val nodes: List<GltfNode> = emptyList(),
     val samplers: List<GltfSampler> = emptyList(),
     val scene: Int = 0,
     val scenes: List<GltfScene> = emptyList(),
     val skins: List<GltfSkin> = emptyList(),
-    val textures: List<GltfTexture> = emptyList(),
+    val textures: ListOrSingle<GltfTexture> = emptyList(),
 ) {
     internal fun updateReferences() {
         accessors.forEach {
@@ -175,15 +177,8 @@ data class GltfFile(
         const val GLB_CHUNK_MAGIC_JSON = 0x4e4f534a
         const val GLB_CHUNK_MAGIC_BIN = 0x004e4942
 
-        private val jsonFmt = Json {
-            isLenient = true
-            ignoreUnknownKeys = true
-            allowSpecialFloatingPointValues = true
-            useArrayPolymorphism = true
-        }
-
         fun fromJson(json: String): GltfFile {
-            return jsonFmt.decodeFromString(json)
+            return JsonFormat.decodeFromString(json)
         }
     }
 }

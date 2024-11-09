@@ -220,3 +220,35 @@ fun fill(stack: PoseStack, renderType: RenderType, minX: Int, minY: Int, maxX: I
     vertexConsumer.vertex(matrix4f, maxX.toFloat(), maxY.toFloat(), z.toFloat()).color(color)
     vertexConsumer.vertex(matrix4f, maxX.toFloat(), minY.toFloat(), z.toFloat()).color(color)
 }
+
+fun fill(
+    stack: PoseStack,
+    vertexConsumer: VertexConsumer,
+    minX: Int,
+    minY: Int,
+    maxX: Int,
+    maxY: Int,
+    z: Int,
+    color: Int,
+) {
+    var minX = minX
+    var minY = minY
+    var maxX = maxX
+    var maxY = maxY
+    var i: Int
+    val matrix4f: Matrix4f = stack.last().pose()
+    if (minX < maxX) {
+        i = minX
+        minX = maxX
+        maxX = i
+    }
+    if (minY < maxY) {
+        i = minY
+        minY = maxY
+        maxY = i
+    }
+    vertexConsumer.vertex(matrix4f, minX.toFloat(), minY.toFloat(), z.toFloat()).color(color)
+    vertexConsumer.vertex(matrix4f, minX.toFloat(), maxY.toFloat(), z.toFloat()).color(color)
+    vertexConsumer.vertex(matrix4f, maxX.toFloat(), maxY.toFloat(), z.toFloat()).color(color)
+    vertexConsumer.vertex(matrix4f, maxX.toFloat(), minY.toFloat(), z.toFloat()).color(color)
+}

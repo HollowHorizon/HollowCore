@@ -25,10 +25,18 @@
 package ru.hollowhorizon.hc.common.commands
 
 import com.mojang.brigadier.arguments.StringArgumentType
+import dev.folomeev.kotgl.matrix.vectors.vec3
 import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft
+import net.minecraft.commands.arguments.EntityArgument
 import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.entity.LivingEntity
+import ru.hollowhorizon.hc.api.ParticlesProvider
+import ru.hollowhorizon.hc.client.molang.asMolang
+import ru.hollowhorizon.hc.client.particles.BedrockParticles
+import ru.hollowhorizon.hc.client.particles.ParticleEffect
+import ru.hollowhorizon.hc.client.particles.Transform
 import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssets
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.effects.ParticleEmitterInfo
@@ -51,7 +59,7 @@ object HollowCommands {
     fun onRegisterCommands(event: RegisterCommandsEvent) {
         event.dispatcher.onRegisterCommands {
             "hollowcore" {
-                "particle"(
+                "effect"(
                     arg("pos", Vec3Argument.vec3()),
                     arg("name", StringArgumentType.greedyString()) { EffekAssets.entries().map { it.key.toString() } }
                 ) {
@@ -63,6 +71,51 @@ object HollowCommands {
 
                 }
 
+                "particle"(
+                    arg("pos", Vec3Argument.vec3()),
+                    arg(
+                        "name",
+                        StringArgumentType.greedyString()
+                    ) { BedrockParticles.PARTICLES.keys.map { it.toString() } },
+                ) {
+                    val particle = StringArgumentType.getString(this, "name")
+                    val pos = Vec3Argument.getVec3(this, "pos")
+
+                    (Minecraft.getInstance().level as ParticlesProvider).system.spawn(
+                        ParticleEffect.fromFile(BedrockParticles.PARTICLES[particle.rl] ?: error("Particle not found")),
+                        transform = Transform.create(vec3(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())),
+                    )
+                }
+
+                "particle"(
+                    arg("entity", EntityArgument.entity()),
+                    arg(
+                        "name",
+                        StringArgumentType.greedyString()
+                    ) { BedrockParticles.PARTICLES.keys.map { it.toString() } },
+                ) {
+                    val entity = EntityArgument.getEntity(this, "entity")
+                    val particle = StringArgumentType.getString(this, "name")
+
+                    (Minecraft.getInstance().level as ParticlesProvider).system.spawn(
+                        ParticleEffect.fromFile(BedrockParticles.PARTICLES[particle.rl] ?: error("Particle not found")),
+                        entity = (entity as LivingEntity).asMolang(),
+                    )
+                }
+
+                "remove-particles"(
+                    arg(
+                        "name",
+                        StringArgumentType.greedyString()
+                    ) { BedrockParticles.PARTICLES.keys.map { it.toString() } },
+                ) {
+                    val particle = StringArgumentType.getString(this, "name")
+                    val file = BedrockParticles.PARTICLES[particle.rl] ?: error("Particle not found")
+
+                    (Minecraft.getInstance().level as ParticlesProvider).system.remove(
+                        file.particleEffect.description.identifier
+                    )
+                }
             }
         }
     }

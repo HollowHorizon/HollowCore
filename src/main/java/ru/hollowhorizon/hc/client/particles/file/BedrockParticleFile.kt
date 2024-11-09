@@ -1,0 +1,619 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
+package ru.hollowhorizon.hc.client.particles.file
+
+import dev.folomeev.kotgl.matrix.vectors.Vec4
+import dev.folomeev.kotgl.matrix.vectors.mutables.lerp
+import dev.folomeev.kotgl.matrix.vectors.vec4
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.*
+import ru.hollowhorizon.hc.client.molang.MolangContext
+import ru.hollowhorizon.hc.client.molang.MolangExpression
+import ru.hollowhorizon.hc.client.molang.MolangVec3
+import ru.hollowhorizon.hc.client.molang.parseMolangExpression
+import ru.hollowhorizon.hc.client.utils.nbt.ListOrSingle
+import ru.hollowhorizon.hc.client.utils.nbt.PairAsList
+import ru.hollowhorizon.hc.client.utils.nbt.TreeMap
+
+@Serializable
+data class BedrockParticleFile(
+    @SerialName("format_version")
+    val formatVersion: String,
+    @SerialName("particle_effect")
+    val particleEffect: ParticleEffect,
+) {
+    @Serializable
+    data class ParticleEffect(
+        val description: Description,
+        val curves: Map<String, Curve> = emptyMap(),
+        val events: Map<String, Event> = emptyMap(),
+        val components: ParticleComponents = ParticleComponents(),
+    )
+
+    @Serializable
+    data class Description(
+        val identifier: String,
+        @SerialName("basic_render_parameters")
+        val basicRenderParameters: BasicRenderParameters = BasicRenderParameters(),
+    )
+
+    @Serializable
+    data class BasicRenderParameters(
+        val material: Material = Material.Cutout,
+        val texture: String = "texture",
+    )
+
+    @Serializable
+    enum class Material(val needsSorting: Boolean, val backfaceCulling: Boolean) {
+        @SerialName("particles_add")
+        Add(true, true),
+
+        @SerialName("particles_alpha")
+        Cutout(false, true),
+
+        @SerialName("particles_blend")
+        Blend(true, false),
+    }
+
+    @Serializable
+    data class Curve(
+        val type: Type,
+        val nodes: List<MolangExpression>,
+        val input: MolangExpression,
+        @SerialName("horizontal_range")
+        val range: MolangExpression = MolangExpression.ONE,
+    ) {
+        @Serializable
+        enum class Type {
+            @SerialName("linear")
+            Linear,
+
+            @SerialName("bezier")
+            Bezier,
+
+            @SerialName("bezier_chain")
+            BezierChain,
+
+            @SerialName("catmull_rom")
+            CatmullRom
+        }
+    }
+
+    @Serializable
+    data class Event(
+        val sequence: List<Event>? = null,
+        val randomize: List<@Serializable(with = WeightedEventSerializer::class) RandomizeOption>? = null,
+        @SerialName("particle_effect")
+        val particle: Particle? = null,
+        @SerialName("sound_effect")
+        val sound: Sound? = null,
+        val expression: MolangExpression? = null,
+    ) {
+        @Serializable
+        data class RandomizeOption(
+            val weight: Float,
+            val value: Event,
+        )
+
+        @Serializable
+        data class Particle(
+            val effect: String,
+            val type: Type,
+            @SerialName("pre_effect_expression")
+            val preEffectExpression: MolangExpression = MolangExpression.ZERO,
+        ) {
+            @Serializable
+            enum class Type {
+                @SerialName("emitter")
+                EMITTER,
+
+                @SerialName("emitter_bound")
+                EMITTER_BOUND,
+
+                @SerialName("particle")
+                PARTICLE,
+
+                @SerialName("particle_with_velocity")
+                PARTICLE_WITH_VELOCITY;
+
+                val isParticle: Boolean get() = this == PARTICLE || this == PARTICLE_WITH_VELOCITY
+                val inheritVelocity: Boolean
+                    get() = this == PARTICLE_WITH_VELOCITY
+
+                val isBound: Boolean
+                    get() = this == EMITTER_BOUND
+            }
+        }
+
+        @Serializable
+        data class Sound(
+            @SerialName("event_name")
+            val eventName: String,
+        )
+
+        private class WeightedEventSerializer :
+            JsonTransformingSerializer<RandomizeOption>(RandomizeOption.serializer()) {
+            override fun transformDeserialize(element: JsonElement): JsonElement = if (element is JsonObject) {
+                buildJsonObject {
+                    put("weight", element["weight"]!!)
+                    put("value", JsonObject(element.filterKeys { it != "weight" }))
+                }
+            } else element
+
+            override fun transformSerialize(element: JsonElement): JsonElement {
+                return JsonObject((element as JsonObject).filterKeys { it != "value" } + element["value"] as JsonObject)
+            }
+        }
+    }
+}
+
+@Serializable
+data class ParticleComponents(
+    @SerialName("minecraft:emitter_local_space")
+    val emitterLocalSpace: EmitterLocalSpace? = null,
+    @SerialName("minecraft:emitter_initialization")
+    val emitterInitialization: EmitterInitialization? = null,
+    @SerialName("minecraft:emitter_lifetime_events")
+    val emitterLifetimeEvents: EmitterLifetimeEvents = EmitterLifetimeEvents(),
+    @SerialName("minecraft:emitter_lifetime_looping")
+    val emitterLifetimeLooping: EmitterLifetimeLooping? = null,
+    @SerialName("minecraft:emitter_lifetime_once")
+    val emitterLifetimeOnce: EmitterLifetimeOnce? = null,
+    @SerialName("minecraft:emitter_lifetime_expression")
+    val emitterLifetimeExpression: EmitterLifetimeExpression? = null,
+    @SerialName("minecraft:emitter_rate_instant")
+    val emitterRateInstant: EmitterRateInstant? = null,
+    @SerialName("minecraft:emitter_rate_steady")
+    val emitterRateSteady: EmitterRateSteady? = null,
+    @SerialName("minecraft:emitter_shape_point")
+    val emitterShapePoint: EmitterShapePoint? = null,
+    @SerialName("minecraft:emitter_shape_sphere")
+    val emitterShapeSphere: EmitterShapeSphere? = null,
+    @SerialName("minecraft:emitter_shape_box")
+    val emitterShapeBox: EmitterShapeBox? = null,
+    @SerialName("minecraft:emitter_shape_disc")
+    val emitterShapeDisc: EmitterShapeDisc? = null,
+    @SerialName("minecraft:particle_lifetime_events")
+    val particleLifetimeEvents: ParticleLifetimeEvents = ParticleLifetimeEvents(),
+    @SerialName("minecraft:particle_appearance_billboard")
+    val particleAppearanceBillboard: ParticleBillboard? = null,
+    @SerialName("minecraft:particle_appearance_tinting")
+    val particleAppearanceTinting: ParticleAppearanceTinting? = null,
+    @SerialName("minecraft:particle_appearance_lighting")
+    val particleAppearanceLighting: Unit? = null,
+    @SerialName("minecraft:particle_initial_speed")
+    val particleInitialSpeed: MolangExpression = MolangExpression.ZERO,
+    @SerialName("minecraft:particle_initial_spin")
+    val particleInitialSpin: ParticleInitialSpin? = null,
+    @SerialName("minecraft:particle_initialization")
+    val particleInitialization: ParticleInitialization? = null,
+    @SerialName("minecraft:particle_motion_collision")
+    val particleMotionCollision: ParticleMotionCollision? = null,
+    @SerialName("minecraft:particle_motion_dynamic")
+    val particleMotionDynamic: ParticleMotionDynamic? = null,
+    @SerialName("minecraft:particle_motion_parametric")
+    val particleMotionParametric: ParticleMotionParametric? = null,
+    @SerialName("minecraft:particle_lifetime_expression")
+    val particleLifetimeExpression: ParticleLifetimeExpression? = null,
+    @SerialName("essential:particle_visibility")
+    val particleVisibility: ParticleVisibility = ParticleVisibility(),
+) {
+    @Serializable
+    data class EmitterLocalSpace(
+        val position: Boolean = false,
+        val rotation: Boolean = false,
+        val velocity: Boolean = false,
+    )
+
+    @Serializable
+    data class EmitterInitialization(
+        @SerialName("creation_expression")
+        val creationExpression: MolangExpression? = null,
+        @SerialName("per_update_expression")
+        val perUpdateExpression: MolangExpression? = null,
+    )
+
+
+    @Serializable
+    data class EmitterLifetimeEvents(
+        @SerialName("creation_event")
+        val creationEvents: ListOrSingle<String> = emptyList(),
+        @SerialName("expiration_event")
+        val expirationEvents: ListOrSingle<String> = emptyList(),
+        val timeline: TreeMap<Float, ListOrSingle<String>> = TreeMap(emptyMap()),
+        @SerialName("travel_distance_events")
+        val travelDistanceEvents: TreeMap<Float, ListOrSingle<String>> = TreeMap(emptyMap()),
+        @SerialName("looping_travel_distance_events")
+        val loopingTravelDistanceEvents: List<LoopingDistance> = emptyList(),
+    ) {
+        @Serializable
+        data class LoopingDistance(
+            val distance: Float,
+            val effects: List<String>,
+        )
+    }
+
+
+    @Serializable
+    data class EmitterLifetimeLooping(
+        @SerialName("active_time")
+        val activeTime: MolangExpression = MolangExpression.Literal(10f),
+        @SerialName("sleep_time")
+        val sleepTime: MolangExpression = MolangExpression.ZERO,
+    )
+
+
+    @Serializable
+    data class EmitterLifetimeOnce(
+        @SerialName("active_time")
+        val activeTime: MolangExpression = MolangExpression.Literal(10f),
+    )
+
+
+    @Serializable
+    data class EmitterLifetimeExpression(
+        @SerialName("activation_expression")
+        val activationExpression: MolangExpression = MolangExpression.ONE,
+        @SerialName("expiration_expression")
+        val expirationExpression: MolangExpression = MolangExpression.ZERO,
+    )
+
+    @Serializable
+    data class EmitterRateInstant(
+        @SerialName("num_particles")
+        val numParticles: MolangExpression = MolangExpression.Literal(10f),
+    )
+
+    @Serializable
+    data class EmitterRateSteady(
+        @SerialName("spawn_rate")
+        val spawnRate: MolangExpression = MolangExpression.ONE,
+        @SerialName("max_particles")
+        val maxParticles: MolangExpression = MolangExpression.Literal(50f),
+    )
+
+    @Serializable
+    data class EmitterShapePoint(
+        val offset: MolangVec3 = MolangVec3.ZERO,
+        val direction: Direction = Direction.Outwards,
+    )
+
+    @Serializable(with = Direction.DirectionSerializer::class)
+    sealed class Direction {
+        @Serializable(with = InwardsSerializer::class)
+        data object Inwards : Direction()
+
+        @Serializable(with = OutwardsSerializer::class)
+        data object Outwards : Direction()
+
+        @Serializable(with = CustomSerializer::class)
+        data class Custom(val vec: MolangVec3) : Direction()
+
+        object DirectionSerializer : JsonContentPolymorphicSerializer<Direction>(Direction::class) {
+            override fun selectDeserializer(element: JsonElement): DeserializationStrategy<Direction> = when {
+                element is JsonPrimitive && element.content == "inwards" -> Inwards.serializer()
+                element is JsonPrimitive && element.content == "outwards" -> Outwards.serializer()
+                else -> Custom.serializer()
+            }
+        }
+
+        private object InwardsSerializer : ObjectAsString<Inwards>("inwards", Inwards)
+        private object OutwardsSerializer : ObjectAsString<Outwards>("outwards", Outwards)
+
+        object CustomSerializer : KSerializer<Custom> {
+            private val inner = MolangVec3.serializer()
+            override val descriptor: SerialDescriptor = inner.descriptor
+            override fun deserialize(decoder: Decoder) = Custom(inner.deserialize(decoder))
+            override fun serialize(encoder: Encoder, value: Custom) = inner.serialize(encoder, value.vec)
+        }
+
+        private open class ObjectAsString<T>(private val str: String, private val value: T) : KSerializer<T> {
+            private val inner = String.serializer()
+            override val descriptor: SerialDescriptor = inner.descriptor
+            override fun deserialize(decoder: Decoder) = inner.deserialize(decoder).let { value }
+            override fun serialize(encoder: Encoder, value: T) = inner.serialize(encoder, str)
+        }
+    }
+
+    @Serializable
+    data class EmitterShapeBox(
+        val offset: MolangVec3 = MolangVec3.ZERO,
+        @SerialName("half_dimensions")
+        val halfDimensions: MolangVec3,
+        @SerialName("surface_only")
+        val surfaceOnly: Boolean = false,
+        val direction: Direction = Direction.Outwards,
+    )
+
+    @Serializable
+    data class EmitterShapeDisc(
+        @SerialName("plane_normal")
+        val planeNormal: MolangVec3 = MolangVec3.UNIT_Y,
+        val offset: MolangVec3 = MolangVec3.ZERO,
+        val radius: MolangExpression = MolangExpression.ONE,
+        @SerialName("surface_only")
+        val surfaceOnly: Boolean = false,
+        val direction: Direction = Direction.Outwards,
+    )
+
+    @Serializable
+    data class EmitterShapeSphere(
+        val offset: MolangVec3 = MolangVec3.ZERO,
+        val radius: MolangExpression = MolangExpression.ONE,
+        @SerialName("surface_only")
+        val surfaceOnly: Boolean = false,
+        val direction: Direction = Direction.Outwards,
+    )
+
+    @Serializable
+    data class ParticleLifetimeEvents(
+        @SerialName("creation_event")
+        val creationEvents: ListOrSingle<String> = emptyList(),
+        @SerialName("expiration_event")
+        val expirationEvents: ListOrSingle<String> = emptyList(),
+        val timeline: TreeMap<Float, ListOrSingle<String>> = TreeMap(emptyMap()),
+    )
+
+    @Serializable
+    data class ParticleBillboard(
+        val size: PairAsList<MolangExpression, MolangExpression>,
+        @SerialName("facing_camera_mode")
+        @JsonNames("face_camera_mode")
+        val facingCameraMode: FacingCameraMode,
+        val direction: Direction = Direction.FromVelocity(),
+
+        val uv: UV = UV(
+            uv = Pair(MolangExpression.ZERO, MolangExpression.ZERO),
+            uvSize = Pair(MolangExpression.ONE, MolangExpression.ONE)
+        ),
+    ) {
+        @Serializable
+        enum class FacingCameraMode {
+            @SerialName("rotate_xyz")
+            ROTATE_XYZ,
+            @SerialName("rotate_y")
+            ROTATE_Y,
+            @SerialName("lookat_xyz")
+            LOOK_AT_XYZ,
+            @SerialName("lookat_y")
+            LOOK_AT_Y,
+            @SerialName("lookat_direction")
+            LOOK_AT_DIRECTION,
+            @SerialName("direction_x")
+            DIRECTION_X,
+            @SerialName("direction_y")
+            DIRECTION_Y,
+            @SerialName("direction_z")
+            DIRECTION_Z,
+            @SerialName("emitter_transform_xy")
+            EMITTER_TRANSFORM_XY,
+            @SerialName("emitter_transform_xz")
+            EMITTER_TRANSFORM_XZ,
+            @SerialName("emitter_transform_yz")
+            EMITTER_TRANSFORM_YZ
+        }
+
+        @OptIn(ExperimentalSerializationApi::class)
+        @Serializable
+        @JsonClassDiscriminator("mode")
+        sealed class Direction {
+
+            @Serializable
+            @SerialName("derive_from_velocity")
+            data class FromVelocity(val minSpeedThreshold: Float = 0.01f) : Direction() {
+                @Transient
+                val minSpeedThresholdSqr: Float = minSpeedThreshold * minSpeedThreshold
+            }
+
+
+            @Serializable
+            @SerialName("custom")
+            data class Custom(
+                @SerialName("custom_direction")
+                val direction: MolangVec3,
+            ) : Direction()
+        }
+
+        @Serializable
+        data class UV(
+            @SerialName("texture_width")
+            val textureWidth: Int = 1,
+            @SerialName("texture_height")
+            val textureHeight: Int = 1,
+            val uv: PairAsList<MolangExpression, MolangExpression>? = null,
+            @SerialName("uv_size")
+            val uvSize: PairAsList<MolangExpression, MolangExpression>? = null,
+
+            val flipbook: Flipbook? = null,
+        ) {
+
+            @Serializable
+            data class Flipbook(
+                @SerialName("base_UV")
+                val base: PairAsList<MolangExpression, MolangExpression>,
+                @SerialName("size_UV")
+                val size: PairAsList<Float, Float>,
+                @SerialName("step_UV")
+                val step: PairAsList<Float, Float>,
+                @SerialName("frames_per_second")
+                val framePerSecond: Float = 1f,
+                @SerialName("max_frame")
+                val maxFrame: MolangExpression,
+                @SerialName("stretch_to_lifetime")
+                val stretchToLifetime: Boolean = false,
+                val loop: Boolean = false,
+            )
+        }
+    }
+
+    @Serializable
+    data class ParticleAppearanceTinting(val color: MolangColorOrGradient)
+
+    @Serializable
+    data class ParticleInitialSpin(
+        val rotation: MolangExpression = MolangExpression.ZERO,
+        @SerialName("rotation_rate")
+        val rotationRate: MolangExpression = MolangExpression.ZERO,
+    )
+
+    @Serializable
+    data class ParticleInitialization(
+        @SerialName("per_render_expression")
+        val perRenderExpression: MolangExpression? = null,
+    )
+
+    @Serializable
+    data class ParticleMotionCollision(
+        val enabled: MolangExpression = MolangExpression.ONE,
+        @SerialName("collision_drag")
+        val collisionDrag: Float = 0f,
+        @SerialName("coefficient_of_restitution")
+        val coefficientOfRestitution: Float = 0f,
+        @SerialName("collision_radius")
+        val collisionRadius: Float,
+        @SerialName("expire_on_contact")
+        val expireOnContact: Boolean = false,
+        val events: ListOrSingle<Event> = emptyList(),
+    ) {
+        @Serializable
+        data class Event(
+            val event: String,
+            @SerialName("min_speed")
+            val minSpeed: Float = 2f,
+        )
+    }
+
+    @Serializable
+    data class ParticleMotionDynamic(
+        @SerialName("linear_acceleration")
+        val linearAcceleration: MolangVec3 = MolangVec3.ZERO,
+        @SerialName("linear_drag_coefficient")
+        val linearDragCoefficient: MolangExpression = MolangExpression.ZERO,
+        @SerialName("rotation_acceleration")
+        val rotationAcceleration: MolangExpression = MolangExpression.ZERO,
+        @SerialName("rotation_drag_coefficient")
+        val rotationDragCoefficient: MolangExpression = MolangExpression.ZERO,
+    )
+
+    @Serializable
+    data class ParticleMotionParametric(
+        @SerialName("relative_position")
+        val relativePosition: MolangVec3 = MolangVec3.ZERO,
+        val direction: MolangVec3? = null,
+        val rotation: MolangExpression = MolangExpression.ZERO,
+    )
+
+
+    @Serializable
+    data class ParticleLifetimeExpression(
+        @SerialName("expiration_expression")
+        val expirationExpression: MolangExpression = MolangExpression.ZERO,
+        @SerialName("max_lifetime")
+        val maxLifetime: MolangExpression,
+    )
+
+    @Serializable
+    data class ParticleVisibility(
+        @SerialName("first_person")
+        val firstPerson: Boolean = true,
+        @SerialName("third_person")
+        val thirdPerson: Boolean = true,
+    )
+}
+
+@Serializable(with = MolangColorOrGradientSerializer::class)
+sealed interface MolangColorOrGradient {
+    fun eval(context: MolangContext): Vec4
+}
+
+@Serializable(with = MolangColorSerializer::class)
+data class MolangColor(
+    val r: MolangExpression,
+    val g: MolangExpression,
+    val b: MolangExpression,
+    val a: MolangExpression,
+) : MolangColorOrGradient {
+    override fun eval(context: MolangContext): Vec4 =
+        vec4(r.eval(context), g.eval(context), b.eval(context), a.eval(context))
+}
+
+@Serializable
+data class MolangGradient(
+    @Serializable(with = MolangGradientMapSerializer::class)
+    val gradient: TreeMap<Float, MolangColor>,
+    val interpolant: MolangExpression,
+) : MolangColorOrGradient {
+    override fun eval(context: MolangContext): Vec4 {
+        val alpha = interpolant.eval(context)
+        val floor = gradient.floorEntry(alpha)
+        val ceil = gradient.ceilingEntry(alpha)
+        return when {
+            floor == null -> ceil!!.value.eval(context)
+            ceil == null -> floor.value.eval(context)
+            floor == ceil -> floor.value.eval(context)
+            else -> floor.value.eval(context)
+                .lerp(ceil.value.eval(context), (alpha - floor.key) / (ceil.key - floor.key))
+        }
+    }
+}
+
+object MolangColorOrGradientSerializer :
+    JsonContentPolymorphicSerializer<MolangColorOrGradient>(MolangColorOrGradient::class) {
+    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<out MolangColorOrGradient> =
+        if (element is JsonObject) MolangGradient.serializer() else MolangColor.serializer()
+}
+
+object MolangColorSerializer : KSerializer<MolangColor> {
+    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor
+    override fun deserialize(decoder: Decoder): MolangColor = parse((decoder as JsonDecoder).decodeJsonElement())
+    override fun serialize(encoder: Encoder, value: MolangColor) = throw UnsupportedOperationException()
+
+    private fun parse(json: JsonElement): MolangColor = with(json) {
+        if (this is JsonArray) {
+            MolangColor(
+                (get(0) as JsonPrimitive).parseMolangExpression(),
+                (get(1) as JsonPrimitive).parseMolangExpression(),
+                (get(2) as JsonPrimitive).parseMolangExpression(),
+                (getOrNull(3) as JsonPrimitive?)?.parseMolangExpression() ?: MolangExpression.ONE,
+            )
+        } else {
+            val v = (this as JsonPrimitive).content.substring(1).padStart(8, 'f').toLong(16)
+            val r = ((v shr 16) and 0xff) / 255f
+            val g = ((v shr 8) and 0xff) / 255f
+            val b = (v and 0xff) / 255f
+            val a = ((v shr 24) and 0xff) / 255f
+            MolangColor(
+                MolangExpression.Literal(r),
+                MolangExpression.Literal(g),
+                MolangExpression.Literal(b),
+                MolangExpression.Literal(a)
+            )
+        }
+    }
+}
+
+object MolangGradientMapSerializer : KSerializer<TreeMap<Float, MolangColor>> {
+    private val mapSerializer = TreeMap.serializer(Float.serializer(), MolangColor.serializer())
+    private val listSerializer = ListSerializer(MolangColor.serializer())
+
+    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor
+
+    override fun deserialize(decoder: Decoder): TreeMap<Float, MolangColor> {
+        val input = decoder as JsonDecoder
+        val tree = input.decodeJsonElement()
+
+        if (tree is JsonArray) {
+            val list = input.json.decodeFromJsonElement(listSerializer, tree)
+            return TreeMap(list.withIndex().associate { (index, value) -> index.toFloat() / list.lastIndex to value })
+        }
+
+        return input.json.decodeFromJsonElement(mapSerializer, tree)
+    }
+
+    override fun serialize(encoder: Encoder, value: TreeMap<Float, MolangColor>) = throw UnsupportedOperationException()
+}

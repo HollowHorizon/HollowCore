@@ -27,5 +27,9 @@ package ru.hollowhorizon.hc.client.utils.json
 import kotlinx.serialization.json.Json
 
 val JsonFormat = Json {
+    isLenient = true
+    ignoreUnknownKeys = true
+    allowSpecialFloatingPointValues = true
+    useArrayPolymorphism = true
     prettyPrint = true
 }

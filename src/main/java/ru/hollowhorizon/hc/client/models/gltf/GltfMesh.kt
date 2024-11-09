@@ -2,10 +2,11 @@ package ru.hollowhorizon.hc.client.models.gltf
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import ru.hollowhorizon.hc.client.utils.nbt.ListOrSingle
 
 @Serializable
 data class GltfMesh(
-    val primitives: List<Primitive>,
+    val primitives: ListOrSingle<Primitive>,
     val weights: List<Float>? = null,
     val name: String? = null,
 ) {
