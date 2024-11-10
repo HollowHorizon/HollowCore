@@ -85,7 +85,7 @@ annotation class Registry
 
 val REGISTRIES = Object2ObjectOpenHashMap<Class<*>, CoreRegistry<*>>()
 
-lateinit var createRegistry: (ResourceLocation, Registry<*>?, AutoModelType?, (ResourceLocation) -> Any, Class<*>) -> IRegistryHolder<*>
+lateinit var createRegistry: (ResourceLocation, Registry<*>?, AutoModelType?, () -> Any, Class<*>) -> IRegistryHolder<*>
 
 fun interface IRegistryHolder<T> : ReadOnlyProperty<Any?, RegistryObject<T>>
 
