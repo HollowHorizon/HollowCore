@@ -24,6 +24,7 @@
 
 package ru.hollowhorizon.hc.client.imgui
 
+import com.mojang.blaze3d.systems.RenderSystem
 import imgui.*
 import imgui.extension.imnodes.ImNodes
 import imgui.flag.ImGuiBackendFlags
@@ -57,6 +58,13 @@ object ImGuiHandler {
         ImNodes.createContext()
         setupStyle(ImGui.getStyle())
         windowHandle = window
+
+        // Иногда при отрисовке первого кадра могут быть ложные нажатия или вообще вылет... Попробуем выполнить инициализацию таким образом
+        RenderSystem.recordRenderCall {
+            drawFrame {
+                HollowCore.LOGGER.info("ImGui successfully loaded!")
+            }
+        }
     }
 
     fun renderFrames() {
@@ -115,8 +123,8 @@ object ImGuiHandler {
         val io = ImGui.getIO()
         io.iniFilename = null
         io.addBackendFlags(ImGuiBackendFlags.HasSetMousePos)
-        io.addConfigFlags(ImGuiConfigFlags.NavEnableKeyboard) // Enable Keyboard Controls
-        io.addConfigFlags(ImGuiConfigFlags.DockingEnable) // Enable Docking
+        io.addConfigFlags(ImGuiConfigFlags.NavEnableKeyboard)
+        io.addConfigFlags(ImGuiConfigFlags.DockingEnable)
         io.configViewportsNoTaskBarIcon = true
         io.fonts.setFreeTypeRenderer(true)
 

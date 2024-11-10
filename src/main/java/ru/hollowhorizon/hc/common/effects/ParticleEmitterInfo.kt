@@ -46,6 +46,7 @@ import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.registry.EffectRegistry
 import java.util.*
 
+// TODO Refactor this hell...
 @Serializable
 open class ParticleEmitterInfo : Cloneable {
     @JvmField

@@ -26,7 +26,7 @@ object Mp3Format {
         private var initialized = false
 
         fun decodeFrame(header: Header, stream: Bitstream) {
-            if (!initialized) initialize(header)
+            if (!initialized) initialize()
             val layer: Int = header.layer()
             val decoder = retrieveDecoder(header, stream, layer)
             decoder.decodeFrame()
@@ -64,14 +64,11 @@ object Mp3Format {
             return decoder
         }
 
-        private fun initialize(header: Header) {
+        private fun initialize() {
             val scalefactor = 32700.0f
-            val mode: Int = header.mode()
-            header.layer()
-            val channels = if (mode == Header.SINGLE_CHANNEL) 1 else 2
 
             filter1 = SynthesisFilter(0, scalefactor)
-            if (channels == 2) filter2 = SynthesisFilter(1, scalefactor)
+            filter2 = SynthesisFilter(1, scalefactor)
 
             initialized = true
         }
