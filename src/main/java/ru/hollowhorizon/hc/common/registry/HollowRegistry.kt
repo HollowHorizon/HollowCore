@@ -42,23 +42,24 @@ open class HollowRegistry(val modId: String = MODID) {
         location: ResourceLocation,
         autoModel: AutoModelType? = AutoModelType.DEFAULT,
         registry: Registry<in T>? = null,
-        noinline registryEntry: () -> T,
+        noinline registryEntry: (ResourceLocation) -> T,
     ): IRegistryHolder<T> {
         REGISTRIES.entries.firstOrNull { it.key.isAssignableFrom(T::class.java) }?.let {
             val coreRegistry = it.value as CoreRegistry<T>
-            val data by lazy { registryEntry() }
+            val data by lazy { registryEntry(location) }
             val entry = RegistryObject { data }
             coreRegistry[location] = entry
             return IRegistryHolder { _, _ -> entry }
         }
-        return createRegistry(location, registry, autoModel, registryEntry, T::class.java) as IRegistryHolder<T>
+
+        return createRegistry(location, registry, autoModel, { registryEntry(location) }, T::class.java) as IRegistryHolder<T>
     }
 
     inline fun <reified T : Any> register(
         id: String,
         autoModel: AutoModelType? = AutoModelType.DEFAULT,
         registry: Registry<in T>? = null,
-        noinline registryEntry: () -> T,
+        noinline registryEntry: (ResourceLocation) -> T,
     ): IRegistryHolder<T> = register("$modId:$id".rl, autoModel, registry, registryEntry)
 }
 
