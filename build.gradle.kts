@@ -345,7 +345,11 @@ fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
         "forge" -> {
             when (version) {
                 "1.21" -> "forge"("net.minecraftforge:forge:$version-51.0.8")
-                "1.20.1" -> "forge"("net.minecraftforge:forge:$version-47.3.6")
+                "1.20.1" -> {
+                    "forge"("net.minecraftforge:forge:$version-47.3.6")
+                    modImplementation("mods:oculus-mc1.20.1:1.7.0")
+                    modImplementation("mods:embeddium:0.3.31+mc1.20.1")
+                }
                 "1.19.2" -> {
                     dependency("org.joml:joml:1.10.8")
                     "forge"("net.minecraftforge:forge:$version-43.4.2")

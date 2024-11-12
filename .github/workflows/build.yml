@@ -1,5 +1,5 @@
 name: build
-on: 
+on:
   push:
     branches: [ "1.20.1" ]
   pull_request:
@@ -9,7 +9,7 @@ jobs:
   build:
     strategy:
       matrix:
-        java: [21] 
+        java: [21]
         os: [ubuntu-20.04]
     runs-on: ${{ matrix.os }}
     if: |
@@ -17,6 +17,11 @@ jobs:
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
+      - name: Get the mod version from gradle.properties
+        id: get_version
+        run: |
+          MOD_VERSION=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2)
+          echo "MOD_VERSION=$MOD_VERSION" >> $GITHUB_ENV
       - name: validate gradle wrapper
         uses: gradle/wrapper-validation-action@v1
       - name: setup jdk ${{ matrix.java }}
@@ -42,7 +47,7 @@ jobs:
         id: create_release
         uses: ncipollo/release-action@v1
         with:
-          name: "[HollowCore 1.20.1 Latest Release]"
+          name: "[HollowCore 1.20.1 | $MOD_VERSION Release]"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: "latest-1.20.1"
           removeArtifacts: true
