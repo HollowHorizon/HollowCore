@@ -1,12 +1,13 @@
 //? if forge {
 /*package ru.hollowhorizon.hc.forge
 
+import net.irisshaders.iris.api.v0.IrisApi
 import net.minecraftforge.fml.common.Mod
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.HollowCoreClient
-import ru.hollowhorizon.hc.client.utils.JavaHacks
-import ru.hollowhorizon.hc.client.utils.isPhysicalClient
+import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.registry.createRegistry
+import ru.hollowhorizon.hc.fabric.internal.IrisHelper
 import ru.hollowhorizon.hc.forge.internal.ForgeNetworkHelper
 import ru.hollowhorizon.hc.forge.internal.RegistryHolderForge
 
@@ -38,6 +39,14 @@ class HollowCoreForge {
     }
 
     private fun clientInit() {
+        if (ModList.isLoaded("iris") || ModList.isLoaded("oculus")) {
+            areShadersEnabled_ = IrisApi.getInstance().config::areShadersEnabled
+            shouldOverrideShaders = IrisHelper::shouldOverrideShaders
+        } else {
+            areShadersEnabled_ = { false }
+            shouldOverrideShaders = { false }
+        }
+
         ForgeClientEvents
         HollowCoreClient
     }
