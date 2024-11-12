@@ -47,7 +47,7 @@ jobs:
         id: create_release
         uses: ncipollo/release-action@v1
         with:
-          name: "[HollowCore 1.20.1 | ${{MOD_VERSION}} Release]"
+          name: "[HollowCore 1.20.1 | Latest Release]"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: "latest-1.20.1"
           removeArtifacts: true
