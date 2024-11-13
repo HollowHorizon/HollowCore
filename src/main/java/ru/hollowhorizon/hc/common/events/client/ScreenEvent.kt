@@ -5,4 +5,5 @@ import ru.hollowhorizon.hc.common.events.Event
 
 open class ScreenEvent(var screen: Screen): Event {
     class Open(screen: Screen): ScreenEvent(screen)
+    class Close(screen: Screen): ScreenEvent(screen)
 }

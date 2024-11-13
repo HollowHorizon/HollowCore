@@ -41,11 +41,6 @@ object FabricClientEvents {
         ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegistrationCallback { dispatcher, registryAccess ->
             post(RegisterClientCommandsEvent(JavaHacks.forceCast(dispatcher), registryAccess))
         })
-        ScreenEvents.BEFORE_INIT.register(ScreenEvents.BeforeInit { client, screen, scaledWidth, scaledHeight ->
-            val event = ScreenEvent.Open(screen)
-            event.post()
-            if (event.screen !== screen) client.setScreen(event.screen)
-        })
     }
 
     private fun registerReloadListeners() {

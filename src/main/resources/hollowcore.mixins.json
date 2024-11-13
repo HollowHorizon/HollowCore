@@ -27,6 +27,7 @@
     "ItemRendererMixin",
     "MultiplayerGameModeMixin",
     "RenderSystemMixin",
+    "ScreenMixin",
     "ShaderInstanceAccessor",
     "SoundManagerMixin",
     "WindowMixin",

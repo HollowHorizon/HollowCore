@@ -6,11 +6,12 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
+import ru.hollowhorizon.hc.api.HasImGuiInput
 import ru.hollowhorizon.hc.client.imgui.Graphics
 import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
 import ru.hollowhorizon.hc.client.screens.debug.TextureViewer
 
-class CodeEditor : Screen(Component.empty()) {
+class CodeEditor : Screen(Component.empty()), HasImGuiInput {
     var popup: Boolean = false
     val editor = TextEditor()
     var index = 0

@@ -36,10 +36,13 @@ import imgui.glfw.ImGuiImplGlfw
 import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.api.HasImGuiInput
 import ru.hollowhorizon.hc.client.imgui.addons.ImGuiInventory
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
 import ru.hollowhorizon.hc.common.events.Event
+import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.events.client.ScreenEvent
 import ru.hollowhorizon.hc.common.events.post
 
 
@@ -48,11 +51,12 @@ object ImGuiHandler {
     val imGuiGl3 = ImGuiImplGl3()
     var windowHandle: Long = 0
     val frames = ArrayList<Renderable>()
+    var capturingInput = false
 
     fun initialize() {
         val window = Minecraft.getInstance().window.window
         initializeImGui()
-        imGuiGlfw.init(window, true)
+        imGuiGlfw.init(window, false)
         imGuiGl3.init()
 
         ImNodes.createContext()
@@ -64,6 +68,22 @@ object ImGuiHandler {
             drawFrame {
                 HollowCore.LOGGER.info("ImGui successfully loaded!")
             }
+        }
+    }
+
+    @SubscribeEvent
+    fun onScreenOpen(event: ScreenEvent.Open) {
+        if(event.screen is HasImGuiInput && !capturingInput) {
+            imGuiGlfw.installCallbacks(windowHandle)
+            capturingInput = true
+        }
+    }
+
+    @SubscribeEvent
+    fun onScreenClose(event: ScreenEvent.Close) {
+        if(event.screen is HasImGuiInput && capturingInput) {
+            imGuiGlfw.restoreCallbacks(windowHandle)
+            capturingInput = false
         }
     }
 
