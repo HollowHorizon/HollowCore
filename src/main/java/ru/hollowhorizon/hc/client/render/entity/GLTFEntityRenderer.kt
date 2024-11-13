@@ -225,5 +225,5 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         const val NO_MODEL = "%NO_MODEL%"
     }
 
-    private fun T.isMoving(): Boolean = deltaMovement.length() > 0.075 || yBodyRot != yBodyRotO
+    private fun T.isMoving(): Boolean = deltaMovement.length() > 0.075
 }

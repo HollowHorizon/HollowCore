@@ -82,14 +82,16 @@ fun LivingEntity.render(
     val newScale = min(width / bbWidth, height / bbHeight) * 0.95f * scale
     //stack.mulPoseMatrix(Matrix4f().scaling(1f, -1f, 1f))
     stack.mulPoseMatrix(Matrix4f().scaling(newScale, -newScale, newScale))
-    val rotationX = atan((xOffset - mouseX) / 150.0f) * rotationFactor
-    val rotationY = atan((yOffset - height / 2 - mouseY) / 150.0f) * rotationFactor
+    val rotationX = atan((xOffset - mouseX) / 150.0f / 3) * rotationFactor
+    val rotationY = atan((yOffset - height / 2 - mouseY) / 150.0f / 3) * rotationFactor
 
     RenderSystem.setShaderLights(
         CUSTOM_IMGUI_LIGHT_0,
         CUSTOM_IMGUI_LIGHT_1
     )
     val renderDispatcher = Minecraft.getInstance().entityRenderDispatcher
+
+    stack.mulPose(Quaternionf().rotateX(rotationY*-20f*Mth.DEG_TO_RAD))
 
     val yBodyRotOld: Float = yBodyRot
     val yRotOld: Float = yRot
