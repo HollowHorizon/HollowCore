@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.common.containers
 import imgui.ImGui
 import imgui.flag.ImGuiMouseButton
 import net.minecraft.world.Container
-import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
@@ -57,7 +56,7 @@ interface ContainerManager {
                                 //? if <1.21 {
                                 ItemStack.isSameItemSameTags(original, it.second) or
                                         //?} else {
-                                        
+
                                         /*ItemStack.isSameItemSameComponents(original, it.second) or
                                         *///?}
                                         it.second.isEmpty
@@ -95,7 +94,7 @@ interface ContainerManager {
                                 //? if <1.21 {
                                 ItemStack.isSameItemSameTags(original, it.second) or
                                         //?} else {
-                                        
+
                                         /*ItemStack.isSameItemSameComponents(original, it.second) or
                                         *///?}
                                         it.second.isEmpty
@@ -156,7 +155,7 @@ interface ContainerManager {
                                     //? if <1.21 {
                                     ItemStack.isSameItemSameTags(holdStack, it.second) or
                                             //?} else {
-                                            
+
                                             /*ItemStack.isSameItemSameComponents(holdStack, it.second) or
                                             *///?}
                                             it.second.isEmpty
@@ -201,7 +200,7 @@ interface ContainerManager {
                     //? if <1.21 {
                         ItemStack.isSameItemSameTags(holdStack, item)
                     //?} else {
-                    
+
                     /*ItemStack.isSameItemSameComponents(holdStack, item)
                     *///?}
                     ) {
@@ -244,14 +243,15 @@ interface ContainerManager {
                     holdStack.shrink(1)
                     return true
                 } else if (
-                    //? if <1.21 {
+                //? if <1.21 {
                     ItemStack.isSameItemSameTags(holdStack, item)
                     //?} else {
-                    
+
                     /*ItemStack.isSameItemSameComponents(holdStack, item)
                     *///?}
 
-                    && item.count != item.maxStackSize) {
+                    && item.count != item.maxStackSize
+                ) {
                     fromContainer.setItem(id, item.copy().apply { count++ })
                     holdStack.shrink(1)
                     return true
@@ -278,19 +278,9 @@ object ClientContainerManager : ContainerManager {
     ): Boolean {
         val slots = ITEM_SIZES[fromContainer]!!.filter { it.value.isPlaced }.map { it.key }
 
-
-        val capability =
-            (fromContainer as? HollowContainer)?.capability ?: (toContainer as? HollowContainer)?.capability
-
-        SyncEntityContainerPacket(
-            (capability?.provider as? Entity)?.id ?: 0,
-            capability?.javaClass?.name ?: "",
-            capability?.containers?.indexOf(fromContainer) ?: -1,
-            capability?.containers?.indexOf(toContainer) ?: -1,
-            id,
-            leftButton,
-            hasShift
-        ).send()
+        val capability = (fromContainer as? HollowContainer)?.capability
+            ?: (toContainer as? HollowContainer)?.capability
+        capability?.createSyncPacket(fromContainer, toContainer, id, leftButton, hasShift)?.send()
         return super.clickSlot(player, fromContainer, toContainer, id, leftButton, hasShift) || slots.isNotEmpty()
     }
 }

@@ -1,11 +1,16 @@
 package ru.hollowhorizon.hc.common.containers
 
 import kotlinx.serialization.Serializable
+import net.minecraft.core.BlockPos
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.Container
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.block.entity.BlockEntity
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.client.utils.mcText
+import ru.hollowhorizon.hc.client.utils.nbt.ForBlockPos
+import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.HollowPacketV3
 
@@ -39,5 +44,70 @@ class SyncEntityContainerPacket(
         }
 
         return cap.containers[id]
+    }
+}
+
+@Serializable
+@HollowPacketV2(HollowPacketV2.Direction.TO_SERVER)
+class SyncBlockEntityContainerPacket(
+    private val pos: @Serializable(ForBlockPos::class) BlockPos,
+    val capability: String,
+    private val fromId: Int,
+    private val toId: Int,
+    val id: Int,
+    private val leftButton: Boolean,
+    private val hasShift: Boolean,
+) : HollowPacketV3<SyncBlockEntityContainerPacket> {
+    override fun handle(player: Player) {
+        val serverPlayer = player as ServerPlayer
+
+        val from = getContainer(serverPlayer, pos, capability, fromId)
+        val to = getContainer(serverPlayer, pos, capability, toId)
+
+
+        ServerContainerManager.clickSlot(player, from, to, id, leftButton, hasShift)
+
+        from.setChanged()
+        to.setChanged()
+    }
+
+    private fun getContainer(player: ServerPlayer, pos: BlockPos, capability: String, id: Int): Container {
+        if (id == -1) return player.inventory
+
+        val entity = player.serverLevel().getBlockEntity(pos)
+        val cap = (entity as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
+
+        if (cap.containers.size <= id) {
+            player.connection.disconnect("Invalid inventory operation!".mcText)
+        }
+
+        return cap.containers[id]
+    }
+}
+
+fun CapabilityInstance.createSyncPacket(
+    fromContainer: Container, toContainer: Container, id: Int,
+    leftButton: Boolean,
+    hasShift: Boolean,
+): HollowPacketV3<*> {
+    return when (val p = provider) {
+        is Entity -> SyncEntityContainerPacket(
+            p.id,
+            this.javaClass.name,
+            containers.indexOf(fromContainer),
+            containers.indexOf(toContainer),
+            id,
+            leftButton,
+            hasShift
+        )
+
+        is BlockEntity -> SyncBlockEntityContainerPacket(
+            p.blockPos, this.javaClass.name,
+            containers.indexOf(fromContainer),
+            containers.indexOf(toContainer),
+            id, leftButton, hasShift,
+        )
+
+        else -> throw UnsupportedOperationException("Unsupported provider: ${provider::class.qualifiedName}")
     }
 }
