@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.fabricmc.fabric.api.`object`.builder.v1.entity.FabricDefaultAttributeRegistry
@@ -13,6 +14,7 @@ import net.minecraft.server.packs.PackType
 import ru.hollowhorizon.hc.client.utils.currentServer
 import ru.hollowhorizon.hc.common.events.EventBus
 import ru.hollowhorizon.hc.common.events.EventBus.post
+import ru.hollowhorizon.hc.common.events.blocks.BlockEvent
 import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
 import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
 import ru.hollowhorizon.hc.common.events.post
@@ -43,6 +45,11 @@ object FabricEvents {
         })
         ServerLifecycleEvents.SERVER_STOPPING.register(ServerLifecycleEvents.ServerStopping {
             ServerEvent.Stoping(it).post()
+        })
+        PlayerBlockBreakEvents.BEFORE.register(PlayerBlockBreakEvents.Before { world, player, pos, state, blockEntity ->
+            val event = BlockEvent.Break(world, pos, state, player)
+            event.post()
+            !event.isCanceled
         })
     }
 

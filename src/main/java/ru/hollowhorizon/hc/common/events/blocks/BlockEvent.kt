@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.common.events.blocks
 
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.state.BlockState
 import ru.hollowhorizon.hc.common.events.Cancelable
@@ -17,10 +18,10 @@ open class BlockEvent(var state: BlockState, val pos: BlockPos) : Event, Cancela
         val directions: EnumSet<Direction>,
     ): BlockEvent(state, pos)
 
-    class Remove(
+    class Break(
         val level: Level,
-        state: BlockState,
         pos: BlockPos,
-        val isMoving: Boolean
+        state: BlockState,
+        val player: Player
     ): BlockEvent(state, pos)
 }

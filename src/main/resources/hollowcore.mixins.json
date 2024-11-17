@@ -7,7 +7,6 @@
   "mixins": [
     "CreativeModeTabMixin",
     "DimensionDataStorageAccessor",
-    "LevelChunkMixin",
     "ListTagAccessor",
     "LivingEntityMixin",
     "MinecraftServerMixin",

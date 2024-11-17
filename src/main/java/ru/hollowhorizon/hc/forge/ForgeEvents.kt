@@ -6,6 +6,7 @@ import net.minecraftforge.event.AddReloadListenerEvent
 import net.minecraftforge.event.RegisterCommandsEvent
 import net.minecraftforge.event.TickEvent
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent
+import net.minecraftforge.event.level.BlockEvent
 import net.minecraftforge.event.server.ServerAboutToStartEvent
 import net.minecraftforge.event.server.ServerStoppingEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
@@ -29,6 +30,13 @@ object ForgeEvents {
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::onEntityTracking)
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::onPlayerJoin)
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::onPlayerChangeDimension)
+        MinecraftForge.EVENT_BUS.addListener(::onBlockBreak)
+    }
+
+    private fun onBlockBreak(event: BlockEvent.BreakEvent) {
+        val breakEvent = ru.hollowhorizon.hc.common.events.blocks.BlockEvent.Break(event.player.level(), event.pos, event.state, event.player)
+        breakEvent.post()
+        event.isCanceled = breakEvent.isCanceled
     }
 
     private fun registerAttributes(event: EntityAttributeCreationEvent) {

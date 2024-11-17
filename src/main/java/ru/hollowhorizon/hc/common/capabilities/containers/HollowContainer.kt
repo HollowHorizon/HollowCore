@@ -64,7 +64,7 @@ fun CapabilityInstance.container(container: HollowContainer): CapabilityProperty
 }
 
 @SubscribeEvent
-fun onRemove(event: BlockEvent.Remove) {
+fun onRemove(event: BlockEvent.Break) {
     if (event.level.isClientSide) return
     val state = event.state
     if (state.block !is EntityBlock) return
