@@ -155,9 +155,9 @@ class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
         fun default(): BlockState
     }
 
-    fun block(state: BlockState) = object : Matcher {
+    fun block(state: BlockState, ignoreTag: Boolean = false) = object : Matcher {
         override fun matches(block: BlockState): Boolean {
-            return block == state
+            return if (ignoreTag) block.`is`(state.block) else block == state
         }
 
         override fun default() = state
@@ -167,11 +167,7 @@ class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
         override fun matches(block: BlockState) = block.`is`(tag)
 
         override fun default(): BlockState {
-            //? if >=1.20.1 {
             return BuiltInRegistries.BLOCK
-                //?} else {
-                /*return registryAccess.registry(Registry.BLOCK_REGISTRY).get()
-                *///?}
                 .getTag(tag).get().firstOrNull()?.value()
                 ?.defaultBlockState() ?: Blocks.AIR.defaultBlockState()
         }

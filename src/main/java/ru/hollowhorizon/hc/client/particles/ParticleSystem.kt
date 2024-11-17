@@ -2,16 +2,23 @@ package ru.hollowhorizon.hc.client.particles
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
-import dev.folomeev.kotgl.matrix.vectors.*
-import dev.folomeev.kotgl.matrix.vectors.mutables.*
-import net.minecraft.resources.ResourceLocation
+import dev.folomeev.kotgl.matrix.vectors.Vec3
+import dev.folomeev.kotgl.matrix.vectors.dot
+import dev.folomeev.kotgl.matrix.vectors.mutables.MutableVec3
+import dev.folomeev.kotgl.matrix.vectors.mutables.minus
+import dev.folomeev.kotgl.matrix.vectors.mutables.mutableVec3
+import dev.folomeev.kotgl.matrix.vectors.vec3
 import net.minecraft.world.level.Level
-import ru.hollowhorizon.hc.client.molang.*
+import ru.hollowhorizon.hc.client.molang.MolangQueryEntity
+import ru.hollowhorizon.hc.client.molang.MolangQueryTime
 import ru.hollowhorizon.hc.client.particles.collision.CollisionProvider
 import ru.hollowhorizon.hc.client.particles.collision.WorldCollisionProvider
+import ru.hollowhorizon.hc.client.particles.file.BedrockParticleFile
 import ru.hollowhorizon.hc.client.particles.light.LightProvider
 import ru.hollowhorizon.hc.client.particles.light.WorldLightProvider
-import ru.hollowhorizon.hc.client.utils.math.*
+import ru.hollowhorizon.hc.client.utils.math.Quaternion
+import ru.hollowhorizon.hc.client.utils.math.rotateBy
+import ru.hollowhorizon.hc.client.utils.math.rotateSelfBy
 import ru.hollowhorizon.hc.client.utils.use
 import java.util.*
 
@@ -21,10 +28,10 @@ class ParticleSystem(
     val collisionProvider: CollisionProvider,
     val lightProvider: LightProvider,
 ) {
-    val timeSource = MolangQueryTime.GLFW_TIME
-    var lastUpdate = timeSource.time
+    private val timeSource = MolangQueryTime.GLFW_TIME
+    private var lastUpdate = timeSource.time
 
-    val emitters = mutableListOf<ParticleEmitter>()
+    private val emitters = mutableListOf<ParticleEmitter>()
     val billboardRenderPasses = mutableMapOf<ParticleEffect.RenderPass, MutableSet<BedrockParticle>>()
 
     companion object {
@@ -32,14 +39,29 @@ class ParticleSystem(
     }
 
     fun remove(name: String) {
-        emitters.removeIf { it.effect.identifier == name }
+        emitters.removeIf { emitter ->
+            val shouldRemove = emitter.effect.identifier == name
+            if (shouldRemove) emitter.particles.forEach { emitter.onRemove(it) }
+            shouldRemove
+        }
     }
+
+    fun remove(emitter: ParticleEmitter) {
+        emitter.particles.forEach { emitter.onRemove(it) }
+        emitters.remove(emitter)
+    }
+
+    fun spawn(
+        effect: BedrockParticleFile,
+        entity: MolangQueryEntity = MolangQueryEntity.EMPTY,
+        transform: Transform = entity.transform,
+    ) = spawn(ParticleEffect.fromFile(effect), entity, transform)
 
     fun spawn(
         effect: ParticleEffect,
         entity: MolangQueryEntity = MolangQueryEntity.EMPTY,
         transform: Transform = entity.transform,
-    ) {
+    ): ParticleEmitter {
         val emitter =
             ParticleEmitter(this, effect, entity, transform.position, transform.rotation, transform.velocity, transform)
         emitters.add(emitter)
@@ -48,6 +70,8 @@ class ParticleSystem(
         emitter.startLoop(dt)
 
         emitter.update(dt)
+
+        return emitter
     }
 
     fun update() {
