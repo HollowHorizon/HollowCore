@@ -31,7 +31,7 @@ class ParticleSystem(
     private val timeSource = MolangQueryTime.GLFW_TIME
     private var lastUpdate = timeSource.time
 
-    private val emitters = mutableListOf<ParticleEmitter>()
+    internal val emitters = mutableListOf<ParticleEmitter>()
     val billboardRenderPasses = mutableMapOf<ParticleEffect.RenderPass, MutableSet<BedrockParticle>>()
 
     companion object {
