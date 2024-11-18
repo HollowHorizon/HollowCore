@@ -135,6 +135,8 @@ dependencies {
     implementation("org.ow2.asm:asm-tree:9.7")
     implementation("org.anarres:jcpp:1.4.14")
     implementation("io.github.douira:glsl-transformer:2.0.1")
+    implementation("cpw.mods:modlauncher:10.0.10")
+
 }
 
 afterEvaluate {

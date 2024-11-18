@@ -24,13 +24,28 @@ repositories {
     mavenCentral()
 }
 
+val shade by configurations.creating
+
+configurations {
+    implementation.get().extendsFrom(shade)
+}
+
+repositories {
+    maven("https://maven.cleanroommc.com")
+}
+
 dependencies {
     implementation("cpw.mods:modlauncher:10.0.10")
     implementation("net.minecraftforge:fmlloader:1.20.1-47.3.6")
+    shade("net.bytebuddy:byte-buddy-agent:1.15.10")
+    shade("zone.rong:imaginebreaker:2.1")
 }
 
 tasks.jar {
+    from(shade.map { if (it.isDirectory) it else zipTree(it) })
+
     manifest {
         attributes("FMLModType" to "LIBRARY")
+        attributes("Agent-Class" to "ru.hollowhorizon.loader.HollowCoreAgent")
     }
 }
