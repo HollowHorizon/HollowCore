@@ -428,12 +428,12 @@ class BedrockParticle(
                 }
             }
             minUV = base.add(Vector2f(step).mul(frame.toFloat()))
-            maxUV = minUV.add(size)
+            maxUV = Vector2f(minUV).add(size)
         } else {
             val base = appearance.uv.uv?.eval(molang) ?: Vector2f()
             val size = appearance.uv.uvSize?.eval(molang) ?: textureSize
             minUV = base
-            maxUV = minUV.add(size)
+            maxUV = Vector2f(minUV).add(size)
         }
 
         minUV = minUV.div(textureSize)

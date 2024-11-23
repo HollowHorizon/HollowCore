@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.client.particles
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.world.level.Level
+import org.joml.Matrix4f
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.client.molang.MolangQueryEntity
 import ru.hollowhorizon.hc.client.molang.MolangQueryTime
@@ -88,7 +89,8 @@ class ParticleSystem(
         cameraUuid: UUID,
         isFirstPerson: Boolean,
     ) = stack.use {
-        translate(-cameraPos.x, -cameraPos.y, -cameraPos.z)
+        mulPoseMatrix(Matrix4f().translate(-cameraPos.x, -cameraPos.y, -cameraPos.z))
+        //translate(-cameraPos.x, -cameraPos.y, -cameraPos.z)
 
         val cameraFacing = Vector3f(0f, 0f, -1f).rotateBy(cameraRot)
         for ((renderPass, particles) in billboardRenderPasses.entries.sortedBy { it.key.material.needsSorting }) {

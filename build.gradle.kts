@@ -116,8 +116,6 @@ dependencies {
     dependency("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     dependency("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     dependency("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
-    if(modPlatform != "fabric") dependency("ru.hollowhorizon:forgefixer:1.0.1")
-
     // CONFIG //
     dependency("com.akuleshov7:ktoml-core-jvm:0.5.1")
 
@@ -128,14 +126,14 @@ dependencies {
     dependency("team.0mods:imgui-binding-natives:$imguiVersion")
 
     // GRAPHICS //
-    dependency("com.tianscar.imageio:imageio-apng:1.0.1")
+    compileOnly("com.tianscar.imageio:imageio-apng:1.0.1")
+    include("com.tianscar.imageio:imageio-apng:1.0.1")
 
     // OTHER
     implementation("org.ow2.asm:asm:9.7")
     implementation("org.ow2.asm:asm-tree:9.7")
     implementation("org.anarres:jcpp:1.4.14")
     implementation("io.github.douira:glsl-transformer:2.0.1")
-    implementation("cpw.mods:modlauncher:10.0.10")
 
 }
 
