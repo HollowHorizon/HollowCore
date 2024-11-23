@@ -33,6 +33,7 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -48,7 +49,6 @@ import ru.hollowhorizon.hc.client.utils.math.Quaternion;
 import javax.annotation.Nullable;
 import java.util.UUID;
 
-import static dev.folomeev.kotgl.matrix.vectors.Vectors.vec3;
 import static ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.copyCurrentDepthTo;
 
 
@@ -88,7 +88,7 @@ public class MixinLevelRenderer {
         var position = camera.getPosition();
 
         boolean isFirstPerson = Minecraft.getInstance().options.getCameraType() == CameraType.FIRST_PERSON;
-        system.render(poseStack, vec3((float) position.x, (float) position.y, (float) position.z), new Quaternion(cameraRotMc.x(), cameraRotMc.y(), cameraRotMc.z(), cameraRotMc.w()), ParticleVertexConsumerProvider.INSTANCE, cameraUuid, isFirstPerson);
+        system.render(poseStack, new Vector3f((float) position.x, (float) position.y, (float) position.z), new Quaternion(cameraRotMc.x(), cameraRotMc.y(), cameraRotMc.z(), cameraRotMc.w()), ParticleVertexConsumerProvider.INSTANCE, cameraUuid, isFirstPerson);
 
     }
 }

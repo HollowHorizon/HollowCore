@@ -79,7 +79,7 @@ class Primitive(
 
                 morphCommands += { array ->
                     for (i in 0 until positions.size * 3) {
-                        var value = positions[i / 3].toArray()[i % 3]
+                        var value = positions[i / 3].get(i % 3)
                         array.forEachIndexed { j, shapeKey ->
                             morphTargets[j][GltfMesh.Primitive.ATTRIBUTE_POSITION]?.let {
                                 value += it[i] * shapeKey
@@ -105,7 +105,7 @@ class Primitive(
 
                 morphCommands += { array ->
                     for (i in 0 until normals.size * 3) {
-                        var value = normals[i / 3].toArray()[i % 3]
+                        var value = normals[i / 3].get(i % 3)
                         array.forEachIndexed { j, percent ->
                             morphTargets[j][GltfMesh.Primitive.ATTRIBUTE_NORMAL]?.let {
                                 value += it[i] * percent
@@ -191,7 +191,7 @@ class Primitive(
 
                 morphCommands += { array ->
                     for (i in 0 until tangents.size * 3) {
-                        var value = tangents[i / 3].toArray()[i % 3]
+                        var value = tangents[i / 3].get(i % 3)
                         array.forEachIndexed { j, percent ->
                             morphTargets[j][GltfMesh.Primitive.ATTRIBUTE_TANGENT]?.let {
                                 value += it[i] * percent

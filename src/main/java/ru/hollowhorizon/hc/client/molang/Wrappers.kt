@@ -1,9 +1,9 @@
 package ru.hollowhorizon.hc.client.molang
 
-import dev.folomeev.kotgl.matrix.vectors.*
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.ai.attributes.Attributes
+import org.joml.Vector3f
 import org.joml.Vector4f
 import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
@@ -28,33 +28,36 @@ class EntityWrapper(val entity: LivingEntity) : MolangQueryEntity, Transform {
     override val uuid: UUID? get() = entity.uuid
     override val parent: Transform? get() = null
     override val isValid: Boolean get() = entity.isAlive
-    override val position: Vec3
-        get() = vec3(entity.x.toFloat(), entity.y.toFloat(), entity.z.toFloat())
+    override val position: Vector3f
+        get() = Vector3f(entity.x.toFloat(), entity.y.toFloat(), entity.z.toFloat())
     override val rotation: Quaternion
-        get() = Quaternion.fromAxisAngle(vecUnitY(), -entity.getViewYRot(TickHandler.partialTick)*Mth.DEG_TO_RAD)
-    override val velocity: Vec3
-        get() = vec3(
+        get() = Quaternion.fromAxisAngle(
+            Vector3f(0f, 1f, 0f),
+            -entity.getViewYRot(TickHandler.partialTick) * Mth.DEG_TO_RAD
+        )
+    override val velocity: Vector3f
+        get() = Vector3f(
             entity.deltaMovement.x.toFloat() * 20f,
             entity.deltaMovement.y.toFloat() * 20f,
             entity.deltaMovement.z.toFloat() * 20f
         )
 }
 
-class BoneWrapper<T>(val entity: T, val boneName: String): Transform where T: LivingEntity, T: IAnimated {
+class BoneWrapper<T>(val entity: T, val boneName: String) : Transform where T : LivingEntity, T : IAnimated {
     val model get() = GltfManager.getOrCreate(entity[AnimatedEntityCapability::class].model.rl)
 
     override val parent: Transform? = null
     override val isValid: Boolean get() = entity.isAlive
-    override val position: Vec3
+    override val position: Vector3f
         get() {
             val pos = Vector4f().mul(model.findPosition(boneName, entity))
-            return vec3(pos.x, pos.y, pos.z)
+            return Vector3f(pos.x, pos.y, pos.z)
         }
     override val rotation: Quaternion
         get() {
             val rot = model.findRotation(boneName)
             return Quaternion(rot.x, rot.y, rot.z, rot.w)
         }
-    override val velocity: Vec3 = vecZero()
+    override val velocity: Vector3f = Vector3f(0f, 0f, 0f)
 
 }

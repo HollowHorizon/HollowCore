@@ -2,13 +2,8 @@ package ru.hollowhorizon.hc.client.particles
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
-import dev.folomeev.kotgl.matrix.vectors.Vec3
-import dev.folomeev.kotgl.matrix.vectors.dot
-import dev.folomeev.kotgl.matrix.vectors.mutables.MutableVec3
-import dev.folomeev.kotgl.matrix.vectors.mutables.minus
-import dev.folomeev.kotgl.matrix.vectors.mutables.mutableVec3
-import dev.folomeev.kotgl.matrix.vectors.vec3
 import net.minecraft.world.level.Level
+import org.joml.Vector3f
 import ru.hollowhorizon.hc.client.molang.MolangQueryEntity
 import ru.hollowhorizon.hc.client.molang.MolangQueryTime
 import ru.hollowhorizon.hc.client.particles.collision.CollisionProvider
@@ -87,7 +82,7 @@ class ParticleSystem(
 
     fun render(
         stack: PoseStack,
-        cameraPos: Vec3,
+        cameraPos: Vector3f,
         cameraRot: Quaternion,
         particleVertexConsumerProvider: VertexConsumerProvider,
         cameraUuid: UUID,
@@ -95,7 +90,7 @@ class ParticleSystem(
     ) = stack.use {
         translate(-cameraPos.x, -cameraPos.y, -cameraPos.z)
 
-        val cameraFacing = vec3(0f, 0f, -1f).rotateBy(cameraRot)
+        val cameraFacing = Vector3f(0f, 0f, -1f).rotateBy(cameraRot)
         for ((renderPass, particles) in billboardRenderPasses.entries.sortedBy { it.key.material.needsSorting }) {
             particleVertexConsumerProvider.provide(renderPass) { vertexConsumer ->
                 drawParticles(
@@ -118,9 +113,9 @@ class ParticleSystem(
         particles: MutableSet<BedrockParticle>,
         stack: PoseStack,
         vertexConsumer: VertexConsumer,
-        cameraPos: Vec3,
+        cameraPos: Vector3f,
         cameraRot: Quaternion,
-        facing: MutableVec3,
+        facing: Vector3f,
         uuid: UUID,
         isFirstPersion: Boolean,
         sort: Boolean = false,
@@ -135,14 +130,14 @@ class ParticleSystem(
 
     private fun calculateDistance(
         particles: MutableSet<BedrockParticle>,
-        cameraPos: Vec3,
+        cameraPos: Vector3f,
         cameraRot: Quaternion,
     ) {
         particles.forEach { particle ->
             particle.prepareBillboard(cameraPos, cameraRot)
 
-            val billboardNormal = mutableVec3(0f, 0f, -1f).rotateSelfBy(particle.billboardRotation)
-            particle.distance = cameraPos.minus(particle.billboardPosition).dot(billboardNormal)
+            val billboardNormal = Vector3f(0f, 0f, -1f).rotateSelfBy(particle.billboardRotation)
+            particle.distance = cameraPos.sub(particle.billboardPosition).dot(billboardNormal)
         }
     }
 

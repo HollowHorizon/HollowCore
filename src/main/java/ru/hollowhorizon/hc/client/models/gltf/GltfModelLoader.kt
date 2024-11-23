@@ -181,12 +181,11 @@ object GltfModelLoader {
     @Suppress("SENSELESS_COMPARISON")
     private fun parseAnimations(file: GltfFile): List<Animation> {
         return file.animations.filter { it.channels != null }.map { animation ->
-            val channels = animation.channels.map { parseChannel(file, it, animation.samplers) }
+            val channels = animation.channels
+                .filter { it.target.node != -1 } // Некоторые экспортеры почему-то считают, что экспортировать анимацию без объекта - хорошая идея
+                .map { parseChannel(file, it, animation.samplers) }
             Animation(animation.name, channels)
         }
     }
 
 }
-
-fun Vector3f.toArray() = floatArrayOf(x, y, z)
-fun Vector4f.toArray() = floatArrayOf(x, y, z, w)

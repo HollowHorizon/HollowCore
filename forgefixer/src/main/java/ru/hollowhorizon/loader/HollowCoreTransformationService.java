@@ -25,7 +25,6 @@ public class HollowCoreTransformationService implements ITransformationService {
 
         System.getProperty("net.bytebuddy.agent.attacher.dump", "true");
 
-        //ByteBuddyAgent.attach(new File("mods/forgefixer-1.0.0.jar"), ProcessHandle.current().pid() + "");
         ByteBuddyAgent.install();
 
         Instrumentation instrumentation = ByteBuddyAgent.getInstrumentation();

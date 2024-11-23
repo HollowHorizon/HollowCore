@@ -1,9 +1,6 @@
 package ru.hollowhorizon.hc.client.particles
 
-import dev.folomeev.kotgl.matrix.vectors.Vec3
-import dev.folomeev.kotgl.matrix.vectors.mutables.minus
-import dev.folomeev.kotgl.matrix.vectors.mutables.plus
-import dev.folomeev.kotgl.matrix.vectors.vecZero
+import org.joml.Vector3f
 import ru.hollowhorizon.hc.client.audio.SoundBuffer
 import ru.hollowhorizon.hc.client.audio.SoundPlayer
 import ru.hollowhorizon.hc.client.molang.MolangContext
@@ -19,11 +16,11 @@ class ParticleEmitter(
     val system: ParticleSystem,
     val effect: ParticleEffect,
     val sourceEntity: MolangQueryEntity,
-    var position: Vec3,
+    var position: Vector3f,
     var rotation: Quaternion,
-    var velocity: Vec3,
+    var velocity: Vector3f,
     val transform: Transform?,
-    val offset: Vec3? = null,
+    val offset: Vector3f? = null,
 ) {
     val particles = arrayListOf<BedrockParticle>()
     private val components = effect.components
@@ -97,7 +94,7 @@ class ParticleEmitter(
         components.emitterInitialization?.perUpdateExpression?.eval(context)
 
         transform?.let {
-            position = it.position.plus(offset?.rotateBy(rotation) ?: vecZero())
+            position = it.position.add(offset?.rotateBy(rotation) ?: Vector3f())
             rotation = it.rotation
             velocity = it.velocity
 
@@ -223,7 +220,7 @@ class ParticleEmitter(
                     rotation,
                     particle?.globalVelocity ?: velocity,
                     transform,
-                    particle?.globalPosition?.minus(transform.position)?.rotateSelfBy(transform.rotation.invert())
+                    particle?.globalPosition?.sub(transform.position)?.rotateSelfBy(transform.rotation.invert())
                         ?: offset,
                 )
             } else {

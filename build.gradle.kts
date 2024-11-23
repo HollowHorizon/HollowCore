@@ -116,6 +116,7 @@ dependencies {
     dependency("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     dependency("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     dependency("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+    if(modPlatform != "fabric") dependency("ru.hollowhorizon:forgefixer:1.0.1")
 
     // CONFIG //
     dependency("com.akuleshov7:ktoml-core-jvm:0.5.1")
@@ -128,7 +129,6 @@ dependencies {
 
     // GRAPHICS //
     dependency("com.tianscar.imageio:imageio-apng:1.0.1")
-    dependency("dev.folomeev.kotgl:kotgl-matrix:0.0.1-beta")
 
     // OTHER
     implementation("org.ow2.asm:asm:9.7")

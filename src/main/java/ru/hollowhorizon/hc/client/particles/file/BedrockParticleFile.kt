@@ -2,9 +2,6 @@
 
 package ru.hollowhorizon.hc.client.particles.file
 
-import dev.folomeev.kotgl.matrix.vectors.Vec4
-import dev.folomeev.kotgl.matrix.vectors.mutables.lerp
-import dev.folomeev.kotgl.matrix.vectors.vec4
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -12,6 +9,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
+import org.joml.Vector4f
 import ru.hollowhorizon.hc.client.molang.MolangContext
 import ru.hollowhorizon.hc.client.molang.MolangExpression
 import ru.hollowhorizon.hc.client.molang.MolangVec3
@@ -528,7 +526,7 @@ data class ParticleComponents(
 
 @Serializable(with = MolangColorOrGradientSerializer::class)
 sealed interface MolangColorOrGradient {
-    fun eval(context: MolangContext): Vec4
+    fun eval(context: MolangContext): Vector4f
 }
 
 @Serializable(with = MolangColorSerializer::class)
@@ -538,8 +536,8 @@ data class MolangColor(
     val b: MolangExpression,
     val a: MolangExpression,
 ) : MolangColorOrGradient {
-    override fun eval(context: MolangContext): Vec4 =
-        vec4(r.eval(context), g.eval(context), b.eval(context), a.eval(context))
+    override fun eval(context: MolangContext): Vector4f =
+        Vector4f(r.eval(context), g.eval(context), b.eval(context), a.eval(context))
 }
 
 @Serializable
@@ -548,7 +546,7 @@ data class MolangGradient(
     val gradient: TreeMap<Float, MolangColor>,
     val interpolant: MolangExpression,
 ) : MolangColorOrGradient {
-    override fun eval(context: MolangContext): Vec4 {
+    override fun eval(context: MolangContext): Vector4f {
         val alpha = interpolant.eval(context)
         val floor = gradient.floorEntry(alpha)
         val ceil = gradient.ceilingEntry(alpha)

@@ -1,7 +1,5 @@
 package ru.hollowhorizon.hc.client.molang
 
-import dev.folomeev.kotgl.matrix.vectors.Vec3
-import dev.folomeev.kotgl.matrix.vectors.vec3
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -12,11 +10,12 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
+import org.joml.Vector3f
 
 @Serializable(with = MolangVec3Serializer::class)
 data class MolangVec3(val x: MolangExpression, val y: MolangExpression, val z: MolangExpression) {
-    fun eval(context: MolangContext): Vec3 =
-        vec3(x.eval(context), y.eval(context), z.eval(context))
+    fun eval(context: MolangContext): Vector3f =
+        Vector3f(x.eval(context), y.eval(context), z.eval(context))
 
     companion object {
         val ZERO = MolangVec3(MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO)

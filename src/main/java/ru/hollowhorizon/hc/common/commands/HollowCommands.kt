@@ -25,13 +25,13 @@
 package ru.hollowhorizon.hc.common.commands
 
 import com.mojang.brigadier.arguments.StringArgumentType
-import dev.folomeev.kotgl.matrix.vectors.vec3
 import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft
 import net.minecraft.commands.arguments.EntityArgument
 import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.LivingEntity
+import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
 import ru.hollowhorizon.hc.client.molang.asMolang
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
@@ -83,7 +83,7 @@ object HollowCommands {
 
                     (Minecraft.getInstance().level as ParticlesProvider).system.spawn(
                         ParticleEffect.fromFile(BedrockParticles.PARTICLES[particle.rl] ?: error("Particle not found")),
-                        transform = Transform.create(vec3(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())),
+                        transform = Transform.create(Vector3f(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())),
                     )
                 }
 

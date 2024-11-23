@@ -1,15 +1,7 @@
 package ru.hollowhorizon.hc.client.utils.math
 
-import dev.folomeev.kotgl.matrix.matrices.Mat3
-import dev.folomeev.kotgl.matrix.matrices.mat3
-import dev.folomeev.kotgl.matrix.vectors.Vec3
-import dev.folomeev.kotgl.matrix.vectors.dot
-import dev.folomeev.kotgl.matrix.vectors.mutables.cross
-import dev.folomeev.kotgl.matrix.vectors.mutables.minus
-import dev.folomeev.kotgl.matrix.vectors.mutables.mutableVec3
-import dev.folomeev.kotgl.matrix.vectors.mutables.normalizeSelf
-import dev.folomeev.kotgl.matrix.vectors.mutables.times
-import dev.folomeev.kotgl.matrix.vectors.vecZero
+import org.joml.Matrix3f
+import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -39,10 +31,10 @@ data class Quaternion(val x: Float, val y: Float, val z: Float, val w: Float) {
         )
     }
 
-    operator fun times(v: Vec3): Vec3 = v.rotateBy(this)
+    operator fun times(v: Vector3f): Vector3f = v.rotateBy(this)
 
-    fun projectAroundAxis(axis: Vec3): Quaternion {
-        val rotationAxis = mutableVec3(x, y, z)
+    fun projectAroundAxis(axis: Vector3f): Quaternion {
+        val rotationAxis = vec3(x, y, z)
         val projectedLength = axis.dot(rotationAxis)
         val projectedAxis = axis.times(projectedLength)
         return if (projectedLength > 0) {
@@ -61,7 +53,7 @@ data class Quaternion(val x: Float, val y: Float, val z: Float, val w: Float) {
         val Y180 = Quaternion(0f, 1f, 0f, 0f)
         val Z180 = Quaternion(0f, 0f, 1f, 0f)
 
-        fun fromAxisAngle(axis: Vec3, angleRad: Float): Quaternion {
+        fun fromAxisAngle(axis: Vector3f, angleRad: Float): Quaternion {
             if (angleRad == 0f) {
                 return Identity
             }
@@ -70,18 +62,18 @@ data class Quaternion(val x: Float, val y: Float, val z: Float, val w: Float) {
             return Quaternion(axis.x * s, axis.y * s, axis.z * s, c)
         }
 
-        fun fromLookAt(lookAt: Vec3, up: Vec3): Quaternion {
-            val z = vecZero().minus(lookAt).normalizeSelf()
-            val x = up.cross(z).normalizeSelf()
+        fun fromLookAt(lookAt: Vector3f, up: Vector3f): Quaternion {
+            val z = Vector3f(0f, 0f, 0f).sub(lookAt).normalize()
+            val x = up.cross(z).normalize()
             val y = z.cross(x)
-            return fromRotationMatrix(mat3(
+            return fromRotationMatrix(Matrix3f(
                 x.x, y.x, z.x,
                 x.y, y.y, z.y,
                 x.z, y.z, z.z,
             ))
         }
 
-        fun fromRotationMatrix(m: Mat3): Quaternion = with(m) {
+        fun fromRotationMatrix(m: Matrix3f): Quaternion = with(m) {
             val trace = m00 + m11 + m22
             if (trace >= 0) {
                 val r = sqrt(trace + 1f)

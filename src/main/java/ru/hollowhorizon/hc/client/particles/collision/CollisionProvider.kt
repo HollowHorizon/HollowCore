@@ -1,11 +1,12 @@
 package ru.hollowhorizon.hc.client.particles.collision
 
-import dev.folomeev.kotgl.matrix.vectors.Vec3
+import org.joml.Vector3f
+
 
 fun interface CollisionProvider {
-    fun query(pos: Vec3, size: Float, offset: Vec3): Pair<Vec3, Vec3>?
+    fun query(pos: Vector3f, size: Float, offset: Vector3f): Pair<Vector3f, Vector3f>?
 
     object None : CollisionProvider {
-        override fun query(pos: Vec3, size: Float, offset: Vec3): Pair<Vec3, Vec3>? = null
+        override fun query(pos: Vector3f, size: Float, offset: Vector3f): Pair<Vector3f, Vector3f>? = null
     }
 }
