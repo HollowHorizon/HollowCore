@@ -1,5 +1,5 @@
 //? if fabric {
-package ru.hollowhorizon.hc.fabric
+/*package ru.hollowhorizon.hc.fabric
 
 import io.github.classgraph.ClassGraph
 import io.github.classgraph.ClassInfo
@@ -85,4 +85,4 @@ object CoreInitializationFabric {
         }
     }
 }
-//?}
+*///?}

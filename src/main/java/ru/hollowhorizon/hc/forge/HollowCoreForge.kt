@@ -1,5 +1,5 @@
 //? if forge {
-/*package ru.hollowhorizon.hc.forge
+package ru.hollowhorizon.hc.forge
 
 import net.irisshaders.iris.api.v0.IrisApi
 import net.minecraftforge.fml.common.Mod
@@ -50,4 +50,4 @@ class HollowCoreForge {
         ForgeClientEvents
         HollowCoreClient
     }
-} *///?}
+} //?}
