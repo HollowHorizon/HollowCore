@@ -1,5 +1,5 @@
 //? if fabric {
-/*package ru.hollowhorizon.hc.fabric.internal
+package ru.hollowhorizon.hc.fabric.internal
 
 import net.minecraft.commands.synchronization.ArgumentTypeInfo
 import net.minecraft.core.Registry
@@ -113,4 +113,4 @@ class RegistryHolderFabric<T : Any>(
         return RegistryObject { result }
     }
 }
-*///?}
+//?}

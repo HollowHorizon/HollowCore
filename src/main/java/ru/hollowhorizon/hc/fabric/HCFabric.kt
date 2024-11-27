@@ -1,5 +1,5 @@
 //? if fabric {
-/*package ru.hollowhorizon.hc.fabric
+package ru.hollowhorizon.hc.fabric
 
 import net.fabricmc.loader.api.FabricLoader
 import net.irisshaders.iris.api.v0.IrisApi
@@ -41,4 +41,4 @@ object HCFabric {
         HollowCoreClient
     }
 }
-*///?}
+//?}

@@ -2,7 +2,7 @@ package ru.hollowhorizon.hc.fabric.internal
 
 //?} if fabric {
 
-/*import net.fabricmc.api.EnvType
+import net.fabricmc.api.EnvType
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import net.fabricmc.loader.api.FabricLoader
@@ -80,4 +80,4 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
         }
     }
 }
-*///?}
+//?}
