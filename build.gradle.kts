@@ -120,12 +120,6 @@ dependencies {
     // CONFIG //
     dependency("com.akuleshov7:ktoml-core-jvm:0.5.1")
 
-    // IMGUI //
-    dependency("team.0mods:imgui-app:$imguiVersion")
-    dependency("team.0mods:imgui-binding:$imguiVersion")
-    dependency("team.0mods:imgui-lwjgl3:$imguiVersion")
-    dependency("team.0mods:imgui-binding-natives:$imguiVersion")
-
     // GRAPHICS //
     compileOnly("com.tianscar.imageio:imageio-apng:1.0.1")
     include("com.tianscar.imageio:imageio-apng:1.0.1")

@@ -2,75 +2,62 @@ package ru.hollowhorizon.hc.client.kool
 
 import de.fabmax.kool.KoolApplication
 import de.fabmax.kool.addScene
+import de.fabmax.kool.math.Vec3f
+import de.fabmax.kool.math.deg
+import de.fabmax.kool.modules.ksl.KslPbrShader
 import de.fabmax.kool.modules.ksl.KslUnlitShader
-import de.fabmax.kool.modules.ui2.*
-import de.fabmax.kool.pipeline.*
+import de.fabmax.kool.modules.ksl.lang.xy
+import de.fabmax.kool.pipeline.Attribute
+import de.fabmax.kool.pipeline.DepthCompareOp
 import de.fabmax.kool.pipeline.FullscreenShaderUtil.fullscreenQuadVertexStage
 import de.fabmax.kool.pipeline.FullscreenShaderUtil.generateFullscreenQuad
-import de.fabmax.kool.pipeline.backend.gl.GlTexture
-import de.fabmax.kool.pipeline.backend.gl.LoadedTextureGl
+import de.fabmax.kool.scene.addColorMesh
 import de.fabmax.kool.scene.addTextureMesh
 import de.fabmax.kool.util.Color
-import de.fabmax.kool.util.MdColor
-import net.minecraft.client.Minecraft
+import de.fabmax.kool.util.Time
+import ru.hollowhorizon.hc.client.imgui.MINECRAFT_BUFFER
 
-fun main() = KoolApplication { createExampleScene() }
-
-private val resolvedColor = Texture2d(
-    TextureProps(
-        generateMipMaps = false,
-        defaultSamplerSettings = SamplerSettings().clamped().nearest()
-    )
-).apply {
-    val estSize =
-        Texture.estimatedTexSize(Minecraft.getInstance().window.width, Minecraft.getInstance().window.height, 1, 1, 4)
-            .toLong()
-    gpuTexture = LoadedTextureGl(
-        MCGlApi.TEXTURE_2D,
-        GlTexture(Minecraft.getInstance().mainRenderTarget.colorTextureId),
-        MCGlApi.backend,
-        this,
-        estSize
-    ).apply {
-        width = Minecraft.getInstance().window.width
-        height = Minecraft.getInstance().window.height
-    }
-    loadingState = Texture.LoadingState.LOADED
-}
+fun main() = KoolApplication { minecraftScene() }
 
 
-fun KoolApplication.createExampleScene() {
+fun KoolApplication.minecraftScene() {
     addScene {
-        setupUiScene()
-
-        addTextureMesh {
+        val screen = addTextureMesh {
             generateFullscreenQuad()
             shader = KslUnlitShader {
                 pipeline { depthTest = DepthCompareOp.ALWAYS }
-                color { textureData(resolvedColor) }
-                modelCustomizer = { fullscreenQuadVertexStage(null) }
+                color { textureData(MINECRAFT_BUFFER) }
+                modelCustomizer = {
+                    vertexStage {
+                        main {
+                            outPosition set float4Value(vertexAttribFloat3(Attribute.POSITIONS.name).xy, 1f, 1f)
+                        }
+                    }
+                }
             }
         }
 
-        addPanelSurface(colors = Colors.singleColorLight(MdColor.LIGHT_GREEN)) {
-            modifier
-                .size(400.dp, 300.dp)
-                .align(AlignmentX.Center, AlignmentY.Center)
-                .background(RoundRectBackground(colors.background, 16.dp))
+        mcCamera()
 
-            var clickCount by remember(0)
-            Button("Click me!") {
-                modifier
-                    .alignX(AlignmentX.Center)
-                    .margin(sizes.largeGap * 4f)
-                    .padding(horizontal = sizes.largeGap, vertical = sizes.gap)
-                    .font(sizes.largeText)
-                    .onClick { clickCount++ }
+        addColorMesh {
+            generate {
+                cube {
+                    colored()
+                }
             }
-            Text("Button clicked $clickCount times") {
-                modifier
-                    .alignX(AlignmentX.Center)
+            shader = KslPbrShader {
+                color { vertexColor() }
+                metallic(0f)
+                roughness(0.25f)
             }
+            onUpdate {
+                transform.rotate(45f.deg * Time.deltaT, Vec3f.X_AXIS)
+            }
+        }
+
+        lighting.singleDirectionalLight {
+            setup(Vec3f(-1f, -1f, -1f))
+            setColor(Color.WHITE, 5f)
         }
     }
 }

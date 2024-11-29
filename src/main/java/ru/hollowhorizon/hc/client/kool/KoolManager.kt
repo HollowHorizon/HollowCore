@@ -1,19 +1,22 @@
 package ru.hollowhorizon.hc.client.kool
 
 import com.mojang.blaze3d.platform.GlStateManager
-import com.mojang.blaze3d.systems.RenderSystem
-import de.fabmax.kool.KoolApplication
-import de.fabmax.kool.KoolConfigJvm
-import de.fabmax.kool.KoolSystem
+import de.fabmax.kool.*
 import de.fabmax.kool.pipeline.CullMethod
 import de.fabmax.kool.pipeline.DepthCompareOp
 import de.fabmax.kool.pipeline.backend.gl.glOp
+import de.fabmax.kool.util.Color
 import de.fabmax.kool.util.Log
+import de.fabmax.kool.util.MsdfFont
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import net.minecraft.client.Minecraft
+import kotlinx.serialization.ExperimentalSerializationApi
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL33
 
+var isKoolLoaded = false
+
+@OptIn(ExperimentalSerializationApi::class)
 object KoolManager {
     val LOGGER = LogManager.getLogger()
 
@@ -22,6 +25,7 @@ object KoolManager {
             LOGGER.info("[$level] $tag: $message")
         }
         KoolSystem.initialize(KoolConfigJvm())
+        isKoolLoaded = true
     }
 
     val ctx = MCKoolContext()
@@ -29,7 +33,7 @@ object KoolManager {
     init {
         runBlocking {
             app {
-                createExampleScene()
+                minecraftScene()
             }
         }
     }
@@ -58,10 +62,12 @@ object KoolManager {
                 MCGlApi.enable(MCGlApi.CULL_FACE)
                 MCGlApi.cullFace(MCGlApi.BACK)
             }
+
             CullMethod.CULL_FRONT_FACES -> {
                 MCGlApi.enable(MCGlApi.CULL_FACE)
                 MCGlApi.cullFace(MCGlApi.FRONT)
             }
+
             CullMethod.NO_CULLING -> MCGlApi.disable(MCGlApi.CULL_FACE)
         }
         MCGlApi.lineWidth(lineWidth)
@@ -83,7 +89,12 @@ object KoolManager {
         GL33.glEnable(GL33.GL_DEPTH_TEST)
         GL33.glDepthFunc(GL33.GL_LEQUAL)
         GL33.glEnable(GL33.GL_BLEND)
-        GL33.glBlendFuncSeparate(GL33.GL_SRC_ALPHA, GL33.GL_ONE_MINUS_SRC_ALPHA, GL33.GL_ONE, GL33.GL_ONE_MINUS_SRC_ALPHA)
+        GL33.glBlendFuncSeparate(
+            GL33.GL_SRC_ALPHA,
+            GL33.GL_ONE_MINUS_SRC_ALPHA,
+            GL33.GL_ONE,
+            GL33.GL_ONE_MINUS_SRC_ALPHA
+        )
         GL33.glEnable(GL33.GL_CULL_FACE)
     }
 

@@ -24,8 +24,6 @@
 
 package ru.hollowhorizon.hc.common.objects.entities
 
-import imgui.ImGui
-import imgui.flag.ImGuiWindowFlags
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
@@ -42,7 +40,6 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.pathfinder.BlockPathTypes
 import net.minecraft.world.phys.Vec3
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.imgui.ImGuiHandler
 import ru.hollowhorizon.hc.client.imgui.addons.defaultProvider
 import ru.hollowhorizon.hc.client.imgui.addons.inventoryProvider
 import ru.hollowhorizon.hc.client.models.internal.Transform
@@ -109,19 +106,6 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
             object : Screen(Component.empty()) {
                 override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
                     renderBackground(guiGraphics)
-                    ImGuiHandler.drawFrame {
-                        ImGui.begin("Инвентарь", ImGuiWindowFlags.NoMove or ImGuiWindowFlags.NoCollapse)
-                        if (ImGui.treeNodeEx("Слоты моба", ImGuiWindowFlags.None)) {
-                            this@TestEntity[TestEntityCapability::class].slots.defaultProvider.draw()
-                            ImGui.treePop()
-                        }
-                        ImGui.separator()
-                        if (ImGui.treeNodeEx("Инвентарь", ImGuiWindowFlags.None)) {
-                            Minecraft.getInstance().player?.inventory?.inventoryProvider?.draw()
-                            ImGui.treePop()
-                        }
-                        ImGui.end()
-                    }
                 }
             }.open()
         }

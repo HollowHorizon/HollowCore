@@ -1,11 +1,10 @@
 package ru.hollowhorizon.hc.common.containers
 
-import imgui.ImGui
-import imgui.flag.ImGuiMouseButton
 import net.minecraft.world.Container
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
+import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.client.imgui.addons.ImGuiInventory.ITEM_SIZES
 import ru.hollowhorizon.hc.common.capabilities.containers.HollowContainer
 import ru.hollowhorizon.hc.common.events.container.ContainerEvent
@@ -147,7 +146,8 @@ interface ContainerManager {
                 if (item.isEmpty) {
                     if (!holdStack.isEmpty) {
                         //Положить всё
-                        if (ImGui.isMouseDoubleClicked(ImGuiMouseButton.Left)) {
+                        //TODO: проверка двойного клика
+                        if (false) {
                             val slots = (0..<fromContainer.containerSize)
                                 .filter { toContainer.canPlaceItem(it, holdStack) }
                                 .map { it to fromContainer.getItem(it) }

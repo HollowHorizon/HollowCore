@@ -26,14 +26,45 @@ package ru.hollowhorizon.hc.client.imgui
 
 import com.mojang.blaze3d.pipeline.RenderTarget
 import com.mojang.blaze3d.pipeline.TextureTarget
+import de.fabmax.kool.pipeline.SamplerSettings
+import de.fabmax.kool.pipeline.Texture
+import de.fabmax.kool.pipeline.Texture2d
+import de.fabmax.kool.pipeline.TextureProps
+import de.fabmax.kool.pipeline.backend.gl.GlTexture
+import de.fabmax.kool.pipeline.backend.gl.LoadedTextureGl
 import net.minecraft.client.Minecraft
+import ru.hollowhorizon.hc.client.kool.KoolManager
+import ru.hollowhorizon.hc.client.kool.MCGlApi
+import ru.hollowhorizon.hc.client.kool.isKoolLoaded
 
 internal val imguiWindowBuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
-internal val imguiBackgroundBuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
-internal val imguiForegroundBuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
+
+val WINDOW_BUFFER by lazy { createFramebufferTexture(imguiWindowBuffer) }
+val MINECRAFT_BUFFER by lazy { createFramebufferTexture(Minecraft.getInstance().mainRenderTarget) }
+
 
 var currentBufferType = BufferType.WINDOW
 
+
+fun createFramebufferTexture(texture: RenderTarget) = Texture2d(
+    TextureProps(
+        generateMipMaps = false,
+        defaultSamplerSettings = SamplerSettings().clamped().nearest()
+    )
+).apply {
+    val estSize = Texture.estimatedTexSize(texture.width, texture.height, 1, 1, 4).toLong()
+    gpuTexture = LoadedTextureGl(
+        MCGlApi.TEXTURE_2D,
+        GlTexture(texture.colorTextureId),
+        MCGlApi.backend,
+        this,
+        estSize
+    ).apply {
+        width = texture.width
+        height = texture.height
+    }
+    loadingState = Texture.LoadingState.LOADED
+}
 
 enum class BufferType {
     WINDOW, BACKGROUND, FOREGROUND;
@@ -41,7 +72,20 @@ enum class BufferType {
     val buffer: RenderTarget
         get() = when (this) {
             WINDOW -> imguiWindowBuffer
-            BACKGROUND -> imguiBackgroundBuffer
-            FOREGROUND -> imguiForegroundBuffer
+            BACKGROUND -> imguiWindowBuffer
+            FOREGROUND -> imguiWindowBuffer
         }
+}
+
+fun onResize(width: Int, height: Int) {
+    if(!isKoolLoaded) return
+
+    (WINDOW_BUFFER.gpuTexture as? LoadedTextureGl)?.apply {
+        this.width = width
+        this.height = height
+    }
+    (MINECRAFT_BUFFER.gpuTexture as? LoadedTextureGl)?.apply {
+        this.width = width
+        this.height = height
+    }
 }

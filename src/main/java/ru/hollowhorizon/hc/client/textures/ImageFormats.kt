@@ -5,9 +5,6 @@ import com.mojang.blaze3d.platform.NativeImage
 import com.tianscar.imageio.plugins.png.PNGImageReader
 import com.tianscar.imageio.plugins.png.PNGImageReaderSpi
 import com.tianscar.imageio.plugins.png.PNGMetadata
-import imgui.ImGui
-import imgui.ImVec2
-import imgui.ImVec4
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.client.renderer.texture.SimpleTexture
@@ -81,22 +78,6 @@ class ImageFormat(val location: ResourceLocation) : SimpleTexture(location) {
     }
 
     override fun getId() = texID
-}
-
-fun Graphics.drawImage(location: ResourceLocation, width: Float, height: Float) {
-    val size = ImVec2(width, height)
-    val image = IMAGES.computeIfAbsent(location, ::ImageFormat)
-
-    val currentFrame = (Blaze3D.getTime() * image.framerate).toInt() % (image.framesCount - 1).coerceAtLeast(1)
-    val y0 = currentFrame / image.framesCount.toFloat()
-    val y1 = (currentFrame + 1) / image.framesCount.toFloat()
-
-
-    ImGui.image(
-        image.id.toLong(),
-        size, ImVec2(0f, y0), ImVec2(1f, y1),
-        ImVec4(1f, 1f, 1f, 1f), ImVec4(1f, 1f, 1f, 1f)
-    )
 }
 
 private fun IIOMetadata.getFrameRate(): Int {
