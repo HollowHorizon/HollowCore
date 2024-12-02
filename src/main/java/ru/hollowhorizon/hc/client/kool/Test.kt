@@ -9,12 +9,12 @@ import de.fabmax.kool.modules.ksl.KslUnlitShader
 import de.fabmax.kool.modules.ksl.lang.xy
 import de.fabmax.kool.pipeline.Attribute
 import de.fabmax.kool.pipeline.DepthCompareOp
-import de.fabmax.kool.pipeline.FullscreenShaderUtil.fullscreenQuadVertexStage
 import de.fabmax.kool.pipeline.FullscreenShaderUtil.generateFullscreenQuad
 import de.fabmax.kool.scene.addColorMesh
 import de.fabmax.kool.scene.addTextureMesh
 import de.fabmax.kool.util.Color
 import de.fabmax.kool.util.Time
+import net.minecraft.client.Minecraft
 import ru.hollowhorizon.hc.client.imgui.MINECRAFT_BUFFER
 
 fun main() = KoolApplication { minecraftScene() }
@@ -22,10 +22,16 @@ fun main() = KoolApplication { minecraftScene() }
 
 fun KoolApplication.minecraftScene() {
     addScene {
-        val screen = addTextureMesh {
+        mainRenderPass.screenView.onSetupView {
+            //DepthCopy.use()
+        }
+
+        addTextureMesh {
             generateFullscreenQuad()
             shader = KslUnlitShader {
-                pipeline { depthTest = DepthCompareOp.ALWAYS }
+                pipeline {
+                    depthTest = DepthCompareOp.ALWAYS
+                }
                 color { textureData(MINECRAFT_BUFFER) }
                 modelCustomizer = {
                     vertexStage {
@@ -40,6 +46,7 @@ fun KoolApplication.minecraftScene() {
         mcCamera()
 
         addColorMesh {
+
             generate {
                 cube {
                     colored()

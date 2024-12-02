@@ -276,12 +276,10 @@ object ClientContainerManager : ContainerManager {
         leftButton: Boolean,
         hasShift: Boolean,
     ): Boolean {
-        val slots = ITEM_SIZES[fromContainer]!!.filter { it.value.isPlaced }.map { it.key }
-
         val capability = (fromContainer as? HollowContainer)?.capability
             ?: (toContainer as? HollowContainer)?.capability
         capability?.createSyncPacket(fromContainer, toContainer, id, leftButton, hasShift)?.send()
-        return super.clickSlot(player, fromContainer, toContainer, id, leftButton, hasShift) || slots.isNotEmpty()
+        return super.clickSlot(player, fromContainer, toContainer, id, leftButton, hasShift)
     }
 }
 

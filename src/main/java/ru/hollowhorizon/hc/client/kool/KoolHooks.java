@@ -2,14 +2,11 @@ package ru.hollowhorizon.hc.client.kool;
 
 import de.fabmax.kool.KoolContext;
 import de.fabmax.kool.KoolSystem;
-import de.fabmax.kool.pipeline.backend.gl.GlRenderPass;
 import de.fabmax.kool.pipeline.backend.gl.SceneRenderPassGl;
+import de.fabmax.kool.pipeline.backend.gl.ShaderManager;
 import de.fabmax.kool.util.RenderLoopCoroutineDispatcher;
 import ru.hollowhorizon.hc.client.utils.JavaHacks;
 import ru.hollowhorizon.hc.mixins.kool.ShaderManagerAccessor;
-import sun.misc.Unsafe;
-
-import java.lang.reflect.Field;
 
 public class KoolHooks {
     public static void createContext(KoolContext context) {
@@ -27,5 +24,9 @@ public class KoolHooks {
     public static void resetShaders(MCKoolContext context) {
         ShaderManagerAccessor manager = JavaHacks.forceCast(context.getBackend().getShaderMgr$kool_core());
         manager.callSetBoundShader(null);
+    }
+
+    public static ShaderManager shaderManager(MCKoolContext context) {
+        return context.getBackend().getShaderMgr$kool_core();
     }
 }

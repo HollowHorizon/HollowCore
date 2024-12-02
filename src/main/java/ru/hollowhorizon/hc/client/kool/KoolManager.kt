@@ -1,18 +1,25 @@
 package ru.hollowhorizon.hc.client.kool
 
 import com.mojang.blaze3d.platform.GlStateManager
-import de.fabmax.kool.*
+import de.fabmax.kool.Assets
+import de.fabmax.kool.KoolApplication
+import de.fabmax.kool.KoolConfigJvm
+import de.fabmax.kool.KoolSystem
+import de.fabmax.kool.pipeline.AsyncTextureLoader
 import de.fabmax.kool.pipeline.CullMethod
 import de.fabmax.kool.pipeline.DepthCompareOp
+import de.fabmax.kool.pipeline.Texture2d
 import de.fabmax.kool.pipeline.backend.gl.glOp
-import de.fabmax.kool.util.Color
 import de.fabmax.kool.util.Log
-import de.fabmax.kool.util.MsdfFont
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import de.fabmax.kool.util.MsdfFont.Companion.MSDF_TEX_PROPS
+import de.fabmax.kool.util.MsdfFontData
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.decodeFromStream
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL33
+import ru.hollowhorizon.hc.client.utils.json.JsonFormat
+import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.client.utils.stream
 
 var isKoolLoaded = false
 
@@ -24,18 +31,23 @@ object KoolManager {
         Log.printer = { level, tag, message ->
             LOGGER.info("[$level] $tag: $message")
         }
-        KoolSystem.initialize(KoolConfigJvm())
+        KoolSystem.initialize(
+            KoolConfigJvm(
+                defaultAssetLoader = MCAssetLoader
+            )
+        )
         isKoolLoaded = true
     }
 
     val ctx = MCKoolContext()
-
-    init {
-        runBlocking {
-            app {
-                minecraftScene()
-            }
-        }
+    val MONOCRAFT_DATA by lazy {
+        val fontInfo = KoolSystem.config.defaultFont
+        val msdfMap = Texture2d(
+            props = MSDF_TEX_PROPS,
+            name = "MsdfFont:${fontInfo.fontMeta.name}",
+            loader = AsyncTextureLoader { Assets.loadTextureData("fonts/monocraft.png", MSDF_TEX_PROPS) }
+        )
+        MsdfFontData(msdfMap, JsonFormat.decodeFromStream("hollowcore:fonts/monocraft.json".rl.stream))
     }
 
     var actIsWriteDepth = true
@@ -44,6 +56,7 @@ object KoolManager {
     var lineWidth = 1f
 
     fun update() {
+        return
         MCGlApi.clipControl(MCGlApi.LOWER_LEFT, MCGlApi.ZERO_TO_ONE)
         val activeTexture = GlStateManager._getActiveTexture()
         val currentTexture = GL33.glGetInteger(GL33.GL_TEXTURE_BINDING_2D)

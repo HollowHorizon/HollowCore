@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.client.imgui.addons
 
 import com.mojang.blaze3d.Blaze3D
+import de.fabmax.kool.modules.ui2.UiNode
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.world.Container

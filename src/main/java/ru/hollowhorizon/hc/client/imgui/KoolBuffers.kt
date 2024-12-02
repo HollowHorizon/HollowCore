@@ -36,12 +36,12 @@ import net.minecraft.client.Minecraft
 import ru.hollowhorizon.hc.client.kool.KoolManager
 import ru.hollowhorizon.hc.client.kool.MCGlApi
 import ru.hollowhorizon.hc.client.kool.isKoolLoaded
+import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture
 
 internal val imguiWindowBuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
 
 val WINDOW_BUFFER by lazy { createFramebufferTexture(imguiWindowBuffer) }
 val MINECRAFT_BUFFER by lazy { createFramebufferTexture(Minecraft.getInstance().mainRenderTarget) }
-
 
 var currentBufferType = BufferType.WINDOW
 
@@ -80,12 +80,10 @@ enum class BufferType {
 fun onResize(width: Int, height: Int) {
     if(!isKoolLoaded) return
 
-    (WINDOW_BUFFER.gpuTexture as? LoadedTextureGl)?.apply {
-        this.width = width
-        this.height = height
-    }
-    (MINECRAFT_BUFFER.gpuTexture as? LoadedTextureGl)?.apply {
-        this.width = width
-        this.height = height
+    listOf(MINECRAFT_BUFFER, WINDOW_BUFFER).forEach {
+        (it.gpuTexture as? LoadedTextureGl)?.apply {
+            this.width = width
+            this.height = height
+        }
     }
 }

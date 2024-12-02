@@ -21,10 +21,12 @@
     "capabilities.BlockEntityMixin",
     "capabilities.EntityMixin",
     "capabilities.LevelMixin",
+    "kool.FontMapGeneratorMixin",
     "kool.PlatformFunctionsMixin",
     "kool.PlatformInputJvmAccessor",
     "kool.PlatformInputJvmMixin",
-    "kool.ShaderManagerAccessor"
+    "kool.ShaderManagerAccessor",
+    "kool.TextureDataMixin"
   ],
   "client": [
     "ClientLevelMixin",

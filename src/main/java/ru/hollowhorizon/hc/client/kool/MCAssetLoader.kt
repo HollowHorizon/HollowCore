@@ -38,8 +38,8 @@ object MCAssetLoader : AssetLoader() {
         var data: Uint8Buffer? = null
         withContext(clientDispatcher) {
             try {
-                val resource = Minecraft.getInstance().resourceManager.getResource(ResourceLocation(localRawRef.path))
-                    .orElseThrow()
+                val resource =
+                    Minecraft.getInstance().resourceManager.getResource(resource(localRawRef.path)).orElseThrow()
                 data = Uint8BufferImpl(resource.open().use { it.readBytes() })
             } catch (e: Exception) {
                 logE { "Failed loading asset ${localRawRef.path}: $e" }
@@ -49,14 +49,15 @@ object MCAssetLoader : AssetLoader() {
     }
 
     suspend fun loadLocalTexture(path: String, props: TextureProps?): TextureData2d? = withContext(clientDispatcher) {
-        Minecraft.getInstance().resourceManager.getResource(ResourceLocation(path)).getOrNull()?.open()?.use {
-                try {
-                    PlatformAssetsImpl.readImageData(it, MimeType.forFileName(path), props)
-                } catch (e: Exception) {
-                    logE { "Failed reading image at $path: $e" }
-                    null
-                }
-            }
+        val stream = Minecraft.getInstance().resourceManager.getResource(resource(path)).getOrNull()?.open()
+            ?: return@withContext null
+        try {
+            TextureLoader.load(stream, path.substringAfterLast('.'), props)
+        } catch (e: Exception) {
+            logE { "Failed reading image at $path: $e" }
+            null
+        }
+
     }
 
     override suspend fun loadTexture(textureRef: TextureAssetRef): LoadedTextureAsset {
@@ -71,7 +72,8 @@ object MCAssetLoader : AssetLoader() {
         val atlasData = texData?.let {
             imageAtlasTextureData(it, textureRef.tilesX, textureRef.tilesY)
         }
-        return LoadedTextureAsset(textureRef, atlasData)    }
+        return LoadedTextureAsset(textureRef, atlasData)
+    }
 
     override suspend fun loadTextureData2d(textureData2dRef: TextureData2dRef): LoadedTextureAsset {
         val data: TextureData2d? = withContext(Dispatchers.IO) {
@@ -114,4 +116,7 @@ object MCAssetLoader : AssetLoader() {
             }
         }
     }
+
+    private fun resource(path: String) = if (path.contains(":")) ResourceLocation(path)
+    else ResourceLocation("hollowcore", path)
 }

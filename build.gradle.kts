@@ -121,8 +121,8 @@ dependencies {
     dependency("com.akuleshov7:ktoml-core-jvm:0.5.1")
 
     // GRAPHICS //
-    compileOnly("com.tianscar.imageio:imageio-apng:1.0.1")
-    include("com.tianscar.imageio:imageio-apng:1.0.1")
+    dependency("com.tianscar.imageio:imageio-apng:1.0.1")
+    //include("com.tianscar.imageio:imageio-apng:1.0.1")
 
     // OTHER
     implementation("org.ow2.asm:asm:9.7")

@@ -38,6 +38,10 @@ class MCKoolContext : KoolContext() {
 
     override fun run() {}
 
+    fun callRender(dt: Double) {
+        render(dt)
+    }
+
     fun renderFrame() {
         KoolHooks.resetShaders(this)
         KoolHooks.executeCoroutineTasks()

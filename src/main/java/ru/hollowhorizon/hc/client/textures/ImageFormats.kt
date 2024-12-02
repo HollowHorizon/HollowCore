@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.client.textures
 
-import com.mojang.blaze3d.Blaze3D
 import com.mojang.blaze3d.platform.NativeImage
 import com.tianscar.imageio.plugins.png.PNGImageReader
 import com.tianscar.imageio.plugins.png.PNGImageReaderSpi
@@ -9,7 +8,6 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.client.renderer.texture.SimpleTexture
 import net.minecraft.resources.ResourceLocation
-import ru.hollowhorizon.hc.client.imgui.Graphics
 import ru.hollowhorizon.hc.client.utils.HollowColor
 import ru.hollowhorizon.hc.client.utils.stream
 import java.awt.image.BufferedImage
@@ -80,7 +78,7 @@ class ImageFormat(val location: ResourceLocation) : SimpleTexture(location) {
     override fun getId() = texID
 }
 
-private fun IIOMetadata.getFrameRate(): Int {
+fun IIOMetadata.getFrameRate(): Int {
     val root = getAsTree(nativeMetadataFormatName) as? IIOMetadataNode ?: return 1
 
     val nNodes: Int = root.length

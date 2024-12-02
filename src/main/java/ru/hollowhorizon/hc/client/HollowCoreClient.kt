@@ -26,11 +26,17 @@ package ru.hollowhorizon.hc.client
 
 import com.mojang.blaze3d.systems.RenderSystem
 import de.fabmax.kool.modules.ui2.*
+import de.fabmax.kool.util.Color
+import de.fabmax.kool.util.MsdfFont
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
+import net.minecraft.world.Container
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.kool.DragStackTooltip
+import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT_DATA
 import ru.hollowhorizon.hc.client.kool.KoolScreen
+import ru.hollowhorizon.hc.client.kool.Slot
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.render.RenderLoader
@@ -83,19 +89,58 @@ object HollowCoreClient {
             Minecraft.getInstance().setScreen(KoolScreen {
                 setupUiScene()
 
-                addPanelSurface {
+                val panel = PanelSurface {
                     modifier.align(AlignmentX.Center, AlignmentY.Center)
 
-                    Button("Hello") {
-                    }
-                    Button("World") {
+                    DragStackTooltip()
+return@PanelSurface
+                    val container = Minecraft.getInstance().player!!.inventory
+                    val rows = mutableListOf(mutableListOf<Pair<Container, Int>>())
+                    for (i in 0..<container.containerSize) {
+                        rows.last().add(container to i)
+                        if ((i+1) % 9 == 0) rows.add(mutableListOf())
                     }
 
-//                    Item(Items.DIAMOND.defaultInstance) {
-//                        modifier.size(640.dp, 640.dp)
-//                    }
+                    rows.forEach { list ->
+                        Row {
+                            list.forEach { (container, index) ->
+                                Slot(container, index, 64.dp)
+                            }
+                        }
+                    }
+                }
+                addNode(panel)
+            })
+        }
+    }
+
+    fun UiScope.Tooltip(
+        text: String,
+        yOffset: Dp = (-30).dp,
+        target: UiScope? = this,
+        tooltipState: TooltipState = remember { TooltipState(0.0) },
+        backgroundColor: Color = colors.backgroundVariant,
+        borderColor: Color? = colors.primaryVariantAlpha(0.5f),
+        scopeName: String? = null,
+    ) = Tooltip(tooltipState, target, scopeName) {
+        modifier
+            .margin(top = Dp.fromPx(tooltipState.pointerY.use()) + yOffset)
+            .layout(CellLayout)
+            .background(UiRenderer { node ->
+                node.apply {
+                    getUiPrimitives(UiSurface.LAYER_BACKGROUND)
+                        .localRoundRect(0f, 0f, widthPx, heightPx, 15f, backgroundColor)
+                    borderColor?.let {
+                        getUiPrimitives(UiSurface.LAYER_BACKGROUND)
+                            .localRoundRectBorder(0f, 0f, widthPx, heightPx, 15f, sizes.borderWidth.px * 3f, it)
+                    }
                 }
             })
+        Text(text) {
+            modifier
+                .alignY(AlignmentY.Center)
+                .font(MsdfFont(MONOCRAFT_DATA, 40f))
+                .padding(horizontal = sizes.largeGap, vertical = sizes.smallGap)
         }
     }
 

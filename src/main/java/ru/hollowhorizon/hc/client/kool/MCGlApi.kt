@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.client.kool
 
+import com.mojang.blaze3d.platform.TextureUtil
 import de.fabmax.kool.math.MutableVec3i
 import de.fabmax.kool.pipeline.TextureData
 import de.fabmax.kool.pipeline.TextureData1d
@@ -440,6 +441,11 @@ object MCGlApi: GlApi {
                 else -> throw IllegalStateException("TextureData buffer must be any of Uint8Buffer, Uint16Buffer, Int32Buffer, Float32Buffer")
             }
             is TextureData2d -> when (val buf = data.data) {
+                is NativeImageBuffer -> {
+                    TextureUtil.prepareImage(glGetInteger(GL_TEXTURE_BINDING_2D), data.width, data.height)
+                    buf.image.upload(0, 0, 0, false)
+                    //glTexImage2D(target, 0, data.format.glInternalFormat(this), data.width, data.height, 0, data.format.glFormat(this), data.format.glType(this), buf.image.pixels)
+                }
                 is Uint8BufferImpl -> buf.useRaw {
                     glTexImage2D(target, 0, data.format.glInternalFormat(this), data.width, data.height, 0, data.format.glFormat(this), data.format.glType(this), it)
                 }

@@ -40,8 +40,6 @@ import net.minecraft.world.level.Level
 import net.minecraft.world.level.pathfinder.BlockPathTypes
 import net.minecraft.world.phys.Vec3
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.imgui.addons.defaultProvider
-import ru.hollowhorizon.hc.client.imgui.addons.inventoryProvider
 import ru.hollowhorizon.hc.client.models.internal.Transform
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
