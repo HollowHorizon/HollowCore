@@ -121,19 +121,17 @@ dependencies {
     dependency("com.akuleshov7:ktoml-core-jvm:0.5.1")
 
     // GRAPHICS //
+    dependency("de.fabmax.kool:kool-editor-desktop:0.16.0-SNAPSHOT")
+    dependency("de.fabmax.kool:kool-editor-model-desktop:0.16.0-SNAPSHOT")
+    dependency("de.fabmax.kool:kool-core-desktop:0.16.0-SNAPSHOT")
+    dependency("de.fabmax.kool:kool-physics-desktop:0.16.0-SNAPSHOT")
     dependency("com.tianscar.imageio:imageio-apng:1.0.1")
-    //include("com.tianscar.imageio:imageio-apng:1.0.1")
 
     // OTHER
     implementation("org.ow2.asm:asm:9.7")
     implementation("org.ow2.asm:asm-tree:9.7")
     implementation("org.anarres:jcpp:1.4.14")
     implementation("io.github.douira:glsl-transformer:2.0.1")
-
-    dependency("de.fabmax.kool:kool-editor-desktop:0.16.0-SNAPSHOT")
-    dependency("de.fabmax.kool:kool-editor-model-desktop:0.16.0-SNAPSHOT")
-    dependency("de.fabmax.kool:kool-core-desktop:0.16.0-SNAPSHOT")
-    dependency("de.fabmax.kool:kool-physics-desktop:0.16.0-SNAPSHOT")
 }
 
 afterEvaluate {
