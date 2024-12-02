@@ -4,6 +4,7 @@ import net.fabricmc.loom.api.remapping.RemapperParameters
 import net.fabricmc.loom.extension.LoomGradleExtensionImpl
 import net.fabricmc.loom.extension.RemapperExtensionHolder
 import net.fabricmc.tinyremapper.TinyRemapper
+import org.gradle.internal.jvm.Jvm
 import org.jetbrains.kotlin.ir.backend.js.compile
 import java.util.*
 
@@ -119,22 +120,18 @@ dependencies {
     // CONFIG //
     dependency("com.akuleshov7:ktoml-core-jvm:0.5.1")
 
-    // IMGUI //
-    dependency("team.0mods:imgui-app:$imguiVersion")
-    dependency("team.0mods:imgui-binding:$imguiVersion")
-    dependency("team.0mods:imgui-lwjgl3:$imguiVersion")
-    dependency("team.0mods:imgui-binding-natives:$imguiVersion")
-
     // GRAPHICS //
-    compileOnly("com.tianscar.imageio:imageio-apng:1.0.1")
-    include("com.tianscar.imageio:imageio-apng:1.0.1")
+    dependency("de.fabmax.kool:kool-editor-desktop:0.16.0-SNAPSHOT")
+    dependency("de.fabmax.kool:kool-editor-model-desktop:0.16.0-SNAPSHOT")
+    dependency("de.fabmax.kool:kool-core-desktop:0.16.0-SNAPSHOT")
+    dependency("de.fabmax.kool:kool-physics-desktop:0.16.0-SNAPSHOT")
+    dependency("com.tianscar.imageio:imageio-apng:1.0.1")
 
     // OTHER
     implementation("org.ow2.asm:asm:9.7")
     implementation("org.ow2.asm:asm-tree:9.7")
     implementation("org.anarres:jcpp:1.4.14")
     implementation("io.github.douira:glsl-transformer:2.0.1")
-
 }
 
 afterEvaluate {
@@ -404,4 +401,29 @@ publishing {
         mavenLocal()
     }
 
+}
+
+if(modPlatform == "fabric") tasks.register<Exec>("run + RenderDoc") {
+    val javaHome = Jvm.current().javaHome
+
+    commandLine = listOf(
+        "C:\\Program Files\\RenderDoc\\renderdoccmd.exe",
+        "capture",
+        "--opt-api-validation", // Remove if you don't want api validation
+        "--opt-api-validation-unmute", // Remove if you don't want api validation
+        "--opt-hook-children",
+        "--wait-for-exit",
+        "--working-dir",
+        ".",
+        "$javaHome/bin/java.exe",
+        "-Xmx64m",
+        "-Xms64m",
+        //"-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005", // Uncomment for remote debug
+        "-Dorg.gradle.appname=gradlew",
+        "-Dorg.gradle.java.home=$javaHome",
+        "-classpath",
+        rootProject.file("gradle/wrapper/gradle-wrapper.jar").absolutePath,
+        "org.gradle.wrapper.GradleWrapperMain",
+        ":1.20.1-fabric:runClient",
+    )
 }

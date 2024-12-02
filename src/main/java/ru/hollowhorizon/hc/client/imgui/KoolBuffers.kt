@@ -1,0 +1,89 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2024 HollowHorizon
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package ru.hollowhorizon.hc.client.imgui
+
+import com.mojang.blaze3d.pipeline.RenderTarget
+import com.mojang.blaze3d.pipeline.TextureTarget
+import de.fabmax.kool.pipeline.SamplerSettings
+import de.fabmax.kool.pipeline.Texture
+import de.fabmax.kool.pipeline.Texture2d
+import de.fabmax.kool.pipeline.TextureProps
+import de.fabmax.kool.pipeline.backend.gl.GlTexture
+import de.fabmax.kool.pipeline.backend.gl.LoadedTextureGl
+import net.minecraft.client.Minecraft
+import ru.hollowhorizon.hc.client.kool.KoolManager
+import ru.hollowhorizon.hc.client.kool.MCGlApi
+import ru.hollowhorizon.hc.client.kool.isKoolLoaded
+import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture
+
+internal val imguiWindowBuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
+
+val WINDOW_BUFFER by lazy { createFramebufferTexture(imguiWindowBuffer) }
+val MINECRAFT_BUFFER by lazy { createFramebufferTexture(Minecraft.getInstance().mainRenderTarget) }
+
+var currentBufferType = BufferType.WINDOW
+
+
+fun createFramebufferTexture(texture: RenderTarget) = Texture2d(
+    TextureProps(
+        generateMipMaps = false,
+        defaultSamplerSettings = SamplerSettings().clamped().nearest()
+    )
+).apply {
+    val estSize = Texture.estimatedTexSize(texture.width, texture.height, 1, 1, 4).toLong()
+    gpuTexture = LoadedTextureGl(
+        MCGlApi.TEXTURE_2D,
+        GlTexture(texture.colorTextureId),
+        MCGlApi.backend,
+        this,
+        estSize
+    ).apply {
+        width = texture.width
+        height = texture.height
+    }
+    loadingState = Texture.LoadingState.LOADED
+}
+
+enum class BufferType {
+    WINDOW, BACKGROUND, FOREGROUND;
+
+    val buffer: RenderTarget
+        get() = when (this) {
+            WINDOW -> imguiWindowBuffer
+            BACKGROUND -> imguiWindowBuffer
+            FOREGROUND -> imguiWindowBuffer
+        }
+}
+
+fun onResize(width: Int, height: Int) {
+    if(!isKoolLoaded) return
+
+    listOf(MINECRAFT_BUFFER, WINDOW_BUFFER).forEach {
+        (it.gpuTexture as? LoadedTextureGl)?.apply {
+            this.width = width
+            this.height = height
+        }
+    }
+}

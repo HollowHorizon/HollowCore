@@ -20,14 +20,19 @@
     "StructureBlockMixin",
     "capabilities.BlockEntityMixin",
     "capabilities.EntityMixin",
-    "capabilities.LevelMixin"
+    "capabilities.LevelMixin",
+    "kool.FontMapGeneratorMixin",
+    "kool.PlatformFunctionsMixin",
+    "kool.PlatformInputJvmAccessor",
+    "kool.PlatformInputJvmMixin",
+    "kool.ShaderManagerAccessor",
+    "kool.TextureDataMixin"
   ],
   "client": [
     "ClientLevelMixin",
     "GuiMixin",
     "ItemRendererMixin",
     "MultiplayerGameModeMixin",
-    "RenderSystemMixin",
     "ScreenMixin",
     "ShaderInstanceAccessor",
     "SoundManagerMixin",

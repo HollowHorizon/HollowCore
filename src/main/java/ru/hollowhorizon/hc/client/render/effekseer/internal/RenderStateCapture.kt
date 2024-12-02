@@ -33,20 +33,16 @@ import net.minecraft.world.item.ItemStack
 import org.joml.Matrix4f
 
 class RenderStateCapture {
-    @JvmField
-    var hasCapture: Boolean = false
-    @JvmField
-    val pose: PoseStack = PoseStack()
-    @JvmField
-    val projection: Matrix4f = Matrix4f()
-    @JvmField
-    var item: ItemStack? = null
-    @JvmField
-    var camera: Camera? = null
+    @JvmField var hasCapture: Boolean = false
+    @JvmField val pose: PoseStack = PoseStack()
+    @JvmField val projection: Matrix4f = Matrix4f()
+    @JvmField var item: ItemStack? = null
+    @JvmField var camera: Camera? = null
 
     companion object {
         @JvmField
         val LEVEL: RenderStateCapture = RenderStateCapture()
+
         @JvmField
         val CAPTURED_WORLD_DEPTH_BUFFER: RenderTarget = TextureTarget(
             Minecraft.getInstance().window.width,

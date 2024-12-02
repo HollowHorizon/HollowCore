@@ -25,17 +25,25 @@
 package ru.hollowhorizon.hc.client
 
 import com.mojang.blaze3d.systems.RenderSystem
+import de.fabmax.kool.modules.ui2.*
+import de.fabmax.kool.util.Color
+import de.fabmax.kool.util.MsdfFont
+import de.fabmax.kool.util.Time
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.kool.DragStackTooltip
+import ru.hollowhorizon.hc.client.kool.Image
+import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT_DATA
+import ru.hollowhorizon.hc.client.kool.KoolScreen
+import ru.hollowhorizon.hc.client.kool.Slot
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.render.RenderLoader
 import ru.hollowhorizon.hc.client.render.effekseer.EffekseerNatives
 import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssets
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
-import ru.hollowhorizon.hc.client.screens.CodeEditor
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.common.events.ClientOnly
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
@@ -78,7 +86,6 @@ object HollowCoreClient {
 
     @SubscribeEvent
     fun onClientTick(event: TickEvent.Client) {
-        if (HollowCore.config.debugMode && KEY_V.isDown) Minecraft.getInstance().setScreen(CodeEditor())
     }
 
     @SubscribeEvent

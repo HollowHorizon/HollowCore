@@ -25,6 +25,7 @@
 package ru.hollowhorizon.hc.client.render
 
 import com.mojang.blaze3d.platform.Lighting
+import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.BufferBuilder
 import com.mojang.blaze3d.vertex.PoseStack
@@ -42,6 +43,7 @@ import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.client.handlers.TickHandler
+import java.io.File
 import kotlin.math.atan
 import kotlin.math.min
 
@@ -55,6 +57,13 @@ object OpenGLUtils {
         bufferbuilder.vertex(matrix, from.x.toFloat(), from.y.toFloat() - 0.1f, from.z.toFloat())
             .color(r, g, b, a)
         bufferbuilder.vertex(matrix, to.x.toFloat(), to.y.toFloat() - 0.1f, to.z.toFloat()).color(r, g, b, a)
+    }
+
+    fun saveTexture(width: Int, height: Int, texture: Int) {
+        NativeImage(width, height, Minecraft.ON_OSX).apply {
+            RenderSystem.setShaderTexture(0, texture)
+            downloadTexture(0, false)
+        }.writeToFile(File("hollowcore/framebuffer_debug.png"))
     }
 }
 
@@ -91,7 +100,7 @@ fun LivingEntity.render(
     )
     val renderDispatcher = Minecraft.getInstance().entityRenderDispatcher
 
-    stack.mulPose(Quaternionf().rotateX(rotationY*-20f*Mth.DEG_TO_RAD))
+    stack.mulPose(Quaternionf().rotateX(rotationY * -20f * Mth.DEG_TO_RAD))
 
     val yBodyRotOld: Float = yBodyRot
     val yRotOld: Float = yRot

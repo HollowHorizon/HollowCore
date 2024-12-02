@@ -1,5 +1,5 @@
 //? if fabric {
-/*package ru.hollowhorizon.hc.fabric.internal;
+package ru.hollowhorizon.hc.fabric.internal;
 
 import kotlin.Unit;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -25,4 +25,4 @@ public class NetworkHelper {
         HollowPacketV3Kt.registerPackets.invoke();
     }
 }
-*///?}
+//?}
