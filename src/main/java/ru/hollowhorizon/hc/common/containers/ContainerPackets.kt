@@ -18,7 +18,7 @@ import ru.hollowhorizon.hc.common.network.HollowPacketV3
 @HollowPacketV2(HollowPacketV2.Direction.TO_SERVER)
 class SyncEntityContainerPacket(
     private val entityId: Int, val capability: String, private val fromId: Int, private val toId: Int,
-    val id: Int, private val leftButton: Boolean, private val hasShift: Boolean,
+    val id: Int, private val leftButton: Boolean, private val doubleClick: Boolean, private val hasShift: Boolean,
 ) : HollowPacketV3<SyncEntityContainerPacket> {
     override fun handle(player: Player) {
         val serverPlayer = player as ServerPlayer
@@ -27,7 +27,7 @@ class SyncEntityContainerPacket(
         val to = getContainer(serverPlayer, entityId, capability, toId)
 
 
-        ServerContainerManager.clickSlot(player, from, to, id, leftButton, hasShift)
+        ServerContainerManager.clickSlot(player, from, to, id, leftButton, doubleClick, hasShift)
 
         from.setChanged()
         to.setChanged()
@@ -56,6 +56,7 @@ class SyncBlockEntityContainerPacket(
     private val toId: Int,
     val id: Int,
     private val leftButton: Boolean,
+    private val doubleClick: Boolean,
     private val hasShift: Boolean,
 ) : HollowPacketV3<SyncBlockEntityContainerPacket> {
     override fun handle(player: Player) {
@@ -65,7 +66,7 @@ class SyncBlockEntityContainerPacket(
         val to = getContainer(serverPlayer, pos, capability, toId)
 
 
-        ServerContainerManager.clickSlot(player, from, to, id, leftButton, hasShift)
+        ServerContainerManager.clickSlot(player, from, to, id, leftButton, doubleClick, hasShift)
 
         from.setChanged()
         to.setChanged()
@@ -87,7 +88,7 @@ class SyncBlockEntityContainerPacket(
 
 fun CapabilityInstance.createSyncPacket(
     fromContainer: Container, toContainer: Container, id: Int,
-    leftButton: Boolean,
+    leftButton: Boolean, doubleClick: Boolean,
     hasShift: Boolean,
 ): HollowPacketV3<*> {
     return when (val p = provider) {
@@ -98,6 +99,7 @@ fun CapabilityInstance.createSyncPacket(
             containers.indexOf(toContainer),
             id,
             leftButton,
+            doubleClick,
             hasShift
         )
 
@@ -105,7 +107,7 @@ fun CapabilityInstance.createSyncPacket(
             p.blockPos, this.javaClass.name,
             containers.indexOf(fromContainer),
             containers.indexOf(toContainer),
-            id, leftButton, hasShift,
+            id, leftButton, doubleClick, hasShift,
         )
 
         else -> throw UnsupportedOperationException("Unsupported provider: ${provider::class.qualifiedName}")

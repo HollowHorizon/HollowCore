@@ -20,6 +20,7 @@ interface ContainerManager {
         toContainer: Container,
         id: Int,
         leftButton: Boolean,
+        doubleClick: Boolean,
         hasShift: Boolean,
     ): Boolean {
         if (fromContainer is HollowContainer) {
@@ -142,12 +143,11 @@ interface ContainerManager {
             }
         } else {
 
-            if (leftButton) {
+            if (leftButton || doubleClick) {
                 if (item.isEmpty) {
                     if (!holdStack.isEmpty) {
                         //Положить всё
-                        //TODO: проверка двойного клика
-                        if (false) {
+                        if (doubleClick) {
                             val slots = (0..<fromContainer.containerSize)
                                 .filter { toContainer.canPlaceItem(it, holdStack) }
                                 .map { it to fromContainer.getItem(it) }
@@ -274,12 +274,13 @@ object ClientContainerManager : ContainerManager {
         toContainer: Container,
         id: Int,
         leftButton: Boolean,
+        doubleClick: Boolean,
         hasShift: Boolean,
     ): Boolean {
         val capability = (fromContainer as? HollowContainer)?.capability
             ?: (toContainer as? HollowContainer)?.capability
-        capability?.createSyncPacket(fromContainer, toContainer, id, leftButton, hasShift)?.send()
-        return super.clickSlot(player, fromContainer, toContainer, id, leftButton, hasShift)
+        capability?.createSyncPacket(fromContainer, toContainer, id, leftButton, doubleClick, hasShift)?.send()
+        return super.clickSlot(player, fromContainer, toContainer, id, leftButton, doubleClick, hasShift)
     }
 }
 

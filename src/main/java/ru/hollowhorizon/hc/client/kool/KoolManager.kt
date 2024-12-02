@@ -13,6 +13,8 @@ import de.fabmax.kool.pipeline.backend.gl.glOp
 import de.fabmax.kool.util.Log
 import de.fabmax.kool.util.MsdfFont.Companion.MSDF_TEX_PROPS
 import de.fabmax.kool.util.MsdfFontData
+import de.fabmax.kool.util.MsdfFontInfo
+import de.fabmax.kool.util.MsdfMeta
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.decodeFromStream
 import org.apache.logging.log4j.LogManager
@@ -41,13 +43,13 @@ object KoolManager {
 
     val ctx = MCKoolContext()
     val MONOCRAFT_DATA by lazy {
-        val fontInfo = KoolSystem.config.defaultFont
+        val fontInfo = JsonFormat.decodeFromStream<MsdfMeta>("hollowcore:fonts/monocraft.json".rl.stream)
         val msdfMap = Texture2d(
             props = MSDF_TEX_PROPS,
-            name = "MsdfFont:${fontInfo.fontMeta.name}",
+            name = "MsdfFont:${fontInfo.name}",
             loader = AsyncTextureLoader { Assets.loadTextureData("fonts/monocraft.png", MSDF_TEX_PROPS) }
         )
-        MsdfFontData(msdfMap, JsonFormat.decodeFromStream("hollowcore:fonts/monocraft.json".rl.stream))
+        MsdfFontData(msdfMap, fontInfo)
     }
 
     var actIsWriteDepth = true

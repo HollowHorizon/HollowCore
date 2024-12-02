@@ -5,33 +5,35 @@ import de.fabmax.kool.util.Color
 import de.fabmax.kool.util.MsdfFont
 import net.minecraft.locale.Language
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.ComponentContents
 import net.minecraft.network.chat.contents.LiteralContents
 import net.minecraft.network.chat.contents.TranslatableContents
+import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT_DATA
 
-fun UiNode.Component(
-    component: Component,
+fun UiScope.Component(
+    vararg components: Component,
     block: TextAreaScope.() -> Unit,
 ) {
     TextArea(
-        ListTextLineProvider(mutableListOf(TextLine(component.coloredText()))),
+        ListTextLineProvider(components.map { TextLine(it.coloredText()) }.toMutableList()),
         hScrollbarModifier = { it.margin(start = sizes.gap, end = sizes.gap * 2f, bottom = sizes.gap) },
         vScrollbarModifier = { it.margin(sizes.gap) },
-        block=block
+        scopeName = "Component",
+        block = block
     )
 }
 
-private fun Component.coloredText(): MutableList<Pair<String, TextAttributes>> {
-    return siblings.flatMap {
-        val result = mutableListOf<Pair<String, TextAttributes>>()
-        result += it.attributes()
-        result += it.coloredText()
-        result
-    }.toMutableList()
+fun Component.textLine() = TextLine(coloredText())
+
+private fun Component.coloredText(parentColor: Int = 0xFFFFFF): MutableList<Pair<String, TextAttributes>> {
+    val list = mutableListOf(attributes(parentColor))
+    list += siblings.flatMap { it.coloredText(style.color?.value ?: parentColor) }.toMutableList()
+    return list
 }
 
-private fun Component.attributes(): Pair<String, TextAttributes> {
+private fun Component.attributes(parentColor: Int): Pair<String, TextAttributes> {
 
-    val color = style.color?.value ?: 0xFFFFFF
+    val color = style.color?.value ?: parentColor
     val isUnderlined = style.isUnderlined
     val isStrikethrough = style.isStrikethrough
     val isObfuscated = style.isObfuscated
@@ -49,13 +51,13 @@ private fun Component.attributes(): Pair<String, TextAttributes> {
             )
         }
 
-        Component.EMPTY -> "\n"
-        else -> error("Unknown text component")
+        ComponentContents.EMPTY -> ""
+        else -> error("Unknown text component: $content")
     }
 
     if (isObfuscated) text = obfuscatedString(text.length)
 
-    return text to TextAttributes(MsdfFont.DEFAULT_FONT, Color(red, green, blue))
+    return text to TextAttributes(MsdfFont(MONOCRAFT_DATA, 30f), Color(red, green, blue))
 }
 
 private fun obfuscatedString(length: Int): String {

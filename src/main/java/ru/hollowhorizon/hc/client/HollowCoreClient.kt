@@ -28,12 +28,13 @@ import com.mojang.blaze3d.systems.RenderSystem
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.util.Color
 import de.fabmax.kool.util.MsdfFont
+import de.fabmax.kool.util.Time
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
-import net.minecraft.world.Container
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.kool.DragStackTooltip
+import ru.hollowhorizon.hc.client.kool.Image
 import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT_DATA
 import ru.hollowhorizon.hc.client.kool.KoolScreen
 import ru.hollowhorizon.hc.client.kool.Slot
@@ -89,27 +90,63 @@ object HollowCoreClient {
             Minecraft.getInstance().setScreen(KoolScreen {
                 setupUiScene()
 
-                val panel = PanelSurface {
-                    modifier.align(AlignmentX.Center, AlignmentY.Center)
-
+                addPanelSurface {
                     DragStackTooltip()
-return@PanelSurface
-                    val container = Minecraft.getInstance().player!!.inventory
-                    val rows = mutableListOf(mutableListOf<Pair<Container, Int>>())
-                    for (i in 0..<container.containerSize) {
-                        rows.last().add(container to i)
-                        if ((i+1) % 9 == 0) rows.add(mutableListOf())
-                    }
 
-                    rows.forEach { list ->
+                    modifier
+                        .margin(bottom = 30.dp)
+                        .padding(10.dp)
+                        .align(AlignmentX.Center, AlignmentY.Bottom)
+                        .background(UiRenderer { node ->
+                            node.apply {
+                                getUiPrimitives(UiSurface.LAYER_BACKGROUND).localRoundRect(
+                                    0f,
+                                    0f,
+                                    widthPx,
+                                    heightPx,
+                                    15f,
+                                    Color("111111CC")
+                                )
+                                getUiPrimitives(UiSurface.LAYER_BACKGROUND).localRoundRectBorder(
+                                    0f,
+                                    0f,
+                                    widthPx,
+                                    heightPx,
+                                    15f,
+                                    sizes.borderWidth.px * 3f,
+                                    colors.primaryVariantAlpha(0.5f)
+                                )
+                            }
+                        })
+
+                    Column {
                         Row {
-                            list.forEach { (container, index) ->
-                                Slot(container, index, 64.dp)
+                            modifier.padding(10.dp)
+
+                            Image("hollowcore:textures/block/example.png").apply {
+                                modifier.alignY(AlignmentY.Center).size(64.dp, 64.dp).margin(10.dp)
+                            }
+                            Text("It's a pretty impressive GUI framework... Especially when compared with the built-in game, where it is necessary to position literally every element manually...") {
+                                modifier.font(MsdfFont(MONOCRAFT_DATA, 30f))
+                                    .size(550.dp, FitContent).isWrapText(true).margin(10.dp)
+                            }
+
+                            val speed = 0.25f
+                            val text = "Oh, by the way, I also made it possible to make containers with items :)"
+                            Text(text.substring(0, ((Time.frameCount / 2 * speed) % (text.length - 1)).toInt())) {
+                                modifier.font(MsdfFont(MONOCRAFT_DATA, 30f))
+                                    .size(550.dp, FitContent).isWrapText(true).margin(10.dp)
+                            }
+                        }
+                        Row {
+                            for (i in 0..8) {
+                                Slot(Minecraft.getInstance().player!!.inventory, i, 100.dp).apply {
+                                    modifier.backgroundColor(Color.DARK_GRAY).margin(10.dp)
+                                }
                             }
                         }
                     }
                 }
-                addNode(panel)
             })
         }
     }

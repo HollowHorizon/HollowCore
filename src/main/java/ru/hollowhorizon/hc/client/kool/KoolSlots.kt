@@ -6,9 +6,10 @@ import de.fabmax.kool.util.Time
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.world.Container
-import net.minecraft.world.item.Items
+import net.minecraft.world.item.TooltipFlag
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.client.imgui.GlCanvas
+import ru.hollowhorizon.hc.client.imgui.textLine
 import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT_DATA
 import ru.hollowhorizon.hc.client.render.render
 import ru.hollowhorizon.hc.common.containers.ClientContainerManager
@@ -17,21 +18,25 @@ fun UiScope.DragStackTooltip() {
     val mouseX = doubleArrayOf(0.0)
     val mouseY = doubleArrayOf(0.0)
     GLFW.glfwGetCursorPos(Minecraft.getInstance().window.window, mouseX, mouseY)
+    val player = Minecraft.getInstance().player ?: return
+    val dragItem = ClientContainerManager.PLAYERS_HOLD_STACKS[player.uuid] ?: return
+    if (!dragItem.isEmpty) Popup(mouseX[0].toFloat() - 32f, mouseY[0].toFloat() - 32f) {
+        GlCanvas(null, { mouseX, mouseY ->
 
-    Popup(mouseX[0].toFloat() - 32f, mouseY[0].toFloat() - 32f) {
-        GlCanvas(null, drawItem@{ mouseX, mouseY ->
-            val player = Minecraft.getInstance().player ?: return@drawItem
-
-            //ClientContainerManager.PLAYERS_HOLD_STACKS[player.uuid]?.render(leftPx, topPx, contentWidthPx, contentHeightPx)
-            Items.BOW.defaultInstance.render(leftPx, topPx, contentWidthPx, contentHeightPx)
+            dragItem.render(leftPx, topPx, contentWidthPx, contentHeightPx)
         }) {
-            modifier.background(null).size(64.dp, 64.dp)
+            modifier.background(null).size(64.dp, 64.dp).zLayer(2000)
+
+            Text(dragItem.count.toString()) {
+                modifier.align(AlignmentX.End, AlignmentY.Bottom)
+                    .font(MsdfFont(MONOCRAFT_DATA, 26f)).zLayer(2500)
+            }
         }
         modifier.background(null)
     }
 }
 
-fun UiScope.Slot(container: Container, slot: Int, slotSize: Dimension) = GlCanvas(null, { mouseX, mouseY ->
+fun UiScope.Slot(container: Container, slotId: Int, slotSize: Dimension) = GlCanvas(null, { mouseX, mouseY ->
     var size by remember { mutableStateOf(0f) }
 
     val hovered = mouseX in leftPx..leftPx + contentWidthPx && mouseY in topPx..topPx + contentHeightPx
@@ -40,22 +45,56 @@ fun UiScope.Slot(container: Container, slot: Int, slotSize: Dimension) = GlCanva
     else size -= Time.deltaT * 5f
     size = size.coerceIn(0f, 1f)
 
-    container.getItem(slot).render(leftPx, topPx, contentWidthPx, contentHeightPx, 0.8f + 0.2f * size)
+    container.getItem(slotId).render(leftPx, topPx, contentWidthPx, contentHeightPx, 0.8f + 0.2f * size)
 }) {
-    Text(container.getItem(slot).count.toString()) {
+    val item = container.getItem(slotId)
+    if (item.count > 0) Text(item.count.toString()) {
         modifier.align(AlignmentX.End, AlignmentY.Bottom)
-            .font(MsdfFont(MONOCRAFT_DATA, 30f)).zLayer(2000)
+            .font(MsdfFont(MONOCRAFT_DATA, 26f)).zLayer(400)
+    }
+
+    val state = this@Slot.remember { TooltipState(0.0) }
+    if(!item.isEmpty) Tooltip(state) {
+        modifier
+            .margin(top = Dp.fromPx(state.pointerY.use()))
+            .padding(10.dp)
+            .layout(CellLayout)
+            .background(UiRenderer { node ->
+                node.apply {
+                    getUiPrimitives(UiSurface.LAYER_BACKGROUND)
+                        .localRoundRect(0f, 0f, widthPx, heightPx, 15f, colors.backgroundVariant)
+                    colors.primaryVariantAlpha(0.5f).let {
+                        getUiPrimitives(UiSurface.LAYER_BACKGROUND)
+                            .localRoundRectBorder(0f, 0f, widthPx, heightPx, 15f, sizes.borderWidth.px*3f, it)
+                    }
+                }
+            })
+        Column {
+            item.getTooltipLines(Minecraft.getInstance().player, TooltipFlag.NORMAL).forEach {
+                Row {
+                    it.textLine().spans.forEach { text ->
+                        Text(text.first) {
+                            modifier.font(text.second.font)
+                                .textColor(text.second.color)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     modifier.size(slotSize, slotSize)
-        .onClick { pointer ->
-            val player = Minecraft.getInstance().player ?: return@onClick
+        .zLayer(100)
+        .onHover { pointer ->
+            if (!pointer.isLeftClick && !pointer.isRightClick && !pointer.isLeftDoubleClick) return@onHover
+            val player = Minecraft.getInstance().player ?: return@onHover
             ClientContainerManager.clickSlot(
                 player,
                 container,
                 container,
-                slot,
+                slotId,
                 pointer.isLeftClick,
+                pointer.isLeftDoubleClick,
                 Screen.hasShiftDown()
             )
         }

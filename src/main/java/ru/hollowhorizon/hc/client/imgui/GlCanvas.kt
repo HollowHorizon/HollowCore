@@ -39,7 +39,7 @@ inline fun UiScope.GlCanvas(scopeName: String? = null, crossinline glCanvas: Ima
     val width = image.contentWidthPx
 
     surface.onEachFrame {
-        drawGlCanvas(x, y, width, height, false) {
+        drawGlCanvas(x, y, width, height, false, image.modifier.zLayer) {
             GL33.glEnable(GL33.GL_DEPTH_TEST)
             GL33.glDepthFunc(GL33.GL_LEQUAL)
             val mouseX = doubleArrayOf(0.0)
@@ -70,6 +70,7 @@ fun drawGlCanvas(
     width: Float,
     height: Float,
     enableScissor: Boolean = true,
+    zLayer: Int,
     renderable: () -> Unit,
 ) {
     val oldBuffer = GL33.glGetInteger(GL33.GL_FRAMEBUFFER_BINDING)
@@ -86,7 +87,7 @@ fun drawGlCanvas(
     val matrix4fstack = RenderSystem.getModelViewStack()
     matrix4fstack.pushPose()
     matrix4fstack.setIdentity()
-    matrix4fstack.translate(0.0f, 0.0f, -3000.0f)
+    matrix4fstack.translate(0.0f, 0.0f, -3000.0f+zLayer)
     RenderSystem.applyModelViewMatrix()
     if (enableScissor) RenderSystem.enableScissor(
         x.toInt(), (buffer.height - y - height).toInt(),

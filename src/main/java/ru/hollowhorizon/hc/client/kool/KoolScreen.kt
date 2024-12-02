@@ -12,18 +12,22 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import org.lwjgl.opengl.GL30
+import org.lwjgl.opengl.GL33
+import ru.hollowhorizon.hc.api.HudHideable
 import ru.hollowhorizon.hc.client.imgui.WINDOW_BUFFER
 import ru.hollowhorizon.hc.client.imgui.imguiWindowBuffer
 import ru.hollowhorizon.hc.client.utils.literal
 
-class KoolScreen(builder: Scene.() -> Unit) : Screen("".literal) {
+class KoolScreen(builder: Scene.() -> Unit) : Screen("".literal), HudHideable {
     private var prevFrameTime = 0L
     private var oldLine: Float = 1f
     val scene = Scene(title.string).apply(builder)
     private val timeQuery: TimeQuery by lazy { TimeQuery(MCGlApi) }
 
     override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
-        renderBackground(guiGraphics)
+        val oldVAO = GL30.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING)
+        val oldEBO = GL30.glGetInteger(GL30.GL_ELEMENT_ARRAY_BUFFER_BINDING)
+        val oldBuffer = GL30.glGetInteger(GL30.GL_ARRAY_BUFFER_BINDING)
 
         imguiWindowBuffer.clear(Minecraft.ON_OSX)
         Minecraft.getInstance().mainRenderTarget.bindWrite(true)
@@ -45,6 +49,10 @@ class KoolScreen(builder: Scene.() -> Unit) : Screen("".literal) {
         renderViews(scenePass)
         scenePass.afterDraw()
         scene.sceneDrawTime = Time.precisionTime - t
+
+        GL30.glBindVertexArray(oldVAO)
+        GL30.glBindBuffer(GL30.GL_ELEMENT_ARRAY_BUFFER, oldEBO)
+        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, oldBuffer)
     }
 
     protected fun renderViews(renderPass: RenderPass) {
