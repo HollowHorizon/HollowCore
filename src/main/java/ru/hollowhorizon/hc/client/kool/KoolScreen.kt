@@ -18,7 +18,7 @@ import ru.hollowhorizon.hc.client.imgui.WINDOW_BUFFER
 import ru.hollowhorizon.hc.client.imgui.imguiWindowBuffer
 import ru.hollowhorizon.hc.client.utils.literal
 
-class KoolScreen(builder: Scene.() -> Unit) : Screen("".literal), HudHideable {
+open class KoolScreen(builder: Scene.() -> Unit) : Screen("".literal), HudHideable {
     private var prevFrameTime = 0L
     private var oldLine: Float = 1f
     val scene = Scene(title.string).apply(builder)
