@@ -3,7 +3,7 @@ package ru.hollowhorizon.hc.client.kool
 import de.fabmax.kool.Assets
 import de.fabmax.kool.KoolConfigJvm
 import de.fabmax.kool.KoolSystem
-import de.fabmax.kool.pipeline.AsyncTextureLoader
+import de.fabmax.kool.loadImage2d
 import de.fabmax.kool.pipeline.Texture2d
 import de.fabmax.kool.util.Log
 import de.fabmax.kool.util.MsdfFont.Companion.MSDF_TEX_PROPS
@@ -33,11 +33,9 @@ object KoolManager {
     val ctx = MCKoolContext()
     val MONOCRAFT_DATA by lazy {
         val fontInfo = JsonFormat.decodeFromStream<MsdfMeta>("hollowcore:fonts/monocraft.json".rl.stream)
-        val msdfMap = Texture2d(
-            props = MSDF_TEX_PROPS,
-            name = "MsdfFont:${fontInfo.name}",
-            loader = AsyncTextureLoader { Assets.loadTextureData("fonts/monocraft.png", MSDF_TEX_PROPS) }
-        )
+        val msdfMap = Texture2d(MSDF_TEX_PROPS, "MsdfFont:${fontInfo.name}") {
+            Assets.loadImage2d("fonts/monocraft.png", MSDF_TEX_PROPS).getOrThrow()
+        }
         MsdfFontData(msdfMap, fontInfo)
     }
 }

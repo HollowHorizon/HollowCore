@@ -3,16 +3,23 @@ package ru.hollowhorizon.hc.client.kool
 import de.fabmax.kool.KoolContext
 import de.fabmax.kool.KoolSystem
 import de.fabmax.kool.configJvm
+import de.fabmax.kool.pipeline.backend.BackendFeatures
 import de.fabmax.kool.pipeline.backend.DeviceCoordinates
 import de.fabmax.kool.pipeline.backend.gl.GlslGenerator
 import de.fabmax.kool.pipeline.backend.gl.RenderBackendGl
 import de.fabmax.kool.pipeline.backend.gl.TimeQuery
-import de.fabmax.kool.util.Viewport
 
 class MCRenderBackendGl(ctx: KoolContext) : RenderBackendGl(KoolSystem.configJvm.msaaSamples, MCGlApi, ctx) {
+    override val features: BackendFeatures
+
     init {
         MCGlApi.initOpenGl(this)
         KoolHooks.setupScene(sceneRenderer)
+        features = BackendFeatures(
+            computeShaders = true,
+            cubeMapArrays = true,
+            reversedDepth = MCGlApi.capabilities.hasClipControl
+        )
         deviceCoordinates = DeviceCoordinates.OPEN_GL_ZERO_TO_ONE
     }
 

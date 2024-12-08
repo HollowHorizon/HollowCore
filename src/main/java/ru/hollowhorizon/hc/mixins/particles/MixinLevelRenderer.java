@@ -39,6 +39,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ru.hollowhorizon.hc.client.kool.KoolDrawerKt;
 import ru.hollowhorizon.hc.client.particles.ParticleVertexConsumerProvider;
 import ru.hollowhorizon.hc.api.ParticlesProvider;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderContext;
@@ -90,5 +91,6 @@ public class MixinLevelRenderer {
         boolean isFirstPerson = Minecraft.getInstance().options.getCameraType() == CameraType.FIRST_PERSON;
         system.render(poseStack, new Vector3f((float) position.x, (float) position.y, (float) position.z), new Quaternion(cameraRotMc.x(), cameraRotMc.y(), cameraRotMc.z(), cameraRotMc.w()), ParticleVertexConsumerProvider.INSTANCE, cameraUuid, isFirstPerson);
 
+        KoolDrawerKt.getSKY().draw();
     }
 }

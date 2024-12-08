@@ -2,121 +2,90 @@ package ru.hollowhorizon.hc.client.kool
 
 import de.fabmax.kool.*
 import de.fabmax.kool.modules.audio.AudioClipImpl
-import de.fabmax.kool.pipeline.TextureData2d
+import de.fabmax.kool.pipeline.BufferedImageData2d
 import de.fabmax.kool.pipeline.TextureProps
 import de.fabmax.kool.platform.HttpCache
 import de.fabmax.kool.platform.imageAtlasTextureData
-import de.fabmax.kool.util.Uint8Buffer
 import de.fabmax.kool.util.Uint8BufferImpl
-import de.fabmax.kool.util.logE
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import net.minecraft.client.Minecraft
 import net.minecraft.resources.ResourceLocation
-import ru.hollowhorizon.hc.common.coroutines.clientDispatcher
+import ru.hollowhorizon.hc.client.utils.stream
+import java.io.ByteArrayInputStream
 import java.io.FileInputStream
-import kotlin.jvm.optionals.getOrNull
+import java.io.FileNotFoundException
+import java.io.InputStream
+import java.util.*
 
 object MCAssetLoader : AssetLoader() {
-    override suspend fun loadAudioClip(audioRef: AudioClipRef): LoadedAudioClipAsset {
-        val blob = loadBlob(BlobAssetRef(audioRef.path))
-        val clip = blob.data?.let { buf ->
-            AudioClipImpl(buf.toArray(), audioRef.path.substringAfterLast('.').lowercase())
-        }
-        return LoadedAudioClipAsset(audioRef, clip)
-    }
-
-    override suspend fun loadBlob(blobRef: BlobAssetRef): LoadedBlobAsset {
-        return if (blobRef.isHttp) {
-            loadHttpBlob(blobRef)
-        } else {
-            loadLocalBlob(blobRef)
-        }
-    }
-
-    private suspend fun loadLocalBlob(localRawRef: BlobAssetRef): LoadedBlobAsset {
-        var data: Uint8Buffer? = null
-        withContext(clientDispatcher) {
-            try {
-                val resource =
-                    Minecraft.getInstance().resourceManager.getResource(resource(localRawRef.path)).orElseThrow()
-                data = Uint8BufferImpl(resource.open().use { it.readBytes() })
-            } catch (e: Exception) {
-                logE { "Failed loading asset ${localRawRef.path}: $e" }
-            }
-        }
-        return LoadedBlobAsset(localRawRef, data)
-    }
-
-    suspend fun loadLocalTexture(path: String, props: TextureProps?): TextureData2d? = withContext(clientDispatcher) {
-        val stream = Minecraft.getInstance().resourceManager.getResource(resource(path)).getOrNull()?.open()
-            ?: return@withContext null
-        try {
-            TextureLoader.load(stream, path.substringAfterLast('.'), props)
-        } catch (e: Exception) {
-            logE { "Failed reading image at $path: $e" }
-            null
-        }
-
-    }
-
-    override suspend fun loadTexture(textureRef: TextureAssetRef): LoadedTextureAsset {
-        val refCopy = TextureData2dRef(textureRef.path, textureRef.props)
-        val texData = loadTextureData2d(refCopy).data as TextureData2d?
-        return LoadedTextureAsset(textureRef, texData)
-    }
-
-    override suspend fun loadTextureAtlas(textureRef: TextureAtlasAssetRef): LoadedTextureAsset {
-        val refCopy = TextureData2dRef(textureRef.path, textureRef.props)
-        val texData = loadTextureData2d(refCopy).data as TextureData2d?
-        val atlasData = texData?.let {
-            imageAtlasTextureData(it, textureRef.tilesX, textureRef.tilesY)
-        }
-        return LoadedTextureAsset(textureRef, atlasData)
-    }
-
-    override suspend fun loadTextureData2d(textureData2dRef: TextureData2dRef): LoadedTextureAsset {
-        val data: TextureData2d? = withContext(Dispatchers.IO) {
-            if (textureData2dRef.isHttp) {
-                loadHttpTexture(textureData2dRef.path, textureData2dRef.props)
-            } else {
-                loadLocalTexture(textureData2dRef.path, textureData2dRef.props)
-            }
-        }
-        return LoadedTextureAsset(textureData2dRef, data)
-    }
-
-    private suspend fun loadHttpBlob(httpRawRef: BlobAssetRef): LoadedBlobAsset {
-        var data: Uint8Buffer? = null
-        if (httpRawRef.path.startsWith("data:", true)) {
-            data = decodeDataUri(httpRawRef.path)
-        } else {
-            withContext(Dispatchers.IO) {
-                try {
-                    HttpCache.loadHttpResource(httpRawRef.path)?.let { f ->
-                        FileInputStream(f).use { data = Uint8BufferImpl(it.readBytes()) }
-                    }
-                } catch (e: Exception) {
-                    logE { "Failed loading asset ${httpRawRef.path}: $e" }
-                }
-            }
-        }
-        return LoadedBlobAsset(httpRawRef, data)
-    }
-
-    private fun loadHttpTexture(path: String, props: TextureProps?): TextureData2d? {
-        return HttpCache.loadHttpResource(path)?.let { f ->
-            try {
-                FileInputStream(f).use { data ->
-                    PlatformAssetsImpl.readImageData(data, MimeType.forFileName(path), props)
-                }
-            } catch (e: Exception) {
-                logE { "Failed reading image at $path: $e" }
-                null
-            }
-        }
-    }
-
     private fun resource(path: String) = if (path.contains(":")) ResourceLocation(path)
     else ResourceLocation("hollowcore", path)
+
+    override suspend fun loadBlob(ref: AssetRef.Blob): LoadedAsset.Blob {
+        val result = withContext(Dispatchers.IO) {
+            try {
+                val data = openStream(ref).use { Uint8BufferImpl(it.readBytes()) }
+                Result.success(data)
+            } catch (t: Throwable) {
+                Result.failure(t)
+            }
+        }
+        return LoadedAsset.Blob(ref, result)
+    }
+
+    override suspend fun loadAudio(ref: AssetRef.Audio): LoadedAsset.Audio {
+        val blob = loadBlob(AssetRef.Blob(ref.path))
+        return LoadedAsset.Audio(ref, blob.result.map {
+            AudioClipImpl(it.toArray(), ref.path.substringAfterLast('.').lowercase())
+        })
+    }
+
+    override suspend fun loadBufferedImage2d(ref: AssetRef.BufferedImage2d): LoadedAsset.BufferedImage2d {
+        val data: Result<BufferedImageData2d> = withContext(Dispatchers.IO) {
+            loadTexture(ref, ref.props)
+        }
+        return LoadedAsset.BufferedImage2d(ref, data)
+    }
+
+    override suspend fun loadImage2d(ref: AssetRef.Image2d): LoadedAsset.Image2d {
+        val refCopy = AssetRef.BufferedImage2d(ref.path, ref.props)
+        return LoadedAsset.Image2d(ref, loadBufferedImage2d(refCopy).result)
+    }
+
+    override suspend fun loadImageAtlas(ref: AssetRef.ImageAtlas): LoadedAsset.ImageAtlas {
+        val refCopy = AssetRef.BufferedImage2d(ref.path, ref.props)
+        val result = loadBufferedImage2d(refCopy).result.mapCatching {
+            imageAtlasTextureData(it, ref.tilesX, ref.tilesY)
+        }
+        return LoadedAsset.ImageAtlas(ref, result)
+    }
+
+    private fun loadTexture(assetRef: AssetRef, props: TextureProps?): Result<BufferedImageData2d> {
+        return try {
+            openStream(assetRef).use {
+                Result.success(PlatformAssetsImpl.readImageData(it, MimeType.forFileName(assetRef.path), props))
+            }
+        } catch (t: Throwable) {
+            Result.failure(t)
+        }
+    }
+
+    private fun openStream(assetRef: AssetRef): InputStream =
+        if (assetRef.isHttp) openHttpStream(assetRef) else openLocalStream(assetRef)
+
+    private fun openLocalStream(assetRef: AssetRef) = resource(assetRef.path).stream
+
+    private fun openHttpStream(assetRef: AssetRef) =
+        if (assetRef.path.startsWith("data:", true)) {
+            ByteArrayInputStream(dataUriToByteArray(assetRef.path))
+        } else {
+            HttpCache.loadHttpResource(assetRef.path)?.let { f -> FileInputStream(f) }
+                ?: throw FileNotFoundException("Failed loading HTTP asset: ${assetRef.path}")
+        }
+
+
+    private fun dataUriToByteArray(dataUri: String): ByteArray {
+        val dataIdx = dataUri.indexOf(";base64,") + 8
+        return Base64.getDecoder().decode(dataUri.substring(dataIdx))
+    }
 }

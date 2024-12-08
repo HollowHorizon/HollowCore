@@ -160,7 +160,7 @@ class ParticleEmitter(
         val renderPass = effect.renderPass ?: return
         if (effect.components.particleAppearanceBillboard == null) return
 
-        val renderPassSet = system.billboardRenderPasses.getValue(renderPass)
+        val renderPassSet = system.billboardRenderPasses[renderPass] ?: return
         renderPassSet.remove(particle)
         if (renderPassSet.isNotEmpty()) return
 
