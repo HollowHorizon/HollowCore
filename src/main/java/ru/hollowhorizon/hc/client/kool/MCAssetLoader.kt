@@ -17,6 +17,10 @@ import java.io.FileNotFoundException
 import java.io.InputStream
 import java.util.*
 
+/**
+ * Resource Location adapter for Kool Asset Loader.
+ * Allows to use resource paths like resource packs: `minecraft:textures/block/dirt.png`
+ */
 object MCAssetLoader : AssetLoader() {
     private fun resource(path: String) = if (path.contains(":")) ResourceLocation(path)
     else ResourceLocation("hollowcore", path)

@@ -26,18 +26,14 @@ package ru.hollowhorizon.hc.client
 
 import com.mojang.blaze3d.systems.RenderSystem
 import de.fabmax.kool.modules.ui2.*
-import de.fabmax.kool.util.Color
 import de.fabmax.kool.util.MsdfFont
-import de.fabmax.kool.util.Time
 import net.minecraft.client.KeyMapping
-import net.minecraft.client.Minecraft
+import net.minecraft.resources.ResourceLocation
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.kool.DragStackTooltip
 import ru.hollowhorizon.hc.client.kool.Image
 import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT_DATA
 import ru.hollowhorizon.hc.client.kool.KoolScreen
-import ru.hollowhorizon.hc.client.kool.Slot
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.render.RenderLoader
@@ -45,6 +41,9 @@ import ru.hollowhorizon.hc.client.render.effekseer.EffekseerNatives
 import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssets
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.utils.HollowPack
+import ru.hollowhorizon.hc.client.utils.exists
+import ru.hollowhorizon.hc.client.utils.open
+import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.events.ClientOnly
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent
@@ -86,6 +85,30 @@ object HollowCoreClient {
 
     @SubscribeEvent
     fun onClientTick(event: TickEvent.Client) {
+        if(HollowCore.config.debugMode && KEY_V.isDown) {
+            KoolScreen {
+                setupUiScene()
+
+                addPanelSurface {
+                    modifier.align(AlignmentX.Center, AlignmentY.Center)
+
+                    var text by remember { mutableStateOf("hello") }
+
+                    Button("Hello World") {
+                        modifier.font(MsdfFont(MONOCRAFT_DATA, 30f))
+                    }
+                    TextField {
+                        modifier.text(text)
+                            .onChange { text = it }
+                            .font(MsdfFont(MONOCRAFT_DATA, 30f))
+                    }
+                    if(text.isNotEmpty() && ResourceLocation.isValidResourceLocation(text) && text.rl.exists()) Image(text) {
+                        modifier.size(128.dp, 128.dp).alignX(AlignmentX.Center)
+                            .margin(sizes.smallGap)
+                    }
+                }
+            }.open()
+        }
     }
 
     @SubscribeEvent

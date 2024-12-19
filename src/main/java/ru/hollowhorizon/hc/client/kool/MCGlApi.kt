@@ -1,11 +1,13 @@
 package ru.hollowhorizon.hc.client.kool
 
+import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.TextureUtil
 import de.fabmax.kool.math.MutableVec3i
 import de.fabmax.kool.pipeline.*
 import de.fabmax.kool.pipeline.backend.gl.*
 import de.fabmax.kool.util.*
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
+import org.lwjgl.opengl.GL33
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import org.lwjgl.opengl.GL42.glTexStorage2D
 import org.lwjgl.opengl.GL45.*
@@ -433,6 +435,10 @@ object MCGlApi: GlApi {
     }
 
     private fun texImage2dImpl(target: Int, data: ImageData) {
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
+        glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0)
+        glPixelStorei(GL_UNPACK_SKIP_ROWS, 0)
+        glPixelStorei(GL_UNPACK_ALIGNMENT, data.format.channels)
         when (data) {
             is BufferedImageData1d -> when (val buf = data.data) {
                 is Uint8BufferImpl -> buf.useRaw {
@@ -450,11 +456,6 @@ object MCGlApi: GlApi {
                 else -> error("ImageData buffer must be any of Uint8Buffer, Uint16Buffer, Int32Buffer, Float32Buffer")
             }
             is BufferedImageData2d -> when (val buf = data.data) {
-                is NativeImageBuffer -> {
-                    TextureUtil.prepareImage(glGetInteger(GL_TEXTURE_BINDING_2D), data.width, data.height)
-                    buf.image.upload(0, 0, 0, false)
-                    //glTexImage2D(target, 0, data.format.glInternalFormat(this), data.width, data.height, 0, data.format.glFormat(this), data.format.glType(this), buf.image.pixels)
-                }
                 is Uint8BufferImpl -> buf.useRaw {
                     glTexImage2D(target, 0, data.format.glInternalFormat(this), data.width, data.height, 0, data.format.glFormat(this), data.format.glType(this), it)
                 }
