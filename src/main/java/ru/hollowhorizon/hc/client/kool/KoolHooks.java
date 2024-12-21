@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.client.kool;
 import de.fabmax.kool.KoolContext;
 import de.fabmax.kool.KoolSystem;
 import de.fabmax.kool.pipeline.*;
+import de.fabmax.kool.pipeline.backend.gl.RenderBackendGl;
 import de.fabmax.kool.pipeline.backend.gl.SceneRenderPassGl;
 import de.fabmax.kool.pipeline.backend.gl.ShaderManager;
 import de.fabmax.kool.scene.Scene;
@@ -48,5 +49,9 @@ public class KoolHooks {
 
     public static ComputePassImpl getImpl(ComputeRenderPass computeRenderPass) {
         return computeRenderPass.getImpl$kool_core();
+    }
+
+    public static KoolContext getContext(RenderBackendGl backend) {
+        return backend.getCtx$kool_core();
     }
 }

@@ -50,6 +50,8 @@ import ru.hollowhorizon.hc.client.utils.math.Quaternion;
 import javax.annotation.Nullable;
 import java.util.UUID;
 
+import static ru.hollowhorizon.hc.client.kool.example.ExampleSceneKt.BEE_DRAWER;
+import static ru.hollowhorizon.hc.client.kool.example.ExampleSceneKt.isBeesEnabled;
 import static ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.copyCurrentDepthTo;
 
 
@@ -75,6 +77,9 @@ public class MixinLevelRenderer {
             EffekRenderer.onRenderWorldLast(partialTick, capture.pose, capture.projection, capture.camera);
         }
 
+        if(isBeesEnabled) BEE_DRAWER.draw();
+        //KoolDrawerKt.getEXAMPLE_SCENE().draw();
+
         if (!(level instanceof ParticlesProvider)) return;
 
         var system = ((ParticlesProvider) level).getSystem();
@@ -91,6 +96,5 @@ public class MixinLevelRenderer {
         boolean isFirstPerson = Minecraft.getInstance().options.getCameraType() == CameraType.FIRST_PERSON;
         system.render(poseStack, new Vector3f((float) position.x, (float) position.y, (float) position.z), new Quaternion(cameraRotMc.x(), cameraRotMc.y(), cameraRotMc.z(), cameraRotMc.w()), ParticleVertexConsumerProvider.INSTANCE, cameraUuid, isFirstPerson);
 
-        KoolDrawerKt.getSKY().draw();
     }
 }

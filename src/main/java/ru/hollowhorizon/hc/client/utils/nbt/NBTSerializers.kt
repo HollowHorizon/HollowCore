@@ -24,7 +24,9 @@
 
 package ru.hollowhorizon.hc.client.utils.nbt
 
+import io.netty.buffer.Unpooled
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.ByteArraySerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
@@ -36,6 +38,7 @@ import kotlinx.serialization.encoding.encodeStructure
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.*
+import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.Entity
@@ -57,6 +60,26 @@ private inline fun <T> missingField(missingField: String, deserializing: String,
     return defaultValue()
 }
 
+object FriendlyByteBufSerializer : KSerializer<FriendlyByteBuf> {
+    @OptIn(ExperimentalSerializationApi::class)
+    override val descriptor = SerialDescriptor("FriendlyByteBuf", ByteArraySerializer().descriptor)
+
+    override fun serialize(encoder: Encoder, value: FriendlyByteBuf) {
+        val index = value.readerIndex()
+        val bytes = ByteArray(value.readableBytes())
+        value.readBytes(bytes)
+        value.readerIndex(index)
+
+        encoder.encodeSerializableValue(ByteArraySerializer(), bytes)
+    }
+
+    override fun deserialize(decoder: Decoder): FriendlyByteBuf {
+        val bytes = decoder.decodeSerializableValue(ByteArraySerializer())
+        val buf = FriendlyByteBuf(Unpooled.buffer()).apply { writeBytes(bytes) }
+
+        return buf
+    }
+}
 
 object ForBlockPos : KSerializer<BlockPos> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("BlockPos", PrimitiveKind.LONG)

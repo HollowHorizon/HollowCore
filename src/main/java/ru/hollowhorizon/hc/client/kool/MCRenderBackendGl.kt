@@ -7,27 +7,35 @@ import de.fabmax.kool.pipeline.backend.BackendFeatures
 import de.fabmax.kool.pipeline.backend.DeviceCoordinates
 import de.fabmax.kool.pipeline.backend.gl.GlslGenerator
 import de.fabmax.kool.pipeline.backend.gl.RenderBackendGl
+import de.fabmax.kool.pipeline.backend.gl.SceneRenderPassGl
 import de.fabmax.kool.pipeline.backend.gl.TimeQuery
+import de.fabmax.kool.pipeline.backend.stats.BackendStats
+import de.fabmax.kool.scene.Scene
+import de.fabmax.kool.util.Time
+import de.fabmax.kool.util.Viewport
+import ru.hollowhorizon.hc.client.kool.gl.MCSceneRenderPass
 
 class MCRenderBackendGl(ctx: KoolContext) : RenderBackendGl(KoolSystem.configJvm.msaaSamples, MCGlApi, ctx) {
+    val gl = MCGlApi
     override val features: BackendFeatures
+    val mcSceneRenderer = MCSceneRenderPass(numSamples, this)
 
     init {
-        MCGlApi.initOpenGl(this)
-        KoolHooks.setupScene(sceneRenderer)
+        gl.initOpenGl(this)
+        mcSceneRenderer.resolveDirect = true
         features = BackendFeatures(
             computeShaders = true,
             cubeMapArrays = true,
-            reversedDepth = MCGlApi.capabilities.hasClipControl
+            reversedDepth = gl.capabilities.hasClipControl
         )
         deviceCoordinates = DeviceCoordinates.OPEN_GL_ZERO_TO_ONE
     }
 
     override var frameGpuTime: Double = 0.0
-    private val timer = TimeQuery(MCGlApi)
+    private val timer = TimeQuery(gl)
 
     override val glslGeneratorHints: GlslGenerator.Hints
-        get() = GlslGenerator.Hints("#version 330 core")
+        get() = GlslGenerator.Hints("#version 430 core")
 
     override fun cleanup(ctx: KoolContext) {}
 
@@ -37,8 +45,46 @@ class MCRenderBackendGl(ctx: KoolContext) : RenderBackendGl(KoolSystem.configJvm
         }
 
         timer.timedScope {
-            super.renderFrame(ctx)
+            renderMCFrame(ctx)
         }
     }
 
+    private val windowViewport = Viewport(0, 0, 0, 0)
+
+    fun renderMCFrame(ctx: KoolContext) {
+        BackendStats.resetPerFrameCounts()
+
+        getWindowViewport(windowViewport)
+        mcSceneRenderer.applySize(windowViewport.width, windowViewport.height)
+
+        doOffscreenPasses(ctx.backgroundScene)
+
+        for (i in ctx.scenes.indices) {
+            val scene = ctx.scenes[i]
+            if (scene.isVisible) {
+                val t = Time.precisionTime
+                doOffscreenPasses(scene)
+                mcSceneRenderer.draw(scene)
+                scene.sceneDrawTime = Time.precisionTime - t
+            }
+        }
+
+        if (useFloatDepthBuffer) {
+            mcSceneRenderer.resolve(gl.DEFAULT_FRAMEBUFFER, gl.COLOR_BUFFER_BIT)
+        }
+
+        if (awaitedStorageBuffers.isNotEmpty()) {
+            readbackStorageBuffers()
+        }
+    }
+
+    private fun doOffscreenPasses(scene: Scene) {
+        for (i in scene.sortedOffscreenPasses.indices) {
+            val pass = scene.sortedOffscreenPasses[i]
+            if (pass.isEnabled) {
+                drawOffscreen(pass)
+                pass.afterDraw()
+            }
+        }
+    }
 }

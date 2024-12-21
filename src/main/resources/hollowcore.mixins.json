@@ -25,6 +25,7 @@
     "kool.PlatformFunctionsMixin",
     "kool.PlatformInputJvmAccessor",
     "kool.PlatformInputJvmMixin",
+    "kool.RenderBackendGlAccessor",
     "kool.ShaderManagerAccessor",
     "kool.TextureDataMixin"
   ],

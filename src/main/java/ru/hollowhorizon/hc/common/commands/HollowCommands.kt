@@ -33,6 +33,7 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.LivingEntity
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
+import ru.hollowhorizon.hc.client.kool.example.isBeesEnabled
 import ru.hollowhorizon.hc.client.molang.asMolang
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.particles.ParticleEffect
@@ -59,6 +60,10 @@ object HollowCommands {
     fun onRegisterCommands(event: RegisterCommandsEvent) {
         event.dispatcher.onRegisterCommands {
             "hollowcore" {
+                "bees" {
+                    isBeesEnabled = !isBeesEnabled
+                }
+
                 "effect"(
                     arg("pos", Vec3Argument.vec3()),
                     arg("name", StringArgumentType.greedyString()) { EffekAssets.entries().map { it.key.toString() } }

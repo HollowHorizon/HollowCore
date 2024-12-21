@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.client.kool
 
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.platform.TextureUtil
+import com.mojang.blaze3d.systems.RenderSystem
 import de.fabmax.kool.math.MutableVec3i
 import de.fabmax.kool.pipeline.*
 import de.fabmax.kool.pipeline.backend.gl.*
@@ -217,13 +218,27 @@ object MCGlApi: GlApi {
     override fun deleteVertexArray(vao: GlVertexArrayObject) = glDeleteVertexArrays(vao.handle)
     override fun depthFunc(func: Int) = glDepthFunc(func)
     override fun depthMask(flag: Boolean) = glDepthMask(flag)
-    override fun disable(cap: Int) = glDisable(cap)
+    override fun disable(cap: Int) {
+        when(cap) {
+            BLEND -> RenderSystem.disableBlend()
+            DEPTH_TEST -> RenderSystem.disableDepthTest()
+            CULL_FACE -> RenderSystem.disableCull()
+            else -> glDisable(cap)
+        }
+    }
     override fun disableVertexAttribArray(index: Int) = glDisableVertexAttribArray(index)
     override fun dispatchCompute(numGroupsX: Int, numGroupsY: Int, numGroupsZ: Int) = glDispatchCompute(numGroupsX, numGroupsY, numGroupsZ)
     override fun drawBuffers(buffers: IntArray) = glDrawBuffers(buffers)
     override fun drawElements(mode: Int, count: Int, type: Int) = glDrawElements(mode, count, type, 0L)
     override fun drawElementsInstanced(mode: Int, count: Int, type: Int, instanceCount: Int) = glDrawElementsInstanced(mode, count, type, 0L, instanceCount)
-    override fun enable(cap: Int) = glEnable(cap)
+    override fun enable(cap: Int) {
+        when(cap) {
+            BLEND -> RenderSystem.enableBlend()
+            DEPTH_TEST -> RenderSystem.enableDepthTest()
+            CULL_FACE -> RenderSystem.enableCull()
+            else -> glEnable(cap)
+        }
+    }
     override fun enableVertexAttribArray(index: Int) = glEnableVertexAttribArray(index)
     override fun endQuery(target: Int) = glEndQuery(target)
     override fun framebufferRenderbuffer(target: Int, attachment: Int, renderbuffertarget: Int, renderbuffer: GlRenderbuffer) = glFramebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer.handle)

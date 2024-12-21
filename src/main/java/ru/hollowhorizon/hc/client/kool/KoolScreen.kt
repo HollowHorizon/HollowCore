@@ -14,193 +14,89 @@ import net.minecraft.client.gui.screens.Screen
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.api.HudHideable
-import ru.hollowhorizon.hc.client.imgui.WINDOW_BUFFER
 import ru.hollowhorizon.hc.client.imgui.imguiWindowBuffer
 import ru.hollowhorizon.hc.client.utils.literal
 
 open class KoolScreen(builder: Scene.() -> Unit) : Screen("".literal), HudHideable {
-    private var prevFrameTime = 0L
-    private var oldLine: Float = 1f
-    val scene = Scene(title.string).apply(builder)
-    private val timeQuery: TimeQuery by lazy { TimeQuery(MCGlApi) }
-
-    override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
-        val oldVAO = GL30.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING)
-        val oldEBO = GL30.glGetInteger(GL30.GL_ELEMENT_ARRAY_BUFFER_BINDING)
-        val oldBuffer = GL30.glGetInteger(GL30.GL_ARRAY_BUFFER_BINDING)
-
-        imguiWindowBuffer.clear(Minecraft.ON_OSX)
-        Minecraft.getInstance().mainRenderTarget.bindWrite(true)
-        BackendStats.resetPerFrameCounts()
-        KoolHooks.resetShaders(KoolManager.ctx)
-        KoolHooks.executeCoroutineTasks()
-
-        // determine time delta
-        val time = System.nanoTime()
-        val dt = (time - prevFrameTime) / 1e9
-        prevFrameTime = time
-
-        // setup draw queues for all scenes / render passes
-        KoolManager.ctx.callRender(dt)
-        if(scene.isVisible) scene.renderScene(KoolManager.ctx)
-
-        val t = Time.precisionTime
-        val scenePass = scene.mainRenderPass
-        renderViews(scenePass)
-        scenePass.afterDraw()
-        scene.sceneDrawTime = Time.precisionTime - t
-
-        GL30.glBindVertexArray(oldVAO)
-        GL30.glBindBuffer(GL30.GL_ELEMENT_ARRAY_BUFFER, oldEBO)
-        GL30.glBindBuffer(GL30.GL_ARRAY_BUFFER, oldBuffer)
+    val scene = Scene(title.string).apply(builder).apply {
+        KoolManager.ctx.addScene(this)
     }
 
-    protected fun renderViews(renderPass: RenderPass) {
-        val q = if (renderPass.isProfileTimes) timeQuery else null
-        q?.let {
-            if (it.isAvailable) {
-                renderPass.tGpu = it.getQueryResultMillis()
-            }
-            it.begin()
+    var actIsWriteDepth = true
+    var actDepthTest: DepthCompareOp = DepthCompareOp.LESS_EQUAL
+    var actCullMethod: CullMethod = CullMethod.NO_CULLING
+    var lineWidth = 1f
+
+    override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, partialTick: Float) {
+        MCGlApi.clipControl(MCGlApi.LOWER_LEFT, MCGlApi.ZERO_TO_ONE)
+        val activeTexture = GlStateManager._getActiveTexture()
+        val currentTexture = GL33.glGetInteger(GL33.GL_TEXTURE_BINDING_2D)
+        val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
+        val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
+
+        MCGlApi.depthMask(actIsWriteDepth)
+        if (actDepthTest == DepthCompareOp.ALWAYS) {
+            MCGlApi.disable(MCGlApi.DEPTH_TEST)
+        } else {
+            MCGlApi.enable(MCGlApi.DEPTH_TEST)
+            MCGlApi.depthFunc(actDepthTest.glOp(MCGlApi))
         }
-
-        for (mipLevel in 0 until renderPass.numRenderMipLevels) {
-            renderPass.setupMipLevel(mipLevel)
-
-            when (renderPass.viewRenderMode) {
-                RenderPass.ViewRenderMode.SINGLE_RENDER_PASS -> {
-                    for (viewIndex in renderPass.views.indices) {
-                        val view = renderPass.views[viewIndex]
-                        view.setupView()
-                        renderView(view, viewIndex, mipLevel)
-                    }
-                }
-
-                RenderPass.ViewRenderMode.MULTI_RENDER_PASS -> {
-                    for (viewIndex in renderPass.views.indices) {
-                        val view = renderPass.views[viewIndex]
-                        view.setupView()
-                        renderView(view, viewIndex, mipLevel)
-                    }
-                }
+        when (actCullMethod) {
+            CullMethod.CULL_BACK_FACES -> {
+                MCGlApi.enable(MCGlApi.CULL_FACE)
+                MCGlApi.cullFace(MCGlApi.BACK)
             }
+            CullMethod.CULL_FRONT_FACES -> {
+                MCGlApi.enable(MCGlApi.CULL_FACE)
+                MCGlApi.cullFace(MCGlApi.FRONT)
+            }
+            CullMethod.NO_CULLING -> MCGlApi.disable(MCGlApi.CULL_FACE)
         }
+        MCGlApi.lineWidth(lineWidth)
 
-        q?.end()
+        KoolManager.ctx.renderFrame()
+
+        // Необходимо сохранять эти параметры, поскольку и майн и движок кешируют их
+        actIsWriteDepth = GL33.glGetBoolean(GL33.GL_DEPTH_WRITEMASK)
+        actDepthTest = getCurrentDepthCompareOp()
+        actCullMethod = getCurrentCullMethod()
+        lineWidth = GL33.glGetFloat(GL33.GL_LINE_WIDTH)
+
+        GL33.glActiveTexture(activeTexture)
+        GL33.glBindTexture(GL33.GL_TEXTURE_2D, currentTexture)
+        GL33.glBindVertexArray(currentVAO)
+        GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
+        MCGlApi.clipControl(MCGlApi.LOWER_LEFT, MCGlApi.NEGATIVE_ONE_TO_ONE)
+
+        GL33.glEnable(GL33.GL_DEPTH_TEST)
+        GL33.glDepthFunc(GL33.GL_LEQUAL)
+        GL33.glEnable(GL33.GL_BLEND)
+        GL33.glBlendFuncSeparate(GL33.GL_SRC_ALPHA, GL33.GL_ONE_MINUS_SRC_ALPHA, GL33.GL_ONE, GL33.GL_ONE_MINUS_SRC_ALPHA)
+        GL33.glEnable(GL33.GL_CULL_FACE)
     }
 
     override fun onClose() {
         super.onClose()
-        timeQuery.release()
     }
+}
 
-    protected fun renderView(view: RenderPass.View, viewIndex: Int, mipLevel: Int) {
-        view.drawQueue.forEach { cmd ->
-            if (cmd.isActive) {
-                val drawInfo = KoolHooks.shaderManager(KoolManager.ctx).bindDrawShader(cmd)
-                val isValid = cmd.geometry.numIndices > 0 && drawInfo.isValid && drawInfo.numIndices > 0
+fun getCurrentDepthCompareOp() = when (GL33.glGetInteger(GL33.GL_DEPTH_FUNC)) {
+    GL33.GL_ALWAYS -> DepthCompareOp.ALWAYS
+    GL33.GL_NEVER -> DepthCompareOp.NEVER
+    GL33.GL_LESS -> DepthCompareOp.LESS
+    GL33.GL_LEQUAL -> DepthCompareOp.LESS_EQUAL
+    GL33.GL_GREATER -> DepthCompareOp.GREATER
+    GL33.GL_GEQUAL -> DepthCompareOp.GREATER_EQUAL
+    GL33.GL_EQUAL -> DepthCompareOp.EQUAL
+    GL33.GL_NOTEQUAL -> DepthCompareOp.NOT_EQUAL
+    else -> throw IllegalStateException("Unknown depth compare operation")
+}
 
-                if (isValid) {
-                    val pipeline = cmd.pipeline
-                    val isReversedDepth = view.renderPass.isReverseDepth
-
-                    setBlendMode(pipeline.blendMode)
-                    setDepthTest(pipeline, isReversedDepth)
-                    setWriteDepth(pipeline.isWriteDepth)
-                    setCullMethod(pipeline.cullMethod)
-                    if (pipeline.lineWidth != oldLine) {
-                        oldLine = pipeline.lineWidth
-                        GL30.glLineWidth(pipeline.lineWidth)
-                    }
-
-                    val insts = cmd.instances
-                    if (insts == null) {
-                        MCGlApi.drawElements(drawInfo.primitiveType, drawInfo.numIndices, drawInfo.indexType)
-                        BackendStats.addDrawCommands(1, cmd.geometry.numPrimitives)
-                    } else if (insts.numInstances > 0) {
-                        MCGlApi.drawElementsInstanced(
-                            drawInfo.primitiveType,
-                            drawInfo.numIndices,
-                            drawInfo.indexType,
-                            insts.numInstances
-                        )
-                        BackendStats.addDrawCommands(1, cmd.geometry.numPrimitives * insts.numInstances)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun setCullMethod(cullMethod: CullMethod) {
-        when (cullMethod) {
-            CullMethod.CULL_BACK_FACES -> {
-                RenderSystem.enableCull()
-                MCGlApi.cullFace(MCGlApi.BACK)
-            }
-
-            CullMethod.CULL_FRONT_FACES -> {
-                RenderSystem.enableCull()
-                MCGlApi.cullFace(MCGlApi.FRONT)
-            }
-
-            CullMethod.NO_CULLING -> RenderSystem.disableCull()
-        }
-
-    }
-
-    fun setWriteDepth(enabled: Boolean) {
-        RenderSystem.depthMask(enabled)
-    }
-
-    fun setDepthTest(pipeline: DrawPipeline, isReversedDepth: Boolean) {
-        val depthCompareOp = if (isReversedDepth && pipeline.autoReverseDepthFunc) {
-            when (pipeline.depthCompareOp) {
-                DepthCompareOp.LESS -> DepthCompareOp.GREATER
-                DepthCompareOp.LESS_EQUAL -> DepthCompareOp.GREATER_EQUAL
-                DepthCompareOp.GREATER -> DepthCompareOp.LESS
-                DepthCompareOp.GREATER_EQUAL -> DepthCompareOp.LESS_EQUAL
-                else -> pipeline.depthCompareOp
-            }
-        } else {
-            pipeline.depthCompareOp
-        }
-
-        if (depthCompareOp == DepthCompareOp.ALWAYS && !pipeline.isWriteDepth) {
-            RenderSystem.disableDepthTest()
-        } else {
-            RenderSystem.enableDepthTest()
-            RenderSystem.depthFunc(depthCompareOp.glOp(MCGlApi))
-        }
-
-    }
-
-    private fun setBlendMode(blendMode: BlendMode) {
-        when (blendMode) {
-            BlendMode.DISABLED -> RenderSystem.disableBlend()
-            BlendMode.BLEND_ADDITIVE -> {
-                RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE)
-                RenderSystem.enableBlend()
-            }
-
-            BlendMode.BLEND_MULTIPLY_ALPHA -> {
-                RenderSystem.blendFunc(
-                    GlStateManager.SourceFactor.SRC_ALPHA,
-                    GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA
-                )
-                RenderSystem.enableBlend()
-            }
-
-            BlendMode.BLEND_PREMULTIPLIED_ALPHA -> {
-                RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA)
-                RenderSystem.enableBlend()
-            }
-        }
-    }
-
-    private fun RenderPass.View.setupView() {
-        onSetupView.update()
-        for (i in onSetupView.indices) {
-            onSetupView[i]()
-        }
+fun getCurrentCullMethod(): CullMethod {
+    if (!GL33.glIsEnabled(GL33.GL_CULL_FACE)) return CullMethod.NO_CULLING
+    return when (GL33.glGetInteger(GL33.GL_CULL_FACE_MODE)) {
+        GL33.GL_BACK -> CullMethod.CULL_BACK_FACES
+        GL33.GL_FRONT -> CullMethod.CULL_FRONT_FACES
+        else -> CullMethod.NO_CULLING // На случай необычного значения.
     }
 }

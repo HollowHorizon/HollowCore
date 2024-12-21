@@ -99,7 +99,7 @@ object GltfManager : ResourceManagerReloadListener {
     }
 
     fun initialize() {
-        val textureManager = Minecraft.getInstance().getTextureManager()
+        val textureManager = Minecraft.getInstance().textureManager
 
         lightTexture = textureManager.getTexture("dynamic/light_map_1".rl)
 
@@ -135,9 +135,7 @@ object GltfManager : ResourceManagerReloadListener {
     }
 }
 
-fun create(data: ByteArray): ByteBuffer {
-    return create(data, 0, data.size)
-}
+fun create(data: ByteArray) = create(data, 0, data.size)
 
 fun create(data: ByteArray?, offset: Int, length: Int): ByteBuffer {
     val byteBuffer = ByteBuffer.allocateDirect(length)

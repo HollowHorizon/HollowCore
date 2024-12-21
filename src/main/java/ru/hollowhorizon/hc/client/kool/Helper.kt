@@ -1,8 +1,27 @@
 package ru.hollowhorizon.hc.client.kool
 
+import de.fabmax.kool.KoolContext
 import de.fabmax.kool.input.KeyCode
 import de.fabmax.kool.input.KeyboardInput
+import de.fabmax.kool.pipeline.OffscreenRenderPass
+import de.fabmax.kool.pipeline.StorageBuffer
+import de.fabmax.kool.pipeline.backend.RenderBackend
+import de.fabmax.kool.pipeline.backend.gl.RenderBackendGl
+import de.fabmax.kool.scene.Scene
+import kotlinx.coroutines.CompletableDeferred
 import org.lwjgl.glfw.GLFW
+import ru.hollowhorizon.hc.mixins.kool.RenderBackendGlAccessor
+
+val RenderBackendGl.ctx: KoolContext get() = KoolHooks.getContext(this)
+val RenderBackendGl.awaitedStorageBuffers: MutableList<Pair<StorageBuffer, CompletableDeferred<Unit>>>
+    get() = (this as RenderBackendGlAccessor).awaitedStorageBuffers
+fun RenderBackendGl.readbackStorageBuffers() {
+    (this as RenderBackendGlAccessor).callReadbackStorageBuffers()
+}
+fun RenderBackendGl.drawOffscreen(pass: OffscreenRenderPass) {
+    (this as RenderBackendGlAccessor).callDrawOffscreen(pass)
+}
+val Scene.sortedOffscreenPasses: MutableList<OffscreenRenderPass> get() = KoolHooks.renderPasses(this)
 
 @JvmField
 val KEY_CODE_MAP: Map<Int, KeyCode> = mutableMapOf(

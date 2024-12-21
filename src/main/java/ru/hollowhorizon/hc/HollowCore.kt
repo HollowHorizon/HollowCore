@@ -23,12 +23,22 @@
  */
 package ru.hollowhorizon.hc
 
+import de.fabmax.kool.modules.ui2.*
+import de.fabmax.kool.modules.ui2.docking.UiDockable
+import de.fabmax.kool.scene.Scene
+import de.fabmax.kool.toString
+import de.fabmax.kool.util.DebugOverlay
+import de.fabmax.kool.util.MsdfFont
 import org.apache.logging.log4j.Logger
+import ru.hollowhorizon.hc.client.kool.KoolManager
+import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT_DATA
+import ru.hollowhorizon.hc.client.kool.example.BeeConfig
 import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.common.HollowCoreCommon
 import ru.hollowhorizon.hc.common.config.HollowCoreConfig
 import ru.hollowhorizon.hc.common.config.hollowConfig
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor.initMod
+import kotlin.math.roundToInt
 
 object HollowCore {
     const val MODID: String = "hollowcore"
