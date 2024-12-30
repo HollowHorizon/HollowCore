@@ -29,6 +29,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.AbstractTexture
+import net.minecraft.client.renderer.texture.TextureAtlas
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
@@ -50,6 +51,8 @@ import kotlin.time.measureTime
 
 object GltfManager : ResourceManagerReloadListener {
     lateinit var lightTexture: AbstractTexture
+    var lightTextureId: Int = 0
+    var blockAtlasId: Int = 0
     private val models = HashMap<ResourceLocation, AnimatedModel>()
     var glProgramSkinning = -1
 
@@ -102,6 +105,8 @@ object GltfManager : ResourceManagerReloadListener {
         val textureManager = Minecraft.getInstance().textureManager
 
         lightTexture = textureManager.getTexture("dynamic/light_map_1".rl)
+        lightTextureId = lightTexture.id
+        blockAtlasId = Minecraft.getInstance().modelManager.getAtlas(TextureAtlas.LOCATION_BLOCKS).id
 
         val currentTexture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
 

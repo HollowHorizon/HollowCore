@@ -28,7 +28,7 @@ class MCRenderBackendGl(ctx: KoolContext) : RenderBackendGl(KoolSystem.configJvm
             cubeMapArrays = true,
             reversedDepth = gl.capabilities.hasClipControl
         )
-        deviceCoordinates = DeviceCoordinates.OPEN_GL_ZERO_TO_ONE
+        deviceCoordinates = DeviceCoordinates.OPEN_GL
     }
 
     override var frameGpuTime: Double = 0.0

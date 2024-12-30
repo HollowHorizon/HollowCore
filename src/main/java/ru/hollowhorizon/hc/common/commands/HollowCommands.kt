@@ -24,7 +24,10 @@
 
 package ru.hollowhorizon.hc.common.commands
 
+import com.mojang.brigadier.arguments.FloatArgumentType
+import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
+import de.fabmax.kool.scene.Mesh
 import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft
 import net.minecraft.commands.arguments.EntityArgument
@@ -33,7 +36,7 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.LivingEntity
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
-import ru.hollowhorizon.hc.client.kool.example.isBeesEnabled
+import ru.hollowhorizon.hc.client.kool.GAME_SCENE
 import ru.hollowhorizon.hc.client.molang.asMolang
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.particles.ParticleEffect
@@ -56,12 +59,18 @@ class ExampleDataPacket(var level: String = "") : RequestPacket<ExampleDataPacke
 }
 
 object HollowCommands {
+    var brightness = 1f
+
     @SubscribeEvent
     fun onRegisterCommands(event: RegisterCommandsEvent) {
         event.dispatcher.onRegisterCommands {
             "hollowcore" {
-                "bees" {
-                    isBeesEnabled = !isBeesEnabled
+                "clear" {
+                    GAME_SCENE.scene.apply {
+                        children.filterIsInstance<Mesh>().forEach {
+                            removeNode(it)
+                        }
+                    }
                 }
 
                 "effect"(

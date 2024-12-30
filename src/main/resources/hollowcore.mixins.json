@@ -23,7 +23,6 @@
     "capabilities.LevelMixin",
     "kool.ClipboardMixin",
     "kool.PlatformFunctionsMixin",
-    "kool.PlatformInputJvmAccessor",
     "kool.PlatformInputJvmMixin",
     "kool.RenderBackendGlAccessor",
     "kool.ShaderManagerAccessor",
@@ -38,10 +37,12 @@
     "ShaderInstanceAccessor",
     "SoundManagerMixin",
     "WindowMixin",
+    //"kool.support.ChunkRenderDispatcherMixin",
+    //"kool.support.RebuildTaskMixin",
+    "particles.LevelRendererMixin",
     "particles.MinecraftMixin",
     "particles.MixinGameRenderer",
-    "particles.MixinItemInHandRenderer",
-    "particles.MixinLevelRenderer"
+    "particles.MixinItemInHandRenderer"
   ],
   "server": [],
   "injectors": {

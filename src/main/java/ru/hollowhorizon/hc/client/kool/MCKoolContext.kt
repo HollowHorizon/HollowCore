@@ -1,9 +1,11 @@
 package ru.hollowhorizon.hc.client.kool
 
 import de.fabmax.kool.KoolContext
+import de.fabmax.kool.input.CursorShape
 import de.fabmax.kool.input.PlatformInputJvm
 import net.minecraft.client.Minecraft
-import ru.hollowhorizon.hc.mixins.kool.PlatformInputJvmAccessor
+import org.lwjgl.glfw.GLFW.*
+import ru.hollowhorizon.hc.client.utils.UnsafeTools
 import java.awt.Desktop
 import java.net.URI
 
@@ -12,10 +14,26 @@ class MCKoolContext : KoolContext() {
     init {
         KoolHooks.createContext(this)
         isWindowFocused = true
-        (PlatformInputJvm as PlatformInputJvmAccessor).apply {
-            createCursors()
-            PointerInputSetup.setup(Minecraft.getInstance().window.window)
-        }
+
+        val shapesField = PlatformInputJvm::class.java.getDeclaredField("cursorShapes")
+        shapesField.isAccessible = true
+        val map = shapesField.get(PlatformInputJvm) as MutableMap<CursorShape, Long>
+        createStandardCursors(map)
+        PointerInputSetup.setup(Minecraft.getInstance().window.window)
+    }
+
+    private fun createStandardCursors(cursorShapes: MutableMap<CursorShape, Long>): MutableMap<CursorShape, Long> {
+        cursorShapes[CursorShape.DEFAULT] = 0L
+        cursorShapes[CursorShape.TEXT] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR)
+        cursorShapes[CursorShape.CROSSHAIR] = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR)
+        cursorShapes[CursorShape.HAND] = glfwCreateStandardCursor(GLFW_HAND_CURSOR)
+        cursorShapes[CursorShape.NOT_ALLOWED] = glfwCreateStandardCursor(GLFW_NOT_ALLOWED_CURSOR)
+        cursorShapes[CursorShape.RESIZE_EW] = glfwCreateStandardCursor(GLFW_RESIZE_EW_CURSOR)
+        cursorShapes[CursorShape.RESIZE_NS] = glfwCreateStandardCursor(GLFW_RESIZE_NS_CURSOR)
+        cursorShapes[CursorShape.RESIZE_NESW] = glfwCreateStandardCursor(GLFW_RESIZE_NESW_CURSOR)
+        cursorShapes[CursorShape.RESIZE_NWSE] = glfwCreateStandardCursor(GLFW_RESIZE_NWSE_CURSOR)
+        cursorShapes[CursorShape.RESIZE_ALL] = glfwCreateStandardCursor(GLFW_RESIZE_ALL_CURSOR)
+        return cursorShapes
     }
 
     private var prevFrameTime = 0L

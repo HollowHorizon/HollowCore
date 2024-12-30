@@ -33,10 +33,8 @@ import de.fabmax.kool.pipeline.TextureProps
 import de.fabmax.kool.pipeline.backend.gl.GlTexture
 import de.fabmax.kool.pipeline.backend.gl.LoadedTextureGl
 import net.minecraft.client.Minecraft
-import ru.hollowhorizon.hc.client.kool.KoolManager
 import ru.hollowhorizon.hc.client.kool.MCGlApi
 import ru.hollowhorizon.hc.client.kool.isKoolLoaded
-import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture
 
 internal val imguiWindowBuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
 
@@ -45,6 +43,13 @@ val MINECRAFT_BUFFER by lazy { createFramebufferTexture(Minecraft.getInstance().
 
 var currentBufferType = BufferType.WINDOW
 
+
+fun glTexture(id: Int) = Texture2d(
+    TextureProps(generateMipMaps = false, defaultSamplerSettings = SamplerSettings().clamped().nearest())
+).apply {
+    gpuTexture = LoadedTextureGl(MCGlApi.TEXTURE_2D, GlTexture(id), MCGlApi.backend, this, 0L)
+    loadingState = Texture.LoadingState.LOADED
+}
 
 fun createFramebufferTexture(texture: RenderTarget) = Texture2d(
     TextureProps(
@@ -78,7 +83,7 @@ enum class BufferType {
 }
 
 fun onResize(width: Int, height: Int) {
-    if(!isKoolLoaded) return
+    if (!isKoolLoaded) return
 
     listOf(MINECRAFT_BUFFER, WINDOW_BUFFER).forEach {
         (it.gpuTexture as? LoadedTextureGl)?.apply {

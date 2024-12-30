@@ -24,12 +24,75 @@
 
 package ru.hollowhorizon.hc.client.render
 
+import net.minecraft.client.CameraType
+import net.minecraft.client.Minecraft
+import org.joml.Vector3f
+import ru.hollowhorizon.hc.api.ParticlesProvider
+import ru.hollowhorizon.hc.client.kool.GAME_SCENE
 import ru.hollowhorizon.hc.client.kool.KoolManager
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.particles.ParticleVertexConsumerProvider
+import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderContext.renderLevelDeferred
+import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture
+import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer.onRenderWorldLast
+import ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.copyCurrentDepthTo
+import ru.hollowhorizon.hc.client.utils.math.Quaternion
+import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.events.client.render.RenderLevelStageEvent
+import ru.hollowhorizon.hc.common.events.client.render.RenderStage
 
 object RenderLoader {
     fun onInitialize() {
         GltfManager.initialize()
         KoolManager
+    }
+
+    @SubscribeEvent
+    fun onRender(event: RenderLevelStageEvent) {
+        if(event.stage == RenderStage.AFTER_LEVEL) {
+            //GAME_SCENE.draw()
+        }
+
+        if(event.stage != RenderStage.AFTER_PARTICLES) return
+
+        val poseStack = event.poseStack
+        val capture = RenderStateCapture.LEVEL
+        val capturedPose = capture.pose.last()
+        val camera = event.camera
+
+        capturedPose.pose().set(poseStack.last().pose())
+        capturedPose.normal().set(poseStack.last().normal())
+        capture.projection.set(event.projectionMatrix)
+        capture.camera = camera
+        capture.hasCapture = true
+
+        if (renderLevelDeferred()) {
+            copyCurrentDepthTo(RenderStateCapture.CAPTURED_WORLD_DEPTH_BUFFER)
+        } else {
+            onRenderWorldLast(event.partialTick, capture.pose, capture.projection, capture.camera!!)
+        }
+
+        val level = Minecraft.getInstance().level as? ParticlesProvider ?: return
+
+        val system = level.system
+        if (system.isEmpty()) return
+
+        system.update()
+
+        if (!system.hasAnythingToRender()) return
+
+        val cameraUuid = camera.entity.uuid
+        val cameraRotMc = camera.rotation()
+        val position = camera.position
+
+        val isFirstPerson = Minecraft.getInstance().options.cameraType == CameraType.FIRST_PERSON
+        system.render(
+            poseStack,
+            Vector3f(position.x.toFloat(), position.y.toFloat(), position.z.toFloat()),
+            Quaternion(cameraRotMc.x(), cameraRotMc.y(), cameraRotMc.z(), cameraRotMc.w()),
+            ParticleVertexConsumerProvider,
+            cameraUuid,
+            isFirstPerson
+        )
     }
 }

@@ -1,53 +1,113 @@
 package ru.hollowhorizon.hc.client.kool
 
-import de.fabmax.kool.math.set
+import com.mojang.math.Axis
+import de.fabmax.kool.math.MutableMat4f
+import de.fabmax.kool.math.QuatF
+import de.fabmax.kool.math.Vec3f
+import de.fabmax.kool.math.deg
+import de.fabmax.kool.pipeline.RenderPass
 import de.fabmax.kool.scene.PerspectiveCamera
 import de.fabmax.kool.scene.Scene
-import net.minecraft.world.phys.Vec3
-import org.joml.Matrix4f
-import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture
+import net.minecraft.client.Minecraft
+import net.minecraft.util.Mth
+import net.minecraft.world.effect.MobEffects
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.player.Player
+import org.joml.Vector3f
+import kotlin.math.abs
+import kotlin.math.min
+
+class MinecraftCamera : PerspectiveCamera() {
+    override fun updateProjectionMatrix(updateEvent: RenderPass.UpdateEvent) {
+        super.updateProjectionMatrix(updateEvent)
+        bobHurt(proj, Minecraft.getInstance().frameTime)
+        if (Minecraft.getInstance().options.bobView().get()) {
+            bobView(proj, Minecraft.getInstance().frameTime)
+        }
+    }
+}
 
 fun Scene.mcCamera() {
-    val camera = mainRenderPass.screenView.camera as PerspectiveCamera
+    val camera = MinecraftCamera()
+    mainRenderPass.screenView.camera = camera
+    val gameRenderer = Minecraft.getInstance().gameRenderer
 
-    camera.onCameraUpdated += { event ->
-        val capture = RenderStateCapture.LEVEL
-        val view = capture.pose
-        val pos = capture.camera?.position ?: Vec3.ZERO
+    onUpdate {
+        camera.clipNear = 0.05f
+        camera.clipFar = gameRenderer.depthFar
+        camera.fovY =
+            gameRenderer.getFov(gameRenderer.mainCamera, Minecraft.getInstance().frameTime, true).toFloat().deg
+        val pos = gameRenderer.mainCamera.position
+        val scaleFactor = 1f
 
-        view.pushPose()
-        view.translate(-pos.x, -pos.y, -pos.z)
-
-        val modelView = Matrix4f(view.last().pose()).transpose() // MODEL VIEW MATRIX
-        val projection = Matrix4f(capture.projection).transpose() // PROJECTION MATRIX
-
-        event.camera.proj.set(
-            projection.m00(), projection.m01(), projection.m02(), projection.m03(),
-            projection.m10(), projection.m11(), projection.m12(), projection.m13(),
-            projection.m20(), projection.m21(), projection.m22(), projection.m23(),
-            projection.m30(), projection.m31(), projection.m32(), projection.m33(),
+        camera.position.set(pos.x.toFloat() * scaleFactor, pos.y.toFloat() * scaleFactor, pos.z.toFloat() * scaleFactor)
+        val look = gameRenderer.mainCamera.lookVector
+        camera.lookAt.set(
+            (pos.x + look.x).toFloat() * scaleFactor,
+            (pos.y + look.y).toFloat() * scaleFactor,
+            (pos.z + look.z).toFloat() * scaleFactor
         )
+        val up = gameRenderer.mainCamera.upVector
+        camera.up.set(up.x, up.y, up.z)
+    }
+}
 
-        event.camera.dataF.view.set(
-            modelView.m00(), modelView.m01(), modelView.m02(), modelView.m03(),
-            modelView.m10(), modelView.m11(), modelView.m12(), modelView.m13(),
-            modelView.m20(), modelView.m21(), modelView.m22(), modelView.m23(),
-            modelView.m30(), modelView.m31(), modelView.m32(), modelView.m33()
-        )
-        val viewProj = projection.transpose().mul(modelView.transpose()).transpose()
-        event.camera.dataF.viewProj.set(
-            viewProj.m00(), viewProj.m01(), viewProj.m02(), viewProj.m03(),
-            viewProj.m10(), viewProj.m11(), viewProj.m12(), viewProj.m13(),
-            viewProj.m20(), viewProj.m21(), viewProj.m22(), viewProj.m23(),
-            viewProj.m30(), viewProj.m31(), viewProj.m32(), viewProj.m33()
-        )
-        event.camera.dataF.lazyInvView.isDirty = true
-        event.camera.dataF.lazyInvViewProj.isDirty = true
+private fun bobHurt(mat4f: MutableMat4f, partialTicks: Float) {
+    val minecraft = Minecraft.getInstance()
+    if (minecraft.getCameraEntity() is LivingEntity) {
+        val livingEntity = minecraft.getCameraEntity() as LivingEntity
+        var f = livingEntity.hurtTime.toFloat() - partialTicks
+        var g: Float
+        if (livingEntity.isDeadOrDying) {
+            g = min((livingEntity.deathTime.toFloat() + partialTicks).toDouble(), 20.0).toFloat()
+            mat4f.rotate(QuatF.rotation((40.0f - 8000.0f / (g + 200.0f)).deg, Vec3f.Z_AXIS))
+        }
 
-        event.camera.dataD.view.set(event.camera.dataF.view)
-        event.camera.dataD.viewProj.set(event.camera.dataF.viewProj)
-        event.camera.dataD.lazyInvView.isDirty = true
-        event.camera.dataD.lazyInvViewProj.isDirty = true
-        view.popPose()
+        if (f < 0.0f) {
+            return
+        }
+
+        f /= livingEntity.hurtDuration.toFloat()
+        f = Mth.sin(f * f * f * f * 3.1415927f)
+        g = livingEntity.hurtDir
+        mat4f.rotate(QuatF((-g).deg, Vec3f.Y_AXIS))
+        val h = ((-f).toDouble() * 14.0 * minecraft.options.damageTiltStrength().get() as Double).toFloat()
+        mat4f.rotate(QuatF(h.deg, Vec3f.Z_AXIS))
+        mat4f.rotate(QuatF(g.deg, Vec3f.Y_AXIS))
+    }
+}
+
+private fun bobView(mat4f: MutableMat4f, partialTicks: Float) {
+    val minecraft = Minecraft.getInstance()
+    if (minecraft.getCameraEntity() is Player) {
+        val player = minecraft.getCameraEntity() as Player
+        val f = player.walkDist - player.walkDistO
+        val g = -(player.walkDist + f * partialTicks)
+        val h = Mth.lerp(partialTicks, player.oBob, player.bob)
+        mat4f.translate(
+            (Mth.sin(g * 3.1415927f) * h * 0.5f),
+            -abs((Mth.cos(g * 3.1415927f) * h)),
+            0.0f
+        )
+        mat4f.rotate(QuatF((Mth.sin(g * 3.1415927f) * h * 3.0f).deg, Vec3f.Z_AXIS))
+        mat4f.rotate(QuatF((abs(Mth.cos(g * 3.1415927f - 0.2f) * h) * 5.0f).deg, Vec3f.X_AXIS))
+    }
+
+    val f = minecraft.options.screenEffectScale().get().toFloat()
+    val player = minecraft.player!!
+    val g = Mth.lerp(
+        partialTicks,
+        player.oSpinningEffectIntensity,
+        player.spinningEffectIntensity
+    ) * f * f
+    if (g > 0.0f) {
+        val i = if (player.hasEffect(MobEffects.CONFUSION)) 7 else 20
+        var h = 5.0f / (g * g + 5.0f) - g * 0.04f
+        h *= h
+        val axis = Vec3f(0.0f, Mth.SQRT_OF_TWO / 2.0f, Mth.SQRT_OF_TWO / 2.0f)
+        mat4f.rotate(((player.tickCount + partialTicks) * i.toFloat()).deg, axis)
+        mat4f.scale(Vec3f(1.0f / h, 1.0f, 1.0f))
+        val j: Float = -(player.tickCount + partialTicks) * i.toFloat()
+        mat4f.rotate(j.deg, axis)
     }
 }
