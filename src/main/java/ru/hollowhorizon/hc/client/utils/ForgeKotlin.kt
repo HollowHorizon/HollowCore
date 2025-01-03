@@ -63,10 +63,10 @@ val isProduction: Boolean
         //? if neoforge {
         /*return net.neoforged.fml.loading.FMLLoader.isProduction()
         *///?} elif forge {
-        return net.minecraftforge.fml.loading.FMLLoader.isProduction()
-        //?} else {
-        /*return !net.fabricmc.loader.api.FabricLoader.getInstance().isDevelopmentEnvironment
-        *///?}
+        /*return net.minecraftforge.fml.loading.FMLLoader.isProduction()
+        *///?} else {
+        return !net.fabricmc.loader.api.FabricLoader.getInstance().isDevelopmentEnvironment
+        //?}
     }
 val isLogicalClient get() = isPhysicalClient && RenderSystem.isOnRenderThread()
 val isPhysicalClient: Boolean
@@ -74,10 +74,10 @@ val isPhysicalClient: Boolean
         //? if neoforge {
         /*return net.neoforged.fml.loading.FMLLoader.getDist().isClient
         *///?} elif forge {
-        return net.minecraftforge.fml.loading.FMLLoader.getDist().isClient
-        //?} else {
-        /*return net.fabricmc.loader.api.FabricLoader.getInstance().environmentType == net.fabricmc.api.EnvType.CLIENT
-        *///?}
+        /*return net.minecraftforge.fml.loading.FMLLoader.getDist().isClient
+        *///?} else {
+        return net.fabricmc.loader.api.FabricLoader.getInstance().environmentType == net.fabricmc.api.EnvType.CLIENT
+        //?}
     }
 
 val hasShaders get() = ModList.isLoaded("oculus") || ModList.isLoaded("iris") || ModList.isLoaded("optifine")

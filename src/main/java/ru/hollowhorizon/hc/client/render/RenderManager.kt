@@ -28,7 +28,7 @@ import net.minecraft.client.CameraType
 import net.minecraft.client.Minecraft
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
-import ru.hollowhorizon.hc.client.kool.GAME_SCENE
+import ru.hollowhorizon.hc.client.kool.KoolDrawer
 import ru.hollowhorizon.hc.client.kool.KoolManager
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.particles.ParticleVertexConsumerProvider
@@ -41,7 +41,7 @@ import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.client.render.RenderLevelStageEvent
 import ru.hollowhorizon.hc.common.events.client.render.RenderStage
 
-object RenderLoader {
+object RenderManager {
     fun onInitialize() {
         GltfManager.initialize()
         KoolManager
@@ -49,11 +49,13 @@ object RenderLoader {
 
     @SubscribeEvent
     fun onRender(event: RenderLevelStageEvent) {
-        if(event.stage == RenderStage.AFTER_LEVEL) {
-            GAME_SCENE.draw()
-        }
+        if (event.stage != RenderStage.AFTER_LEVEL) return
+        KoolDrawer.draw()
+    }
 
-        if(event.stage != RenderStage.AFTER_PARTICLES) return
+    @SubscribeEvent
+    fun onRenderParticles(event: RenderLevelStageEvent) {
+        if (event.stage != RenderStage.AFTER_PARTICLES) return
 
         val poseStack = event.poseStack
         val capture = RenderStateCapture.LEVEL

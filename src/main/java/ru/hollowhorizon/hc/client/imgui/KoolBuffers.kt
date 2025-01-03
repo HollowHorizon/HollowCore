@@ -34,7 +34,6 @@ import de.fabmax.kool.pipeline.backend.gl.GlTexture
 import de.fabmax.kool.pipeline.backend.gl.LoadedTextureGl
 import net.minecraft.client.Minecraft
 import ru.hollowhorizon.hc.client.kool.MCGlApi
-import ru.hollowhorizon.hc.client.kool.isKoolLoaded
 
 internal val imguiWindowBuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
 
@@ -83,8 +82,6 @@ enum class BufferType {
 }
 
 fun onResize(width: Int, height: Int) {
-    if (!isKoolLoaded) return
-
     listOf(MINECRAFT_BUFFER, WINDOW_BUFFER).forEach {
         (it.gpuTexture as? LoadedTextureGl)?.apply {
             this.width = width

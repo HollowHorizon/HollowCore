@@ -1,4 +1,4 @@
-import dev.kikugie.stonecutter.StonecutterSettings
+import dev.kikugie.stonecutter.data.tree.TreeBuilder
 
 pluginManagement {
     repositories {
@@ -26,19 +26,19 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 
-extensions.configure<StonecutterSettings> {
+stonecutter {
     kotlinController = true
     centralScript = "build.gradle.kts"
     shared {
         fun mc(version: String, vararg loaders: String) {
             for (it in loaders) vers("$version-$it", version)
         }
-
         mc("1.20.1", "fabric", "forge")
     }
     create(rootProject)
 }
 
-rootProject.name = "HollowCore"
+val modName: String by settings
+rootProject.name = modName
 
 include("forgefixer")

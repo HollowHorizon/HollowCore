@@ -24,10 +24,7 @@
 
 package ru.hollowhorizon.hc.common.commands
 
-import com.mojang.brigadier.arguments.FloatArgumentType
-import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
-import de.fabmax.kool.scene.Mesh
 import kotlinx.serialization.Serializable
 import net.minecraft.client.Minecraft
 import net.minecraft.commands.arguments.EntityArgument
@@ -36,8 +33,6 @@ import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.LivingEntity
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
-import ru.hollowhorizon.hc.client.kool.GAME_SCENE
-import ru.hollowhorizon.hc.client.kool.bakeMesh
 import ru.hollowhorizon.hc.client.molang.asMolang
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.particles.ParticleEffect
@@ -66,18 +61,6 @@ object HollowCommands {
     fun onRegisterCommands(event: RegisterCommandsEvent) {
         event.dispatcher.onRegisterCommands {
             "hollowcore" {
-                "clear" {
-                    GAME_SCENE.scene.apply {
-                        children.filterIsInstance<Mesh>().forEach {
-                            removeNode(it)
-                        }
-                    }
-                }
-
-                "bake" {
-                    bakeMesh()
-                }
-
                 "effect"(
                     arg("pos", Vec3Argument.vec3()),
                     arg("name", StringArgumentType.greedyString()) { EffekAssets.entries().map { it.key.toString() } }

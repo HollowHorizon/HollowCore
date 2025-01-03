@@ -16,8 +16,6 @@ import ru.hollowhorizon.hc.client.utils.json.JsonFormat
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
 
-var isKoolLoaded = false
-
 @OptIn(ExperimentalSerializationApi::class)
 object KoolManager {
     val LOGGER = LogManager.getLogger()
@@ -27,10 +25,9 @@ object KoolManager {
             LOGGER.info("[$level] $tag: $message")
         }
         KoolSystem.initialize(KoolConfigJvm(defaultAssetLoader = MCAssetLoader))
-        isKoolLoaded = true
     }
 
-    val ctx = MCKoolContext()
+    val context = MCKoolContext()
     val MONOCRAFT_DATA by lazy {
         val fontInfo = JsonFormat.decodeFromStream<MsdfMeta>("hollowcore:fonts/monocraft.json".rl.stream)
         val msdfMap = Texture2d(MSDF_TEX_PROPS, "MsdfFont:${fontInfo.name}") {

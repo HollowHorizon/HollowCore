@@ -25,10 +25,10 @@
 package ru.hollowhorizon.hc.common.network
 
 //? if forge {
-import net.minecraftforge.network.PacketDistributor
+/*import net.minecraftforge.network.PacketDistributor
 import ru.hollowhorizon.hc.forge.internal.ForgeNetworkHelper
-//?} elif fabric {
-/*import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
+*///?} elif fabric {
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import io.netty.buffer.Unpooled
 import net.minecraft.nbt.CompoundTag
@@ -37,7 +37,7 @@ import net.minecraft.network.protocol.Packet
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
 
-*///?}
+//?}
 
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerChunkCache
@@ -73,13 +73,13 @@ fun HollowPacketV3<*>.sendTrackingEntity(entity: Entity) {
     val chunkCache = entity.level().chunkSource
     if (chunkCache is ServerChunkCache) {
         //? if forge {
-        ForgeNetworkHelper.hollowCoreChannel.send(PacketDistributor.TRACKING_ENTITY.with { entity }, this)
-        //?} else {
-        /*chunkCache.broadcastAndSend(
+        /*ForgeNetworkHelper.hollowCoreChannel.send(PacketDistributor.TRACKING_ENTITY.with { entity }, this)
+        *///?} else {
+        chunkCache.broadcastAndSend(
             entity,
             this.asVanillaPacket(true)
         )
-        *///?}
+        //?}
     } else {
         throw IllegalStateException("Cannot send clientbound payloads on the client")
     }
@@ -93,21 +93,21 @@ fun HollowPacketV3<*>.sendTrackingEntityAndSelf(entity: Entity) {
 fun HollowPacketV3<*>.sendAllInDimension(level: Level) {
     val server = level.server ?: return
     //? if forge {
-    ForgeNetworkHelper.hollowCoreChannel.send(PacketDistributor.DIMENSION.with { level.dimension() }, this)
-    //?} else {
-    /*server.playerList.broadcastAll(this.asVanillaPacket(true), level.dimension())
-    *///?}
+    /*ForgeNetworkHelper.hollowCoreChannel.send(PacketDistributor.DIMENSION.with { level.dimension() }, this)
+    *///?} else {
+    server.playerList.broadcastAll(this.asVanillaPacket(true), level.dimension())
+    //?}
 }
 
 //? if fabric {
-/*fun HollowPacketV3<*>.asVanillaPacket(toClient: Boolean): Packet<*> {
+fun HollowPacketV3<*>.asVanillaPacket(toClient: Boolean): Packet<*> {
     val byteBuf = FriendlyByteBuf(Unpooled.buffer())
     byteBuf.writeNbt(NBTFormat.serializeNoInline(this, javaClass) as CompoundTag)
     return if (!toClient) ClientPlayNetworking.createC2SPacket(packetName, byteBuf)
     else ServerPlayNetworking.createS2CPacket(packetName, byteBuf)
 
     throw NotImplementedError("AsVanillaPacket method is not implemented for this platform")
-}*///?}
+}//?}
 
 lateinit var sendPacketToServer: (HollowPacketV3<*>) -> Unit
 lateinit var sendPacketToClient: (ServerPlayer, HollowPacketV3<*>) -> Unit

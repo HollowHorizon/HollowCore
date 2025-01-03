@@ -22,7 +22,6 @@
     "capabilities.EntityMixin",
     "capabilities.LevelMixin",
     "kool.ClipboardMixin",
-    "kool.PlatformFunctionsMixin",
     "kool.PlatformInputJvmMixin",
     "kool.RenderBackendGlAccessor",
     "kool.ShaderManagerAccessor"
