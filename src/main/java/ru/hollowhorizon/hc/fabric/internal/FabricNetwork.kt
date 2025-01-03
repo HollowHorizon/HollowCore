@@ -1,6 +1,6 @@
 package ru.hollowhorizon.hc.fabric.internal
 
-//?} if fabric {
+//? if fabric {
 
 /*import net.fabricmc.api.EnvType
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking

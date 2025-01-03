@@ -1,18 +1,13 @@
 import groovy.lang.Closure
-import net.fabricmc.loom.api.remapping.RemapperExtension
-import net.fabricmc.loom.api.remapping.RemapperParameters
 import net.fabricmc.loom.extension.LoomGradleExtensionImpl
-import net.fabricmc.loom.extension.RemapperExtensionHolder
-import net.fabricmc.tinyremapper.TinyRemapper
 import org.gradle.internal.jvm.Jvm
-import org.jetbrains.kotlin.ir.backend.js.compile
 import java.util.*
 
 plugins {
     java
     `maven-publish`
     id("architectury-plugin") version "3.4-SNAPSHOT"
-    id("dev.architectury.loom") version "1.7-SNAPSHOT"
+    id("dev.architectury.loom") version "1.9-SNAPSHOT"
     id("me.fallenbreath.yamlang") version "1.3.1"
     kotlin("jvm")
     kotlin("plugin.serialization")
@@ -44,7 +39,7 @@ loom {
         "forge" -> forge {
             convertAccessWideners = true
             mixinConfig("$modId.mixins.json")
-            (this@loom as LoomGradleExtensionImpl).remapperExtensions.add(ForgeFixer)
+            //(this@loom as LoomGradleExtensionImpl).remapperExtensions.add(ForgeFixer)
         }
 
         "neoforge" -> neoForge {
@@ -52,7 +47,7 @@ loom {
     }
 
     runConfigs.all {
-        if(environment == "client") programArgs("--username=TheHollowHorizon")
+        if (environment == "client") programArgs("--username=TheHollowHorizon")
         property("sodium.checks.issue2561", "false")
         runDir("../../run")
     }
@@ -181,9 +176,6 @@ stonecutter {
     kotlin {
         jvmToolchain(if (j21) 21 else 17)
     }
-
-    arrayOf("gltf", "glb", "bin", "ttf", "so", "dll", "dylib", "ser", "efkefc", "obj", "mtl")
-        .forEach { stonecutter.exclude("*.$it") }
 }
 
 tasks.processResources {
@@ -258,6 +250,7 @@ fun <T : Any> closure(function: T.() -> Unit): Closure<T> {
     return KClosure(function)
 }
 
+/*
 object ForgeFixer : RemapperExtensionHolder(object : RemapperParameters {}) {
     override fun getRemapperExtensionClass(): Property<Class<out RemapperExtension<*>>> {
         throw UnsupportedOperationException("How did you call this method?")
@@ -272,7 +265,7 @@ object ForgeFixer : RemapperExtensionHolder(object : RemapperParameters {}) {
         // For some strange reason there are errors with source name mapping, but that doesn't stop me from compiling the jar, does it?
         tinyRemapperBuilder.ignoreConflicts(true)
     }
-}
+}*/
 
 fun DependencyHandlerScope.dependency(path: String) {
     val dependency = implementation(path) {
@@ -348,6 +341,7 @@ fun DependencyHandlerScope.setupLoader(loader: String, version: String) {
                     compileOnly("mods:oculus-mc1.20.1:1.7.0")
                     compileOnly("mods:embeddium:0.3.31+mc1.20.1")
                 }
+
                 "1.19.2" -> {
                     dependency("org.joml:joml:1.10.8")
                     "forge"("net.minecraftforge:forge:$version-43.4.2")
@@ -404,7 +398,7 @@ publishing {
 
 }
 
-if(modPlatform == "fabric") tasks.register<Exec>("run + RenderDoc") {
+if (modPlatform == "fabric") tasks.register<Exec>("run + RenderDoc") {
     val javaHome = Jvm.current().javaHome
 
     commandLine = listOf(

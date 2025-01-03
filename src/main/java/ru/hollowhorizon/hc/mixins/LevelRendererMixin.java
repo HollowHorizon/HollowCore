@@ -22,28 +22,25 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.mixins.particles;
+package ru.hollowhorizon.hc.mixins;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.culling.Frustum;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import ru.hollowhorizon.hc.client.kool.KoolDrawerKt;
 import ru.hollowhorizon.hc.common.events.EventBus;
 import ru.hollowhorizon.hc.common.events.client.render.RenderLevelStageEvent;
 import ru.hollowhorizon.hc.common.events.client.render.RenderStage;
 
 import javax.annotation.Nullable;
-import java.util.concurrent.Executor;
 
 
 @Mixin(LevelRenderer.class)
@@ -125,14 +122,5 @@ public class LevelRendererMixin {
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;renderChunkLayer(Lnet/minecraft/client/renderer/RenderType;Lcom/mojang/blaze3d/vertex/PoseStack;DDDLorg/joml/Matrix4f;)V", ordinal = 6, shift = At.Shift.AFTER))
     private void afterRenderTripwireElse(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f projectionMatrix, CallbackInfo ci) {
         EventBus.post(new RenderLevelStageEvent((LevelRenderer) (Object) this, poseStack, projectionMatrix, ticks, partialTick, camera, capturedFrustum, RenderStage.AFTER_TRIPWIRE_BLOCKS));
-    }
-
-    @Inject(method = "renderChunkLayer", at = @At("HEAD"), cancellable = true)
-    private void onRenderChunksHead(RenderType renderType, PoseStack poseStack, double camX, double camY, double camZ, Matrix4f projectionMatrix, CallbackInfo ci) {
-        //ci.cancel();
-    }
-
-    @Inject(method = "allChanged", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;graphicsChanged()V"))
-    private void onAllChanged(CallbackInfo ci) {
     }
 }

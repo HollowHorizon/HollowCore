@@ -72,7 +72,7 @@ val HollowPacketV3<*>.packetName: ResourceLocation
 fun HollowPacketV3<*>.sendTrackingEntity(entity: Entity) {
     val chunkCache = entity.level().chunkSource
     if (chunkCache is ServerChunkCache) {
-        //? elif forge {
+        //? if forge {
         ForgeNetworkHelper.hollowCoreChannel.send(PacketDistributor.TRACKING_ENTITY.with { entity }, this)
         //?} else {
         /*chunkCache.broadcastAndSend(

@@ -2,11 +2,8 @@ package ru.hollowhorizon.hc.mixins.kool;
 
 import de.fabmax.kool.KeyValueStore;
 import de.fabmax.kool.KoolContext;
-import de.fabmax.kool.KoolSystem;
 import de.fabmax.kool.editor.PlatformFunctions;
 import de.fabmax.kool.editor.WindowButtonStyle;
-import de.fabmax.kool.platform.Lwjgl3Context;
-import kroppeb.stareval.function.Type;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
@@ -47,7 +44,7 @@ public class PlatformFunctionsMixin {
         ci.cancel();
     }
 
-    @Inject(method = "onExit", at=@At("HEAD"), cancellable = true)
+    @Inject(method = "onExit", at = @At("HEAD"), cancellable = true)
     private void onExit(KoolContext ctx, CallbackInfo ci) {
         var wnd = Minecraft.getInstance().getWindow();
 
@@ -63,25 +60,25 @@ public class PlatformFunctionsMixin {
         ci.cancel();
     }
 
-    @Inject(method = "toggleMaximizeWindow", at=@At("HEAD"), cancellable = true)
+    @Inject(method = "toggleMaximizeWindow", at = @At("HEAD"), cancellable = true)
     private void onToggleMaximizeWindow(CallbackInfo ci) {
         ci.cancel();
         var handle = Minecraft.getInstance().getWindow().getWindow();
-        if(glfwGetWindowAttrib(handle, GLFW_MAXIMIZED) != 0) {
+        if (glfwGetWindowAttrib(handle, GLFW_MAXIMIZED) != 0) {
             GLFW.glfwRestoreWindow(handle);
         } else {
             GLFW.glfwMaximizeWindow(handle);
         }
     }
 
-    @Inject(method = "minimizeWindow", at=@At("HEAD"), cancellable = true)
+    @Inject(method = "minimizeWindow", at = @At("HEAD"), cancellable = true)
     private void onMinimizeWindow(CallbackInfo ci) {
         ci.cancel();
         var handle = Minecraft.getInstance().getWindow().getWindow();
         GLFW.glfwIconifyWindow(handle);
     }
 
-    @Inject(method = "closeWindow", at=@At("HEAD"), cancellable = true)
+    @Inject(method = "closeWindow", at = @At("HEAD"), cancellable = true)
     private void onClose(CallbackInfo ci) {
         ci.cancel();
         Minecraft.getInstance().close();

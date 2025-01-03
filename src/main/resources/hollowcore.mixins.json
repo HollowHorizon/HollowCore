@@ -25,8 +25,7 @@
     "kool.PlatformFunctionsMixin",
     "kool.PlatformInputJvmMixin",
     "kool.RenderBackendGlAccessor",
-    "kool.ShaderManagerAccessor",
-    "kool.TextureDataMixin"
+    "kool.ShaderManagerAccessor"
   ],
   "client": [
     "ClientLevelMixin",
@@ -37,12 +36,10 @@
     "ShaderInstanceAccessor",
     "SoundManagerMixin",
     "WindowMixin",
-    //"kool.support.ChunkRenderDispatcherMixin",
-    //"kool.support.RebuildTaskMixin",
-    "particles.LevelRendererMixin",
-    "particles.MinecraftMixin",
-    "particles.MixinGameRenderer",
-    "particles.MixinItemInHandRenderer"
+    "LevelRendererMixin",
+    "MinecraftMixin",
+    "MixinGameRenderer",
+    "MixinItemInHandRenderer"
   ],
   "server": [],
   "injectors": {

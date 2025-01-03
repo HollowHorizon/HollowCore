@@ -8,20 +8,29 @@ import de.fabmax.kool.modules.gizmo.SimpleGizmo
 import de.fabmax.kool.modules.gltf.GltfLoadConfig
 import de.fabmax.kool.modules.gltf.GltfMaterialConfig
 import de.fabmax.kool.modules.gltf.loadGltfModel
+import de.fabmax.kool.modules.mesh.HalfEdgeMesh
+import de.fabmax.kool.modules.mesh.simplification.simplify
+import de.fabmax.kool.modules.mesh.simplification.terminateOnFaceCountRel
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.modules.ui2.docking.UiDockable
+import de.fabmax.kool.pipeline.Attribute
 import de.fabmax.kool.pipeline.CullMethod
 import de.fabmax.kool.pipeline.DepthCompareOp
 import de.fabmax.kool.pipeline.ao.AoPipeline
 import de.fabmax.kool.pipeline.backend.gl.glOp
 import de.fabmax.kool.scene.Mesh
 import de.fabmax.kool.scene.Scene
+import de.fabmax.kool.scene.geometry.IndexedVertexList
+import de.fabmax.kool.scene.geometry.PrimitiveType
+import de.fabmax.kool.scene.geometry.VertexView
 import de.fabmax.kool.util.CascadedShadowMap
 import de.fabmax.kool.util.Color
 import de.fabmax.kool.util.launchDelayed
 import de.fabmax.kool.util.launchOnMainThread
 import org.lwjgl.opengl.GL33
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.kool.gl.KslPbrShaderLightmap
+import ru.hollowhorizon.hc.client.kool.support.MC_UV_2
 
 // Scene in game
 val GAME_SCENE = KoolDrawer {
@@ -107,6 +116,40 @@ val GAME_SCENE = KoolDrawer {
             gizmo.setTransformNode(model)
         }
     }
+}
+
+fun bakeMesh() {
+    launchOnMainThread {
+        val scene = GAME_SCENE.scene
+        val backed = scene.children.filterIsInstance<Mesh>().join()
+        scene.addNode(backed)
+        HollowCore.LOGGER.info("Joined!")
+    }
+}
+
+private fun List<Mesh>.join(): Mesh {
+    val meshes = this
+    val geometry = IndexedVertexList(
+        mutableListOf(
+            Attribute.POSITIONS,
+            Attribute.NORMALS,
+            Attribute.COLORS,
+            Attribute.TEXTURE_COORDS,
+            MC_UV_2
+        ), PrimitiveType.TRIANGLES
+    )
+    geometry.batchUpdate {
+        meshes.forEach { mesh ->
+            addGeometry(mesh.geometry) {
+                position.add(mesh.transform.getTranslationF())
+            }
+            GAME_SCENE.scene.removeNode(mesh)
+        }
+    }
+    val halfEdgeMesh = HalfEdgeMesh(geometry)
+    halfEdgeMesh.simplify(terminateOnFaceCountRel(0.75))
+    halfEdgeMesh.shader = shader
+    return halfEdgeMesh
 }
 
 lateinit var shader: KslPbrShaderLightmap

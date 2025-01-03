@@ -115,12 +115,14 @@ class KoolBufferBuilder : BufferBuilder(1), BufferVertexConsumer {
 
     override fun endOrDiscardIfEmpty(): RenderedBuffer? {
         synchronized(vertexBuilder) {
-            currentChunkMesh?.let { mesh ->
-                mesh.geometry.batchUpdate(true) {
-                    vertexBuilder.forEach { it() }
+            if(vertexBuilder.isNotEmpty()) {
+                currentChunkMesh?.let { mesh ->
+                    mesh.geometry.batchUpdate(true) {
+                        vertexBuilder.forEach { it() }
+                    }
                 }
+                vertexBuilder.clear()
             }
-            vertexBuilder.clear()
         }
         return null
     }

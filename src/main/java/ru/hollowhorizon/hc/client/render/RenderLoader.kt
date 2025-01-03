@@ -50,7 +50,7 @@ object RenderLoader {
     @SubscribeEvent
     fun onRender(event: RenderLevelStageEvent) {
         if(event.stage == RenderStage.AFTER_LEVEL) {
-            //GAME_SCENE.draw()
+            GAME_SCENE.draw()
         }
 
         if(event.stage != RenderStage.AFTER_PARTICLES) return

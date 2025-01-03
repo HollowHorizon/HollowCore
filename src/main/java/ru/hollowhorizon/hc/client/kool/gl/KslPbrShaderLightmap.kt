@@ -15,6 +15,7 @@ import de.fabmax.kool.scene.Mesh
 import de.fabmax.kool.scene.MeshInstanceList
 import de.fabmax.kool.scene.Node
 import de.fabmax.kool.scene.addMesh
+import de.fabmax.kool.scene.geometry.IndexedVertexList
 import de.fabmax.kool.scene.geometry.PrimitiveType
 import de.fabmax.kool.scene.geometry.VertexView
 import de.fabmax.kool.util.Color
@@ -85,7 +86,9 @@ fun Node.addTextureMeshWithLightmap(
     if (isNormalMapped) {
         attributes += Attribute.TANGENTS
     }
-    val mesh = addMesh(attributes, instances, makeChildName(name), primitiveType, block)
+
+    val mesh = Mesh(IndexedVertexList(attributes, primitiveType), instances, name=makeChildName(name))
+    addNode(mesh)
     if (isNormalMapped) {
         mesh.geometry.generateTangents()
     }

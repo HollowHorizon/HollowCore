@@ -37,6 +37,7 @@ import net.minecraft.world.entity.LivingEntity
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
 import ru.hollowhorizon.hc.client.kool.GAME_SCENE
+import ru.hollowhorizon.hc.client.kool.bakeMesh
 import ru.hollowhorizon.hc.client.molang.asMolang
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.particles.ParticleEffect
@@ -71,6 +72,10 @@ object HollowCommands {
                             removeNode(it)
                         }
                     }
+                }
+
+                "bake" {
+                    bakeMesh()
                 }
 
                 "effect"(
