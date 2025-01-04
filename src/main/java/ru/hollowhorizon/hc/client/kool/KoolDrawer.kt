@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.GlStateManager
 import de.fabmax.kool.pipeline.CullMethod
 import de.fabmax.kool.pipeline.DepthCompareOp
 import de.fabmax.kool.pipeline.backend.gl.glOp
+import net.minecraft.client.Minecraft
 import org.lwjgl.opengl.GL33
 
 object KoolDrawer {
@@ -65,6 +66,8 @@ object KoolDrawer {
         )
         GL33.glCullFace(GL33.GL_BACK)
         GL33.glEnable(GL33.GL_CULL_FACE)
+
+        Minecraft.getInstance().mainRenderTarget.bindWrite(true)
     }
 
     private val currentDepthOp
@@ -80,10 +83,10 @@ object KoolDrawer {
             else -> throw IllegalStateException("Unknown depth compare operation")
         }
 
-    private val currentCull
-        get() = run {
-            if (!GL33.glIsEnabled(GL33.GL_CULL_FACE)) CullMethod.NO_CULLING
-            when (GL33.glGetInteger(GL33.GL_CULL_FACE_MODE)) {
+    private val currentCull: CullMethod
+        get() {
+            if (!GL33.glIsEnabled(GL33.GL_CULL_FACE)) return CullMethod.NO_CULLING
+            return when (GL33.glGetInteger(GL33.GL_CULL_FACE_MODE)) {
                 GL33.GL_BACK -> CullMethod.CULL_BACK_FACES
                 GL33.GL_FRONT -> CullMethod.CULL_FRONT_FACES
                 else -> CullMethod.NO_CULLING // На случай необычного значения.

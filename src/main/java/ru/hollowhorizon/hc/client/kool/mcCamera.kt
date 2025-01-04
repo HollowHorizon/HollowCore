@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.client.kool
 
-import com.mojang.math.Axis
 import de.fabmax.kool.math.MutableMat4f
 import de.fabmax.kool.math.QuatF
 import de.fabmax.kool.math.Vec3f
@@ -13,7 +12,6 @@ import net.minecraft.util.Mth
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
-import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.min
 
