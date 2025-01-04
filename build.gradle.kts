@@ -26,7 +26,7 @@ group = properties["mod_group"].toString()
 version = modVersion
 base.archivesName = "$modName-${container.modPlatform}-${container.minecraftVersion}"
 
-setupEnviroment(container, kotlinVersion, "TheHollowHorizon", includeKotlin = true)
+setupEnviroment(container, kotlinVersion, "TheHollowHorizon", includeKotlin = true, enablePublishing = true)
 
 dependencies {
     // CONFIG //
