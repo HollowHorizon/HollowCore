@@ -22,33 +22,13 @@ public class KoolHooks {
         RenderLoopCoroutineDispatcher.INSTANCE.executeDispatchedTasks$kool_core();
     }
 
-    public static void setupScene(SceneRenderPassGl scene) {
-        scene.setResolveDirect$kool_core(true);
-    }
-
     public static void resetShaders(MCKoolContext context) {
         ShaderManagerAccessor manager = JavaHacks.forceCast(context.getBackend().getShaderMgr$kool_core());
         manager.callSetBoundShader(null);
     }
 
-    public static ShaderManager shaderManager(MCKoolContext context) {
-        return context.getBackend().getShaderMgr$kool_core();
-    }
-
     public static List<OffscreenRenderPass> renderPasses(Scene scene) {
         return scene.getSortedOffscreenPasses$kool_core();
-    }
-
-    public static OffscreenPass2dImpl getImpl(OffscreenRenderPass2d offscreenRenderPass) {
-        return offscreenRenderPass.getImpl$kool_core();
-    }
-
-    public static OffscreenPassCubeImpl getImpl(OffscreenRenderPassCube offscreenRenderPassCube) {
-        return offscreenRenderPassCube.getImpl$kool_core();
-    }
-
-    public static ComputePassImpl getImpl(ComputeRenderPass computeRenderPass) {
-        return computeRenderPass.getImpl$kool_core();
     }
 
     public static KoolContext getContext(RenderBackendGl backend) {

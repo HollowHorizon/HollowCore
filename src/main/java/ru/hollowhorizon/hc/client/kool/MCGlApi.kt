@@ -1,14 +1,11 @@
 package ru.hollowhorizon.hc.client.kool
 
-import com.mojang.blaze3d.platform.GlStateManager
-import com.mojang.blaze3d.platform.TextureUtil
 import com.mojang.blaze3d.systems.RenderSystem
 import de.fabmax.kool.math.MutableVec3i
 import de.fabmax.kool.pipeline.*
 import de.fabmax.kool.pipeline.backend.gl.*
 import de.fabmax.kool.util.*
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL33
 import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import org.lwjgl.opengl.GL42.glTexStorage2D
 import org.lwjgl.opengl.GL45.*
