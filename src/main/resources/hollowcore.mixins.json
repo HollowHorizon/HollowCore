@@ -30,15 +30,16 @@
     "ClientLevelMixin",
     "GuiMixin",
     "ItemRendererMixin",
-    "MultiplayerGameModeMixin",
-    "ScreenMixin",
-    "ShaderInstanceAccessor",
-    "SoundManagerMixin",
-    "WindowMixin",
     "LevelRendererMixin",
     "MinecraftMixin",
     "MixinGameRenderer",
-    "MixinItemInHandRenderer"
+    "MixinItemInHandRenderer",
+    "MultiplayerGameModeMixin",
+    "RenderSystemMixin",
+    "ScreenMixin",
+    "ShaderInstanceAccessor",
+    "SoundManagerMixin",
+    "WindowMixin"
   ],
   "server": [],
   "injectors": {

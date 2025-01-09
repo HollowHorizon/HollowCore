@@ -48,12 +48,6 @@ object RenderManager {
     }
 
     @SubscribeEvent
-    fun onRender(event: RenderLevelStageEvent) {
-        if (event.stage != RenderStage.AFTER_LEVEL) return
-        KoolDrawer.draw()
-    }
-
-    @SubscribeEvent
     fun onRenderParticles(event: RenderLevelStageEvent) {
         if (event.stage != RenderStage.AFTER_PARTICLES) return
 

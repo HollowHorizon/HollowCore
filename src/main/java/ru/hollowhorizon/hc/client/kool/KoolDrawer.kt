@@ -13,6 +13,11 @@ object KoolDrawer {
     var actCullMethod: CullMethod = CullMethod.NO_CULLING
     var lineWidth = 1f
 
+    fun drawOverlays() {
+        // TODO: Make separate calls for game objects and game ui overlays
+        draw()
+    }
+
     fun draw() {
         MCGlApi.clipControl(MCGlApi.LOWER_LEFT, MCGlApi.NEGATIVE_ONE_TO_ONE)
         val activeTexture = GlStateManager._getActiveTexture()
