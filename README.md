@@ -27,9 +27,8 @@ HollowCore is a minecraft modding library by <a href="https://github.com/HollowH
 
 
 ### Graphics
-- [x] ImGui based framework: basic elements, items, entities, containers, slots, etc. 
-- [x] Async GLTF model loader with skeletal animations, skinning, morph targets, PBR materials with Iris/Oculus support.
+- [x] Kool-based Gui gramework with support for slots, containers, etc. 
+- [x] Kool-based GLTF model loader with skeletal animations, skinning, morph targets, PBR materials with Iris/Oculus support. (On rework)
 - [x] Effekseer particles support.
-- [x] Bedrock particles support
-- [x] Jpeg, tiff, apng, gif textures.
+- [x] Bedrock particles support.
 - [x] MP3, OGG, WAV Sound formats support.
