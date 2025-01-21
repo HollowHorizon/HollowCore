@@ -52,7 +52,13 @@ open class HollowRegistry(val modId: String = MODID) {
             return IRegistryHolder { _, _ -> entry }
         }
 
-        return createRegistry(location, registry, autoModel, { registryEntry(location) }, T::class.java) as IRegistryHolder<T>
+        return createRegistry(
+            location,
+            registry,
+            autoModel,
+            { registryEntry(location) },
+            T::class.java
+        ) as IRegistryHolder<T>
     }
 
     inline fun <reified T : Any> register(
@@ -71,6 +77,7 @@ open class CoreRegistry<T>(val registryName: ResourceLocation) {
     operator fun set(key: ResourceLocation, value: RegistryObject<T>) {
         entries[key] = value
     }
+
     operator fun get(id: ResourceLocation): T =
         entries[id]?.get() ?: throw IllegalStateException("Element $id not found in registry $registryName")
 

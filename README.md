@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/HollowHorizon/HollowCore/blob/1.19.2/src/main/resources/hollow_core_logo.png">
+  <img src="src/main/resources/hollowcore.png">
 </p>
 <p align="center">
   <a href="https://github.com/HollowHorizon/HollowCore/commits/"><img src="https://img.shields.io/github/commit-activity/t/HollowHorizon/HollowCore?style=for-the-badge&labelColor=7e91a6&color=80bcff" alt="Stars"></a>
@@ -10,7 +10,7 @@
   <a href="https://0mods.team/docs/hollowcore/hollowcore"><img src="https://img.shields.io/badge/Docs-📖-blue?style=for-the-badge&labelColor=7e91a6&color=80bcff" alt="Documentation"></a>
   <a href="https://jitpack.io/#HollowHorizon/HollowCore/"><img src="https://img.shields.io/jitpack/version/com.github.HollowHorizon/HollowCore?style=for-the-badge&labelColor=7e91a6&color=80bcff" alt="Documentation"></a>
 </p>
-HollowCore is a minecraft modding library by <a href="https://github.com/HollowHorizon" style="color: black; text-decoration: underline;text-decoration-style: dotted;">HollowHorizon</a>. It is an easy to use and powerful library for easier creation of minecraft mods for Fabric, Forge and NeoForge.
+HollowCore is a minecraft modding library by <a href="https://github.com/HollowHorizon" style="color: black; text-decoration: underline;text-decoration-style: dotted;">HollowHorizon</a>. It is an easy-to-use and powerful library for easier creation of minecraft mods for Fabric, Forge and NeoForge.
 
 ## Features
 
@@ -19,16 +19,19 @@ HollowCore is a minecraft modding library by <a href="https://github.com/HollowH
 - [x] Universal Packet system with automatic serialization and registration using annotations.
 - [x] Universal Capabilities system to storing nbt in entities, block entities and worlds. 
 - [x] Universal EventBus system for all modloaders and basic events.
+
 ### Easier development
 - [x] Automatic models generation for blocks and items using embed resourcepack.
 - [x] NBT serialization and deserialization of any objects using Kotlinx.Serialization.
 - [x] Toml Config system based on KotlinX Serialization.
 - [x] HollowCore bypass forge's module system, that allow to use identical libraries in different mods.
 
-
 ### Graphics
 - [x] Kool-based Gui gramework with support for slots, containers, etc. 
-- [x] Kool-based GLTF model loader with skeletal animations, skinning, morph targets, PBR materials with Iris/Oculus support. (On rework)
-- [x] Effekseer particles support.
+- [x] GLTF model loader with skeletal animations, skinning, morph targets, PBR materials with Iris/Oculus support.
 - [x] Bedrock particles support.
 - [x] MP3, OGG, WAV Sound formats support.
+- [ ] FBX models support.
+- [ ] BlockBench models + Molang animations format support.
+- [ ] OBJ models support.
+- [ ] Particles instancing.

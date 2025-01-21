@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.imgui.addons
+package ru.hollowhorizon.hc.client.kool.addons
 
 open class ItemProperties {
     open var red = 1f

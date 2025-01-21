@@ -12,7 +12,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.util.Mth
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import ru.hollowhorizon.hc.client.imgui.GlCanvas
+import ru.hollowhorizon.hc.client.kool.GlCanvas
 import ru.hollowhorizon.hc.client.utils.RANDOM
 import ru.hollowhorizon.hc.common.multiblock.Multiblock
 import kotlin.math.max

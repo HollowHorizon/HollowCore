@@ -5,4 +5,4 @@ import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.common.multiblock.Multiblock
 
 @Registry
-object MultiblockRegistry: CoreRegistry<Multiblock>("$MODID:multiblock".rl)
+object MultiblockRegistry : CoreRegistry<Multiblock>("$MODID:multiblock".rl)

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.client.imgui
+package ru.hollowhorizon.hc.client.kool
 
 import com.mojang.blaze3d.pipeline.RenderTarget
 import com.mojang.blaze3d.pipeline.TextureTarget
@@ -33,7 +33,6 @@ import de.fabmax.kool.pipeline.TextureProps
 import de.fabmax.kool.pipeline.backend.gl.GlTexture
 import de.fabmax.kool.pipeline.backend.gl.LoadedTextureGl
 import net.minecraft.client.Minecraft
-import ru.hollowhorizon.hc.client.kool.MCGlApi
 
 internal val imguiWindowBuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
 

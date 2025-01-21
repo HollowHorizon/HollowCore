@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.imgui
+package ru.hollowhorizon.hc.client.kool
 
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.util.Color

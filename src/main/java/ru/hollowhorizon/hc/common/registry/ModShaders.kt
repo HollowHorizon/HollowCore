@@ -39,7 +39,10 @@ object ModShaders {
 
     @SubscribeEvent
     fun onShaderRegistry(event: RegisterShadersEvent) {
-        event.register("$MODID:gltf_entity-${SharedConstants.getCurrentVersion().name}".rl, DefaultVertexFormat.NEW_ENTITY) {
+        event.register(
+            "$MODID:gltf_entity-${SharedConstants.getCurrentVersion().name}".rl,
+            DefaultVertexFormat.NEW_ENTITY
+        ) {
             GLTF_ENTITY = it
         }
     }

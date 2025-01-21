@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.imgui.addons
+package ru.hollowhorizon.hc.client.kool.addons
 
 import de.fabmax.kool.modules.ui2.*
 import net.minecraft.world.Container

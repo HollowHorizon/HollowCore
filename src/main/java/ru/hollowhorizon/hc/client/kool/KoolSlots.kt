@@ -8,8 +8,6 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.world.Container
 import net.minecraft.world.item.TooltipFlag
 import org.lwjgl.glfw.GLFW
-import ru.hollowhorizon.hc.client.imgui.GlCanvas
-import ru.hollowhorizon.hc.client.imgui.textLine
 import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT_DATA
 import ru.hollowhorizon.hc.client.render.render
 import ru.hollowhorizon.hc.common.containers.ClientContainerManager

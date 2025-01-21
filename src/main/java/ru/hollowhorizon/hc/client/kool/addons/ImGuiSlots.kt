@@ -1,18 +1,14 @@
-package ru.hollowhorizon.hc.client.imgui.addons
+package ru.hollowhorizon.hc.client.kool.addons
 
 import com.mojang.blaze3d.Blaze3D
-import de.fabmax.kool.modules.ui2.UiNode
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.screens.Screen
 import net.minecraft.world.Container
 import net.minecraft.world.item.ItemStack
-import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.imgui.BufferType
-import ru.hollowhorizon.hc.client.imgui.Graphics
-import ru.hollowhorizon.hc.client.imgui.currentBufferType
+import ru.hollowhorizon.hc.client.kool.BufferType
+import ru.hollowhorizon.hc.client.kool.Graphics
+import ru.hollowhorizon.hc.client.kool.currentBufferType
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
 import ru.hollowhorizon.hc.common.containers.ClientContainerManager
-import kotlin.math.abs
 
 class ItemAnimation(var progress: Float = 0f) : ItemProperties() {
     var time = Blaze3D.getTime()
@@ -56,7 +52,7 @@ object ImGuiInventory {
         container: Container,
     ) {
 
-        val animation = ITEM_SIZES
+        val animation = ru.hollowhorizon.hc.client.kool.addons.ImGuiInventory.ITEM_SIZES
             .computeIfAbsent(container) { HashMap() }
             .computeIfAbsent(id) { ItemAnimation(0f) }.apply {
                 this.red = red

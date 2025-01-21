@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.imgui
+package ru.hollowhorizon.hc.client.kool
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.VertexSorting

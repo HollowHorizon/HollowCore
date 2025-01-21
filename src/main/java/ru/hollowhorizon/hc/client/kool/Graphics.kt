@@ -22,22 +22,11 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.client.imgui
+package ru.hollowhorizon.hc.client.kool
 
-import net.minecraft.Util
 import net.minecraft.client.Minecraft
-import net.minecraft.locale.Language
-import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.ComponentContents
-import net.minecraft.network.chat.HoverEvent
-import net.minecraft.network.chat.contents.LiteralContents
-import net.minecraft.network.chat.contents.TranslatableContents
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.item.TooltipFlag
 import ru.hollowhorizon.hc.client.utils.literal
-import java.io.File
-import java.util.*
 
 
 object Graphics {
