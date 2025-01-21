@@ -33,6 +33,6 @@ dependencies {
     install("com.akuleshov7:ktoml-core-jvm:0.5.1")
 
     // GRAPHICS //
-    install("team.0mods:kool-core-desktop:0.16.0-SNAPSHOT")
+    install("de.fabmax.kool:kool-core-desktop:0.17.0-0mods-SNAPSHOT")
     install("com.tianscar.imageio:imageio-apng:1.0.1")
 }
