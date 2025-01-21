@@ -4,8 +4,6 @@ import net.minecraft.world.Container
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
-import org.lwjgl.glfw.GLFW
-import ru.hollowhorizon.hc.client.imgui.addons.ImGuiInventory.ITEM_SIZES
 import ru.hollowhorizon.hc.common.capabilities.containers.HollowContainer
 import ru.hollowhorizon.hc.common.events.container.ContainerEvent
 import ru.hollowhorizon.hc.common.events.post

@@ -32,10 +32,6 @@ import ru.hollowhorizon.hc.client.kool.KoolDrawer
 import ru.hollowhorizon.hc.client.kool.KoolManager
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.particles.ParticleVertexConsumerProvider
-import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderContext.renderLevelDeferred
-import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture
-import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer.onRenderWorldLast
-import ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.copyCurrentDepthTo
 import ru.hollowhorizon.hc.client.utils.math.Quaternion
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.client.render.RenderLevelStageEvent
@@ -51,24 +47,8 @@ object RenderManager {
     fun onRenderParticles(event: RenderLevelStageEvent) {
         if (event.stage != RenderStage.AFTER_PARTICLES) return
 
-        val poseStack = event.poseStack
-        val capture = RenderStateCapture.LEVEL
-        val capturedPose = capture.pose.last()
-        val camera = event.camera
-
-        capturedPose.pose().set(poseStack.last().pose())
-        capturedPose.normal().set(poseStack.last().normal())
-        capture.projection.set(event.projectionMatrix)
-        capture.camera = camera
-        capture.hasCapture = true
-
-        if (renderLevelDeferred()) {
-            copyCurrentDepthTo(RenderStateCapture.CAPTURED_WORLD_DEPTH_BUFFER)
-        } else {
-            onRenderWorldLast(event.partialTick, capture.pose, capture.projection, capture.camera!!)
-        }
-
         val level = Minecraft.getInstance().level as? ParticlesProvider ?: return
+        val camera = event.camera
 
         val system = level.system
         if (system.isEmpty()) return
@@ -83,7 +63,7 @@ object RenderManager {
 
         val isFirstPerson = Minecraft.getInstance().options.cameraType == CameraType.FIRST_PERSON
         system.render(
-            poseStack,
+            event.poseStack,
             Vector3f(position.x.toFloat(), position.y.toFloat(), position.z.toFloat()),
             Quaternion(cameraRotMc.x(), cameraRotMc.y(), cameraRotMc.z(), cameraRotMc.w()),
             ParticleVertexConsumerProvider,

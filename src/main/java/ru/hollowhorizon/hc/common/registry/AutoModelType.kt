@@ -11,7 +11,7 @@ fun interface AutoModelType {
         val DEFAULT = AutoModelType { "item/generated" }
         val HANDHELD = AutoModelType { "item/handheld" }
         val CUBE_ALL = AutoModelType { "block/cube_all" }
-        fun custom(type: String, blockState: String = "default") = object: AutoModelType {
+        fun custom(type: String, blockState: String = "default") = object : AutoModelType {
             override fun modelId() = type
             override fun blockStateId() = blockState
         }

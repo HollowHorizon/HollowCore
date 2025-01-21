@@ -37,22 +37,11 @@ import ru.hollowhorizon.hc.client.molang.asMolang
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.particles.ParticleEffect
 import ru.hollowhorizon.hc.client.particles.Transform
-import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssets
 import ru.hollowhorizon.hc.client.utils.rl
-import ru.hollowhorizon.hc.common.effects.ParticleEmitterInfo
-import ru.hollowhorizon.hc.common.effects.ParticleHelper
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterCommandsEvent
 import ru.hollowhorizon.hc.common.network.HollowPacketV2
 import ru.hollowhorizon.hc.common.network.RequestPacket
-
-@HollowPacketV2
-@Serializable
-class ExampleDataPacket(var level: String = "") : RequestPacket<ExampleDataPacket>() {
-    override fun retrieveValue(player: ServerPlayer) {
-        level = player.serverLevel().dimension().location().toString()
-    }
-}
 
 object HollowCommands {
     var brightness = 1f
@@ -61,18 +50,6 @@ object HollowCommands {
     fun onRegisterCommands(event: RegisterCommandsEvent) {
         event.dispatcher.onRegisterCommands {
             "hollowcore" {
-                "effect"(
-                    arg("pos", Vec3Argument.vec3()),
-                    arg("name", StringArgumentType.greedyString()) { EffekAssets.entries().map { it.key.toString() } }
-                ) {
-                    val particle = StringArgumentType.getString(this, "name")
-                    val pos = Vec3Argument.getVec3(this, "pos")
-
-                    val info = ParticleEmitterInfo(particle.rl).position(pos)
-                    ParticleHelper.addParticle(Minecraft.getInstance().level!!, info, true)
-
-                }
-
                 "particle"(
                     arg("pos", Vec3Argument.vec3()),
                     arg(

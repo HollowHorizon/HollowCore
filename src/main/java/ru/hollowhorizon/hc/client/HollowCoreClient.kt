@@ -43,8 +43,6 @@ import ru.hollowhorizon.hc.client.kool.KoolScreen
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.render.RenderManager
-import ru.hollowhorizon.hc.client.render.effekseer.EffekseerNatives
-import ru.hollowhorizon.hc.client.render.effekseer.loader.EffekAssets
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.exists
@@ -66,13 +64,11 @@ object HollowCoreClient {
     init {
         HollowModProcessor.initMod()
 
-        EffekseerNatives.install()
         RenderSystem.recordRenderCall(RenderManager::onInitialize)
     }
 
     @SubscribeEvent
     fun onRegisterReloadListener(event: RegisterReloadListenersEvent.Client) {
-        event.register(EffekAssets)
         event.register(GltfManager)
         event.register(BedrockParticles)
     }

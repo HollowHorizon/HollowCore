@@ -32,8 +32,6 @@
     "ItemRendererMixin",
     "LevelRendererMixin",
     "MinecraftMixin",
-    "MixinGameRenderer",
-    "MixinItemInHandRenderer",
     "MultiplayerGameModeMixin",
     "RenderSystemMixin",
     "ScreenMixin",
