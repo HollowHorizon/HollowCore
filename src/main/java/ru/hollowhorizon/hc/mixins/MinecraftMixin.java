@@ -30,8 +30,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import ru.hollowhorizon.hc.client.imgui.KoolBuffersKt;
-import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
+import ru.hollowhorizon.hc.client.kool.KoolBuffersKt;
 
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
@@ -39,8 +38,6 @@ public class MinecraftMixin {
     private void resizeCapturedDepthBuffer(CallbackInfo ci) {
         RenderSystem.recordRenderCall(() -> {
             final var window = Minecraft.getInstance().getWindow();
-            RenderStateCapture.CAPTURED_WORLD_DEPTH_BUFFER.resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
-            RenderStateCapture.CAPTURED_HAND_DEPTH_BUFFER.resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
             KoolBuffersKt.getImguiWindowBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
             KoolBuffersKt.onResize(window.getWidth(), window.getHeight());
         });
