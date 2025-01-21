@@ -6,7 +6,7 @@ import ru.hollowhorizon.hc.api.HudHideable
 import ru.hollowhorizon.hc.client.utils.literal
 
 open class KoolScreen(builder: Scene.() -> Unit) : Screen("".literal), HudHideable {
-    val scene = Scene(title.string).apply(builder)
+    val scene = ScreenScene(title.string).apply(builder)
 
     override fun added() {
         KoolManager.context.addScene(scene)
@@ -14,5 +14,13 @@ open class KoolScreen(builder: Scene.() -> Unit) : Screen("".literal), HudHideab
 
     override fun removed() {
         KoolManager.context.removeScene(scene)
+    }
+}
+
+class ScreenScene(name: String? = null): Scene(name) {
+    init {
+        clearColor = null
+        clearDepth = false
+        isVisible = false
     }
 }

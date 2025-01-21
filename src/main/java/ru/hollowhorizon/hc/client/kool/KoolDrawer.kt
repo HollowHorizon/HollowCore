@@ -14,8 +14,10 @@ object KoolDrawer {
     var lineWidth = 1f
 
     fun drawOverlays() {
-        // TODO: Make separate calls for game objects and game ui overlays
+        val scenes = KoolManager.context.scenes
+        scenes.forEach { it.isVisible = it is ScreenScene }
         draw()
+        scenes.forEach { it.isVisible = it !is ScreenScene }
     }
 
     fun draw() {
