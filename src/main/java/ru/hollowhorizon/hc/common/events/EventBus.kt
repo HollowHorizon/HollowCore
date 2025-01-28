@@ -4,6 +4,8 @@ import ru.hollowhorizon.hc.common.coroutines.onMainThreadSync
 import ru.hollowhorizon.hc.common.coroutines.scopeSync
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.KClass
@@ -13,13 +15,13 @@ object EventBus {
     val listeners = ConcurrentHashMap<KClass<out Event>, MutableList<EventListener<out Event>>>()
 
     inline fun <reified T : Event> register(listener: EventListener<T>) {
-        val list = listeners.getOrPut(T::class) { Collections.synchronizedList(ArrayList()) }
+        val list = listeners.getOrPut(T::class, ::CopyOnWriteArrayList)
         list.add(listener)
         list.sortBy { it.priority }
     }
 
     fun registerNoInline(type: Class<Event>, listener: EventListener<Event>) {
-        val list = listeners.getOrPut(type.kotlin) { Collections.synchronizedList(ArrayList()) }
+        val list = listeners.getOrPut(type.kotlin, ::CopyOnWriteArrayList)
         list.add(listener)
         list.sortBy { it.priority }
     }
