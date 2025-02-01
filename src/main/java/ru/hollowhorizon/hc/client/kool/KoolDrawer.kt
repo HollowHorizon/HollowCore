@@ -3,6 +3,7 @@ package ru.hollowhorizon.hc.client.kool
 import com.mojang.blaze3d.platform.GlStateManager
 import de.fabmax.kool.pipeline.CullMethod
 import de.fabmax.kool.pipeline.DepthCompareOp
+import de.fabmax.kool.pipeline.backend.gl.GlRenderPass
 import de.fabmax.kool.pipeline.backend.gl.glOp
 import net.minecraft.client.Minecraft
 import org.lwjgl.opengl.GL33
@@ -27,14 +28,14 @@ object KoolDrawer {
         val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
         val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
 
-        MCGlApi.depthMask(actIsWriteDepth)
-        if (actDepthTest == DepthCompareOp.ALWAYS) {
+        MCGlApi.depthMask(GlRenderPass.GlState.actIsWriteDepth)
+        if (GlRenderPass.GlState.actDepthTest == DepthCompareOp.ALWAYS) {
             MCGlApi.disable(MCGlApi.DEPTH_TEST)
         } else {
             MCGlApi.enable(MCGlApi.DEPTH_TEST)
             MCGlApi.depthFunc(actDepthTest.glOp(MCGlApi))
         }
-        when (actCullMethod) {
+        when (GlRenderPass.GlState.actCullMethod) {
             CullMethod.CULL_BACK_FACES -> {
                 MCGlApi.enable(MCGlApi.CULL_FACE)
                 MCGlApi.cullFace(MCGlApi.BACK)
@@ -45,17 +46,11 @@ object KoolDrawer {
                 MCGlApi.cullFace(MCGlApi.FRONT)
             }
 
-            CullMethod.NO_CULLING -> MCGlApi.disable(MCGlApi.CULL_FACE)
+            else -> MCGlApi.disable(MCGlApi.CULL_FACE)
         }
-        MCGlApi.lineWidth(lineWidth)
+        MCGlApi.lineWidth(GlRenderPass.GlState.lineWidth)
 
         KoolManager.context.renderFrame()
-
-        // Необходимо сохранять эти параметры, поскольку и майн и движок кешируют их
-        actIsWriteDepth = GL33.glGetBoolean(GL33.GL_DEPTH_WRITEMASK)
-        actDepthTest = currentDepthOp
-        actCullMethod = currentCull
-        lineWidth = GL33.glGetFloat(GL33.GL_LINE_WIDTH)
 
         GL33.glActiveTexture(activeTexture)
         GL33.glBindTexture(GL33.GL_TEXTURE_2D, currentTexture)
