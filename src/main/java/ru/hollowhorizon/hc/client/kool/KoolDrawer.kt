@@ -48,7 +48,7 @@ object KoolDrawer {
 
             else -> MCGlApi.disable(MCGlApi.CULL_FACE)
         }
-        MCGlApi.lineWidth(GlRenderPass.GlState.lineWidth)
+        if(GlRenderPass.GlState.lineWidth != 0f) MCGlApi.lineWidth(GlRenderPass.GlState.lineWidth)
 
         KoolManager.context.renderFrame()
 
