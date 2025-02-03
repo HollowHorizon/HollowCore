@@ -3,7 +3,7 @@ package ru.hollowhorizon.hc.common.config
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
-import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.LOGGER
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
 import java.io.File
@@ -31,13 +31,13 @@ class Config<T : Saveable>(
     fun reload() {
         var save = false
         if (file.exists()) {
-            HollowCore.LOGGER.info("Loading config: $name.toml")
+            LOGGER.info("Loading config: $name.toml")
             try {
                 FileInputStream(file).use {
                     value = decoder(it)
                 }
             } catch (e: Exception) {
-                HollowCore.LOGGER.warn("Error when loading config '{}':", "$name.toml", e)
+                LOGGER.warn("Error when loading config '{}':", "$name.toml", e)
                 value = creator()
                 save = true
             }

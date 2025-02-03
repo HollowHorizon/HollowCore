@@ -51,7 +51,6 @@ public class HollowCoreTransformationService implements ITransformationService {
         }, true);
 
         try {
-            // Перезагрузите класс
             instrumentation.retransformClasses(
                     Class.forName("java.lang.module.Resolver"),
                     Class.forName("java.lang.ModuleLayer")

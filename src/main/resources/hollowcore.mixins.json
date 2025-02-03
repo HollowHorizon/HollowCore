@@ -28,6 +28,7 @@
   ],
   "client": [
     "ClientLevelMixin",
+    "DebugMainMixin",
     "GuiMixin",
     "ItemRendererMixin",
     "LevelRendererMixin",
