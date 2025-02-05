@@ -12,7 +12,7 @@ import net.minecraft.client.Minecraft
 import ru.hollowhorizon.hc.client.kool.ctx
 
 class MCSceneRenderPass(val numSamples: Int, backend: RenderBackendGl): GlRenderPass(backend) {
-    private val renderFbo: GlFramebuffer by lazy { GlFramebuffer(Minecraft.getInstance().mainRenderTarget.frameBufferId) }
+    private val renderFbo: GlFramebuffer get() = GlFramebuffer(Minecraft.getInstance().mainRenderTarget.frameBufferId)
 
     private val resolveFbo: GlFramebuffer by lazy { gl.createFramebuffer() }
     private val resolvedColor = Texture2d(TextureProps(generateMipMaps = false, defaultSamplerSettings = SamplerSettings().clamped().nearest()))

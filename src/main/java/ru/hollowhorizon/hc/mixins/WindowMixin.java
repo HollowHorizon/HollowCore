@@ -54,14 +54,9 @@ public class WindowMixin {
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 4);
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 3);
     }
-    //?} else {
-    /*@Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraftforge/fml/loading/ImmediateWindowHandler;setupMinecraftWindow(Ljava/util/function/IntSupplier;Ljava/util/function/IntSupplier;Ljava/util/function/Supplier;Ljava/util/function/LongSupplier;)J"))
-    private long test(IntSupplier width, IntSupplier height, Supplier<String> title, LongSupplier monitor) {
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 4);
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 3);
-        return ImmediateWindowHandler.setupMinecraftWindow(width, height, title, monitor);
-    }
-    *///?}
+    //?}
+
+    // На Forge ничего делать не надо, там по умолчанию используется последняя версия OpenGL
 
     @Inject(method = "getGuiScale", at = @At("HEAD"), cancellable = true)
     public void getGuiScale(CallbackInfoReturnable<Double> cir) {

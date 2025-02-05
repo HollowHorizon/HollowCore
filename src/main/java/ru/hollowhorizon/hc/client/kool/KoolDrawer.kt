@@ -9,11 +9,6 @@ import net.minecraft.client.Minecraft
 import org.lwjgl.opengl.GL33
 
 object KoolDrawer {
-    var actIsWriteDepth = true
-    var actDepthTest: DepthCompareOp = DepthCompareOp.LESS_EQUAL
-    var actCullMethod: CullMethod = CullMethod.NO_CULLING
-    var lineWidth = 1f
-
     fun drawOverlays() {
         val scenes = KoolManager.context.scenes
         scenes.forEach { it.isVisible = it is ScreenScene }
@@ -33,7 +28,7 @@ object KoolDrawer {
             MCGlApi.disable(MCGlApi.DEPTH_TEST)
         } else {
             MCGlApi.enable(MCGlApi.DEPTH_TEST)
-            MCGlApi.depthFunc(actDepthTest.glOp(MCGlApi))
+            GlRenderPass.GlState.actDepthTest?.glOp(MCGlApi)?.let(MCGlApi::depthFunc)
         }
         when (GlRenderPass.GlState.actCullMethod) {
             CullMethod.CULL_BACK_FACES -> {
@@ -71,27 +66,4 @@ object KoolDrawer {
 
         Minecraft.getInstance().mainRenderTarget.bindWrite(true)
     }
-
-    private val currentDepthOp
-        get() = when (GL33.glGetInteger(GL33.GL_DEPTH_FUNC)) {
-            GL33.GL_ALWAYS -> DepthCompareOp.ALWAYS
-            GL33.GL_NEVER -> DepthCompareOp.NEVER
-            GL33.GL_LESS -> DepthCompareOp.LESS
-            GL33.GL_LEQUAL -> DepthCompareOp.LESS_EQUAL
-            GL33.GL_GREATER -> DepthCompareOp.GREATER
-            GL33.GL_GEQUAL -> DepthCompareOp.GREATER_EQUAL
-            GL33.GL_EQUAL -> DepthCompareOp.EQUAL
-            GL33.GL_NOTEQUAL -> DepthCompareOp.NOT_EQUAL
-            else -> throw IllegalStateException("Unknown depth compare operation")
-        }
-
-    private val currentCull: CullMethod
-        get() {
-            if (!GL33.glIsEnabled(GL33.GL_CULL_FACE)) return CullMethod.NO_CULLING
-            return when (GL33.glGetInteger(GL33.GL_CULL_FACE_MODE)) {
-                GL33.GL_BACK -> CullMethod.CULL_BACK_FACES
-                GL33.GL_FRONT -> CullMethod.CULL_FRONT_FACES
-                else -> CullMethod.NO_CULLING // На случай необычного значения.
-            }
-        }
 }
