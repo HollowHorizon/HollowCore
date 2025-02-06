@@ -43,6 +43,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.api.AutoScaled;
+import ru.hollowhorizon.hc.client.kool.KoolManager;
 import ru.hollowhorizon.hc.client.utils.JavaHacks;
 
 
@@ -65,6 +66,11 @@ public class WindowMixin {
         if (!(Minecraft.getInstance().screen instanceof AutoScaled)) return;
 
         cir.setReturnValue((double) window.calculateScale(0, Minecraft.getInstance().isEnforceUnicode()));
+    }
+
+    @Inject(method = "setGuiScale", at = @At("HEAD"))
+    private void onSetGuiScale(double scaleFactor, CallbackInfo ci) {
+        KoolManager.INSTANCE.getContext().setWindowScale((float) scaleFactor);
     }
 
     @Inject(method = "getGuiScaledHeight", at = @At("HEAD"), cancellable = true)
