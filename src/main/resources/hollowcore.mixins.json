@@ -29,14 +29,17 @@
   "client": [
     "ClientLevelMixin",
     "DebugMainMixin",
+    "EntityRenderDispatcherMixin",
     "GuiMixin",
     "ItemRendererMixin",
+    "LayerDefinitionsMixin",
     "LevelRendererMixin",
     "MinecraftMixin",
     "MultiplayerGameModeMixin",
     "RenderSystemMixin",
     "ScreenMixin",
     "ShaderInstanceAccessor",
+    "SkullBlockRendererMixin",
     "SoundManagerMixin",
     "WindowMixin"
   ],
