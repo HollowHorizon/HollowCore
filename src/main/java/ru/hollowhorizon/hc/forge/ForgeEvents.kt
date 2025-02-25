@@ -3,6 +3,7 @@
 
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.AddReloadListenerEvent
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent
 import net.minecraftforge.event.RegisterCommandsEvent
 import net.minecraftforge.event.TickEvent
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent
@@ -14,6 +15,7 @@ import ru.hollowhorizon.hc.client.utils.currentServer
 import ru.hollowhorizon.hc.common.events.EventBus.post
 import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
 import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
+import ru.hollowhorizon.hc.common.events.item.BuildTabContentsEvent
 import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityAttributesEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
@@ -22,6 +24,7 @@ import ru.hollowhorizon.hc.common.events.server.ServerEvent
 object ForgeEvents {
     init {
         FMLJavaModLoadingContext.get().modEventBus.addListener(ForgeEvents::registerAttributes)
+        FMLJavaModLoadingContext.get().modEventBus.addListener(ForgeEvents::onBuildCreativeTab)
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::registerReloadListeners)
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::onServerStart)
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::onServerStop)
@@ -31,6 +34,11 @@ object ForgeEvents {
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::onPlayerJoin)
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::onPlayerChangeDimension)
         MinecraftForge.EVENT_BUS.addListener(::onBlockBreak)
+    }
+
+    private fun onBuildCreativeTab(event: BuildCreativeModeTabContentsEvent) {
+        val buildEvent = BuildTabContentsEvent(event.tab, event.tabKey, event.parameters, event.entries)
+        buildEvent.post()
     }
 
     private fun onBlockBreak(event: BlockEvent.BreakEvent) {

@@ -44,6 +44,8 @@ fun DependencyHandlerScope.setupLoader(loom: LoomGradleExtensionAPI, loader: Str
     minecraft(version)
     "mappings"(loom.setupMappings(version))
 
+    "compileOnly"("io.github.llamalad7:mixinextras-common:0.4.1")
+
     when (loader) {
         "fabric" -> {
             when (version) {
@@ -73,6 +75,7 @@ fun DependencyHandlerScope.setupLoader(loom: LoomGradleExtensionAPI, loader: Str
                 else -> throw IllegalStateException("Unsupported $loader version $version!")
             }
             install("io.github.classgraph:classgraph:4.8.173")
+            install("io.github.llamalad7:mixinextras-fabric:0.4.1")
         }
 
         "forge" -> {
@@ -91,7 +94,7 @@ fun DependencyHandlerScope.setupLoader(loom: LoomGradleExtensionAPI, loader: Str
 
                 else -> throw IllegalStateException("Unsupported $loader version $version!")
             }
-
+            install("io.github.llamalad7:mixinextras-forge:0.4.1")
         }
 
         "neoforge" -> {
@@ -99,6 +102,8 @@ fun DependencyHandlerScope.setupLoader(loom: LoomGradleExtensionAPI, loader: Str
                 "1.21" -> "neoForge"("net.neoforged:neoforge:21.0.14-beta")
                 else -> throw IllegalStateException("Unsupported $loader version $version!")
             }
+
+            install("io.github.llamalad7:mixinextras-neoforge:0.4.1")
         }
     }
 }
