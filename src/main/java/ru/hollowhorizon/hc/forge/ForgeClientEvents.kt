@@ -32,8 +32,6 @@ object ForgeClientEvents {
         RegisterEntityRenderersEvent(event::registerEntityRenderer).post()
         RegisterBlockEntityRenderersEvent(event::registerBlockEntityRenderer).post()
     }
-
-
     private fun registerReloadListeners(event: RegisterClientReloadListenersEvent) {
         val hcevent = RegisterReloadListenersEvent.Client()
         EventBus.post(hcevent)

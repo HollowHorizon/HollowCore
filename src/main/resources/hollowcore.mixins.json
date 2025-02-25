@@ -36,6 +36,7 @@
     "LevelRendererMixin",
     "MinecraftMixin",
     "MultiplayerGameModeMixin",
+    "ParticleEngineMixin",
     "RenderSystemMixin",
     "ScreenMixin",
     "ShaderInstanceAccessor",

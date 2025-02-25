@@ -50,15 +50,4 @@ public class MinecraftMixin {
             KoolBuffersKt.onResize(window.getWidth(), window.getHeight());
         });
     }
-
-    @Inject(
-            method = "<init>",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/particle/ParticleEngine;<init>(Lnet/minecraft/client/multiplayer/ClientLevel;Lnet/minecraft/client/renderer/texture/TextureManager;)V"
-            )
-    )
-    private void particles(GameConfig gameConfig, CallbackInfo ci) {
-        EventBus.post(new RegisterParticlesEvent(this.particleEngine));
-    }
 }

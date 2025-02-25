@@ -45,6 +45,11 @@ class BuildTabContentsEvent(
         this.accept(item, visibility)
     }
 
+    fun acceptFor(tab: CreativeModeTab, stack: ItemStack) {
+        if (this.tab != tab) return
+        this.accept(stack)
+    }
+
     fun acceptFor(tab: CreativeModeTab, item: () -> ItemLike) {
         if (this.tab != tab) return
         this.accept(item)
