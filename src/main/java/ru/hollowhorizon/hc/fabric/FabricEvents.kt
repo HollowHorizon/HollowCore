@@ -101,7 +101,7 @@ object FabricEvents {
                 BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(tab).orElseThrow { IllegalStateException("Unregistered creative mode tab: $tab") },
                 entries.context,
                 entries::accept
-            )
+            ).post()
         }
     }
 }
