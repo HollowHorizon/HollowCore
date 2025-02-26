@@ -37,7 +37,7 @@ object ForgeEvents {
     }
 
     private fun onBuildCreativeTab(event: BuildCreativeModeTabContentsEvent) {
-        val buildEvent = BuildTabContentsEvent(event.tab, event.tabKey, event.parameters, event.entries)
+        val buildEvent = BuildTabContentsEvent(event.tab, event.tabKey, event.parameters, event::accept)
         buildEvent.post()
     }
 
