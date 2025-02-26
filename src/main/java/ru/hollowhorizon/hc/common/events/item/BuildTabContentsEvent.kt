@@ -13,18 +13,14 @@ class BuildTabContentsEvent(
     val tab: CreativeModeTab,
     val tabKey: ResourceKey<CreativeModeTab>,
     val parameters: CreativeModeTab.ItemDisplayParameters,
-    //? if fabric {
-    val entries: LinkedHashMap<ItemStack, TabVisibility>
-    //?} else {
-    /*val entries: MutableHashedLinkedMap<ItemStack, TabVisibility>
-    *///?}
+    private val acceptor: (ItemStack, TabVisibility) -> Unit
 ): Event, CreativeModeTab.Output {
     val flags = this.parameters.enabledFeatures
 
     val hasPermissions = this.parameters.hasPermissions
 
     override fun accept(stack: ItemStack, tabVisibility: TabVisibility) {
-        this.entries.put(stack,tabVisibility)
+        acceptor(stack, tabVisibility)
     }
 
     fun accept(item: () -> ItemLike, visibility: TabVisibility) {
