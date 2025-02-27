@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.mixins;
+package ru.hollowhorizon.hc.mixins.client;
 
 import net.minecraft.Util;
 import net.minecraft.client.main.Main;

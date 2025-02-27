@@ -22,20 +22,21 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.mixins;
+package ru.hollowhorizon.hc.mixins.client;
 
-import com.mojang.blaze3d.shaders.Uniform;
-import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Accessor;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ru.hollowhorizon.hc.api.HudHideable;
 
-import java.util.List;
-
-@Mixin(ShaderInstance.class)
-public interface ShaderInstanceAccessor {
-    @Accessor("samplerLocations")
-    List<Integer> samplerLocations();
-
-    @Accessor("uniforms")
-    List<Uniform> uniforms();
+@Mixin(Gui.class)
+public class GuiMixin {
+    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
+    public void hideScreen(GuiGraphics guiGraphics, float partialTick, CallbackInfo ci) {
+        if (Minecraft.getInstance().screen instanceof HudHideable) ci.cancel();
+    }
 }

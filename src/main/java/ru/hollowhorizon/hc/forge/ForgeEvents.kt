@@ -7,13 +7,17 @@ import net.minecraftforge.event.BuildCreativeModeTabContentsEvent
 import net.minecraftforge.event.RegisterCommandsEvent
 import net.minecraftforge.event.TickEvent
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent
+import net.minecraftforge.event.entity.item.ItemTossEvent
+import net.minecraftforge.event.entity.living.BabyEntitySpawnEvent
 import net.minecraftforge.event.level.BlockEvent
 import net.minecraftforge.event.server.ServerAboutToStartEvent
 import net.minecraftforge.event.server.ServerStoppingEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import ru.hollowhorizon.hc.client.utils.currentServer
 import ru.hollowhorizon.hc.common.events.EventBus.post
+import ru.hollowhorizon.hc.common.events.entity.BabySpawnEvent
 import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
+import ru.hollowhorizon.hc.common.events.entity.ItemEntityEvent
 import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
 import ru.hollowhorizon.hc.common.events.item.BuildTabContentsEvent
 import ru.hollowhorizon.hc.common.events.post
@@ -34,6 +38,8 @@ object ForgeEvents {
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::onPlayerJoin)
         MinecraftForge.EVENT_BUS.addListener(ForgeEvents::onPlayerChangeDimension)
         MinecraftForge.EVENT_BUS.addListener(::onBlockBreak)
+        MinecraftForge.EVENT_BUS.addListener(::onItemEntityToss)
+        MinecraftForge.EVENT_BUS.addListener(::onBabySpawn)
     }
 
     private fun onBuildCreativeTab(event: BuildCreativeModeTabContentsEvent) {
@@ -97,6 +103,21 @@ object ForgeEvents {
 
     private fun onServerStop(event: ServerStoppingEvent) {
         ServerEvent.Stoping(event.server).post()
+    }
+
+    private fun onItemEntityToss(e: ItemTossEvent) {
+        val ev = ItemEntityEvent.Toss(e.entity, e.player)
+        ev.post()
+
+        e.isCanceled = ev.isCanceled
+    }
+
+    private fun onBabySpawn(e: BabyEntitySpawnEvent) {
+        val ev = BabySpawnEvent(e.parentA, e.parentB, e.child)
+        ev.post()
+
+        e.child = ev.child
+        e.isCanceled = ev.isCanceled
     }
 }
 *///?}

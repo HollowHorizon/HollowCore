@@ -27,3 +27,6 @@ accessible class net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$Rende
 accessible class net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$RebuildTask$CompileResults
 accessible field net/minecraft/client/renderer/chunk/RenderChunkRegion centerZ I
 accessible field net/minecraft/client/renderer/chunk/RenderChunkRegion centerX I
+
+accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen imageWidth I
+accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen imageHeight I

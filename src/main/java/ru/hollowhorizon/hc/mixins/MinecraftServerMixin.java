@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerMixin implements ICapabilityDispatcher {
     @Unique

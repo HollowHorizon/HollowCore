@@ -25,9 +25,6 @@
 package ru.hollowhorizon.hc.client.models.internal
 
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.blaze3d.vertex.DefaultVertexFormat
-import com.mojang.blaze3d.vertex.VertexFormat
-import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.RenderType
 import net.minecraft.client.renderer.ShaderInstance
@@ -35,7 +32,7 @@ import net.minecraft.client.renderer.texture.TextureManager
 import org.joml.Matrix4f
 import org.lwjgl.opengl.GL13
 import org.lwjgl.opengl.GL33
-import ru.hollowhorizon.hc.mixins.ShaderInstanceAccessor
+import ru.hollowhorizon.hc.mixins.client.ShaderInstanceAccessor
 
 
 inline fun drawWithShader(

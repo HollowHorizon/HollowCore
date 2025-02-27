@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.mixins;
+package ru.hollowhorizon.hc.mixins.client;
 
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.resources.ResourceLocation;
