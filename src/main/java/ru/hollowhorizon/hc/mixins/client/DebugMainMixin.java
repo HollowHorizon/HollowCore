@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.mixins;
+package ru.hollowhorizon.hc.mixins.client;
 
 import net.minecraft.Util;
 import net.minecraft.client.main.Main;
@@ -6,7 +6,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.HollowLoggerKt;
 import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.client.utils.RenderDocHelper;

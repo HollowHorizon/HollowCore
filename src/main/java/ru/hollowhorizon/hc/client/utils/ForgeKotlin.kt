@@ -29,7 +29,9 @@ import com.mojang.blaze3d.vertex.PoseStack
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.renderer.texture.AbstractTexture
 import net.minecraft.client.server.IntegratedServer
 import net.minecraft.core.RegistryAccess
@@ -48,7 +50,6 @@ import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import java.io.InputStream
 import kotlin.reflect.KClass
-
 
 val mc: Minecraft get() = Minecraft.getInstance()
 
@@ -95,6 +96,50 @@ val registryAccess: RegistryAccess
     get() = if (currentServer is IntegratedServer) Minecraft.getInstance().connection?.registryAccess()
         ?: currentServer.registryAccess()
     else currentServer.registryAccess()
+
+val AbstractContainerScreen<*>.guiPosLeft: Int
+    get() = (this.width - this.imageWidth) / 2
+
+val AbstractContainerScreen<*>.guiPosTop: Int
+    get() = (this.height - this.imageHeight) / 2
+
+fun isCursorAtPos(cursorX: Int, cursorY: Int, x: Int, y: Int, width: Int, height: Int) : Boolean =
+    cursorX >= x && cursorY >= y && cursorX <= x + width && cursorY <= y + height
+
+fun isCursorAtPos(cursorX: Double, cursorY: Double, x: Int, y: Int, width: Int, height: Int) : Boolean =
+    cursorX >= x && cursorY >= y && cursorX <= x + width && cursorY <= y + height
+
+fun GuiGraphics.defaultBlit(
+    id: ResourceLocation,
+    x: Int,
+    y: Int,
+    uOffset: Float = 0f,
+    vOffset: Float = 0f,
+    width: Int = 176,
+    height: Int = 166,
+    textureWidth: Int = 256,
+    textureHeight: Int = 256
+) = this.blit(id, x, y, uOffset, vOffset, width, height, textureWidth, textureHeight)
+
+fun AbstractContainerScreen<*>.xPos(x: Int): Int {
+    val j = ((this.width / 2) - (this.imageWidth / 2))
+    return x + j
+}
+
+fun AbstractContainerScreen<*>.yPos(y: Int): Int {
+    val j = ((this.height / 2) - (this.imageHeight / 2))
+    return y + j
+}
+
+fun AbstractContainerScreen<*>.xPos(x: Float): Float {
+    val j = ((this.width / 2) - (this.imageWidth / 2))
+    return x + j
+}
+
+fun AbstractContainerScreen<*>.yPos(y: Float): Float {
+    val j = ((this.height / 2) - (this.imageHeight / 2))
+    return y + j
+}
 
 
 operator fun <O, T : CapabilityInstance> O.get(capability: KClass<T>): T = get(capability.java)

@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.mixins;
+package ru.hollowhorizon.hc.mixins.client;
 
 import com.google.common.collect.ImmutableMap;
 import com.llamalad7.mixinextras.sugar.Local;

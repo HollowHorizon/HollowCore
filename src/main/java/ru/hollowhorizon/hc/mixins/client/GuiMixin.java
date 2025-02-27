@@ -22,32 +22,21 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.mixins;
+package ru.hollowhorizon.hc.mixins.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.main.GameConfig;
-import net.minecraft.client.particle.ParticleEngine;
-import org.spongepowered.asm.mixin.Final;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import ru.hollowhorizon.hc.client.kool.KoolBuffersKt;
-import ru.hollowhorizon.hc.common.events.EventBus;
-import ru.hollowhorizon.hc.common.events.registry.RegisterParticlesEvent;
+import ru.hollowhorizon.hc.api.HudHideable;
 
-@Mixin(Minecraft.class)
-public class MinecraftMixin {
-    @Shadow @Final public ParticleEngine particleEngine;
-
-    @Inject(method = "resizeDisplay", at = @At("RETURN"))
-    private void resizeCapturedDepthBuffer(CallbackInfo ci) {
-        RenderSystem.recordRenderCall(() -> {
-            final var window = Minecraft.getInstance().getWindow();
-            KoolBuffersKt.getImguiWindowBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
-            KoolBuffersKt.onResize(window.getWidth(), window.getHeight());
-        });
+@Mixin(Gui.class)
+public class GuiMixin {
+    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
+    public void hideScreen(GuiGraphics guiGraphics, float partialTick, CallbackInfo ci) {
+        if (Minecraft.getInstance().screen instanceof HudHideable) ci.cancel();
     }
 }
