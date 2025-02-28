@@ -22,6 +22,7 @@
     "ServerLevelMixin",
     "ServerPlayerGameModeMixin",
     "ServerPlayerMixin",
+    "ShapelessRecipeMixin",
     "StructureBlockMixin",
     "capabilities.BlockEntityMixin",
     "capabilities.EntityMixin",
