@@ -36,3 +36,5 @@ dependencies {
     install("de.fabmax.kool:kool-core-desktop:0.17.0-0mods-SNAPSHOT")
     install("com.tianscar.imageio:imageio-apng:1.0.1")
 }
+
+kotlin.compilerOptions.freeCompilerArgs.add("-Xjvm-default=all")

@@ -36,10 +36,10 @@ class HollowIngredient(override val hollowIngredient: IHollowIngredient) : Ingre
             this.itemStacks = hollowIngredient.items.toTypedArray()
         }
 
-        return this.itemStacks
+        return this.itemStacks!!
     }
 
-    override fun test(stack: ItemStack?): Boolean = stack != null && this.customIngredient?.test(stack) ?: false
+    override fun test(stack: ItemStack?): Boolean = stack != null && this.hollowIngredient.test(stack)
 
     override fun toNetwork(buffer: FriendlyByteBuf) {
         val singr = supportedIngredients.get()
