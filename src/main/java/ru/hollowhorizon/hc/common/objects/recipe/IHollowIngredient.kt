@@ -4,7 +4,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Ingredient
 
 interface IHollowIngredient {
-    fun test(stack: ItemStack)
+    fun test(stack: ItemStack): Boolean
 
     fun requireTesting(): Boolean
 

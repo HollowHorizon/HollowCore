@@ -5,16 +5,13 @@ import com.google.gson.JsonObject;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.crafting.Ingredient;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.common.objects.recipe.HollowCoreIngredient;
 import ru.hollowhorizon.hc.common.objects.recipe.HollowIngredient;
-import ru.hollowhorizon.hc.common.objects.recipe.IHollowIngredient;
 
 @Mixin(Ingredient.class)
 public class IngredientMixin implements HollowCoreIngredient {
@@ -69,17 +66,5 @@ public class IngredientMixin implements HollowCoreIngredient {
         }
 
         cir.setReturnValue(serializer.fromNetwork(buffer).getAsVanilla());
-    }
-
-    @Unique
-    @Override
-    public @Nullable IHollowIngredient getHollowIngredient() {
-        return HollowCoreIngredient.super.getHollowIngredient();
-    }
-
-    @Unique
-    @Override
-    public boolean getRequireTesting() {
-        return HollowCoreIngredient.super.getRequireTesting();
     }
 }

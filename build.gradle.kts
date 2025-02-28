@@ -35,3 +35,5 @@ dependencies {
     // GRAPHICS //
     install("de.fabmax.kool:kool-core-desktop:0.17.0-0mods-SNAPSHOT")
 }
+
+kotlin.compilerOptions.freeCompilerArgs.add("-Xjvm-default=all")
