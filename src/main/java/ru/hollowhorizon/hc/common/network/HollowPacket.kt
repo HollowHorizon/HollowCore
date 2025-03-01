@@ -36,9 +36,7 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.protocol.Packet
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
-
 //?}
-
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerChunkCache
 import net.minecraft.server.level.ServerPlayer
@@ -48,10 +46,8 @@ import net.minecraft.world.level.Level
 import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.client.utils.rl
 
-
-interface HollowPacketV3<T : HollowPacketV3<T>> {
+interface HollowPacket<T : HollowPacket<T>> {
     fun handle(player: Player)
-
 
     fun send() {
         sendPacketToServer(this)
@@ -64,12 +60,12 @@ interface HollowPacketV3<T : HollowPacketV3<T>> {
     }
 }
 
-val HollowPacketV3<*>.packetName: ResourceLocation
+val HollowPacket<*>.packetName: ResourceLocation
     get() = "$MODID:${
         this.javaClass.name.lowercase().replace("\$", ".")
     }".rl
 
-fun HollowPacketV3<*>.sendTrackingEntity(entity: Entity) {
+fun HollowPacket<*>.sendTrackingEntity(entity: Entity) {
     val chunkCache = entity.level().chunkSource
     if (chunkCache is ServerChunkCache) {
         //? if forge {
@@ -85,12 +81,12 @@ fun HollowPacketV3<*>.sendTrackingEntity(entity: Entity) {
     }
 }
 
-fun HollowPacketV3<*>.sendTrackingEntityAndSelf(entity: Entity) {
+fun HollowPacket<*>.sendTrackingEntityAndSelf(entity: Entity) {
     sendTrackingEntity(entity)
     if (entity is ServerPlayer) send(entity)
 }
 
-fun HollowPacketV3<*>.sendAllInDimension(level: Level) {
+fun HollowPacket<*>.sendAllInDimension(level: Level) {
     val server = level.server ?: return
     //? if forge {
     /*ForgeNetworkHelper.hollowCoreChannel.send(PacketDistributor.DIMENSION.with { level.dimension() }, this)
@@ -100,7 +96,7 @@ fun HollowPacketV3<*>.sendAllInDimension(level: Level) {
 }
 
 //? if fabric {
-fun HollowPacketV3<*>.asVanillaPacket(toClient: Boolean): Packet<*> {
+fun HollowPacket<*>.asVanillaPacket(toClient: Boolean): Packet<*> {
     val byteBuf = FriendlyByteBuf(Unpooled.buffer())
     byteBuf.writeNbt(NBTFormat.serializeNoInline(this, javaClass) as CompoundTag)
     return if (!toClient) ClientPlayNetworking.createC2SPacket(packetName, byteBuf)
@@ -109,7 +105,7 @@ fun HollowPacketV3<*>.asVanillaPacket(toClient: Boolean): Packet<*> {
     throw NotImplementedError("AsVanillaPacket method is not implemented for this platform")
 }//?}
 
-lateinit var sendPacketToServer: (HollowPacketV3<*>) -> Unit
-lateinit var sendPacketToClient: (ServerPlayer, HollowPacketV3<*>) -> Unit
+lateinit var sendPacketToServer: (HollowPacket<*>) -> Unit
+lateinit var sendPacketToClient: (ServerPlayer, HollowPacket<*>) -> Unit
 lateinit var registerPacket: (Class<*>) -> Unit
 lateinit var registerPackets: () -> Unit

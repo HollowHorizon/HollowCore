@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import ru.hollowhorizon.hc.client.utils.JavaHacks;
-import ru.hollowhorizon.hc.common.objects.recipe.HollowIngredient;
 import ru.hollowhorizon.hc.common.objects.recipe.deep.SupportedIngredientsPacketEncoder;
+import ru.hollowhorizon.hc.common.objects.recipe.packet.HollowIngredientPacketHandler;
 
 import java.util.Set;
 
@@ -35,7 +35,7 @@ public class PacketEncoderMixin implements SupportedIngredientsPacketEncoder {
             )
     )
     private void handle(ChannelHandlerContext channelHandlerContext, Packet<?> packet, ByteBuf byteBuf, CallbackInfo ci) {
-        HollowIngredient.Companion.getSupportedIngredients().set(hc$supportedIngredients);
+        HollowIngredientPacketHandler.SUPPORTED_INGREDIENTS.set(hc$supportedIngredients);
     }
 
     @Inject(
@@ -54,6 +54,6 @@ public class PacketEncoderMixin implements SupportedIngredientsPacketEncoder {
             }
     )
     private void release(ChannelHandlerContext channelHandlerContext, Packet<?> packet, ByteBuf byteBuf, CallbackInfo ci) {
-        HollowIngredient.Companion.getSupportedIngredients().set(null);
+        HollowIngredientPacketHandler.SUPPORTED_INGREDIENTS.set(null);
     }
 }

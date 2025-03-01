@@ -11,15 +11,15 @@ import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.client.utils.mcText
 import ru.hollowhorizon.hc.client.utils.nbt.ForBlockPos
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
-import ru.hollowhorizon.hc.common.network.HollowPacketV2
-import ru.hollowhorizon.hc.common.network.HollowPacketV3
+import ru.hollowhorizon.hc.common.network.HollowPacketHandler
+import ru.hollowhorizon.hc.common.network.HollowPacket
 
 @Serializable
-@HollowPacketV2(HollowPacketV2.Direction.TO_SERVER)
+@HollowPacketHandler(HollowPacketHandler.Direction.TO_SERVER)
 class SyncEntityContainerPacket(
     private val entityId: Int, val capability: String, private val fromId: Int, private val toId: Int,
     val id: Int, private val leftButton: Boolean, private val doubleClick: Boolean, private val hasShift: Boolean,
-) : HollowPacketV3<SyncEntityContainerPacket> {
+) : HollowPacket<SyncEntityContainerPacket> {
     override fun handle(player: Player) {
         val serverPlayer = player as ServerPlayer
 
@@ -48,7 +48,7 @@ class SyncEntityContainerPacket(
 }
 
 @Serializable
-@HollowPacketV2(HollowPacketV2.Direction.TO_SERVER)
+@HollowPacketHandler(HollowPacketHandler.Direction.TO_SERVER)
 class SyncBlockEntityContainerPacket(
     private val pos: @Serializable(ForBlockPos::class) BlockPos,
     val capability: String,
@@ -58,7 +58,7 @@ class SyncBlockEntityContainerPacket(
     private val leftButton: Boolean,
     private val doubleClick: Boolean,
     private val hasShift: Boolean,
-) : HollowPacketV3<SyncBlockEntityContainerPacket> {
+) : HollowPacket<SyncBlockEntityContainerPacket> {
     override fun handle(player: Player) {
         val serverPlayer = player as ServerPlayer
 
@@ -90,7 +90,7 @@ fun CapabilityInstance.createSyncPacket(
     fromContainer: Container, toContainer: Container, id: Int,
     leftButton: Boolean, doubleClick: Boolean,
     hasShift: Boolean,
-): HollowPacketV3<*> {
+): HollowPacket<*> {
     return when (val p = provider) {
         is Entity -> SyncEntityContainerPacket(
             p.id,

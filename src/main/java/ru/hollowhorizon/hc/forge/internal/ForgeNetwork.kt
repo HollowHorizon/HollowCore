@@ -11,13 +11,13 @@ import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
-import ru.hollowhorizon.hc.common.network.HollowPacketV2
-import ru.hollowhorizon.hc.common.network.HollowPacketV3
+import ru.hollowhorizon.hc.common.network.HollowPacket
+import ru.hollowhorizon.hc.common.network.HollowPacketHandler
 import net.minecraft.network.codec.StreamCodec
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 
-fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
-    val annotation = type.getAnnotation(HollowPacketV2::class.java)
+fun <T : HollowPacket<T>> registerPacket(type: Class<T>) {
+    val annotation = type.getAnnotation(HollowPacketHandler::class.java)
     val location = CustomPacketPayload.Type<T>(ResourceLocation.fromNamespaceAndPath(MODID, type.name.lowercase()))
 
     val codec: StreamCodec<FriendlyByteBuf, T> = CustomPacketPayload.codec(
@@ -40,7 +40,7 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
     )
 
     when (annotation.toTarget) {
-        HollowPacketV2.Direction.TO_CLIENT -> {
+        HollowPacketHandler.Direction.TO_CLIENT -> {
             ForgeNetworkHelper.hollowCoreChannel
                 .messageBuilder(type)
                 .direction(PacketFlow.CLIENTBOUND)
@@ -52,7 +52,7 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
                 .add()
         }
 
-        HollowPacketV2.Direction.TO_SERVER -> {
+        HollowPacketHandler.Direction.TO_SERVER -> {
             ForgeNetworkHelper.hollowCoreChannel
                 .messageBuilder(type)
                 .direction(PacketFlow.SERVERBOUND)
@@ -64,7 +64,7 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
                 .add()
         }
 
-        HollowPacketV2.Direction.ANY -> {
+        HollowPacketHandler.Direction.ANY -> {
             ForgeNetworkHelper.hollowCoreChannel
                 .messageBuilder(type)
                 .encoder { packet, buffer -> codec.encode(buffer, packet) }
@@ -83,20 +83,21 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
 /*import net.minecraft.client.Minecraft
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
-import net.minecraft.network.protocol.PacketFlow
 import net.minecraftforge.network.NetworkDirection
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
 import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
-import ru.hollowhorizon.hc.common.network.HollowPacketV2
-import ru.hollowhorizon.hc.common.network.HollowPacketV3
+import ru.hollowhorizon.hc.common.network.HollowPacket
+import ru.hollowhorizon.hc.common.network.HollowPacketHandler
 import java.util.function.BiConsumer
 
 var id = 0
 
-fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
-    val annotation = type.getAnnotation(HollowPacketV2::class.java)
+fun idPlPl() = id++
+
+fun <T : HollowPacket<T>> registerPacket(type: Class<T>) {
+    val annotation = type.getAnnotation(HollowPacketHandler::class.java)
 
     val encoder: BiConsumer<T, FriendlyByteBuf> = BiConsumer { packet: T, buffer: FriendlyByteBuf ->
         val tag = NBTFormat.serializeNoInline(packet, type)
@@ -116,7 +117,7 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
     }
 
     when (annotation.toTarget) {
-        HollowPacketV2.Direction.TO_CLIENT -> {
+        HollowPacketHandler.Direction.TO_CLIENT -> {
             ForgeNetworkHelper.hollowCoreChannel
                 .messageBuilder(type, id++, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(encoder)
@@ -127,7 +128,7 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
                 .add()
         }
 
-        HollowPacketV2.Direction.TO_SERVER -> {
+        HollowPacketHandler.Direction.TO_SERVER -> {
             ForgeNetworkHelper.hollowCoreChannel
                 .messageBuilder(type, id++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(encoder)
@@ -138,7 +139,7 @@ fun <T : HollowPacketV3<T>> registerPacket(type: Class<T>) {
                 .add()
         }
 
-        HollowPacketV2.Direction.ANY -> {
+        HollowPacketHandler.Direction.ANY -> {
             ForgeNetworkHelper.hollowCoreChannel
                 .messageBuilder(type, id++)
                 .encoder(encoder)

@@ -7,15 +7,15 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Ingredient
 import ru.hollowhorizon.hc.client.utils.JavaHacks
+import ru.hollowhorizon.hc.common.objects.recipe.packet.HollowIngredientPacketHandler
 import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Stream
 
 class HollowIngredient(override val hollowIngredient: IHollowIngredient) : Ingredient(Stream.empty()), HollowCoreIngredient {
     companion object {
-        private val registeredSerializers: Map<ResourceLocation, IHollowIngredientSerializer<*>> = ConcurrentHashMap()
+        internal val registeredSerializers: Map<ResourceLocation, IHollowIngredientSerializer<*>> = ConcurrentHashMap()
         val typeKey = "hollowcore:type"
         val packetMarker = -1
-        val supportedIngredients: ThreadLocal<Set<ResourceLocation>> = ThreadLocal()
 
         @JvmStatic
         fun registerSerializer(serializer: IHollowIngredientSerializer<*>) {
@@ -42,7 +42,7 @@ class HollowIngredient(override val hollowIngredient: IHollowIngredient) : Ingre
     override fun test(stack: ItemStack?): Boolean = stack != null && this.hollowIngredient.test(stack)
 
     override fun toNetwork(buffer: FriendlyByteBuf) {
-        val singr = supportedIngredients.get()
+        val singr = HollowIngredientPacketHandler.SUPPORTED_INGREDIENTS.get()
 
         if (singr != null && !singr.contains(hollowIngredient.serializer.id))
             super.toNetwork(buffer)
