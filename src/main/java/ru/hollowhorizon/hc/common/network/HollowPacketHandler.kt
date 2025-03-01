@@ -24,8 +24,8 @@
 
 package ru.hollowhorizon.hc.common.network
 
-
+// Renamed from HollowPacketV2
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-annotation class HollowPacketV2(val toTarget: Direction = Direction.ANY) {
+annotation class HollowPacketHandler(val toTarget: Direction = Direction.ANY) {
     enum class Direction { TO_CLIENT, TO_SERVER, ANY }
 }
