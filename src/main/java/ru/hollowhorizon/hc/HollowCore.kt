@@ -28,7 +28,7 @@ import ru.hollowhorizon.hc.client.sounds.HollowSoundHandler
 import ru.hollowhorizon.hc.common.HollowCoreCommon
 import ru.hollowhorizon.hc.common.config.HollowCoreConfig
 import ru.hollowhorizon.hc.common.config.hollowConfig
-import ru.hollowhorizon.hc.common.objects.recipe.packet.HollowIngredientPacketHandler
+import ru.hollowhorizon.hc.common.objects.recipe.HollowCoreIngredientInitializer
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor.initMod
 
 object HollowCore {
@@ -48,6 +48,8 @@ object HollowCore {
 
     init {
         HollowCoreCommon
+
+        HollowCoreIngredientInitializer.init()
 
         initMod()
 

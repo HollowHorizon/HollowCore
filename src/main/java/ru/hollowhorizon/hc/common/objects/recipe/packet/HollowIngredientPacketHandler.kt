@@ -26,8 +26,6 @@ object HollowIngredientPacketHandler {
     @JvmField val SUPPORTED_INGREDIENTS: ThreadLocal<Set<ResourceLocation>> = ThreadLocal()
     const val PROTOCOL_VERSION_4 = 4
 
-    fun init() {}
-
     //? if fabric {
     fun onClientReceiver() {
         ClientLoginNetworking.registerGlobalReceiver(PACKET_ID) { _, _, buf, _ ->
