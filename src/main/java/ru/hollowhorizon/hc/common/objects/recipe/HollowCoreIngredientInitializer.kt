@@ -5,6 +5,6 @@ import ru.hollowhorizon.hc.common.objects.recipe.builtin.NBTIngredient
 object HollowCoreIngredientInitializer {
     @JvmStatic
     fun init() {
-        HollowIngredient.registerSerializer(NBTIngredient.Serializer)
+        HollowRecipeHelper.registerIngredientSerializer(NBTIngredient.Serializer)
     }
 }

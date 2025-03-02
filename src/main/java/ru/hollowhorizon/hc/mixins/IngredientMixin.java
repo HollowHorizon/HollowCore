@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.common.objects.recipe.HollowCoreIngredient;
 import ru.hollowhorizon.hc.common.objects.recipe.HollowIngredient;
+import ru.hollowhorizon.hc.common.objects.recipe.HollowRecipeHelper;
 
 @Mixin(Ingredient.class)
 public class IngredientMixin implements HollowCoreIngredient {
@@ -59,7 +60,7 @@ public class IngredientMixin implements HollowCoreIngredient {
         }
 
         var id = buffer.readResourceLocation();
-        var serializer = HollowIngredient.getSerializer(id);
+        var serializer = HollowRecipeHelper.getIngredientSerializer(id);
 
         if (serializer == null) {
             throw new IllegalArgumentException("Cannot deserialize ingredient of unknown type " + id);
