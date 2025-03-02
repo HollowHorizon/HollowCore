@@ -18,7 +18,7 @@ import io.netty.buffer.Unpooled
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.client.utils.rl
-import ru.hollowhorizon.hc.common.objects.recipe.HollowIngredient
+import ru.hollowhorizon.hc.common.objects.recipe.DefaultHollowIngredient
 import ru.hollowhorizon.hc.common.objects.recipe.deep.SupportedIngredientsPacketEncoder
 
 object HollowIngredientPacketHandler {
@@ -104,14 +104,14 @@ object HollowIngredientPacketHandler {
         if (protVer < PROTOCOL_VERSION_4) return null
         val buf = FriendlyByteBuf(Unpooled.buffer())
         buf.writeVarInt(PROTOCOL_VERSION_4)
-        buf.writeCollection(HollowIngredient.registeredSerializers.keys, FriendlyByteBuf::writeResourceLocation)
+        buf.writeCollection(DefaultHollowIngredient.registeredSerializers.keys, FriendlyByteBuf::writeResourceLocation)
         return buf
     }
 
     private fun decodeResponse(buf: FriendlyByteBuf): Set<ResourceLocation> = when (val protVer = buf.readVarInt()) {
         PROTOCOL_VERSION_4 -> {
             buf.readCollection(::HashSet, FriendlyByteBuf::readResourceLocation).apply {
-                removeIf { !HollowIngredient.registeredSerializers.containsKey(it) }
+                removeIf { !DefaultHollowIngredient.registeredSerializers.containsKey(it) }
             }
         }
         else -> throw IllegalArgumentException("Unknown ingredient sync protocol version: $protVer")

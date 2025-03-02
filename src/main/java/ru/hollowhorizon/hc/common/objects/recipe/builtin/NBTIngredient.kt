@@ -14,15 +14,15 @@ import net.minecraft.util.GsonHelper
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Ingredient
 import ru.hollowhorizon.hc.client.utils.rl
-import ru.hollowhorizon.hc.common.objects.recipe.IHollowIngredient
-import ru.hollowhorizon.hc.common.objects.recipe.IHollowIngredientSerializer
+import ru.hollowhorizon.hc.common.objects.recipe.HollowIngredient
+import ru.hollowhorizon.hc.common.objects.recipe.HollowIngredientSerializer
 import java.util.Objects
 
 class NBTIngredient(
     private val original: Ingredient,
     private val tag: CompoundTag?,
     private val strict: Boolean
-): IHollowIngredient {
+): HollowIngredient {
     init {
         require(!(tag == null && !strict)) { "NBTIngredient can only have null NBT in strict mode" }
     }
@@ -50,14 +50,14 @@ class NBTIngredient(
             return stacks
         }
 
-    override val serializer: IHollowIngredientSerializer<*> = Serializer
+    override val serializer: HollowIngredientSerializer<*> = Serializer
 
     companion object {
         @JvmField
-        val Serializer: IHollowIngredientSerializer<NBTIngredient> = Serializer()
+        val Serializer: HollowIngredientSerializer<NBTIngredient> = Serializer()
     }
 
-    private class Serializer : IHollowIngredientSerializer<NBTIngredient> {
+    private class Serializer : HollowIngredientSerializer<NBTIngredient> {
         override val id: ResourceLocation = "hollowcore:nbt".rl
 
         override fun fromJson(json: JsonObject): NBTIngredient {

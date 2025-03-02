@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.common.objects.recipe.HollowCoreIngredient;
-import ru.hollowhorizon.hc.common.objects.recipe.HollowIngredient;
+import ru.hollowhorizon.hc.common.objects.recipe.DefaultHollowIngredient;
 import ru.hollowhorizon.hc.common.objects.recipe.HollowRecipeHelper;
 
 @Mixin(Ingredient.class)
@@ -28,9 +28,9 @@ public class IngredientMixin implements HollowCoreIngredient {
     private static void fromJson(JsonElement json, boolean canBeEmpty, CallbackInfoReturnable<Ingredient> cir) {
         var obj = json.getAsJsonObject();
 
-        if (!obj.has(HollowIngredient.Companion.getTypeKey())) return;
-        var id = ForgeKotlinKt.getRl(GsonHelper.getAsString(obj, HollowIngredient.Companion.getTypeKey()));
-        var serializer = HollowIngredient.getSerializer(id);
+        if (!obj.has(DefaultHollowIngredient.Companion.getTypeKey())) return;
+        var id = ForgeKotlinKt.getRl(GsonHelper.getAsString(obj, DefaultHollowIngredient.Companion.getTypeKey()));
+        var serializer = DefaultHollowIngredient.getSerializer(id);
 
         if (serializer == null) throw new IllegalArgumentException("Unknown ingredient type: " + id);
         cir.setReturnValue(serializer.fromJson(obj).getAsVanilla());
@@ -41,7 +41,7 @@ public class IngredientMixin implements HollowCoreIngredient {
             at = @At("HEAD")
     )
     private static void valueFromJson(JsonObject json, CallbackInfoReturnable<Ingredient.Value> cir) {
-        if (json.has(HollowIngredient.Companion.getTypeKey())) {
+        if (json.has(DefaultHollowIngredient.Companion.getTypeKey())) {
             throw new IllegalArgumentException("Ingredient cannot be used inside an array ingredient. You can replace the array by a `any` ingredient.");
         }
     }
@@ -54,7 +54,7 @@ public class IngredientMixin implements HollowCoreIngredient {
     private static void fromNetwork(FriendlyByteBuf buffer, CallbackInfoReturnable<Ingredient> cir) {
         var ix = buffer.readerIndex();
 
-        if (buffer.readVarInt() != HollowIngredient.Companion.getPacketMarker()) {
+        if (buffer.readVarInt() != DefaultHollowIngredient.Companion.getPacketMarker()) {
             buffer.readerIndex(ix);
             return;
         }
