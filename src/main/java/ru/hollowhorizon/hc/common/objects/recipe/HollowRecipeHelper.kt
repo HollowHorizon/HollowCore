@@ -4,9 +4,9 @@ import net.minecraft.resources.ResourceLocation
 
 object HollowRecipeHelper {
     @JvmStatic
-    fun registerIngredientSerializer(serializer: IHollowIngredientSerializer<*>) =
-        HollowIngredient.registerSerializer(serializer)
+    fun registerIngredientSerializer(serializer: HollowIngredientSerializer<*>) =
+        DefaultHollowIngredient.registerSerializer(serializer)
 
     @JvmStatic
-    fun getIngredientSerializer(id: ResourceLocation) = HollowIngredient.getSerializer(id)
+    fun getIngredientSerializer(id: ResourceLocation) = DefaultHollowIngredient.getSerializer(id)
 }
