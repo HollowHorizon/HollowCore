@@ -23,7 +23,7 @@ public class PacketEncoderMixin implements SupportedIngredientsPacketEncoder {
     private Set<ResourceLocation> hc$supportedIngredients = Set.of();
 
     @Override
-    public void hcSetSupportedIngredients(@NotNull Set<? extends ResourceLocation> value) {
+    public void hc_SetSupportedIngredients(@NotNull Set<? extends ResourceLocation> value) {
         hc$supportedIngredients = JavaHacks.forceCast(value);
     }
 

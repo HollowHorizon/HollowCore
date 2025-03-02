@@ -1,4 +1,6 @@
-package ru.hollowhorizon.hc.common.objects.recipe
+package ru.hollowhorizon.hc.common.objects.recipe.deep
+
+import ru.hollowhorizon.hc.common.objects.recipe.ingredient.HollowIngredient
 
 interface HollowCoreIngredient {
     val hollowIngredient: HollowIngredient? get() = null

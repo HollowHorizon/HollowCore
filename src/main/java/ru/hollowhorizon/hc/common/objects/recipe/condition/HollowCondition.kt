@@ -6,10 +6,10 @@ import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.TagKey
 
-interface ICondition {
+interface HollowCondition {
     val id: ResourceLocation
 
-    fun test(context: ConditionContext)
+    fun test(context: ConditionContext): Boolean
 
     interface ConditionContext {
         companion object {

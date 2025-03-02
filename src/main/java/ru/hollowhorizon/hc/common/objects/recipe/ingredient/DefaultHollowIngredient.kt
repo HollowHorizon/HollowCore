@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.common.objects.recipe
+package ru.hollowhorizon.hc.common.objects.recipe.ingredient
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
@@ -7,25 +7,27 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Ingredient
 import ru.hollowhorizon.hc.client.utils.JavaHacks
+import ru.hollowhorizon.hc.common.objects.recipe.deep.HollowCoreIngredient
 import ru.hollowhorizon.hc.common.objects.recipe.packet.HollowIngredientPacketHandler
 import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Stream
 
-class DefaultHollowIngredient(override val hollowIngredient: HollowIngredient) : Ingredient(Stream.empty()), HollowCoreIngredient {
+class DefaultHollowIngredient(override val hollowIngredient: HollowIngredient) : Ingredient(Stream.empty()),
+    HollowCoreIngredient {
     companion object {
         internal val registeredSerializers: Map<ResourceLocation, HollowIngredientSerializer<*>> = ConcurrentHashMap()
         val typeKey = "hollowcore:type"
         val packetMarker = -1
 
         @JvmStatic
-        fun registerSerializer(serializer: HollowIngredientSerializer<*>) {
+        internal fun registerSerializer(serializer: HollowIngredientSerializer<*>) {
             check((registeredSerializers as ConcurrentHashMap).putIfAbsent(serializer.id, serializer) == null) {
                 "Hollow Serializer ${serializer.id} already registered"
             }
         }
 
         @JvmStatic
-        fun getSerializer(id: ResourceLocation): HollowIngredientSerializer<*>? = registeredSerializers[id]
+        internal fun getSerializer(id: ResourceLocation): HollowIngredientSerializer<*>? = registeredSerializers[id]
     }
 
     override val requireTesting: Boolean

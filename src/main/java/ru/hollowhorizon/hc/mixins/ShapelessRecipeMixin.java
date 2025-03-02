@@ -2,7 +2,6 @@ package ru.hollowhorizon.hc.mixins;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -17,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import ru.hollowhorizon.hc.common.objects.recipe.HollowCoreIngredient;
+import ru.hollowhorizon.hc.common.objects.recipe.deep.HollowCoreIngredient;
 import ru.hollowhorizon.hc.common.objects.recipe.ShapelessMatch;
 
 import java.util.ArrayList;

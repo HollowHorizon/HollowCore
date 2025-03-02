@@ -7,7 +7,7 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.common.network.HollowPacketHandler
 import ru.hollowhorizon.hc.common.network.HollowPacket
-import ru.hollowhorizon.hc.common.objects.recipe.DefaultHollowIngredient
+import ru.hollowhorizon.hc.common.objects.recipe.ingredient.DefaultHollowIngredient
 import ru.hollowhorizon.hc.common.objects.recipe.deep.SupportedIngredientsPacketEncoder
 
 private const val PROTOCOL_VERSION = 4
@@ -31,6 +31,6 @@ class HollowIngredientSync(private val protVersion: Int) : HollowPacket<HollowIn
             else -> throw IllegalArgumentException("Unknown ingredient sync protocol version: $protVersion")
         }
         val pe = Minecraft.getInstance().connection?.connection?.channel?.pipeline()?.get("encoder") ?: return
-        (pe as SupportedIngredientsPacketEncoder).hcSetSupportedIngredients(idSet)
+        (pe as SupportedIngredientsPacketEncoder).hc_SetSupportedIngredients(idSet)
     }
 }

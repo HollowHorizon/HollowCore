@@ -43,3 +43,8 @@ extendable method net/minecraft/world/item/crafting/Ingredient toNetwork (Lnet/m
 accessible field net/minecraft/server/network/ServerLoginPacketListenerImpl connection Lnet/minecraft/network/Connection;
 
 accessible field net/minecraft/network/Connection channel Lio/netty/channel/Channel;
+
+accessible field net/minecraft/world/item/crafting/RecipeManager hasErrors Z
+accessible field net/minecraft/world/item/crafting/RecipeManager recipes Ljava/util/Map;
+accessible field net/minecraft/world/item/crafting/RecipeManager byName Ljava/util/Map;
+
