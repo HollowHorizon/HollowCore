@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.common.objects.recipe
+package ru.hollowhorizon.hc.common.objects.recipe.ingredient
 
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Ingredient

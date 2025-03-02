@@ -18,8 +18,8 @@ import io.netty.buffer.Unpooled
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.client.utils.rl
-import ru.hollowhorizon.hc.common.objects.recipe.DefaultHollowIngredient
-import ru.hollowhorizon.hc.common.objects.recipe.deep.SupportedIngredientsPacketEncoder
+import ru.hollowhorizon.hc.common.objects.recipe.ingredient.DefaultHollowIngredient
+import ru.hollowhorizon.hc.common.objects.recipe.deep.setSupportedIngredients
 
 object HollowIngredientPacketHandler {
     @JvmField val PACKET_ID = "hollowcore:hollow_ingredient_sync".rl
@@ -45,11 +45,7 @@ object HollowIngredientPacketHandler {
             if (!received) return@registerGlobalReceiver
 
             val supported = decodeResponse(buf)
-            val packetEncoder = h.connection.channel.pipeline().get("encoder")
-
-            if (packetEncoder != null) {
-                (packetEncoder as SupportedIngredientsPacketEncoder).hcSetSupportedIngredients(supported)
-            }
+            h.connection.channel.pipeline().get("encoder")?.setSupportedIngredients(supported)
         }
     }
     //?} elif forge {
@@ -90,9 +86,7 @@ object HollowIngredientPacketHandler {
         fun handle(ctx: Supplier<NetworkEvent.Context>) {
             ctx.get().enqueueWork {
                 val supported = decodeResponse(data)
-                val packetEncoder = ctx.get().networkManager.channel.pipeline().get("encode")
-                if (packetEncoder != null)
-                    (packetEncoder as SupportedIngredientsPacketEncoder).hcSetSupportedIngredients(supported)
+                ctx.get().networkManager.channel.pipeline().get("encoder")?.setSupportedIngredients(supported)
             }
 
             ctx.get().packetHandled = true

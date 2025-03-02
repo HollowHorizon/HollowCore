@@ -10,8 +10,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
-import ru.hollowhorizon.hc.common.objects.recipe.HollowCoreIngredient;
-import ru.hollowhorizon.hc.common.objects.recipe.DefaultHollowIngredient;
+import ru.hollowhorizon.hc.common.objects.recipe.deep.HollowCoreIngredient;
+import ru.hollowhorizon.hc.common.objects.recipe.ingredient.DefaultHollowIngredient;
 import ru.hollowhorizon.hc.common.objects.recipe.HollowRecipeHelper;
 
 @Mixin(Ingredient.class)
@@ -30,7 +30,7 @@ public class IngredientMixin implements HollowCoreIngredient {
 
         if (!obj.has(DefaultHollowIngredient.Companion.getTypeKey())) return;
         var id = ForgeKotlinKt.getRl(GsonHelper.getAsString(obj, DefaultHollowIngredient.Companion.getTypeKey()));
-        var serializer = DefaultHollowIngredient.getSerializer(id);
+        var serializer = HollowRecipeHelper.getSerializer(id);
 
         if (serializer == null) throw new IllegalArgumentException("Unknown ingredient type: " + id);
         cir.setReturnValue(serializer.fromJson(obj).getAsVanilla());
@@ -60,7 +60,7 @@ public class IngredientMixin implements HollowCoreIngredient {
         }
 
         var id = buffer.readResourceLocation();
-        var serializer = HollowRecipeHelper.getIngredientSerializer(id);
+        var serializer = HollowRecipeHelper.getSerializer(id);
 
         if (serializer == null) {
             throw new IllegalArgumentException("Cannot deserialize ingredient of unknown type " + id);
