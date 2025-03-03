@@ -8,8 +8,8 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.entity.BlockEntity
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
-import ru.hollowhorizon.hc.client.utils.mcText
-import ru.hollowhorizon.hc.client.utils.nbt.ForBlockPos
+import ru.hollowhorizon.hc.common.utils.mcText
+import ru.hollowhorizon.hc.common.utils.nbt.ForBlockPos
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.network.HollowPacketHandler
 import ru.hollowhorizon.hc.common.network.HollowPacket

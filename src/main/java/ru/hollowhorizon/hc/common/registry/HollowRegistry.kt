@@ -28,7 +28,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.minecraft.core.Registry
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 import kotlin.properties.ReadOnlyProperty
 
 open class HollowRegistry(val modId: String = MODID) {

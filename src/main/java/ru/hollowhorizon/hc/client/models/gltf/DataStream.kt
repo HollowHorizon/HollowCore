@@ -1,6 +1,6 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
 import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.client.utils
+package ru.hollowhorizon.hc.common.utils
 
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.ResourceLocation

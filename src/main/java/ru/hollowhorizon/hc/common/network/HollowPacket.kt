@@ -34,8 +34,8 @@ import io.netty.buffer.Unpooled
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.protocol.Packet
-import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
-import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
+import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
+import ru.hollowhorizon.hc.common.utils.nbt.serializeNoInline
 //?}
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerChunkCache
@@ -44,7 +44,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
 import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 
 interface HollowPacket<T : HollowPacket<T>> {
     fun handle(player: Player)

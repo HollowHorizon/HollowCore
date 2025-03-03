@@ -46,9 +46,9 @@ import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
-import ru.hollowhorizon.hc.client.utils.get
-import ru.hollowhorizon.hc.client.utils.memoize
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.get
+import ru.hollowhorizon.hc.common.utils.memoize
+import ru.hollowhorizon.hc.common.utils.rl
 
 
 object GLTFItemRenderer : BlockEntityWithoutLevelRenderer(

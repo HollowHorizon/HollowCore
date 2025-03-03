@@ -35,8 +35,8 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.serializer
 import net.minecraft.nbt.Tag
-import ru.hollowhorizon.hc.client.utils.nbt.INBTSerializable
-import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
+import ru.hollowhorizon.hc.common.utils.nbt.INBTSerializable
+import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
 
 class SyncableMapImpl<K : Any, V : Any>(
     val map: MutableMap<K, V>,

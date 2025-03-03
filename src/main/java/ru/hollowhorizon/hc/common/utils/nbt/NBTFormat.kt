@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.client.utils.nbt
+package ru.hollowhorizon.hc.common.utils.nbt
 
 import com.google.common.reflect.TypeToken
 import kotlinx.coroutines.runBlocking

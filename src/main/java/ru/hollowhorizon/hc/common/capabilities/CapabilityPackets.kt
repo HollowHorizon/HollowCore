@@ -33,8 +33,8 @@ import net.minecraft.nbt.Tag
 import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
-import ru.hollowhorizon.hc.client.utils.nbt.ForTag
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.nbt.ForTag
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler
 import ru.hollowhorizon.hc.common.network.HollowPacketHandler
 import ru.hollowhorizon.hc.common.network.HollowPacket

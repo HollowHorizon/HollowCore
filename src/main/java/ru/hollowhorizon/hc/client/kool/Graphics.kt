@@ -26,7 +26,7 @@ package ru.hollowhorizon.hc.client.kool
 
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
-import ru.hollowhorizon.hc.client.utils.literal
+import ru.hollowhorizon.hc.common.utils.literal
 
 
 object Graphics {

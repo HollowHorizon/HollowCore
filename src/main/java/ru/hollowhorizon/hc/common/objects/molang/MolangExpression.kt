@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.molang
+package ru.hollowhorizon.hc.common.objects.molang
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -144,7 +144,7 @@ fun interface MolangExpression {
 
     data class Statements(
         val statements: List<MolangExpression>,
-        val result: MolangExpression = MolangExpression.ZERO,
+        val result: MolangExpression = ZERO,
     ) :
         MolangExpression {
         override fun eval(context: MolangContext): Float {

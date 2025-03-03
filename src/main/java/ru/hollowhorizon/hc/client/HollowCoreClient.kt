@@ -25,14 +25,9 @@
 package ru.hollowhorizon.hc.client
 
 import com.mojang.blaze3d.systems.RenderSystem
-import de.fabmax.kool.math.Vec3f
-import de.fabmax.kool.math.deg
 import de.fabmax.kool.modules.ui2.*
-import de.fabmax.kool.scene.Scene
 import de.fabmax.kool.util.MsdfFont
-import de.fabmax.kool.util.Time
 import net.minecraft.client.KeyMapping
-import net.minecraft.client.Minecraft
 import net.minecraft.resources.ResourceLocation
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
@@ -45,7 +40,7 @@ import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.exists
 import ru.hollowhorizon.hc.client.utils.open
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.common.events.ClientOnly
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent

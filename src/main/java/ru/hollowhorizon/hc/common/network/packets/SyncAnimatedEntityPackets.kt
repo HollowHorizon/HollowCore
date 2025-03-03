@@ -32,7 +32,7 @@ import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapabili
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimationLayer
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
 import ru.hollowhorizon.hc.client.models.internal.manager.LayerMode
-import ru.hollowhorizon.hc.client.utils.get
+import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.network.HollowPacketHandler
 import ru.hollowhorizon.hc.common.network.HollowPacket
 

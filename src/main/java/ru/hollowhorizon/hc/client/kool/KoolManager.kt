@@ -12,8 +12,8 @@ import de.fabmax.kool.util.MsdfMeta
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.decodeFromStream
 import org.apache.logging.log4j.LogManager
-import ru.hollowhorizon.hc.client.utils.json.JsonFormat
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.json.JsonFormat
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
 
 @OptIn(ExperimentalSerializationApi::class)

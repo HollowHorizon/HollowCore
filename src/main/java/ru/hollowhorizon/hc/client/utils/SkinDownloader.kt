@@ -31,6 +31,8 @@ import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.common.utils.ModList
+import ru.hollowhorizon.hc.common.utils.rl
 import java.io.File
 import java.net.URL
 import java.util.*

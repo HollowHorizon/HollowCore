@@ -6,7 +6,7 @@ import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
 
 private val json = Json {
@@ -33,7 +33,6 @@ data class BlockBenchModel(
     @Serializable
     data class Resolution(val width: Int, val height: Int)
 }
-
 
 @Serializable(with = BBNodeSerializer::class)
 sealed class BBNode {

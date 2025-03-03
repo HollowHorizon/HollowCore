@@ -9,9 +9,9 @@ import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.network.FriendlyByteBuf
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
-import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
+import ru.hollowhorizon.hc.common.utils.nbt.deserializeNoInline
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.common.network.HollowPacketHandler
 import ru.hollowhorizon.hc.common.network.HollowPacket
 

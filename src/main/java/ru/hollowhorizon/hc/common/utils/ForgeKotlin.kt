@@ -22,19 +22,11 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.client.utils
+package ru.hollowhorizon.hc.common.utils
 
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.blaze3d.vertex.PoseStack
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.minecraft.ChatFormatting
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.gui.screens.Screen
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
-import net.minecraft.client.renderer.texture.AbstractTexture
-import net.minecraft.client.server.IntegratedServer
-import net.minecraft.core.RegistryAccess
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
@@ -45,19 +37,9 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.util.RandomSource
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemStack
-import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
-import java.io.InputStream
 import kotlin.reflect.KClass
-
-val mc: Minecraft get() = Minecraft.getInstance()
-
-enum class Axis(val x: Float, val y: Float, val z: Float) {
-    X(1f, 0f, 0f),
-    Y(0f, 1f, 0f),
-    Z(0f, 0f, 1f);
-}
 
 val isProduction: Boolean
     get() {
@@ -81,95 +63,19 @@ val isPhysicalClient: Boolean
         //?}
     }
 
-val hasShaders get() = ModList.isLoaded("oculus") || ModList.isLoaded("iris") || ModList.isLoaded("optifine")
-
-val areShadersEnabled get() = hasShaders && areShadersEnabled_()
-
 val RANDOM = RandomSource.create()
 
-lateinit var areShadersEnabled_: () -> Boolean
-
 lateinit var currentServer: MinecraftServer
-lateinit var shouldOverrideShaders: () -> Boolean
-
-val registryAccess: RegistryAccess
-    get() = if (currentServer is IntegratedServer) Minecraft.getInstance().connection?.registryAccess()
-        ?: currentServer.registryAccess()
-    else currentServer.registryAccess()
-
-val AbstractContainerScreen<*>.guiPosLeft: Int
-    get() = (this.width - this.imageWidth) / 2
-
-val AbstractContainerScreen<*>.guiPosTop: Int
-    get() = (this.height - this.imageHeight) / 2
-
-fun isCursorAtPos(cursorX: Int, cursorY: Int, x: Int, y: Int, width: Int, height: Int) : Boolean =
-    cursorX >= x && cursorY >= y && cursorX <= x + width && cursorY <= y + height
-
-fun isCursorAtPos(cursorX: Double, cursorY: Double, x: Int, y: Int, width: Int, height: Int) : Boolean =
-    cursorX >= x && cursorY >= y && cursorX <= x + width && cursorY <= y + height
-
-fun GuiGraphics.defaultBlit(
-    id: ResourceLocation,
-    x: Int,
-    y: Int,
-    uOffset: Float = 0f,
-    vOffset: Float = 0f,
-    width: Int = 176,
-    height: Int = 166,
-    textureWidth: Int = 256,
-    textureHeight: Int = 256
-) = this.blit(id, x, y, uOffset, vOffset, width, height, textureWidth, textureHeight)
-
-fun AbstractContainerScreen<*>.xPos(x: Int): Int {
-    val j = ((this.width / 2) - (this.imageWidth / 2))
-    return x + j
-}
-
-fun AbstractContainerScreen<*>.yPos(y: Int): Int {
-    val j = ((this.height / 2) - (this.imageHeight / 2))
-    return y + j
-}
-
-fun AbstractContainerScreen<*>.xPos(x: Float): Float {
-    val j = ((this.width / 2) - (this.imageWidth / 2))
-    return x + j
-}
-
-fun AbstractContainerScreen<*>.yPos(y: Float): Float {
-    val j = ((this.height / 2) - (this.imageHeight / 2))
-    return y + j
-}
-
 
 operator fun <O, T : CapabilityInstance> O.get(capability: KClass<T>): T = get(capability.java)
 
 @Suppress("UNCHECKED_CAST")
 operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T = when (this) {
-
-
     is ICapabilityDispatcher -> this.capabilities.first { it.javaClass == capability } as T
     else -> throw IllegalStateException("Unsupported capability type: $capability")
 }
 
 val String.rl get() = ResourceLocation(this)
-
-fun resource(resource: String) = "${HollowCore.MODID}:$resource".rl.stream
-
-fun ResourceLocation.toIS(): InputStream {
-    return HollowJavaUtils.getResource(this)
-}
-
-fun ItemStack.save() = CompoundTag().apply(::save)
-
-fun CompoundTag.readItem() = ItemStack.of(this)
-
-fun ResourceLocation.exists(): Boolean {
-    return mc.resourceManager.getResource(this).isPresent
-}
-
-val ResourceLocation.stream: InputStream
-    get() = HollowJavaUtils.getResource(this)
 
 @Deprecated("Use String.literal instead.", ReplaceWith("this.literal"))
 val String.mcText: MutableComponent get() = Component.literal(this)
@@ -215,65 +121,13 @@ fun MutableComponent.onHoverEntity(entity: Entity) = this.withStyle {
     )
 }
 
-fun Screen.open() {
-    mc.setScreen(this)
-}
-
-fun ResourceLocation.toTexture(): AbstractTexture = mc.textureManager.getTexture(this)
-
-
-fun Int.toRGBA(): HollowColor {
-    return HollowColor(
-        (this shr 16 and 255).toFloat() / 255.0f,
-        (this shr 8 and 255).toFloat() / 255.0f,
-        (this and 255).toFloat() / 255.0f,
-        (this shr 24 and 255).toFloat() / 255.0f
-    )
-}
-
-fun Int.toABGR(): HollowColor {
-    return HollowColor(
-        (this and 255).toFloat() / 255.0f,
-        (this shr 8 and 255).toFloat() / 255.0f,
-        (this shr 16 and 255).toFloat() / 255.0f,
-        (this shr 24 and 255).toFloat() / 255.0f
-    )
-}
-
-
-data class HollowColor(val r: Float, val g: Float, val b: Float, val a: Float) {
-    constructor(r: Int, g: Int, b: Int, a: Int) : this(
-        r.toFloat() / 255f,
-        g.toFloat() / 255f,
-        b.toFloat() / 255f,
-        a.toFloat() / 255f
-    )
-
-    fun toRGBA(): Int {
-        val red = (r * 255.0f + 0.5f).toInt() shl 16
-        val green = (g * 255.0f + 0.5f).toInt() shl 8
-        val blue = (b * 255.0f + 0.5f).toInt()
-        val alpha = (a * 255.0f + 0.5f).toInt() shl 24
-        return alpha or red or green or blue
-    }
-
-    fun toABGR(): Int {
-        return ((a * 255f).toInt() shl 24) or
-                ((b * 255f).toInt() shl 16) or
-                ((g * 255f).toInt() shl 8) or
-                (r * 255f).toInt()
-    }
-}
-
-inline fun PoseStack.use(usable: PoseStack.() -> Unit) {
-    this.pushPose()
-    usable()
-    this.popPose()
-}
-
 fun <A, B> ((A) -> B).memoize(): (A) -> B {
     val cache: MutableMap<A, B> = Object2ObjectOpenHashMap()
     return {
         cache.getOrPut(it) { this(it) }
     }
 }
+
+fun ItemStack.save() = CompoundTag().apply(::save)
+
+fun CompoundTag.readItem() = ItemStack.of(this)

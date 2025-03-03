@@ -4,7 +4,7 @@ import net.minecraft.client.renderer.texture.AbstractTexture
 import ru.hollowhorizon.hc.client.audio.Wave
 import ru.hollowhorizon.hc.client.particles.file.ParticleComponents
 import ru.hollowhorizon.hc.client.particles.file.BedrockParticleFile
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.client.utils.toTexture
 
 class ParticleEffect(

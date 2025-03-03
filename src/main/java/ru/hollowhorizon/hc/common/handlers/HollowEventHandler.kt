@@ -32,9 +32,9 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.api.deserializeCapabilities
 import ru.hollowhorizon.hc.api.serializeCapabilities
-import ru.hollowhorizon.hc.client.utils.mcTranslate
-import ru.hollowhorizon.hc.client.utils.nbt.loadAsNBT
-import ru.hollowhorizon.hc.client.utils.nbt.save
+import ru.hollowhorizon.hc.common.utils.mcTranslate
+import ru.hollowhorizon.hc.common.utils.nbt.loadAsNBT
+import ru.hollowhorizon.hc.common.utils.nbt.save
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.client.ItemTooltipEvent

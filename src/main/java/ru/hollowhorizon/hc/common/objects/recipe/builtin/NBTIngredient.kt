@@ -13,7 +13,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.GsonHelper
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Ingredient
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.HollowIngredient
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.HollowIngredientSerializer
 import java.util.Objects

@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.molang
+package ru.hollowhorizon.hc.common.objects.molang
 
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.client.particles.Transform

@@ -10,13 +10,13 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
 import org.joml.Vector4f
-import ru.hollowhorizon.hc.client.molang.MolangContext
-import ru.hollowhorizon.hc.client.molang.MolangExpression
-import ru.hollowhorizon.hc.client.molang.MolangVec3
-import ru.hollowhorizon.hc.client.molang.parseMolangExpression
-import ru.hollowhorizon.hc.client.utils.nbt.ListOrSingle
-import ru.hollowhorizon.hc.client.utils.nbt.PairAsList
-import ru.hollowhorizon.hc.client.utils.nbt.TreeMap
+import ru.hollowhorizon.hc.common.objects.molang.MolangContext
+import ru.hollowhorizon.hc.common.objects.molang.MolangExpression
+import ru.hollowhorizon.hc.common.objects.molang.MolangVec3
+import ru.hollowhorizon.hc.common.objects.molang.parseMolangExpression
+import ru.hollowhorizon.hc.common.utils.nbt.ListOrSingle
+import ru.hollowhorizon.hc.common.utils.nbt.PairAsList
+import ru.hollowhorizon.hc.common.utils.nbt.TreeMap
 
 @Serializable
 data class BedrockParticleFile(

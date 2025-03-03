@@ -22,14 +22,19 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.client.utils.json
+package ru.hollowhorizon.hc.common.utils.json
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
+@OptIn(ExperimentalSerializationApi::class)
 val JsonFormat = Json {
     isLenient = true
     ignoreUnknownKeys = true
     allowSpecialFloatingPointValues = true
     useArrayPolymorphism = true
     prettyPrint = true
+    prettyPrintIndent = "  "
+    allowComments = true
+    allowTrailingComma = true
 }

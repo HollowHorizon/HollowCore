@@ -5,8 +5,8 @@ import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.world.level.Level
 import org.joml.Matrix4f
 import org.joml.Vector3f
-import ru.hollowhorizon.hc.client.molang.MolangQueryEntity
-import ru.hollowhorizon.hc.client.molang.MolangQueryTime
+import ru.hollowhorizon.hc.common.objects.molang.MolangQueryEntity
+import ru.hollowhorizon.hc.common.objects.molang.MolangQueryTime
 import ru.hollowhorizon.hc.client.particles.collision.CollisionProvider
 import ru.hollowhorizon.hc.client.particles.collision.WorldCollisionProvider
 import ru.hollowhorizon.hc.client.particles.file.BedrockParticleFile
@@ -17,7 +17,6 @@ import ru.hollowhorizon.hc.client.utils.math.rotateBy
 import ru.hollowhorizon.hc.client.utils.math.rotateSelfBy
 import ru.hollowhorizon.hc.client.utils.use
 import java.util.*
-
 
 class ParticleSystem(
     val random: Random,

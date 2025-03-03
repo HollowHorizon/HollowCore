@@ -7,8 +7,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import ru.hollowhorizon.hc.HollowLoggerKt;
-import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.client.utils.RenderDocHelper;
+import ru.hollowhorizon.hc.common.utils.ForgeKotlinKt;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 

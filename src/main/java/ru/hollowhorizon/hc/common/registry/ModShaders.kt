@@ -28,7 +28,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import net.minecraft.SharedConstants
 import net.minecraft.client.renderer.ShaderInstance
 import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.common.events.ClientOnly
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterShadersEvent

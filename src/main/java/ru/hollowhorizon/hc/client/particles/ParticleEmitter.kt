@@ -3,10 +3,10 @@ package ru.hollowhorizon.hc.client.particles
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.client.audio.SoundBuffer
 import ru.hollowhorizon.hc.client.audio.SoundPlayer
-import ru.hollowhorizon.hc.client.molang.MolangContext
-import ru.hollowhorizon.hc.client.molang.MolangQuery
-import ru.hollowhorizon.hc.client.molang.MolangQueryEntity
-import ru.hollowhorizon.hc.client.molang.VariablesMap
+import ru.hollowhorizon.hc.common.objects.molang.MolangContext
+import ru.hollowhorizon.hc.common.objects.molang.MolangQuery
+import ru.hollowhorizon.hc.common.objects.molang.MolangQueryEntity
+import ru.hollowhorizon.hc.common.objects.molang.VariablesMap
 import ru.hollowhorizon.hc.client.particles.file.BedrockParticleFile
 import ru.hollowhorizon.hc.client.utils.math.Quaternion
 import ru.hollowhorizon.hc.client.utils.math.rotateBy

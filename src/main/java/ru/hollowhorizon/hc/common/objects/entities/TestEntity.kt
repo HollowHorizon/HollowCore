@@ -24,7 +24,6 @@
 
 package ru.hollowhorizon.hc.common.objects.entities
 
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.Component
@@ -43,7 +42,7 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.internal.Transform
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
-import ru.hollowhorizon.hc.client.utils.get
+import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.client.utils.open
 import ru.hollowhorizon.hc.common.capabilities.containers.TestEntityCapability
 

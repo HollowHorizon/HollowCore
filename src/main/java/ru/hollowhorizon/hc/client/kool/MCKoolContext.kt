@@ -5,7 +5,6 @@ import de.fabmax.kool.input.CursorShape
 import de.fabmax.kool.input.PlatformInputJvm
 import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW.*
-import ru.hollowhorizon.hc.client.utils.UnsafeTools
 import java.awt.Desktop
 import java.net.URI
 
