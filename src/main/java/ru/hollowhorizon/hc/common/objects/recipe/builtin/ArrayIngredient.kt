@@ -42,11 +42,11 @@ abstract class ArrayIngredient protected constructor(protected val ingredients: 
 
                 return arrl
             }
-        override val serializer: HollowIngredientSerializer<*> = SERIALIZER
+        override val serializer: HollowIngredientSerializer<*> = Serializer
 
         companion object {
             @JvmField
-            val SERIALIZER: HollowIngredientSerializer<AnyIngredient> = Serializer("any".rl, ::AnyIngredient)
+            val Serializer: HollowIngredientSerializer<AnyIngredient> = Serializer("any".rl, ::AnyIngredient)
         }
     }
 
@@ -67,11 +67,11 @@ abstract class ArrayIngredient protected constructor(protected val ingredients: 
             return previewStacks
         }
 
-        override val serializer: HollowIngredientSerializer<*> = SERIALIZER
+        override val serializer: HollowIngredientSerializer<*> = Serializer
 
         companion object {
             @JvmField
-            val SERIALIZER: HollowIngredientSerializer<AllIngredient> = Serializer("all".rl, ::AllIngredient)
+            val Serializer: HollowIngredientSerializer<AllIngredient> = Serializer("all".rl, ::AllIngredient)
         }
     }
 

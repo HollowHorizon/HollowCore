@@ -8,8 +8,8 @@ object HollowCoreIngredientInitializer {
     @JvmStatic
     fun init() {
         HollowRecipeHelper.register(NBTIngredient.Serializer)
-        HollowRecipeHelper.register(ArrayIngredient.AllIngredient.SERIALIZER)
-        HollowRecipeHelper.register(ArrayIngredient.AnyIngredient.SERIALIZER)
-        HollowRecipeHelper.register(DifferenceIngredient.SERIALIZER)
+        HollowRecipeHelper.register(ArrayIngredient.AllIngredient.Serializer)
+        HollowRecipeHelper.register(ArrayIngredient.AnyIngredient.Serializer)
+        HollowRecipeHelper.register(DifferenceIngredient.Serializer)
     }
 }
