@@ -22,7 +22,7 @@ class DifferenceIngredient(private val base: Ingredient, private val subtracted:
             return stacks
         }
 
-    override val serializer: HollowIngredientSerializer<*> = SERIALIZER
+    override val serializer: HollowIngredientSerializer<*> = Serializer
 
     private class Serializer: HollowIngredientSerializer<DifferenceIngredient> {
         override val id: ResourceLocation
@@ -52,6 +52,6 @@ class DifferenceIngredient(private val base: Ingredient, private val subtracted:
     }
 
     companion object {
-        @JvmField val SERIALIZER: HollowIngredientSerializer<DifferenceIngredient> = Serializer()
+        @JvmField val Serializer: HollowIngredientSerializer<DifferenceIngredient> = Serializer()
     }
 }
