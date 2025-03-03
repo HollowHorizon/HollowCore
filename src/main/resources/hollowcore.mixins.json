@@ -19,6 +19,7 @@
     "PackRepositoryMixin",
     "PlayerMixin",
     "RecipeManagerMixin",
+    "RecipeSerializerMixin",
     "ReloadableServerResourcesMixin",
     "ServerGamePacketListenerImplMixin",
     "ServerLevelMixin",

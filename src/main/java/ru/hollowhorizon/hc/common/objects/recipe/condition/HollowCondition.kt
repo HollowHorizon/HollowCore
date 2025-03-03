@@ -11,6 +11,8 @@ interface HollowCondition {
 
     fun test(context: ConditionContext): Boolean
 
+    override fun toString(): String
+
     interface ConditionContext {
         companion object {
             @JvmField

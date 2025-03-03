@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.common.objects.recipe.builtin
+package ru.hollowhorizon.hc.common.objects.recipe.builtin.ingredient
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -46,7 +46,7 @@ abstract class ArrayIngredient protected constructor(protected val ingredients: 
 
         companion object {
             @JvmField
-            val Serializer: HollowIngredientSerializer<AnyIngredient> = Serializer("any".rl, ::AnyIngredient)
+            val Serializer: HollowIngredientSerializer<AnyIngredient> = Serializer("any".rl, ArrayIngredient::AnyIngredient)
         }
     }
 
@@ -71,7 +71,7 @@ abstract class ArrayIngredient protected constructor(protected val ingredients: 
 
         companion object {
             @JvmField
-            val Serializer: HollowIngredientSerializer<AllIngredient> = Serializer("all".rl, ::AllIngredient)
+            val Serializer: HollowIngredientSerializer<AllIngredient> = Serializer("all".rl, ArrayIngredient::AllIngredient)
         }
     }
 
