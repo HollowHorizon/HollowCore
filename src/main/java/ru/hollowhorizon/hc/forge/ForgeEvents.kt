@@ -13,7 +13,7 @@ import net.minecraftforge.event.level.BlockEvent
 import net.minecraftforge.event.server.ServerAboutToStartEvent
 import net.minecraftforge.event.server.ServerStoppingEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
-import ru.hollowhorizon.hc.client.utils.currentServer
+import ru.hollowhorizon.hc.common.utils.currentServer
 import ru.hollowhorizon.hc.common.events.EventBus.post
 import ru.hollowhorizon.hc.common.events.entity.BabySpawnEvent
 import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent

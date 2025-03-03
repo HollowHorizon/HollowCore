@@ -6,7 +6,7 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Ingredient
-import ru.hollowhorizon.hc.client.utils.JavaHacks
+import ru.hollowhorizon.hc.common.utils.JavaHacks
 import ru.hollowhorizon.hc.common.objects.recipe.deep.HollowCoreIngredient
 import ru.hollowhorizon.hc.common.objects.recipe.packet.HollowIngredientPacketHandler
 import java.util.concurrent.ConcurrentHashMap

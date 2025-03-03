@@ -12,7 +12,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers
 import net.minecraft.client.renderer.entity.EntityRenderers
 import net.minecraft.server.packs.PackType
-import ru.hollowhorizon.hc.client.utils.JavaHacks
+import ru.hollowhorizon.hc.common.utils.JavaHacks
 import ru.hollowhorizon.hc.common.events.EventBus.post
 import ru.hollowhorizon.hc.common.events.client.ItemTooltipEvent
 import ru.hollowhorizon.hc.common.events.client.ScreenEvent

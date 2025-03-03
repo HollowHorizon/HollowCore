@@ -5,7 +5,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonSyntaxException
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.GsonHelper
-import ru.hollowhorizon.hc.client.utils.JavaHacks
+import ru.hollowhorizon.hc.common.utils.JavaHacks
 import ru.hollowhorizon.hc.common.objects.recipe.condition.HollowCondition
 import ru.hollowhorizon.hc.common.objects.recipe.condition.HollowConditionSerializer
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.DefaultHollowIngredient

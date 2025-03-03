@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import ru.hollowhorizon.hc.api.ICapabilityDispatcherKt;
 import ru.hollowhorizon.hc.client.particles.ParticleSystem;
 import ru.hollowhorizon.hc.api.ParticlesProvider;
-import ru.hollowhorizon.hc.client.utils.JavaHacks;
+import ru.hollowhorizon.hc.common.utils.JavaHacks;
 
 @Mixin(ClientLevel.class)
 public class ClientLevelMixin implements ParticlesProvider {

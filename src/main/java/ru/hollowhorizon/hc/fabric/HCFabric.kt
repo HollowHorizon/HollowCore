@@ -5,7 +5,7 @@ import net.fabricmc.loader.api.FabricLoader
 import net.irisshaders.iris.api.v0.IrisApi
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.HollowCoreClient
-import ru.hollowhorizon.hc.client.utils.JavaHacks
+import ru.hollowhorizon.hc.common.utils.JavaHacks
 import ru.hollowhorizon.hc.client.utils.areShadersEnabled_
 import ru.hollowhorizon.hc.client.utils.shouldOverrideShaders
 import ru.hollowhorizon.hc.common.objects.recipe.packet.HollowIngredientPacketHandler
