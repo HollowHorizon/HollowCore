@@ -58,7 +58,7 @@ class NBTIngredient(
     }
 
     private class Serializer : HollowIngredientSerializer<NBTIngredient> {
-        override val id: ResourceLocation = "hollowcore:nbt".rl
+        override val id: ResourceLocation = "nbt".rl
 
         override fun fromJson(json: JsonObject): NBTIngredient {
             val item = Ingredient.fromJson(json.get("item"))

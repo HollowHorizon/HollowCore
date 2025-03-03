@@ -7,13 +7,7 @@ import org.gradle.kotlin.dsl.exclude
 var isForgelike = false
 
 fun DependencyHandlerScope.install(path: String, includeInJar: Boolean = true, isMod: Boolean = false) {
-    if(isMod) {
-        modImplementation(path)
-        if(includeInJar) "include"(path)
-        return
-    }
-
-    val dependency = "implementation"(path) {
+    val dependency = if (isMod) modImplementation(path) else "implementation"(path) {
         exclude("org.jetbrains.kotlin")
         exclude("org.ow2.asm")
         exclude("net.sourceforge.jaad.aac")
@@ -21,8 +15,8 @@ fun DependencyHandlerScope.install(path: String, includeInJar: Boolean = true, i
         exclude("commons-logging")
     }
 
-    dependency.takeIf { isForgelike }?.let { "forgeRuntimeLibrary"(it) }
-    if(includeInJar) "include"(dependency)
+    dependency.takeIf { isForgelike && !isMod }?.let { "forgeRuntimeLibrary"(it) }
+    if (includeInJar) dependency?.let { "include"(it) }
 }
 
 fun DependencyHandlerScope.minecraft(version: String) = "minecraft"("com.mojang:minecraft:$version")
