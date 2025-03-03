@@ -231,6 +231,7 @@ private fun setupStonecutter(
             stonecutter.const("fabric", platform == "fabric")
             stonecutter.const("forge", platform == "forge")
             stonecutter.const("neoforge", platform == "neoforge")
+            stonecutter.const("forgelike", platform == "forge" || platform == "neoforge")
         }
     }
 
