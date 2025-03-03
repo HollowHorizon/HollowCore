@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.common.objects.recipe.builtin
+package ru.hollowhorizon.hc.common.objects.recipe.builtin.ingredient
 
 import com.google.gson.JsonObject
 import net.minecraft.network.FriendlyByteBuf
