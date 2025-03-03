@@ -47,7 +47,7 @@ public class RecipeManagerMixin implements HollowRecipeManager {
         this.hc$conditionContext = conditionContext;
     }
 
-    @Inject(
+    /*@Inject(
             method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V",
             at = @At(value = "INVOKE", target = "Ljava/util/Map$Entry;getKey()Ljava/lang/Object;")
     )
@@ -76,7 +76,7 @@ public class RecipeManagerMixin implements HollowRecipeManager {
         } catch (IllegalArgumentException | JsonParseException e) {
             LOGGER.error("Parsing error loading recipe {}", id, e);
         }
-    }
+    }*/
 
     private static Recipe<?> hc$fromJson(ResourceLocation id, JsonObject json, HollowCondition.ConditionContext ctx) {
         String s = GsonHelper.getAsString(json, "type");
