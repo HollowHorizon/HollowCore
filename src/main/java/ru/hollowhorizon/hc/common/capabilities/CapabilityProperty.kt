@@ -29,10 +29,10 @@ import net.minecraft.nbt.EndTag
 import net.minecraft.world.level.block.entity.BlockEntity
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.utils.JavaHacks
-import ru.hollowhorizon.hc.client.utils.nbt.INBTSerializable
-import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
-import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
-import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
+import ru.hollowhorizon.hc.common.utils.nbt.INBTSerializable
+import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
+import ru.hollowhorizon.hc.common.utils.nbt.deserializeNoInline
+import ru.hollowhorizon.hc.common.utils.nbt.serializeNoInline
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.javaType

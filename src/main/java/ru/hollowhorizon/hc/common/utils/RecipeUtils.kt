@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.utils
+package ru.hollowhorizon.hc.common.utils
 
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.crafting.Recipe

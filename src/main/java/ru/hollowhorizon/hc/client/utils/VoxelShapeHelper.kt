@@ -37,13 +37,12 @@ import net.minecraft.world.phys.shapes.VoxelShape
 import java.io.InputStreamReader
 import java.util.function.UnaryOperator
 
-
 object VoxelShapeHelper {
     private val fromOrigin = Vec3(-0.5, -0.5, -0.5)
 
     fun loadFromLocation(location: ResourceLocation): VoxelShape {
         val shapes: MutableList<VoxelShape> = ArrayList()
-        JsonParser.parseReader(InputStreamReader(location.toIS())).asJsonObject
+        JsonParser.parseReader(InputStreamReader(location.stream)).asJsonObject
             .getAsJsonArray("elements")
             .forEach { element ->
                 val o = element.asJsonObject

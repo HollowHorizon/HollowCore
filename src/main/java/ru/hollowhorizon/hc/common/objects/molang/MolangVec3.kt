@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.molang
+package ru.hollowhorizon.hc.common.objects.molang
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable

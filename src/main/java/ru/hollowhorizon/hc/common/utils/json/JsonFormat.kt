@@ -22,27 +22,19 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.client.handlers
+package ru.hollowhorizon.hc.common.utils.json
 
-import net.minecraft.client.Minecraft
-import ru.hollowhorizon.hc.common.utils.isLogicalClient
-import ru.hollowhorizon.hc.common.events.SubscribeEvent
-import ru.hollowhorizon.hc.common.events.tick.TickEvent
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
 
-object TickHandler {
-    private var clientTicks = 0
-    private var serverTicks = 0
-
-    val currentTicks get() = if (isLogicalClient) clientTicks else serverTicks
-    val partialTick get() = Minecraft.getInstance().deltaFrameTime
-
-    @SubscribeEvent
-    fun onClientTick(event: TickEvent.Client) {
-        clientTicks++
-    }
-
-    @SubscribeEvent
-    fun onServerTick(event: TickEvent.Server) {
-        serverTicks++
-    }
+@OptIn(ExperimentalSerializationApi::class)
+val JsonFormat = Json {
+    isLenient = true
+    ignoreUnknownKeys = true
+    allowSpecialFloatingPointValues = true
+    useArrayPolymorphism = true
+    prettyPrint = true
+    prettyPrintIndent = "  "
+    allowComments = true
+    allowTrailingComma = true
 }

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.client.utils
+package ru.hollowhorizon.hc.common.utils
 
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -66,7 +66,6 @@ tailrec fun Player.findRandomPos(radius: Int): Vec3 {
 }
 
 fun normalizeAngle(angle: Double): Double = (angle + 2 * Math.PI) % (2 * Math.PI)
-
 
 fun isInFrontOfEntity(entity: LivingEntity, target: Entity): Boolean {
     val vecTargetsPos: Vec3 = target.position()

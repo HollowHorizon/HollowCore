@@ -3,7 +3,7 @@ package ru.hollowhorizon.hc.client.models.internal
 import net.minecraft.resources.ResourceLocation
 import org.joml.Vector4f
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 
 data class Material(
     var color: Vector4f = Vector4f(1f, 1f, 1f, 1f),

@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.molang
+package ru.hollowhorizon.hc.common.objects.molang
 
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
@@ -10,9 +10,9 @@ import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapabili
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
 import ru.hollowhorizon.hc.client.particles.Transform
-import ru.hollowhorizon.hc.client.utils.get
+import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.client.utils.math.Quaternion
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 import java.util.*
 
 fun LivingEntity.asMolang() = EntityWrapper(this)

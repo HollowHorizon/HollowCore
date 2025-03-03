@@ -43,7 +43,7 @@ import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
 import ru.hollowhorizon.hc.client.models.internal.Model
 import ru.hollowhorizon.hc.client.textures.GlTexture
 import ru.hollowhorizon.hc.client.utils.resource
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.time.measureTime

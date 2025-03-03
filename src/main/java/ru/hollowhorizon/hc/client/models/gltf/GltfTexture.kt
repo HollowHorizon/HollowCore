@@ -9,9 +9,8 @@ import kotlinx.serialization.Transient
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.client.utils.toIS
-import ru.hollowhorizon.hc.common.coroutines.onMainThreadSync
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.util.*

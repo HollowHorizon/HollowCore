@@ -22,14 +22,21 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.client.utils.json
+package ru.hollowhorizon.hc.common.utils
 
-import kotlinx.serialization.json.Json
+import net.minecraft.client.Minecraft
+import net.minecraft.resources.ResourceLocation
+import java.io.FileNotFoundException
+import java.io.InputStream
 
-val JsonFormat = Json {
-    isLenient = true
-    ignoreUnknownKeys = true
-    allowSpecialFloatingPointValues = true
-    useArrayPolymorphism = true
-    prettyPrint = true
+object HollowJavaUtils {
+    @JvmStatic
+    fun getResource(location: ResourceLocation): InputStream {
+        return try {
+            Minecraft.getInstance().resourceManager.getResource(location).orElseThrow().open()
+        } catch (e: Exception) {
+            Thread.currentThread().contextClassLoader.getResourceAsStream("assets/" + location.namespace + "/" + location.path)
+                ?: throw FileNotFoundException("Resource $location not found!")
+        }
+    }
 }

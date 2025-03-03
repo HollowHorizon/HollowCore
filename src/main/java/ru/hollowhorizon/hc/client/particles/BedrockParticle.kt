@@ -7,10 +7,10 @@ import net.minecraft.util.Mth
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import ru.hollowhorizon.hc.client.molang.MolangContext
-import ru.hollowhorizon.hc.client.molang.MolangExpression
-import ru.hollowhorizon.hc.client.molang.MolangQuery
-import ru.hollowhorizon.hc.client.molang.VariablesMap
+import ru.hollowhorizon.hc.common.objects.molang.MolangContext
+import ru.hollowhorizon.hc.common.objects.molang.MolangExpression
+import ru.hollowhorizon.hc.common.objects.molang.MolangQuery
+import ru.hollowhorizon.hc.common.objects.molang.VariablesMap
 import ru.hollowhorizon.hc.client.particles.file.ParticleComponents
 import ru.hollowhorizon.hc.client.utils.math.Quaternion
 import ru.hollowhorizon.hc.client.utils.math.rotateBy

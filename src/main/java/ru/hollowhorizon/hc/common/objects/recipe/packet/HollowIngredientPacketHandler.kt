@@ -17,7 +17,7 @@ import java.util.function.Supplier
 import io.netty.buffer.Unpooled
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.DefaultHollowIngredient
 import ru.hollowhorizon.hc.common.objects.recipe.deep.setSupportedIngredients
 

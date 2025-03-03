@@ -27,7 +27,7 @@ package ru.hollowhorizon.hc.common.registry
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.HollowMod
 import ru.hollowhorizon.hc.api.utils.Polymorphic
-import ru.hollowhorizon.hc.client.utils.nbt.NBT_TAGS
+import ru.hollowhorizon.hc.common.utils.nbt.NBT_TAGS
 import ru.hollowhorizon.hc.common.capabilities.CAPABILITIES
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2

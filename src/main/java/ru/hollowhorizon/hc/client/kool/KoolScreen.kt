@@ -3,7 +3,7 @@ package ru.hollowhorizon.hc.client.kool
 import de.fabmax.kool.scene.Scene
 import net.minecraft.client.gui.screens.Screen
 import ru.hollowhorizon.hc.api.HudHideable
-import ru.hollowhorizon.hc.client.utils.literal
+import ru.hollowhorizon.hc.common.utils.literal
 
 open class KoolScreen : Screen("".literal), HudHideable {
     val scene = ScreenScene(title.string)

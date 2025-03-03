@@ -22,28 +22,22 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.client.utils
+package ru.hollowhorizon.hc.client.kool
 
-import net.minecraft.resources.ResourceLocation
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.item.ArmorItem
-import net.minecraft.world.item.ItemStack
-import java.util.*
+import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.Component
+import ru.hollowhorizon.hc.common.utils.literal
 
-fun ItemStack.getArmorTexture(entity: Entity, slot: EquipmentSlot): ResourceLocation {
-    val item = item as ArmorItem
-    var texture = item.material.name
-    var domain = "minecraft"
-    val idx = texture.indexOf(':')
-    if (idx != -1) {
-        domain = texture.substring(0, idx)
-        texture = texture.substring(idx + 1)
+
+object Graphics {
+    val screenWidth get() = Minecraft.getInstance().window.width.toFloat()
+    val screenHeight get() = Minecraft.getInstance().window.height.toFloat()
+
+    fun text(string: String, alpha: Float = 1f, shadow: Boolean = true) = text(string.literal, alpha, shadow)
+
+    fun text(text: Component, alpha: Float = 1f, shadow: Boolean = true) {
+        //drawText(text, alpha, shadow)
     }
-    val path = String.format(
-        Locale.ROOT, "%s:textures/models/armor/%s_layer_%d%s.png", domain, texture,
-        (if (slot == EquipmentSlot.LEGS) 2 else 1), ""
-    )
 
-    return path.rl
+
 }
