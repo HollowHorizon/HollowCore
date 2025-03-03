@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import ru.hollowhorizon.hc.client.utils.JavaHacks;
+import ru.hollowhorizon.hc.common.utils.JavaHacks;
 import ru.hollowhorizon.hc.common.objects.recipe.deep.SupportedIngredientsPacketEncoder;
 import ru.hollowhorizon.hc.common.objects.recipe.packet.HollowIngredientPacketHandler;
 

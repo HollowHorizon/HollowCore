@@ -13,8 +13,8 @@ import net.minecraftforge.network.NetworkRegistry.ChannelBuilder;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 //?}
-import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
-import ru.hollowhorizon.hc.client.utils.JavaHacks;
+import ru.hollowhorizon.hc.common.utils.ForgeKotlinKt;
+import ru.hollowhorizon.hc.common.utils.JavaHacks;
 import ru.hollowhorizon.hc.common.network.HollowPacketKt;
 import ru.hollowhorizon.hc.common.objects.recipe.packet.HollowIngredientPacketHandler;
 

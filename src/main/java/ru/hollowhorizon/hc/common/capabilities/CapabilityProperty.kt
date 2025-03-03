@@ -28,7 +28,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.EndTag
 import net.minecraft.world.level.block.entity.BlockEntity
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.utils.JavaHacks
+import ru.hollowhorizon.hc.common.utils.JavaHacks
 import ru.hollowhorizon.hc.common.utils.nbt.INBTSerializable
 import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.common.utils.nbt.deserializeNoInline

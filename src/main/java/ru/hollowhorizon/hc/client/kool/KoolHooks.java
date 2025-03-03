@@ -6,7 +6,7 @@ import de.fabmax.kool.pipeline.OffscreenRenderPass;
 import de.fabmax.kool.pipeline.backend.gl.RenderBackendGl;
 import de.fabmax.kool.scene.Scene;
 import de.fabmax.kool.util.RenderLoopCoroutineDispatcher;
-import ru.hollowhorizon.hc.client.utils.JavaHacks;
+import ru.hollowhorizon.hc.common.utils.JavaHacks;
 import ru.hollowhorizon.hc.mixins.kool.ShaderManagerAccessor;
 
 import java.util.List;

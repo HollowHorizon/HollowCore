@@ -85,9 +85,9 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraftforge.network.NetworkDirection
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.utils.nbt.NBTFormat
-import ru.hollowhorizon.hc.client.utils.nbt.deserializeNoInline
-import ru.hollowhorizon.hc.client.utils.nbt.serializeNoInline
+import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
+import ru.hollowhorizon.hc.common.utils.nbt.deserializeNoInline
+import ru.hollowhorizon.hc.common.utils.nbt.serializeNoInline
 import ru.hollowhorizon.hc.common.network.HollowPacket
 import ru.hollowhorizon.hc.common.network.HollowPacketHandler
 import java.util.function.BiConsumer

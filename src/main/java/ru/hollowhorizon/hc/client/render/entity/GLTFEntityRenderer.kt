@@ -47,8 +47,8 @@ import ru.hollowhorizon.hc.client.models.internal.manager.*
 import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.client.utils.use
+import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
-
 
 open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimated {

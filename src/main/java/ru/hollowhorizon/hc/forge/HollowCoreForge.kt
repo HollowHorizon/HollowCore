@@ -6,6 +6,7 @@ import net.minecraftforge.fml.common.Mod
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.HollowCoreClient
 import ru.hollowhorizon.hc.client.utils.*
+import ru.hollowhorizon.hc.common.utils.*
 import ru.hollowhorizon.hc.common.registry.createRegistry
 import ru.hollowhorizon.hc.fabric.internal.IrisHelper
 import ru.hollowhorizon.hc.forge.internal.ForgeNetworkHelper

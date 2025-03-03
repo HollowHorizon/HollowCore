@@ -30,8 +30,6 @@ import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.platform.WindowEventHandler;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL;
-import org.lwjgl.system.MemoryStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -39,15 +37,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.api.AutoScaled;
 import ru.hollowhorizon.hc.client.utils.HollowCoreLoader;
-import ru.hollowhorizon.hc.client.utils.JavaHacks;
-
-import java.nio.IntBuffer;
-
-import static org.lwjgl.opengl.GL30C.GL_MAJOR_VERSION;
-import static org.lwjgl.opengl.GL30C.GL_MINOR_VERSION;
-import static org.lwjgl.system.JNI.callPV;
-import static org.lwjgl.system.MemoryStack.stackPush;
-import static org.lwjgl.system.MemoryUtil.memAddress;
+import ru.hollowhorizon.hc.common.utils.JavaHacks;
 
 
 @Mixin(Window.class)

@@ -3,7 +3,7 @@ package ru.hollowhorizon.hc.fabric.internal;
 
 import kotlin.Unit;
 import net.minecraft.client.Minecraft;
-import ru.hollowhorizon.hc.client.utils.JavaHacks;
+import ru.hollowhorizon.hc.common.utils.JavaHacks;
 import ru.hollowhorizon.hc.common.network.HollowPacketKt;
 
 public class NetworkHelper {

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package ru.hollowhorizon.hc.client.utils;
+package ru.hollowhorizon.hc.common.utils;
 
 public class JavaHacks {
     @SuppressWarnings("unchecked")
