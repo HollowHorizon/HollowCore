@@ -26,7 +26,6 @@ package ru.hollowhorizon.hc.mixins;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.main.GameConfig;
 import net.minecraft.client.particle.ParticleEngine;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -35,8 +34,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import ru.hollowhorizon.hc.client.kool.KoolBuffersKt;
-import ru.hollowhorizon.hc.common.events.EventBus;
-import ru.hollowhorizon.hc.common.events.registry.RegisterParticlesEvent;
 
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
@@ -46,7 +43,7 @@ public class MinecraftMixin {
     private void resizeCapturedDepthBuffer(CallbackInfo ci) {
         RenderSystem.recordRenderCall(() -> {
             final var window = Minecraft.getInstance().getWindow();
-            KoolBuffersKt.getImguiWindowBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+            KoolBuffersKt.getGuiFramebuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
             KoolBuffersKt.onResize(window.getWidth(), window.getHeight());
         });
     }

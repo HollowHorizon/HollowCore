@@ -34,11 +34,9 @@ import de.fabmax.kool.pipeline.backend.gl.GlTexture
 import de.fabmax.kool.pipeline.backend.gl.LoadedTextureGl
 import net.minecraft.client.Minecraft
 
-internal val imguiWindowBuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
+internal val guiFramebuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
 
-val WINDOW_BUFFER by lazy { createFramebufferTexture(imguiWindowBuffer) }
-
-var currentBufferType = BufferType.WINDOW
+val WINDOW_BUFFER by lazy { createFramebufferTexture(guiFramebuffer) }
 
 
 fun glTexture(id: Int) = Texture2d(
@@ -66,17 +64,6 @@ fun createFramebufferTexture(texture: RenderTarget) = Texture2d(
         height = texture.height
     }
     loadingState = Texture.LoadingState.LOADED
-}
-
-enum class BufferType {
-    WINDOW, BACKGROUND, FOREGROUND;
-
-    val buffer: RenderTarget
-        get() = when (this) {
-            WINDOW -> imguiWindowBuffer
-            BACKGROUND -> imguiWindowBuffer
-            FOREGROUND -> imguiWindowBuffer
-        }
 }
 
 fun onResize(width: Int, height: Int) {

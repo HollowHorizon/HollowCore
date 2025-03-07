@@ -41,8 +41,6 @@ open class ContainerProvider(val container: Container, parent: UiNode?, surface:
     fun splitItems() {
         return // TODO: Make it work on server
 
-        val slots = ImGuiInventory.ITEM_SIZES[container]!!.filter { it.value.isPlaced }.map { it.key }
-
 //        if (slots.size > 1 && ImGui.isMouseDown(ImGuiMouseButton.Left)) {
 //            val item = slots.map { container.getItem(it) }.firstOrNull { !it.isEmpty }
 //            if (item != null) {

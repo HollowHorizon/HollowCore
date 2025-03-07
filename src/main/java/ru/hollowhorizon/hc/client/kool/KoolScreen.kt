@@ -5,8 +5,19 @@ import net.minecraft.client.gui.screens.Screen
 import ru.hollowhorizon.hc.api.HudHideable
 import ru.hollowhorizon.hc.client.utils.literal
 
-open class KoolScreen(builder: Scene.() -> Unit) : Screen("".literal), HudHideable {
-    val scene = ScreenScene(title.string).apply(builder)
+open class KoolScreen : Screen("".literal), HudHideable {
+    val scene = ScreenScene(title.string)
+
+    private var isLoaded = false
+    override fun init() {
+        if(!isLoaded) {
+            scene.setup()
+            isLoaded = true
+        }
+        super.init()
+    }
+
+    open fun Scene.setup() {}
 
     override fun added() {
         KoolManager.context.addScene(scene)
@@ -17,7 +28,7 @@ open class KoolScreen(builder: Scene.() -> Unit) : Screen("".literal), HudHideab
     }
 }
 
-class ScreenScene(name: String? = null): Scene(name) {
+open class ScreenScene(name: String? = null): Scene(name) {
     init {
         clearColor = null
         clearDepth = false

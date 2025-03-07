@@ -17,6 +17,8 @@ object KoolDrawer {
     }
 
     fun draw() {
+        guiFramebuffer.clear(Minecraft.ON_OSX)
+
         MCGlApi.clipControl(MCGlApi.LOWER_LEFT, MCGlApi.NEGATIVE_ONE_TO_ONE)
         val activeTexture = GlStateManager._getActiveTexture()
         val currentTexture = GL33.glGetInteger(GL33.GL_TEXTURE_BINDING_2D)

@@ -2,23 +2,40 @@ package ru.hollowhorizon.hc.client.kool
 
 import de.fabmax.kool.Assets
 import de.fabmax.kool.loadImage2d
-import de.fabmax.kool.math.Vec2i
-import de.fabmax.kool.modules.ui2.*
+import de.fabmax.kool.modules.ui2.Image
+import de.fabmax.kool.modules.ui2.ImageScope
+import de.fabmax.kool.modules.ui2.UiScope
+import de.fabmax.kool.modules.ui2.image
 import de.fabmax.kool.pipeline.SamplerSettings
 import de.fabmax.kool.pipeline.Texture2d
 import de.fabmax.kool.pipeline.TextureProps
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import net.minecraft.server.packs.resources.ResourceManager
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 
-fun UiScope.Image(location: String, block: ImageScope.() -> Unit = {}) = Image {
-    modifier.image(remember {
+object ImageManager : ResourceManagerReloadListener {
+    private val IMAGES = Object2ObjectOpenHashMap<String, Texture2d>()
+
+    fun load(location: String): Texture2d = IMAGES.getOrPut(location) {
         Texture2d(
-            TextureProps(
-                generateMipMaps = false,
-                defaultSamplerSettings = SamplerSettings().clamped().nearest()
-            )
+            TextureProps(generateMipMaps = false, defaultSamplerSettings = SamplerSettings().clamped().nearest())
         ) {
             Assets.loadImage2d(location).getOrThrow()
         }
-    })
+    }
+
+    override fun onResourceManagerReload(resourceManager: ResourceManager) {
+        IMAGES.forEach { (location, image) ->
+            image.dispose()
+            image.uploadLazy {
+                Assets.loadImage2d(location).getOrThrow()
+            }
+        }
+    }
+}
+
+fun UiScope.Image(location: String, block: ImageScope.() -> Unit = {}) = Image {
+    modifier.image(ImageManager.load(location))
 
     block()
 }

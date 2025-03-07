@@ -28,12 +28,15 @@ import com.mojang.blaze3d.systems.RenderSystem
 import de.fabmax.kool.math.Vec3f
 import de.fabmax.kool.math.deg
 import de.fabmax.kool.modules.ui2.*
+import de.fabmax.kool.modules.ui2.docking.UiDockable
 import de.fabmax.kool.scene.Scene
+import de.fabmax.kool.util.Color
 import de.fabmax.kool.util.MsdfFont
 import de.fabmax.kool.util.Time
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.kool.*
@@ -69,6 +72,7 @@ object HollowCoreClient {
     fun onRegisterReloadListener(event: RegisterReloadListenersEvent.Client) {
         event.register(GltfManager)
         event.register(BedrockParticles)
+        event.register(ImageManager)
     }
 
     @SubscribeEvent
@@ -86,27 +90,18 @@ object HollowCoreClient {
     @SubscribeEvent
     fun onClientTick(event: TickEvent.Client) {
         if(HollowCore.config.debugMode && KEY_V.isDown) {
-            KoolScreen {
-                setupUiScene()
+            object: KoolScreen() {
+                override fun Scene.setup() {
+                    setupUiScene()
 
-                addPanelSurface {
-                    modifier.align(AlignmentX.End, AlignmentY.Center)
-
-                    var text by remember { mutableStateOf("hello") }
-
-                    Button("Hello World") {
-                        modifier.font(MsdfFont(MONOCRAFT_DATA, 10f))
-                    }
-                    TextField {
-                        modifier.text(text)
-                            .onChange { text = it }
-                            .font(MsdfFont(MONOCRAFT_DATA, 10f))
-                    }
-                    if (text.isNotEmpty() && ResourceLocation.isValidResourceLocation(text) && text.rl.exists()) Image(
-                        text
-                    ) {
-                        modifier.size(128.dp, 128.dp).alignX(AlignmentX.Center)
-                            .margin(sizes.smallGap)
+                    val window = UiDockable("Example")
+                    addWindowSurface(window) {
+                        Column(Grow.Std, Grow.Std) {
+                            TitleBar(window)
+                            Entity(Minecraft.getInstance().player!!) {
+                                modifier.size(Grow.Std, Grow.Std)
+                            }
+                        }
                     }
                 }
             }.open()
