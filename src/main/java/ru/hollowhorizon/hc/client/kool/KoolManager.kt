@@ -12,13 +12,15 @@ import de.fabmax.kool.util.MsdfMeta
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.decodeFromStream
 import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
+import ru.hollowhorizon.hc.client.kool.minecraft.MCAssetLoader
 import ru.hollowhorizon.hc.client.utils.json.JsonFormat
 import ru.hollowhorizon.hc.client.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
 
 @OptIn(ExperimentalSerializationApi::class)
 object KoolManager {
-    val LOGGER = LogManager.getLogger()
+    val LOGGER: Logger = LogManager.getLogger()
 
     init {
         Log.printer = { level, tag, message ->

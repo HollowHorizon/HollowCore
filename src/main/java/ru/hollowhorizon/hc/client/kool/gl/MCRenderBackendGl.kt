@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.kool
+package ru.hollowhorizon.hc.client.kool.gl
 
 import de.fabmax.kool.KoolContext
 import de.fabmax.kool.KoolSystem
@@ -7,13 +7,15 @@ import de.fabmax.kool.pipeline.backend.BackendFeatures
 import de.fabmax.kool.pipeline.backend.DeviceCoordinates
 import de.fabmax.kool.pipeline.backend.gl.GlslGenerator
 import de.fabmax.kool.pipeline.backend.gl.RenderBackendGl
-import de.fabmax.kool.pipeline.backend.gl.SceneRenderPassGl
 import de.fabmax.kool.pipeline.backend.gl.TimeQuery
 import de.fabmax.kool.pipeline.backend.stats.BackendStats
 import de.fabmax.kool.scene.Scene
 import de.fabmax.kool.util.Time
 import de.fabmax.kool.util.Viewport
-import ru.hollowhorizon.hc.client.kool.gl.MCSceneRenderPass
+import ru.hollowhorizon.hc.client.kool.awaitedStorageBuffers
+import ru.hollowhorizon.hc.client.kool.drawOffscreen
+import ru.hollowhorizon.hc.client.kool.readbackStorageBuffers
+import ru.hollowhorizon.hc.client.kool.sortedOffscreenPasses
 
 class MCRenderBackendGl(ctx: KoolContext) : RenderBackendGl(KoolSystem.configJvm.msaaSamples, MCGlApi, ctx) {
     val gl = MCGlApi

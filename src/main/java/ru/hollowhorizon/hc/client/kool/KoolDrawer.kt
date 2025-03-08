@@ -7,6 +7,7 @@ import de.fabmax.kool.pipeline.backend.gl.GlRenderPass
 import de.fabmax.kool.pipeline.backend.gl.glOp
 import net.minecraft.client.Minecraft
 import org.lwjgl.opengl.GL33
+import ru.hollowhorizon.hc.client.kool.gl.MCGlApi
 
 object KoolDrawer {
     fun drawOverlays() {

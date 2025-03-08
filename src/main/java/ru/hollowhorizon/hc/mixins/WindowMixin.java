@@ -29,22 +29,25 @@ import com.mojang.blaze3d.platform.ScreenManager;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.platform.WindowEventHandler;
 import net.minecraft.client.Minecraft;
-//? if forge {
-/*import net.minecraftforge.fml.loading.ImmediateWindowHandler;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import java.util.function.IntSupplier;
-import java.util.function.LongSupplier;
-import java.util.function.Supplier;
-*///?}
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.system.MemoryStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.api.AutoScaled;
-import ru.hollowhorizon.hc.client.kool.KoolManager;
+import ru.hollowhorizon.hc.client.utils.HollowCoreLoader;
 import ru.hollowhorizon.hc.client.utils.JavaHacks;
+
+import java.nio.IntBuffer;
+
+import static org.lwjgl.opengl.GL30C.GL_MAJOR_VERSION;
+import static org.lwjgl.opengl.GL30C.GL_MINOR_VERSION;
+import static org.lwjgl.system.JNI.callPV;
+import static org.lwjgl.system.MemoryStack.stackPush;
+import static org.lwjgl.system.MemoryUtil.memAddress;
 
 
 @Mixin(Window.class)
@@ -52,8 +55,11 @@ public class WindowMixin {
     //? if fabric {
     @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J"), remap = false)
     public void onInit(WindowEventHandler eventHandler, ScreenManager screenManager, DisplayData displayData, String preferredFullscreenVideoMode, String title, CallbackInfo ci) {
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 4);
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 3);
+        var version = HollowCoreLoader.INSTANCE.getConfig().getOpenGlVersion().split("\\.", 2);
+        var major = Integer.parseInt(version[0]);
+        var minor = Integer.parseInt(version[1]);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, major);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, minor);
     }
     //?}
 
@@ -66,11 +72,6 @@ public class WindowMixin {
         if (!(Minecraft.getInstance().screen instanceof AutoScaled)) return;
 
         cir.setReturnValue((double) window.calculateScale(0, Minecraft.getInstance().isEnforceUnicode()));
-    }
-
-    @Inject(method = "setGuiScale", at = @At("HEAD"))
-    private void onSetGuiScale(double scaleFactor, CallbackInfo ci) {
-        KoolManager.INSTANCE.getContext().setWindowScale((float) scaleFactor);
     }
 
     @Inject(method = "getGuiScaledHeight", at = @At("HEAD"), cancellable = true)

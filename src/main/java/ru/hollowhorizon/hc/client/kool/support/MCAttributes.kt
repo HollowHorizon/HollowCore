@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.client.kool.support
 
-import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import de.fabmax.kool.pipeline.Attribute
 import de.fabmax.kool.pipeline.GpuType
 
