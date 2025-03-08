@@ -8,6 +8,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.common.objects.recipe.deep.HollowCoreIngredient;
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.DefaultHollowIngredient;
@@ -67,5 +68,17 @@ public class IngredientMixin implements HollowCoreIngredient {
         }
 
         cir.setReturnValue(serializer.fromNetwork(buffer).getAsVanilla());
+    }
+
+    @Inject(
+            method = "toNetwork",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    public void toNetwork(FriendlyByteBuf buffer, CallbackInfo ci) {
+        if ((Ingredient) (Object) this instanceof DefaultHollowIngredient ingr) {
+            ingr.toNet(buffer);
+            ci.cancel();
+        }
     }
 }

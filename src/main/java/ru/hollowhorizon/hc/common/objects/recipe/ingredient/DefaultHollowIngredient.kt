@@ -43,7 +43,8 @@ class DefaultHollowIngredient(override val hollowIngredient: HollowIngredient) :
 
     override fun test(stack: ItemStack?): Boolean = stack != null && this.hollowIngredient.test(stack)
 
-    override fun toNetwork(buffer: FriendlyByteBuf) {
+    // Equivalent toNetwork
+    fun toNet(buffer: FriendlyByteBuf) {
         val singr = HollowIngredientPacketHandler.SUPPORTED_INGREDIENTS.get()
 
         if (singr != null && !singr.contains(hollowIngredient.serializer.id))
