@@ -26,21 +26,19 @@ package ru.hollowhorizon.hc.client
 
 import com.mojang.blaze3d.systems.RenderSystem
 import de.fabmax.kool.modules.ui2.*
-import de.fabmax.kool.util.MsdfFont
+import de.fabmax.kool.modules.ui2.docking.UiDockable
+import de.fabmax.kool.scene.Scene
 import net.minecraft.client.KeyMapping
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.kool.*
-import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT_DATA
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.render.RenderManager
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.utils.HollowPack
-import ru.hollowhorizon.hc.client.utils.exists
 import ru.hollowhorizon.hc.client.utils.open
-import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.common.events.ClientOnly
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityRenderersEvent
@@ -64,6 +62,7 @@ object HollowCoreClient {
     fun onRegisterReloadListener(event: RegisterReloadListenersEvent.Client) {
         event.register(GltfManager)
         event.register(BedrockParticles)
+        event.register(ImageManager)
     }
 
     @SubscribeEvent
@@ -81,27 +80,18 @@ object HollowCoreClient {
     @SubscribeEvent
     fun onClientTick(event: TickEvent.Client) {
         if(HollowCore.config.debugMode && KEY_V.isDown) {
-            KoolScreen {
-                setupUiScene()
+            object: KoolScreen() {
+                override fun Scene.setup() {
+                    setupUiScene()
 
-                addPanelSurface {
-                    modifier.align(AlignmentX.End, AlignmentY.Center)
-
-                    var text by remember { mutableStateOf("hello") }
-
-                    Button("Hello World") {
-                        modifier.font(MsdfFont(MONOCRAFT_DATA, 10f))
-                    }
-                    TextField {
-                        modifier.text(text)
-                            .onChange { text = it }
-                            .font(MsdfFont(MONOCRAFT_DATA, 10f))
-                    }
-                    if (text.isNotEmpty() && ResourceLocation.isValidResourceLocation(text) && text.rl.exists()) Image(
-                        text
-                    ) {
-                        modifier.size(128.dp, 128.dp).alignX(AlignmentX.Center)
-                            .margin(sizes.smallGap)
+                    val window = UiDockable("Example")
+                    addWindowSurface(window) {
+                        Column(Grow.Std, Grow.Std) {
+                            TitleBar(window)
+                            Entity(Minecraft.getInstance().player!!) {
+                                modifier.size(Grow.Std, Grow.Std)
+                            }
+                        }
                     }
                 }
             }.open()

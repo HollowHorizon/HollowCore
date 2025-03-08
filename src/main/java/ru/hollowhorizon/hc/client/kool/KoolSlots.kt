@@ -19,9 +19,8 @@ fun UiScope.DragStackTooltip() {
     val player = Minecraft.getInstance().player ?: return
     val dragItem = ClientContainerManager.PLAYERS_HOLD_STACKS[player.uuid] ?: return
     if (!dragItem.isEmpty) Popup(mouseX[0].toFloat() - 32f, mouseY[0].toFloat() - 32f) {
-        GlCanvas(null, { mouseX, mouseY ->
-
-            dragItem.render(leftPx, topPx, contentWidthPx, contentHeightPx)
+        GlCanvas(null, { mouseX, mouseY, x, y, width, height ->
+            dragItem.render(x, y, width, height)
         }) {
             modifier.background(null).size(64.dp, 64.dp).zLayer(2000)
 
@@ -34,16 +33,16 @@ fun UiScope.DragStackTooltip() {
     }
 }
 
-fun UiScope.Slot(container: Container, slotId: Int, slotSize: Dimension) = GlCanvas(null, { mouseX, mouseY ->
+fun UiScope.Slot(container: Container, slotId: Int, slotSize: Dimension) = GlCanvas(null, { mouseX, mouseY, x, y, width, height ->
     var size by remember { mutableStateOf(0f) }
 
-    val hovered = mouseX in leftPx..leftPx + contentWidthPx && mouseY in topPx..topPx + contentHeightPx
+    val hovered = mouseX in x..x + width && mouseY in y..y + height
 
     if (hovered) size += Time.deltaT * 5f
     else size -= Time.deltaT * 5f
     size = size.coerceIn(0f, 1f)
 
-    container.getItem(slotId).render(leftPx, topPx, contentWidthPx, contentHeightPx, 0.8f + 0.2f * size)
+    container.getItem(slotId).render(x, y, width, height, 0.8f + 0.2f * size)
 }) {
     val item = container.getItem(slotId)
     if (item.count > 0) Text(item.count.toString()) {

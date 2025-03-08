@@ -22,7 +22,7 @@ fun UiScope.Multiblock(
     multiblock: Multiblock,
     scopeName: String? = null,
     layer: Int = 1000,
-) = GlCanvas(scopeName = scopeName, { mouseX, mouseY ->
+) = GlCanvas(scopeName = scopeName, { mouseX, mouseY, x, y, width, height ->
     val source = Minecraft.getInstance().renderBuffers().bufferSource()
     val blockRenderer = Minecraft.getInstance().blockRenderer
     val modelRenderer = blockRenderer.modelRenderer
@@ -41,14 +41,14 @@ fun UiScope.Multiblock(
 
     val size = max(mbX, mbY)
 
-    val xSize = contentWidthPx * scale / size
-    val ySize = contentHeightPx * scale / size
+    val xSize = width * scale / size
+    val ySize = height * scale / size
 
     val pivotPoint = Vector3f(mbX / 2f, 0f, mbZ / 2f)
 
     stack.translate(
-        leftPx + contentWidthPx / 2.0 - xSize * size / 2 + offsetX,
-        topPx + contentHeightPx / 2.0 + ySize * size / 2 + offsetY,
+        x + width / 2.0 - xSize * size / 2 + offsetX,
+        y + height / 2.0 + ySize * size / 2 + offsetY,
         0.0
     )
     stack.scale(xSize, -ySize, xSize)

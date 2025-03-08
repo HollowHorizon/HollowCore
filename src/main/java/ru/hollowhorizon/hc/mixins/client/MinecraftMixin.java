@@ -43,7 +43,7 @@ public class MinecraftMixin {
     private void resizeCapturedDepthBuffer(CallbackInfo ci) {
         RenderSystem.recordRenderCall(() -> {
             final var window = Minecraft.getInstance().getWindow();
-            KoolBuffersKt.getImguiWindowBuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+            KoolBuffersKt.getGuiFramebuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
             KoolBuffersKt.onResize(window.getWidth(), window.getHeight());
         });
     }
