@@ -27,7 +27,11 @@ package ru.hollowhorizon.hc.common.registry
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.minecraft.core.Registry
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.item.CreativeModeTab
+import net.minecraft.world.item.Items
 import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.common.utils.HollowCreativeTab
+import ru.hollowhorizon.hc.common.utils.literal
 import ru.hollowhorizon.hc.common.utils.rl
 import kotlin.properties.ReadOnlyProperty
 
@@ -47,9 +51,8 @@ open class HollowRegistry(val modId: String = MODID) {
         REGISTRIES.entries.firstOrNull { it.key.isAssignableFrom(T::class.java) }?.let {
             val coreRegistry = it.value as CoreRegistry<T>
             val data by lazy { registryEntry(location) }
-            val entry = RegistryObject { data }
-            coreRegistry[location] = entry
-            return IRegistryHolder { _, _ -> entry }
+            coreRegistry[location] = data
+            return IRegistryHolder { _, _ -> data }
         }
 
         return createRegistry(
@@ -67,19 +70,27 @@ open class HollowRegistry(val modId: String = MODID) {
         registry: Registry<in T>? = null,
         noinline registryEntry: (ResourceLocation) -> T,
     ): IRegistryHolder<T> = register("$modId:$id".rl, autoModel, registry, registryEntry)
+
+    fun creativeTab(name: String, block: CreativeModeTab.Builder.() -> Unit = {}) = register(name) {
+        HollowCreativeTab.builder()
+            .icon { Items.DIRT.defaultInstance }
+            .title("Generated Tab".literal)
+            .apply { block() }
+            .build()
+    }
 }
 
 open class CoreRegistry<T>(val registryName: ResourceLocation) {
 
-    private val entries: MutableMap<ResourceLocation, RegistryObject<T>> = Object2ObjectOpenHashMap()
+    private val entries: MutableMap<ResourceLocation, T> = Object2ObjectOpenHashMap()
 
 
-    operator fun set(key: ResourceLocation, value: RegistryObject<T>) {
+    operator fun set(key: ResourceLocation, value: T) {
         entries[key] = value
     }
 
     operator fun get(id: ResourceLocation): T =
-        entries[id]?.get() ?: throw IllegalStateException("Element $id not found in registry $registryName")
+        entries[id] ?: throw IllegalStateException("Element $id not found in registry $registryName")
 
     operator fun get(value: T): ResourceLocation = entries.entries.first { it.value == value }.key
 
@@ -94,8 +105,4 @@ val REGISTRIES = Object2ObjectOpenHashMap<Class<*>, CoreRegistry<*>>()
 
 lateinit var createRegistry: (ResourceLocation, Registry<*>?, AutoModelType?, () -> Any, Class<*>) -> IRegistryHolder<*>
 
-fun interface IRegistryHolder<T> : ReadOnlyProperty<Any?, RegistryObject<T>>
-
-fun interface RegistryObject<T> {
-    fun get(): T
-}
+typealias IRegistryHolder<T> = ReadOnlyProperty<Any?, T>

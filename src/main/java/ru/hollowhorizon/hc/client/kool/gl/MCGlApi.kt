@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.kool
+package ru.hollowhorizon.hc.client.kool.gl
 
 import com.mojang.blaze3d.systems.RenderSystem
 import de.fabmax.kool.math.MutableVec3i
@@ -10,6 +10,7 @@ import org.lwjgl.opengl.GL33.glVertexAttribDivisor
 import org.lwjgl.opengl.GL42.glTexStorage2D
 import org.lwjgl.opengl.GL45.*
 import org.lwjgl.system.MemoryStack
+import ru.hollowhorizon.hc.client.kool.TextureCopyHelper
 import java.nio.ByteBuffer
 
 object MCGlApi: GlApi {
@@ -304,8 +305,8 @@ object MCGlApi: GlApi {
     override fun viewport(x: Int, y: Int, width: Int, height: Int) = glViewport(x, y, width, height)
 
     fun initOpenGl(backend: MCRenderBackendGl) {
-        this.backend = backend
-        this.version = GlApiVersion(4, 6, GlFlavor.OpenGL, "OpenGL 4.6")
+        MCGlApi.backend = backend
+        version = GlApiVersion(4, 6, GlFlavor.OpenGL, "OpenGL 4.6")
 
         // check for anisotropic texture filtering support
         val extCount = glGetInteger(GL_NUM_EXTENSIONS)
@@ -379,7 +380,7 @@ object MCGlApi: GlApi {
     }
 
     override fun readTexturePixels(src: LoadedTextureGl, dst: BufferedImageData): Boolean {
-        return ru.hollowhorizon.hc.client.kool.TextureCopyHelper.readTexturePixels(src, dst)
+        return TextureCopyHelper.readTexturePixels(src, dst)
     }
 
     private fun checkApiVersion(): GlApiVersion {

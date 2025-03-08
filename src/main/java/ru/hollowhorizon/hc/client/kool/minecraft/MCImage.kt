@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.kool
+package ru.hollowhorizon.hc.client.kool.minecraft
 
 import de.fabmax.kool.Assets
 import de.fabmax.kool.loadImage2d

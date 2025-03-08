@@ -2,16 +2,17 @@ package ru.hollowhorizon.hc.client.utils
 
 //? if forge
 /*import net.minecraftforge.fml.loading.FMLConfig*/
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import ru.hollowhorizon.hc.common.config.HollowConfig
 import ru.hollowhorizon.hc.common.config.hollowConfig
 
-object RenderDocHelper {
-    val config by hollowConfig(::Config, "hollowcore-renderdoc")
+object HollowCoreLoader {
+    val config by hollowConfig(::Config, "hollowcore-loader")
 
     @JvmStatic
     fun canAttachRenderdoc(): Boolean {
-        if (!config.isEnabled) return false
+        if (!config.enableRenderDoc) return false
 
         //? if fabric {
         return true
@@ -22,6 +23,8 @@ object RenderDocHelper {
 
     @Serializable
     class Config : HollowConfig() {
-        var isEnabled = false
+        var enableRenderDoc = false
+        @SerialName("opengl_version")
+        var openGlVersion = "3.3"
     }
 }

@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.kool
+package ru.hollowhorizon.hc.client.kool.minecraft
 
 import de.fabmax.kool.math.MutableMat4f
 import de.fabmax.kool.math.QuatF

@@ -24,21 +24,19 @@
 
 package ru.hollowhorizon.hc.mixins.client;
 
-import com.mojang.blaze3d.platform.Window;
-import net.minecraft.client.Minecraft;
-//? if fabric {
 import com.mojang.blaze3d.platform.DisplayData;
 import com.mojang.blaze3d.platform.ScreenManager;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.platform.WindowEventHandler;
-//?}
+import net.minecraft.client.Minecraft;
+import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.api.AutoScaled;
-import ru.hollowhorizon.hc.client.kool.KoolManager;
+import ru.hollowhorizon.hc.client.utils.HollowCoreLoader;
 import ru.hollowhorizon.hc.common.utils.JavaHacks;
 
 
@@ -47,8 +45,11 @@ public class WindowMixin {
     //? if fabric {
     @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J"), remap = false)
     public void onInit(WindowEventHandler eventHandler, ScreenManager screenManager, DisplayData displayData, String preferredFullscreenVideoMode, String title, CallbackInfo ci) {
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 4);
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 3);
+        var version = HollowCoreLoader.INSTANCE.getConfig().getOpenGlVersion().split("\\.", 2);
+        var major = Integer.parseInt(version[0]);
+        var minor = Integer.parseInt(version[1]);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, major);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, minor);
     }
     //?}
 
@@ -61,11 +62,6 @@ public class WindowMixin {
         if (!(Minecraft.getInstance().screen instanceof AutoScaled)) return;
 
         cir.setReturnValue((double) window.calculateScale(0, Minecraft.getInstance().isEnforceUnicode()));
-    }
-
-    @Inject(method = "setGuiScale", at = @At("HEAD"))
-    private void onSetGuiScale(double scaleFactor, CallbackInfo ci) {
-        KoolManager.INSTANCE.getContext().setWindowScale((float) scaleFactor);
     }
 
     @Inject(method = "getGuiScaledHeight", at = @At("HEAD"), cancellable = true)

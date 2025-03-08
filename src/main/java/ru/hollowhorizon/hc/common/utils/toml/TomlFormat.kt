@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.common.config
+package ru.hollowhorizon.hc.common.utils.toml
 
 import com.akuleshov7.ktoml.Toml
 import com.akuleshov7.ktoml.TomlIndentation

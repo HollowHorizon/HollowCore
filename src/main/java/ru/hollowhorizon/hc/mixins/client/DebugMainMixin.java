@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import ru.hollowhorizon.hc.HollowLoggerKt;
-import ru.hollowhorizon.hc.client.utils.RenderDocHelper;
+import ru.hollowhorizon.hc.client.utils.HollowCoreLoader;
 import ru.hollowhorizon.hc.common.utils.ForgeKotlinKt;
 
 import java.nio.file.Files;
@@ -17,8 +17,8 @@ import java.nio.file.Path;
 public class DebugMainMixin {
     @Inject(method = "main", at = @At("HEAD"), remap = false)
     private static void preMain(CallbackInfo ci) {
-        HollowLoggerKt.getLOGGER().info("Production: {}, Can attach renderdoc: {}, Platform: {}", ForgeKotlinKt.isProduction(), RenderDocHelper.canAttachRenderdoc(), Util.getPlatform().name());
-        if (!RenderDocHelper.canAttachRenderdoc() || Util.getPlatform() != Util.OS.WINDOWS) {
+        HollowLoggerKt.getLOGGER().info("Production: {}, Can attach renderdoc: {}, Platform: {}", ForgeKotlinKt.isProduction(), HollowCoreLoader.canAttachRenderdoc(), Util.getPlatform().name());
+        if (!HollowCoreLoader.canAttachRenderdoc() || Util.getPlatform() != Util.OS.WINDOWS) {
             return;
         }
 

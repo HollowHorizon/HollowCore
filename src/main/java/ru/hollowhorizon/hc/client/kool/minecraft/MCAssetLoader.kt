@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.client.kool
+package ru.hollowhorizon.hc.client.kool.minecraft
 
 import de.fabmax.kool.*
 import de.fabmax.kool.modules.audio.AudioClipImpl

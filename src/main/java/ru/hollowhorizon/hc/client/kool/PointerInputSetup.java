@@ -1,13 +1,11 @@
 package ru.hollowhorizon.hc.client.kool;
 
-import com.google.common.collect.Maps;
 import de.fabmax.kool.input.*;
 import org.lwjgl.glfw.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static ru.hollowhorizon.hc.client.kool.HelperKt.KEY_CODE_MAP;
 
@@ -18,7 +16,6 @@ public class PointerInputSetup {
     private static GLFWScrollCallback scrollOld = null;
     private static GLFWKeyCallback keyOld = null;
     private static GLFWCharCallback charOld = null;
-    private static boolean isMouseOverWindow;
     private static final HashMap<Integer, Integer> localCharKeyCodes = new HashMap<>();
 
     private void deriveLocalKeyCodes() {
@@ -67,8 +64,8 @@ public class PointerInputSetup {
 
     public static void setup(long windowHandle) {
         mouseButtonOld = GLFW.glfwSetMouseButtonCallback(windowHandle, (handle, btn, act, mods) -> {
-                PointerInput.INSTANCE.handleMouseButtonEvent$kool_core(btn, act == GLFW.GLFW_PRESS);
-                if(mouseButtonOld != null) mouseButtonOld.invoke(handle, btn, act, mods);
+            PointerInput.INSTANCE.handleMouseButtonEvent$kool_core(btn, act == GLFW.GLFW_PRESS);
+            if (mouseButtonOld != null) mouseButtonOld.invoke(handle, btn, act, mods);
         });
         cursorPosOld = GLFW.glfwSetCursorPosCallback(windowHandle, (handle, x, y) -> {
             PointerInput.INSTANCE.handleMouseMove$kool_core(x, y);
@@ -76,10 +73,7 @@ public class PointerInputSetup {
         });
         cursorEnterOld = GLFW.glfwSetCursorEnterCallback(windowHandle, (handle, entered) -> {
             if (!entered) {
-                isMouseOverWindow = false;
                 PointerInput.INSTANCE.handleMouseExit$kool_core();
-            } else {
-                isMouseOverWindow = true;
             }
             if (cursorEnterOld != null) cursorEnterOld.invoke(handle, entered);
         });
@@ -100,23 +94,7 @@ public class PointerInputSetup {
             if (event != -1) {
                 KeyCode keyCode = KEY_CODE_MAP.getOrDefault(key, new UniversalKeyCode(key, null));
                 LocalKeyCode localKeyCode = new LocalKeyCode(localCharKeyCodes.getOrDefault(keyCode.getCode(), keyCode.getCode()), null);
-                int keyMod = 0;
-
-                if ((mods & GLFW.GLFW_MOD_ALT) != 0) keyMod |= KeyboardInput.KEY_MOD_ALT;
-                if ((mods & GLFW.GLFW_MOD_CONTROL) != 0) keyMod |= KeyboardInput.KEY_MOD_CTRL;
-                if ((mods & GLFW.GLFW_MOD_SHIFT) != 0) keyMod |= KeyboardInput.KEY_MOD_SHIFT;
-                if ((mods & GLFW.GLFW_MOD_SUPER) != 0) keyMod |= KeyboardInput.KEY_MOD_SUPER;
-
-                switch (key) {
-                    case GLFW.GLFW_KEY_LEFT_SHIFT, GLFW.GLFW_KEY_RIGHT_SHIFT ->
-                            keyMod = updateDownMask(keyMod, KeyboardInput.KEY_MOD_SHIFT, event);
-                    case GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_RIGHT_CONTROL ->
-                            keyMod = updateDownMask(keyMod, KeyboardInput.KEY_MOD_CTRL, event);
-                    case GLFW.GLFW_KEY_LEFT_ALT, GLFW.GLFW_KEY_RIGHT_ALT ->
-                            keyMod = updateDownMask(keyMod, KeyboardInput.KEY_MOD_ALT, event);
-                    case GLFW.GLFW_KEY_LEFT_SUPER, GLFW.GLFW_KEY_RIGHT_SUPER ->
-                            keyMod = updateDownMask(keyMod, KeyboardInput.KEY_MOD_SUPER, event);
-                }
+                int keyMod = getKeyMod(key, mods, event);
 
                 KeyboardInput.INSTANCE.handleKeyEvent(new KeyEvent(keyCode, localKeyCode, event, keyMod, Character.MIN_VALUE));
             }
@@ -128,6 +106,27 @@ public class PointerInputSetup {
             KeyboardInput.INSTANCE.handleCharTyped((char) codepoint);
             if (charOld != null) charOld.invoke(handle, codepoint);
         });
+    }
+
+    private static int getKeyMod(int key, int mods, int event) {
+        int keyMod = 0;
+
+        if ((mods & GLFW.GLFW_MOD_ALT) != 0) keyMod |= KeyboardInput.KEY_MOD_ALT;
+        if ((mods & GLFW.GLFW_MOD_CONTROL) != 0) keyMod |= KeyboardInput.KEY_MOD_CTRL;
+        if ((mods & GLFW.GLFW_MOD_SHIFT) != 0) keyMod |= KeyboardInput.KEY_MOD_SHIFT;
+        if ((mods & GLFW.GLFW_MOD_SUPER) != 0) keyMod |= KeyboardInput.KEY_MOD_SUPER;
+
+        switch (key) {
+            case GLFW.GLFW_KEY_LEFT_SHIFT, GLFW.GLFW_KEY_RIGHT_SHIFT ->
+                    keyMod = updateDownMask(keyMod, KeyboardInput.KEY_MOD_SHIFT, event);
+            case GLFW.GLFW_KEY_LEFT_CONTROL, GLFW.GLFW_KEY_RIGHT_CONTROL ->
+                    keyMod = updateDownMask(keyMod, KeyboardInput.KEY_MOD_CTRL, event);
+            case GLFW.GLFW_KEY_LEFT_ALT, GLFW.GLFW_KEY_RIGHT_ALT ->
+                    keyMod = updateDownMask(keyMod, KeyboardInput.KEY_MOD_ALT, event);
+            case GLFW.GLFW_KEY_LEFT_SUPER, GLFW.GLFW_KEY_RIGHT_SUPER ->
+                    keyMod = updateDownMask(keyMod, KeyboardInput.KEY_MOD_SUPER, event);
+        }
+        return keyMod;
     }
 
     private static int updateDownMask(int mask, int bit, int event) {

@@ -2,7 +2,10 @@
 /*package ru.hollowhorizon.hc.forge
 
 import net.irisshaders.iris.api.v0.IrisApi
+import net.minecraftforge.fml.ModLoadingContext
 import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
+import net.minecraftforge.fml.loading.FMLLoader
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.HollowCoreClient
 import ru.hollowhorizon.hc.client.utils.*

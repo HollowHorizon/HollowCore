@@ -20,7 +20,6 @@ import de.fabmax.kool.scene.geometry.VertexView
 import de.fabmax.kool.util.Color
 import de.fabmax.kool.util.ShadowMap
 import ru.hollowhorizon.hc.client.kool.glTexture
-import ru.hollowhorizon.hc.client.kool.MCGlApi
 import ru.hollowhorizon.hc.client.kool.support.MC_UV_1
 import ru.hollowhorizon.hc.client.kool.support.MC_UV_2
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager

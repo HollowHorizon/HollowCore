@@ -84,6 +84,7 @@ val String.mcTranslate: MutableComponent get() = Component.translatable(this)
 fun String.mcTranslate(vararg args: Any) = Component.translatable(this, *args)
 
 operator fun MutableComponent.plus(other: Component): MutableComponent = this.copy().append(other)
+operator fun MutableComponent.plus(text: String): MutableComponent = this.copy().append(text)
 
 fun MutableComponent.colored(color: Int): MutableComponent = this.withStyle { it.withColor(color) }
 fun MutableComponent.colored(color: ChatFormatting): MutableComponent = this.withStyle { it.withColor(color) }

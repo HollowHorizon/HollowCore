@@ -33,6 +33,7 @@ import de.fabmax.kool.pipeline.TextureProps
 import de.fabmax.kool.pipeline.backend.gl.GlTexture
 import de.fabmax.kool.pipeline.backend.gl.LoadedTextureGl
 import net.minecraft.client.Minecraft
+import ru.hollowhorizon.hc.client.kool.gl.MCGlApi
 
 internal val guiFramebuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
 
@@ -40,7 +41,7 @@ val WINDOW_BUFFER by lazy { createFramebufferTexture(guiFramebuffer) }
 
 
 fun glTexture(id: Int) = Texture2d(
-    TextureProps(generateMipMaps = false, defaultSamplerSettings = SamplerSettings().clamped().nearest())
+        TextureProps(generateMipMaps = false, defaultSamplerSettings = SamplerSettings().clamped().nearest())
 ).apply {
     gpuTexture = LoadedTextureGl(MCGlApi.TEXTURE_2D, GlTexture(id), MCGlApi.backend, this, 0L)
     loadingState = Texture.LoadingState.LOADED

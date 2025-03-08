@@ -33,6 +33,7 @@ import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.kool.*
+import ru.hollowhorizon.hc.client.kool.minecraft.ImageManager
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.render.RenderManager
@@ -100,6 +101,6 @@ object HollowCoreClient {
 
     @SubscribeEvent
     fun onEntityRegister(event: RegisterEntityRenderersEvent) {
-        event.registerEntity(ModEntities.TEST_ENTITY.get(), ::GLTFEntityRenderer)
+        event.registerEntity(ModEntities.TEST_ENTITY, ::GLTFEntityRenderer)
     }
 }

@@ -30,7 +30,10 @@
     "kool.ClipboardMixin",
     "kool.PlatformInputJvmMixin",
     "kool.RenderBackendGlAccessor",
-    "kool.ShaderManagerAccessor"
+    "kool.ShaderManagerAccessor",
+    "loot.LootDataManagerMixin",
+    "tags.TagEntryAccessor",
+    "tags.TagLoaderMixin"
   ],
   "client": [
     "client.ClientLevelMixin",
