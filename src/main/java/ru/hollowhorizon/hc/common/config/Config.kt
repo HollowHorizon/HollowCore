@@ -6,6 +6,7 @@ import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import ru.hollowhorizon.hc.LOGGER
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
+import ru.hollowhorizon.hc.common.utils.toml.TomlFormat
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream

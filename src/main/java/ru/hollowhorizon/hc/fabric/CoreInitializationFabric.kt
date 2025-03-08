@@ -79,7 +79,7 @@ object CoreInitializationFabric {
     private fun Collection<ClassInfo>.safeClasses(): List<Class<*>> = mapNotNull {
         try {
             Class.forName(it.name)
-        } catch (e: NoClassDefFoundError) {
+        } catch (e: Exception) {
             HollowCore.LOGGER.warn("Class ${it.name} cannot be loaded! ${e.message}")
             null
         }

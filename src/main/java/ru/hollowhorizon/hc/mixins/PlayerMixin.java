@@ -45,14 +45,16 @@ public abstract class PlayerMixin extends LivingEntity {
     )
     public void drop(ItemStack itemStack, boolean includeThrowerName, CallbackInfoReturnable<ItemEntity> cir) {
         var r = this.drop(itemStack, false, includeThrowerName);
-        if (r == null)
+        if (r == null) {
             cir.setReturnValue(null);
+            return;
+        }
 
         var e = new ItemEntityEvent.Toss(Objects.requireNonNull(r), JavaHacks.forceCast(this));
         EventBus.post(e);
         if (e.isCanceled()) cir.setReturnValue(null);
 
-        if (!this.level().isClientSide)
+        if (!level().isClientSide)
             this.getCommandSenderWorld().addFreshEntity(e.getEntity());
 
         cir.setReturnValue(e.getEntity());

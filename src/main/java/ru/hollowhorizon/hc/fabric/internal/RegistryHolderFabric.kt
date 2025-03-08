@@ -33,9 +33,9 @@ import net.minecraft.world.level.levelgen.feature.treedecorators.TreeDecoratorTy
 import net.minecraft.world.level.material.Fluid
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.common.objects.blocks.BlockItemProperties
+import ru.hollowhorizon.hc.common.objects.items.CreativeTab
 import ru.hollowhorizon.hc.common.registry.AutoModelType
 import ru.hollowhorizon.hc.common.registry.IRegistryHolder
-import ru.hollowhorizon.hc.common.registry.RegistryObject
 import kotlin.reflect.KProperty
 
 @Suppress("UNCHECKED_CAST")
@@ -88,11 +88,13 @@ class RegistryHolderFabric<T : Any>(
                 if (autoModel != null) HollowPack.addBlockModel(location, autoModel)
 
                 if (BlockItemProperties::class.java.isAssignableFrom(target)) {
-                    Registry.register(
-                        BuiltInRegistries.ITEM,
-                        location,
-                        BlockItem(this as Block, (this as BlockItemProperties).properties)
-                    )
+                    val block = this as Block
+                    val item = if (block is CreativeTab) {
+                        object : BlockItem(block, (block as BlockItemProperties).properties), CreativeTab by block {}
+                    } else {
+                        BlockItem(block, (block as BlockItemProperties).properties)
+                    }
+                    Registry.register(BuiltInRegistries.ITEM, location, item)
                     if (autoModel != null) {
                         if (autoModel == AutoModelType.CUBE_ALL) HollowPack.addItemModel(
                             location,
@@ -109,8 +111,8 @@ class RegistryHolderFabric<T : Any>(
         }
     }
 
-    override fun getValue(thisRef: Any?, property: KProperty<*>): RegistryObject<T> {
-        return RegistryObject { result }
+    override fun getValue(thisRef: Any?, property: KProperty<*>): T {
+        return result
     }
 }
 //?}

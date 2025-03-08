@@ -8,16 +8,14 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.world.level.chunk.status.ChunkStatus
 ^///?} elif >=1.20.1 {
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.core.registries.Registries
-import net.minecraft.world.level.chunk.ChunkStatus
 //?} else {
 /^import net.minecraft.world.level.chunk.ChunkStatus
 ^///?}
-import net.minecraft.commands.synchronization.ArgumentTypeInfo
 
+import net.minecraft.commands.synchronization.ArgumentTypeInfo
 import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleType
+import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.stats.StatType
@@ -40,7 +38,7 @@ import net.minecraft.world.item.crafting.RecipeSerializer
 import net.minecraft.world.item.crafting.RecipeType
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
-
+import net.minecraft.world.level.chunk.ChunkStatus
 import net.minecraft.world.level.levelgen.carver.WorldCarver
 import net.minecraft.world.level.levelgen.feature.Feature
 import net.minecraft.world.level.levelgen.feature.foliageplacers.FoliagePlacerType
@@ -52,9 +50,9 @@ import net.minecraftforge.registries.DeferredRegister
 import net.minecraftforge.registries.ForgeRegistries
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.common.objects.blocks.BlockItemProperties
+import ru.hollowhorizon.hc.common.objects.items.CreativeTab
 import ru.hollowhorizon.hc.common.registry.AutoModelType
 import ru.hollowhorizon.hc.common.registry.IRegistryHolder
-import ru.hollowhorizon.hc.common.registry.RegistryObject
 import kotlin.reflect.KProperty
 
 @Suppress("UNCHECKED_CAST")
@@ -64,8 +62,7 @@ class RegistryHolderForge<T : Any>(
     val autoModel: AutoModelType?,
     supplier: () -> T,
     val target: Class<T>,
-) :
-    IRegistryHolder<T> {
+) : IRegistryHolder<T> {
     val registryType: DeferredRegister<T> = with(target) {
         when {
             Block::class.java.isAssignableFrom(this) -> DeferredRegister.create(
@@ -225,36 +222,46 @@ class RegistryHolderForge<T : Any>(
         }
     } as DeferredRegister<T>
 
-    private val result: net.minecraftforge.registries.RegistryObject<T> = registryType.register(location.path, supplier).apply {
-        when {
-            Block::class.java.isAssignableFrom(target) -> {
-                if (autoModel != null) HollowPack.addBlockModel(location, autoModel)
+    private val result: net.minecraftforge.registries.RegistryObject<T> =
+        registryType.register(location.path, supplier).apply {
+            when {
+                Block::class.java.isAssignableFrom(target) -> {
+                    if (autoModel != null) HollowPack.addBlockModel(location, autoModel)
 
-                if (BlockItemProperties::class.java.isAssignableFrom(target)) {
-                    val items: DeferredRegister<Item> =
-                        DeferredRegister.create(ForgeRegistries.ITEMS, location.namespace)
-                    items.register(
-                        location.path
-                    ) {
-                        BlockItem(this.get() as Block, (this.get() as BlockItemProperties).properties)
-                    }
-                    items.register(FMLJavaModLoadingContext.get().modEventBus)
-                    if(autoModel != null) {
-                        if(autoModel == AutoModelType.CUBE_ALL) HollowPack.addItemModel(location, AutoModelType.custom("${location.namespace}:block/${location.path}"))
-                        else HollowPack.addItemModel(location, AutoModelType.custom("builtin/entity"))
+                    if (BlockItemProperties::class.java.isAssignableFrom(target)) {
+                        val items: DeferredRegister<Item> =
+                            DeferredRegister.create(ForgeRegistries.ITEMS, location.namespace)
+                        items.register(
+                            location.path
+                        ) {
+                            val block = this.get() as Block
+                            if (block is CreativeTab) {
+                                object : BlockItem(block, (block as BlockItemProperties).properties),
+                                    CreativeTab by block {}
+                            } else {
+                                BlockItem(block, (block as BlockItemProperties).properties)
+                            }
+                        }
+                        items.register(FMLJavaModLoadingContext.get().modEventBus)
+                        if (autoModel != null) {
+                            if (autoModel == AutoModelType.CUBE_ALL) HollowPack.addItemModel(
+                                location,
+                                AutoModelType.custom("${location.namespace}:block/${location.path}")
+                            )
+                            else HollowPack.addItemModel(location, AutoModelType.custom("builtin/entity"))
+                        }
                     }
                 }
-            }
 
-            Item::class.java.isAssignableFrom(target) -> {
-                if (autoModel != null) HollowPack.addItemModel(location, autoModel)
+                Item::class.java.isAssignableFrom(target) -> {
+                    if (autoModel != null) HollowPack.addItemModel(location, autoModel)
+                }
             }
+            registryType.register(FMLJavaModLoadingContext.get().modEventBus)
         }
-        registryType.register(FMLJavaModLoadingContext.get().modEventBus)
-    }
 
-    override fun getValue(thisRef: Any?, property: KProperty<*>): RegistryObject<T> {
-        return RegistryObject { result.get() }
+    override fun getValue(thisRef: Any?, property: KProperty<*>): T {
+        return result.get()
     }
 }
 *///?}
