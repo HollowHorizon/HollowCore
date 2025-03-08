@@ -7,7 +7,7 @@ import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.particles.file.BedrockParticleFile
-import ru.hollowhorizon.hc.client.utils.json.JsonFormat
+import ru.hollowhorizon.hc.common.utils.json.JsonFormat
 
 object BedrockParticles : ResourceManagerReloadListener {
     val PARTICLES = hashMapOf<ResourceLocation, BedrockParticleFile>()

@@ -32,12 +32,12 @@ import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapabili
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimationLayer
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
 import ru.hollowhorizon.hc.client.models.internal.manager.LayerMode
-import ru.hollowhorizon.hc.client.utils.get
-import ru.hollowhorizon.hc.common.network.HollowPacketV2
-import ru.hollowhorizon.hc.common.network.HollowPacketV3
+import ru.hollowhorizon.hc.common.utils.get
+import ru.hollowhorizon.hc.common.network.HollowPacketHandler
+import ru.hollowhorizon.hc.common.network.HollowPacket
 
 
-@HollowPacketV2
+@HollowPacketHandler
 @Serializable
 class StartAnimationPacket(
     private val entityId: Int,
@@ -45,7 +45,7 @@ class StartAnimationPacket(
     private val layerMode: LayerMode,
     private val playType: PlayMode,
     private val speed: Float = 1.0f,
-) : HollowPacketV3<StartAnimationPacket> {
+) : HollowPacket<StartAnimationPacket> {
     override fun handle(player: Player) {
         player.level().getEntity(entityId)?.let { entity ->
             if (entity is IAnimated || entity is Player) {
@@ -65,12 +65,12 @@ class StartAnimationPacket(
 
 }
 
-@HollowPacketV2
+@HollowPacketHandler
 @Serializable
 class StopAnimationPacket(
     private val entityId: Int,
     val name: String,
-) : HollowPacketV3<StopAnimationPacket> {
+) : HollowPacket<StopAnimationPacket> {
     override fun handle(player: Player) {
         player.level().getEntity(entityId)?.let { entity ->
             if (entity is IAnimated || entity is Player) {

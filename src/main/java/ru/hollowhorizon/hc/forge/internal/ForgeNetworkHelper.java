@@ -13,9 +13,10 @@ import net.minecraftforge.network.NetworkRegistry.ChannelBuilder;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 //?}
-import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
-import ru.hollowhorizon.hc.client.utils.JavaHacks;
-import ru.hollowhorizon.hc.common.network.HollowPacketV3Kt;
+import ru.hollowhorizon.hc.common.utils.ForgeKotlinKt;
+import ru.hollowhorizon.hc.common.utils.JavaHacks;
+import ru.hollowhorizon.hc.common.network.HollowPacketKt;
+import ru.hollowhorizon.hc.common.objects.recipe.packet.HollowIngredientPacketHandler;
 
 public class ForgeNetworkHelper {
     public static SimpleChannel hollowCoreChannel = ChannelBuilder
@@ -34,11 +35,26 @@ public class ForgeNetworkHelper {
             .simpleChannel();
 
     public static void register() {
-        HollowPacketV3Kt.registerPacket = (type) -> {
+        hollowCoreChannel.registerMessage(
+                ForgeNetworkKt.idPlPl(),
+                HollowIngredientPacketHandler.ClientSync.class,
+                HollowIngredientPacketHandler.ClientSync::encode,
+                HollowIngredientPacketHandler.ClientSync::new,
+                HollowIngredientPacketHandler.ClientSync::handle
+        );
+        hollowCoreChannel.registerMessage(
+                ForgeNetworkKt.idPlPl(),
+                HollowIngredientPacketHandler.ServerSync.class,
+                HollowIngredientPacketHandler.ServerSync::encode,
+                HollowIngredientPacketHandler.ServerSync::new,
+                HollowIngredientPacketHandler.ServerSync::handle
+        );
+
+        HollowPacketKt.registerPacket = (type) -> {
             ForgeNetworkKt.registerPacket(JavaHacks.forceCast(type));
             return Unit.INSTANCE;
         };
-        HollowPacketV3Kt.sendPacketToClient = (player, hollowPacketV3) -> {
+        HollowPacketKt.sendPacketToClient = (player, hollowPacketV3) -> {
             //? if >=1.21 {
             /^hollowCoreChannel.send(hollowPacketV3, PacketDistributor.PLAYER.with(player));
             ^///?} else {
@@ -46,7 +62,7 @@ public class ForgeNetworkHelper {
             //?}
             return Unit.INSTANCE;
         };
-        HollowPacketV3Kt.sendPacketToServer = (hollowPacketV3) -> {
+        HollowPacketKt.sendPacketToServer = (hollowPacketV3) -> {
             //? if >=1.21 {
             /^hollowCoreChannel.send(hollowPacketV3, PacketDistributor.SERVER.noArg());
             ^///?} else {
@@ -54,7 +70,7 @@ public class ForgeNetworkHelper {
             //?}
             return Unit.INSTANCE;
         };
-        HollowPacketV3Kt.registerPackets.invoke();
+        HollowPacketKt.registerPackets.invoke();
     }
 }
 *///?}

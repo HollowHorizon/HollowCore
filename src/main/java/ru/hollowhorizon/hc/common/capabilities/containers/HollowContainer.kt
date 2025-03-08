@@ -3,14 +3,15 @@ package ru.hollowhorizon.hc.common.capabilities.containers
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
+import net.minecraft.world.Container
 import net.minecraft.world.Containers
 import net.minecraft.world.SimpleContainer
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.EntityBlock
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
-import ru.hollowhorizon.hc.client.utils.nbt.INBTSerializable
-import ru.hollowhorizon.hc.client.utils.readItem
-import ru.hollowhorizon.hc.client.utils.save
+import ru.hollowhorizon.hc.common.utils.nbt.INBTSerializable
+import ru.hollowhorizon.hc.common.utils.readItem
+import ru.hollowhorizon.hc.common.utils.save
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.CapabilityProperty
 import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
@@ -40,6 +41,19 @@ open class HollowContainer(
         (tag as ListTag).forEachIndexed { index, tag ->
             setItem(index, (tag as CompoundTag).readItem())
         }
+    }
+
+    open class Wrapped(
+        private val original: HollowContainer,
+        capability: CapabilityInstance,
+        private val canExtract: (Int) -> Boolean,
+        canPlace: (Int, ItemStack) -> Boolean
+    ): HollowContainer(capability, original.size, canPlace) {
+        override fun canTakeItem(target: Container, index: Int, stack: ItemStack): Boolean =
+            if (this.canExtract(index)) this.original.canTakeItem(target, index, stack) else false
+
+        override fun canPlaceItem(slot: Int, stack: ItemStack): Boolean =
+            if (this.canPlace(slot, stack)) this.original.canPlaceItem(slot, stack) else false
     }
 }
 

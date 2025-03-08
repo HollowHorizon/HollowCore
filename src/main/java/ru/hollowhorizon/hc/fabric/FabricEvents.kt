@@ -13,7 +13,7 @@ import net.fabricmc.fabric.api.`object`.builder.v1.entity.FabricDefaultAttribute
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.server.packs.PackType
-import ru.hollowhorizon.hc.client.utils.currentServer
+import ru.hollowhorizon.hc.common.utils.currentServer
 import ru.hollowhorizon.hc.common.events.EventBus
 import ru.hollowhorizon.hc.common.events.EventBus.post
 import ru.hollowhorizon.hc.common.events.blocks.BlockEvent

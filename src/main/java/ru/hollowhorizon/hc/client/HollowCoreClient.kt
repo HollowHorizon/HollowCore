@@ -101,6 +101,6 @@ object HollowCoreClient {
 
     @SubscribeEvent
     fun onEntityRegister(event: RegisterEntityRenderersEvent) {
-        event.registerEntity(ModEntities.TEST_ENTITY.get(), ::GLTFEntityRenderer)
+        event.registerEntity(ModEntities.TEST_ENTITY, ::GLTFEntityRenderer)
     }
 }

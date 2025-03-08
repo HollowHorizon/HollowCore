@@ -25,13 +25,12 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
 import kotlinx.coroutines.*
-import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.resources.ResourceLocation
 import org.joml.*
 import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.client.models.internal.*
 import ru.hollowhorizon.hc.client.utils.exists
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 import java.util.*
 
 

@@ -1,4 +1,3 @@
-import dev.kikugie.stonecutter.data.tree.TreeBuilder
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
 import org.gradle.api.artifacts.Dependency
 import org.gradle.kotlin.dsl.DependencyHandlerScope
@@ -7,12 +6,7 @@ import org.gradle.kotlin.dsl.exclude
 var isForgelike = false
 
 fun DependencyHandlerScope.install(path: String, includeInJar: Boolean = true, isMod: Boolean = false) {
-    if(isMod) {
-        modImplementation(path)
-        return
-    }
-
-    val dependency = "implementation"(path) {
+    val dependency = if (isMod) modImplementation(path) else "implementation"(path) {
         exclude("org.jetbrains.kotlin")
         exclude("org.ow2.asm")
         exclude("net.sourceforge.jaad.aac")
@@ -20,8 +14,8 @@ fun DependencyHandlerScope.install(path: String, includeInJar: Boolean = true, i
         exclude("commons-logging")
     }
 
-    dependency.takeIf { isForgelike }?.let { "forgeRuntimeLibrary"(it) }
-    if(includeInJar) "include"(dependency)
+    dependency.takeIf { isForgelike && !isMod }?.let { "forgeRuntimeLibrary"(it) }
+    if (includeInJar) dependency?.let { "include"(it) }
 }
 
 fun DependencyHandlerScope.minecraft(version: String) = "minecraft"("com.mojang:minecraft:$version")
@@ -51,21 +45,21 @@ fun DependencyHandlerScope.setupLoader(loom: LoomGradleExtensionAPI, loader: Str
             when (version) {
                 "1.21" -> {
                     modImplementation("net.fabricmc:fabric-loader:0.15.11")
-                    modImplementation("net.fabricmc.fabric-api:fabric-api:0.102.0+$version")
+                    install("net.fabricmc.fabric-api:fabric-api:0.102.0+$version", isMod = true)
                     modImplementation("mods:sodium:0.6.0")
                     modImplementation("mods:iris:1.8.0")
                 }
 
                 "1.20.1" -> {
                     modImplementation("net.fabricmc:fabric-loader:0.15.11")
-                    modImplementation("net.fabricmc.fabric-api:fabric-api:0.92.2+$version")
+                    install("net.fabricmc.fabric-api:fabric-api:0.92.2+$version", isMod = true)
                     "compileOnly"("mods:sodium:0.5.11")
                     "compileOnly"("mods:iris:1.7.2")
                 }
 
                 "1.19.2" -> {
                     modImplementation("net.fabricmc:fabric-loader:0.15.11")
-                    modImplementation("net.fabricmc.fabric-api:fabric-api:0.77.0+$version")
+                    install("net.fabricmc.fabric-api:fabric-api:0.77.0+$version", isMod = true)
                     modImplementation("mods:sodium:0.4.4")
                     modImplementation("mods:iris:1.6.11")
                     modImplementation("curse.maven:spark-361579:4505310")

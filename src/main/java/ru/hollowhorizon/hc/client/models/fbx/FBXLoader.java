@@ -30,8 +30,8 @@ import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.client.models.fbx.raw.FBXElement;
 import ru.hollowhorizon.hc.client.models.fbx.raw.FBXProperty;
 import ru.hollowhorizon.hc.client.models.fbx.raw.HollowByteStream;
-import ru.hollowhorizon.hc.client.utils.ForgeKotlinKt;
-import ru.hollowhorizon.hc.client.utils.HollowJavaUtils;
+import ru.hollowhorizon.hc.common.utils.ForgeKotlinKt;
+import ru.hollowhorizon.hc.common.utils.HollowJavaUtils;
 
 import java.io.IOException;
 import java.io.InputStream;

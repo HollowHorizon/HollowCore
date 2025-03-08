@@ -2,7 +2,7 @@ package ru.hollowhorizon.hc.client.models.gltf
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import ru.hollowhorizon.hc.client.utils.nbt.ListOrSingle
+import ru.hollowhorizon.hc.common.utils.nbt.ListOrSingle
 
 @Serializable
 data class GltfScene(

@@ -28,10 +28,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher;
 import ru.hollowhorizon.hc.api.ICapabilityDispatcherKt;
-import ru.hollowhorizon.hc.client.utils.nbt.NBTFormatKt;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.events.EventBus;
 import ru.hollowhorizon.hc.common.events.level.LevelEvent;
+import ru.hollowhorizon.hc.common.utils.nbt.NBTFormatKt;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -40,7 +40,6 @@ import java.net.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerMixin implements ICapabilityDispatcher {

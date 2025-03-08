@@ -33,20 +33,20 @@ import net.minecraft.nbt.Tag
 import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
-import ru.hollowhorizon.hc.client.utils.nbt.ForTag
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.nbt.ForTag
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.common.handlers.HollowEventHandler
-import ru.hollowhorizon.hc.common.network.HollowPacketV2
-import ru.hollowhorizon.hc.common.network.HollowPacketV3
+import ru.hollowhorizon.hc.common.network.HollowPacketHandler
+import ru.hollowhorizon.hc.common.network.HollowPacket
 import ru.hollowhorizon.hc.common.network.sendAllInDimension
 
-@HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
+@HollowPacketHandler(HollowPacketHandler.Direction.TO_CLIENT)
 @Serializable
 class CSyncEntityCapabilityPacket(
     private val entityId: Int,
     val capability: String,
     val value: @Serializable(ForTag::class) Tag,
-) : HollowPacketV3<CSyncEntityCapabilityPacket> {
+) : HollowPacket<CSyncEntityCapabilityPacket> {
     override fun handle(player: Player) {
         val entity = player.level().getEntity(entityId)
         if (entity == null) {
@@ -61,13 +61,13 @@ class CSyncEntityCapabilityPacket(
     }
 }
 
-@HollowPacketV2(HollowPacketV2.Direction.TO_SERVER)
+@HollowPacketHandler(HollowPacketHandler.Direction.TO_SERVER)
 @Serializable
 class SSyncEntityCapabilityPacket(
     private val entityId: Int,
     val capability: String,
     val value: @Serializable(ForTag::class) Tag,
-) : HollowPacketV3<SSyncEntityCapabilityPacket> {
+) : HollowPacket<SSyncEntityCapabilityPacket> {
     override fun handle(player: Player) {
         val entity = player.level().getEntity(entityId)
             ?: throw IllegalStateException("Entity with id $entityId not found: $this".apply(HollowCore.LOGGER::warn))
@@ -83,12 +83,12 @@ class SSyncEntityCapabilityPacket(
 
 }
 
-@HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
+@HollowPacketHandler(HollowPacketHandler.Direction.TO_CLIENT)
 @Serializable
 class CSyncLevelCapabilityPacket(
     val capability: String,
     val value: @Serializable(ForTag::class) Tag,
-) : HollowPacketV3<CSyncLevelCapabilityPacket> {
+) : HollowPacket<CSyncLevelCapabilityPacket> {
     override fun handle(player: Player) {
         val level = player.level() as ICapabilityDispatcher
         val cap = level.capabilities.first { it.javaClass.name == capability }
@@ -99,13 +99,13 @@ class CSyncLevelCapabilityPacket(
     }
 }
 
-@HollowPacketV2(HollowPacketV2.Direction.TO_SERVER)
+@HollowPacketHandler(HollowPacketHandler.Direction.TO_SERVER)
 @Serializable
 class SSyncLevelCapabilityPacket(
     val level: String,
     val capability: String,
     val value: @Serializable(ForTag::class) Tag,
-) : HollowPacketV3<SSyncLevelCapabilityPacket> {
+) : HollowPacket<SSyncLevelCapabilityPacket> {
     override fun handle(player: Player) {
         val server = player.server ?: throw IllegalStateException("Server not found".apply(HollowCore.LOGGER::warn))
         val levelKey = server.levelKeys().find { it.location() == level.rl }
@@ -122,12 +122,12 @@ class SSyncLevelCapabilityPacket(
 
 }
 
-@HollowPacketV2(HollowPacketV2.Direction.TO_CLIENT)
+@HollowPacketHandler(HollowPacketHandler.Direction.TO_CLIENT)
 @Serializable
 class CSyncServerCapabilityPacket(
     val capability: String,
     val value: @Serializable(ForTag::class) Tag,
-): HollowPacketV3<CSyncLevelCapabilityPacket> {
+): HollowPacket<CSyncLevelCapabilityPacket> {
     override fun handle(player: Player) {
         Minecraft.getInstance().singleplayerServer?.let { server ->
             val cap = (server as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }

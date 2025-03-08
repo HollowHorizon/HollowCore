@@ -41,8 +41,8 @@ import ru.hollowhorizon.hc.client.models.internal.animations.SubModelPlayer
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.internal.manager.SubModel
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
-import ru.hollowhorizon.hc.client.utils.memoize
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.memoize
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.client.utils.use
 
 object GltfEntityUtil {

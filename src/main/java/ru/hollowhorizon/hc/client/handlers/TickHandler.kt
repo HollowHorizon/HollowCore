@@ -25,7 +25,7 @@
 package ru.hollowhorizon.hc.client.handlers
 
 import net.minecraft.client.Minecraft
-import ru.hollowhorizon.hc.client.utils.isLogicalClient
+import ru.hollowhorizon.hc.common.utils.isLogicalClient
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.tick.TickEvent
 

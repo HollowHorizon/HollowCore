@@ -2,11 +2,10 @@ package ru.hollowhorizon.hc.client.models.gltf
 
 import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.utils.json.JsonFormat
-import ru.hollowhorizon.hc.client.utils.nbt.ListOrSingle
+import ru.hollowhorizon.hc.common.utils.json.JsonFormat
+import ru.hollowhorizon.hc.common.utils.nbt.ListOrSingle
 import ru.hollowhorizon.hc.client.utils.stream
 import java.util.*
 

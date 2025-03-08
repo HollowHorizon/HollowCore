@@ -2,7 +2,7 @@ package ru.hollowhorizon.hc.client.models.obj
 
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.client.models.internal.Material
-import ru.hollowhorizon.hc.client.utils.rl
+import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
 
 internal class ObjData(var url: String) {
