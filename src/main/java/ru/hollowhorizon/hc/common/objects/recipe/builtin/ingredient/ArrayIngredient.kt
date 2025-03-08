@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.GsonHelper
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Ingredient
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.common.objects.recipe.deep.requireTesting
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.HollowIngredient
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.HollowIngredientSerializer
@@ -46,7 +47,7 @@ abstract class ArrayIngredient protected constructor(protected val ingredients: 
 
         companion object {
             @JvmField
-            val Serializer: HollowIngredientSerializer<AnyIngredient> = Serializer("any".rl, ArrayIngredient::AnyIngredient)
+            val Serializer: HollowIngredientSerializer<AnyIngredient> = Serializer("${HollowCore.MODID}:any".rl, ArrayIngredient::AnyIngredient)
         }
     }
 
@@ -71,7 +72,7 @@ abstract class ArrayIngredient protected constructor(protected val ingredients: 
 
         companion object {
             @JvmField
-            val Serializer: HollowIngredientSerializer<AllIngredient> = Serializer("all".rl, ArrayIngredient::AllIngredient)
+            val Serializer: HollowIngredientSerializer<AllIngredient> = Serializer("${HollowCore.MODID}:all".rl, ArrayIngredient::AllIngredient)
         }
     }
 
