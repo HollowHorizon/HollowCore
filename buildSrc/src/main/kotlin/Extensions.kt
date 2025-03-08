@@ -1,4 +1,3 @@
-import dev.kikugie.stonecutter.data.tree.TreeBuilder
 import net.fabricmc.loom.api.LoomGradleExtensionAPI
 import org.gradle.api.artifacts.Dependency
 import org.gradle.kotlin.dsl.DependencyHandlerScope
