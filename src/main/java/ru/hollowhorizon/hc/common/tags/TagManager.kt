@@ -1,4 +1,4 @@
-package ru.hollowhorizon.hc.common.events.tags
+package ru.hollowhorizon.hc.common.tags
 
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceLocation
