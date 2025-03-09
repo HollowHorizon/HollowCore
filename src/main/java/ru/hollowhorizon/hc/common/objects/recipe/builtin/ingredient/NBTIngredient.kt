@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.GsonHelper
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.crafting.Ingredient
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.HollowIngredient
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.HollowIngredientSerializer
@@ -58,10 +59,10 @@ class NBTIngredient(
     }
 
     private class Serializer : HollowIngredientSerializer<NBTIngredient> {
-        override val id: ResourceLocation = "nbt".rl
+        override val id: ResourceLocation = "${HollowCore.MODID}:nbt".rl
 
         override fun fromJson(json: JsonObject): NBTIngredient {
-            val item = Ingredient.fromJson(json.get("item"))
+            val item = Ingredient.fromJson(json.get("base"))
             val tag = this.decodeTag(json.get("nbt"))
             val strict = GsonHelper.getAsBoolean(json, "strict", true)
             return NBTIngredient(item, tag, strict)
@@ -82,7 +83,7 @@ class NBTIngredient(
         }
 
         override fun toJson(json: JsonObject, ingredient: NBTIngredient) {
-            json.add("item", ingredient.original.toJson())
+            json.add("base", ingredient.original.toJson())
             json.addProperty("strict", ingredient.strict)
 
             if (ingredient.tag != null)

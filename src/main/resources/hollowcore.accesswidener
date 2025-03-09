@@ -47,3 +47,5 @@ accessible field net/minecraft/world/item/crafting/RecipeManager hasErrors Z
 accessible field net/minecraft/world/item/crafting/RecipeManager recipes Ljava/util/Map;
 accessible field net/minecraft/world/item/crafting/RecipeManager byName Ljava/util/Map;
 
+accessible method net/minecraft/data/loot/BlockLootSubProvider createSilkTouchOnlyTable (Lnet/minecraft/world/level/ItemLike;)Lnet/minecraft/world/level/storage/loot/LootTable$Builder;
+accessible method net/minecraft/data/loot/BlockLootSubProvider createSilkTouchDispatchTable (Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/level/storage/loot/entries/LootPoolEntryContainer$Builder;)Lnet/minecraft/world/level/storage/loot/LootTable$Builder;
