@@ -44,12 +44,11 @@ fun Block.addDrop(item: Item? = null, silkTouch: Boolean = false) {
         if(silkTouch) BlockLootSubProvider.createSilkTouchOnlyTable(item ?: this.asItem()).build()
         else LootTable.lootTable()
             .setParamSet(LootContextParamSets.BLOCK)
-            .pool(
+            .withPool(
                 LootPool.lootPool()
                     .setRolls(ConstantValue.exactly(1f))
                     .setBonusRolls(ConstantValue.exactly(0f))
                     .add(LootItem.lootTableItem { item ?: this.asItem() })
-                    .build()
             )
             .build()
     }
