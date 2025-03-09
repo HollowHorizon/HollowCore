@@ -36,7 +36,7 @@ import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.common.utils.nbt.deserialize
 import ru.hollowhorizon.hc.common.utils.nbt.serialize
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
-import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
+import ru.hollowhorizon.hc.common.capabilities.HollowCapability
 
 /**
  * Представляет хранилище данных для анимированного объекта, предоставляя различные свойства,
@@ -54,7 +54,7 @@ import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
  * @property switchHeadRot Флаг, указывающий, следует ли переключать вращение головы.
  * @property pose Сырая поза объекта, синхронизируется и может быть null.
  */
-@HollowCapabilityV2(IAnimated::class, Player::class)
+@HollowCapability(IAnimated::class, Player::class)
 class AnimatedEntityCapability : CapabilityInstance() {
     internal val definedLayer = DefinedLayer()
     internal val headLayer = HeadLayer()

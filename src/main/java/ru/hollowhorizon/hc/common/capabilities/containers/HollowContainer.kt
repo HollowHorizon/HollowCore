@@ -14,7 +14,7 @@ import ru.hollowhorizon.hc.common.utils.readItem
 import ru.hollowhorizon.hc.common.utils.save
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.CapabilityProperty
-import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
+import ru.hollowhorizon.hc.common.capabilities.HollowCapability
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.blocks.BlockEvent
 import ru.hollowhorizon.hc.common.objects.entities.TestEntity
@@ -90,7 +90,7 @@ fun onRemove(event: BlockEvent.Break) {
     }
 }
 
-@HollowCapabilityV2(TestEntity::class)
+@HollowCapability(TestEntity::class)
 class TestEntityCapability : CapabilityInstance() {
     val slots by container(27)
 }
