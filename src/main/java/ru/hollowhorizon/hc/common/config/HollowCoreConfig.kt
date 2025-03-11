@@ -6,7 +6,7 @@ import ru.hollowhorizon.hc.HollowCore
 @Serializable
 class HollowCoreConfig : HollowConfig() {
     val debugMode = false
-    var guiScale = 1f
+    var guiScale = 1.5f
 
     val inventory = InventoryConfig()
     val scripting = Scripting()
