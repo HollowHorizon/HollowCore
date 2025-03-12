@@ -1,14 +1,11 @@
 package ru.hollowhorizon.hc.common.utils
 
-//? if fabric
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup
-import net.minecraft.world.item.CreativeModeTab
+//? if fabric {
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup as CreativeTab
+//?} else
+/*import net.minecraft.world.item.CreativeModeTab as CreativeTab*/
 
 object HollowCreativeTab {
     @JvmStatic
-    fun builder(): CreativeModeTab.Builder =
-        //? if fabric
-        FabricItemGroup.builder()
-        //? if forge
-        /*CreativeModeTab.builder()*/
+    fun builder() = CreativeTab.builder()
 }

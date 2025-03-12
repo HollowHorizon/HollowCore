@@ -31,7 +31,7 @@ import net.minecraft.world.item.CreativeModeTab
 import net.minecraft.world.item.Items
 import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.common.utils.HollowCreativeTab
-import ru.hollowhorizon.hc.common.utils.literal
+import ru.hollowhorizon.hc.common.utils.mcTranslate
 import ru.hollowhorizon.hc.common.utils.rl
 import kotlin.properties.ReadOnlyProperty
 
@@ -74,16 +74,14 @@ open class HollowRegistry(val modId: String = MODID) {
     fun creativeTab(name: String, block: CreativeModeTab.Builder.() -> Unit = {}) = register(name) {
         HollowCreativeTab.builder()
             .icon { Items.DIRT.defaultInstance }
-            .title("Generated Tab".literal)
+            .title("itemGroup.$name".mcTranslate)
             .apply { block() }
             .build()
     }
 }
 
 open class CoreRegistry<T>(val registryName: ResourceLocation) {
-
     private val entries: MutableMap<ResourceLocation, T> = Object2ObjectOpenHashMap()
-
 
     operator fun set(key: ResourceLocation, value: T) {
         entries[key] = value

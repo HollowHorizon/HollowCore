@@ -19,7 +19,6 @@ import net.minecraft.world.level.lighting.LevelLightEngine
 import net.minecraft.world.level.material.FluidState
 import ru.hollowhorizon.hc.client.utils.registryAccess
 
-
 class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
     private val tileEntities = hashMapOf<BlockPos, BlockEntity>()
     var xSize: Int = 0
@@ -108,9 +107,7 @@ class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
 
     override fun getBrightness(type: LightLayer, pos: BlockPos) = 14
 
-
     override fun getRawBrightness(pos: BlockPos, ambientDarkening: Int) = 15 - ambientDarkening
-
 
     override fun getBlockEntity(pos: BlockPos): BlockEntity? {
         val state = getBlockState(pos)
