@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.common.objects.recipe.deep.HollowCoreIngredient;
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.DefaultHollowIngredient;
-import ru.hollowhorizon.hc.common.objects.recipe.HollowRecipeHelper;
 import ru.hollowhorizon.hc.common.utils.ForgeKotlinKt;
+import ru.hollowhorizon.hc.common.utils.HollowRecipeHelper;
 
 @Mixin(Ingredient.class)
 public class IngredientMixin implements HollowCoreIngredient {
