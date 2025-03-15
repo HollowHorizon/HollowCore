@@ -19,6 +19,50 @@ import net.minecraft.world.level.lighting.LevelLightEngine
 import net.minecraft.world.level.material.FluidState
 import ru.hollowhorizon.hc.client.utils.registryAccess
 
+/**
+ * Represents a multiblock structure that can be validated within a Minecraft world.
+ * This class provides methods for defining a multiblock pattern and checking if a given
+ * in-world structure matches the defined pattern.
+ *
+ * # WARNING!
+ * Multiblocks can be created ONLY INSIDE THE CHILD CLASS [ru.hollowhorizon.hc.common.registry.HollowRegistry]!
+ *
+ * # Example:
+ * ```kotlin
+ * object ExampleMultiblocks: HollowRegistry {
+ *     val obsidianFrame by register("obsidian_frame") {
+ *         Multiblock {
+ *             size(3, 3, 3)
+ *             val o = block(Blocks.OBSIDIAN.defaultBlockState())
+ *             val d = block(Blocks.DIAMOND_BLOCK.defaultBlockState())
+ *             val e = block(Blocks.EMERALD_BLOCK.defaultBlockState())
+ *
+ *             pattern(
+ *                 // First level.
+ *                 // This is the so-called foundation of the structure.
+ *                 o, o, o,
+ *                 o, d, o,
+ *                 o, o, o,
+ *
+ *                 // Second level
+ *                 // This is the center of the structure
+ *                 o, null, o,
+ *                 null, e, null,
+ *                 o, null, o,
+ *
+ *                 // Third level
+ *                 // This is the topmost structure
+ *                 o, o, o,
+ *                 o, d, o,
+ *                 o, o, o,
+ *             )
+ *         }
+ *     }
+ * }
+ *```
+ *
+ * @param block A lambda function used to configure the multiblock.
+ */
 class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
     private val tileEntities = hashMapOf<BlockPos, BlockEntity>()
     var xSize: Int = 0
@@ -30,12 +74,24 @@ class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
         block()
     }
 
+    /**
+     * Sets the size of the multiblock structure.
+     *
+     * @param xSize The width of the structure.
+     * @param zSize The depth of the structure.
+     * @param ySize The height of the structure.
+     */
     fun size(xSize: Int, zSize: Int, ySize: Int) {
         this.xSize = xSize
         this.zSize = zSize
         this.ySize = ySize
     }
 
+    /**
+     * Defines the pattern of blocks in the multiblock structure.
+     *
+     * @param blocks The array of block matchers defining the structure.
+     */
     fun pattern(vararg blocks: Matcher?) {
         assert(blocks.size != xSize * ySize * zSize) { "Blocks must have the same size" }
 
@@ -43,13 +99,20 @@ class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
         this.blocks.addAll(blocks.map { it ?: block(Blocks.AIR.defaultBlockState()) })
     }
 
+    /**
+     * Checks if the structure is valid at the given position.
+     *
+     * @param level The level in which the structure is being checked.
+     * @param basePos The base position to check from.
+     * @return True if the structure is valid, false otherwise.
+     */
     fun isValid(level: Level, basePos: BlockPos) =
         listOf(Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST).any {
             checkStructureForDirection(level, basePos, it)
         }
 
     private fun checkStructureForDirection(level: Level, basePos: BlockPos, direction: Direction): Boolean {
-        // Проверяем все возможные начальные позиции в рамках структуры
+        // We check all possible initial positions within the structure
         for (offsetX in 0..<xSize) {
             for (offsetY in 0..<ySize) {
                 for (offsetZ in 0..<zSize) {
@@ -146,12 +209,33 @@ class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
         )
     }
 
+    /**
+     * Defines a matcher interface for block validation within the multiblock structure.
+     */
     interface Matcher {
+        /**
+         * Checks if a given block state matches this matcher.
+         *
+         * @param block The block state to check.
+         * @return True if the block matches, false otherwise.
+         */
         fun matches(block: BlockState): Boolean
 
+        /**
+         * Provides the default block state for this matcher.
+         *
+         * @return The default block state.
+         */
         fun default(): BlockState
     }
 
+    /**
+     * Creates a matcher for a specific block state.
+     *
+     * @param state The block state to match.
+     * @param ignoreTag Whether to ignore block tags when matching.
+     * @return A matcher for the given block state.
+     */
     fun block(state: BlockState, ignoreTag: Boolean = false) = object : Matcher {
         override fun matches(block: BlockState): Boolean {
             return if (ignoreTag) block.`is`(state.block) else block == state
@@ -160,6 +244,12 @@ class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
         override fun default() = state
     }
 
+    /**
+     * Creates a matcher for a tag of blocks.
+     *
+     * @param tag The block tag to match.
+     * @return A matcher that checks if a block belongs to the given tag.
+     */
     fun tag(tag: TagKey<Block>) = object : Matcher {
         override fun matches(block: BlockState) = block.`is`(tag)
 
