@@ -36,7 +36,6 @@ abstract class ArrayIngredient protected constructor(protected val ingredients: 
 
         return false
     }
-
     /**
      * Represents an ingredient that matches if any of its sub-ingredients match.
      *

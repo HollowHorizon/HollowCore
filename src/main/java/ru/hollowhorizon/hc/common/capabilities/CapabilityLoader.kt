@@ -25,6 +25,14 @@ package ru.hollowhorizon.hc.common.capabilities
 
 import kotlin.reflect.KClass
 
+/**
+ * Annotation for automatic registration [CapabilityInstance].
+ *
+ * Used to bind [CapabilityInstance] to specified classes.
+ * Annotation should be applied to classes that must contain or handle [CapabilityInstance].
+ *
+ * @property value A list of classes to which [CapabilityInstance] will be bound.
+ */
 @Target(AnnotationTarget.CLASS)
 annotation class HollowCapability(vararg val value: KClass<*>)
 

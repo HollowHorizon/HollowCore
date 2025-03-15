@@ -6,9 +6,9 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonSyntaxException
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.GsonHelper
-import ru.hollowhorizon.hc.common.objects.recipe.HollowRecipeHelper
 import ru.hollowhorizon.hc.common.objects.recipe.condition.HollowCondition
 import ru.hollowhorizon.hc.common.objects.recipe.condition.HollowConditionSerializer
+import ru.hollowhorizon.hc.common.utils.HollowRecipeHelper
 import ru.hollowhorizon.hc.common.utils.rl
 
 class OrCondition(private val children: Array<HollowCondition>): HollowCondition {
