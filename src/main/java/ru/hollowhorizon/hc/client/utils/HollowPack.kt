@@ -63,7 +63,9 @@ object HollowPack : PackResources {
 
     fun addItemModel(location: ResourceLocation, type: AutoModelType) = addCustomItemModel(
         location,
-        "{\"parent\":\"${type.modelId()}\",\"textures\":{\"layer0\":\"" + location.namespace + ":item/" + location.path + "\"}}"
+        if (type.blockStateId() == "default")
+            "{\"parent\":\"${type.modelId()}\",\"textures\":{\"layer0\":\"" + location.namespace + ":item/" + location.path + "\"}}"
+        else type.modelId()
     )
 
     fun addParticleModel(location: ResourceLocation) {

@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2024 HollowHorizon
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package ru.hollowhorizon.hc.common.utils;
 
 import org.jetbrains.annotations.Nullable;
@@ -10,34 +34,32 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class ThreadHelper {
-
     public static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-
     /**
-     * Метод который ищет элемент в любом массиве наследующий от {@link Collection}
-     * @return true - если нашёл, false - если нет
-     * @param collection - Любой массив который наследуется от {@link Collection}
-     * @param target - Элемент
+     * A method that looks for an element in any array that inherits from {@link Collection}
+     * @return true - if found, false - if not
+     * @param collection - Any array that inherits from {@link Collection}
+     * @param target - Element
      */
     public static <T> boolean containsOnCollection(Collection<T> collection, T target) {
         return findOnCollection(collection, target) != null;
     }
 
     /**
-     * Метод который ищет элемент по усовию в любом массиве наследующий от {@link Collection}
-     * @param collection - Любой массив который наследуется от {@link Collection}
-     * @param predicate - Условие
+     * A method that searches for an element by means in any array that inherits from {@link Collection}
+     * @param collection - Any array that inherits from {@link Collection}
+     * @param predicate - Condition
      */
     public static <T> T findOnCollection(Collection<T> collection, Predicate<T> predicate) {
         return findOnCollection(collection,predicate, getFixThreads());
     }
 
     /**
-     * Метод который ищет элемент по усовию в любом массиве наследующий от {@link Collection}
-     * @param collection - Любой массив который наследуется от {@link Collection}
-     * @param predicate - Условие
-     * @param threadsCount - Количество ядер которое будет задействовано
+     * A method that searches for an element by means in any array that inherits from {@link Collection}
+     * @param collection - Any array that inherits from {@link Collection}
+     * @param predicate - Condition
+     * @param threadsCount - Number of cores to be used
      */
     public static <T> T findOnCollection(Collection<T> collection, Predicate<T> predicate, int threadsCount) {
         int th = threadsCount;
@@ -67,9 +89,9 @@ public class ThreadHelper {
     }
 
     /**
-     * Метод который ищет элемент в любом массиве наследующий от {@link Collection}
-     * @param collection - Любой массив который наследуется от {@link Collection}
-     * @param target - Элемент который ищем
+     * A method that looks for an element in any array that inherits from {@link Collection}
+     * @param collection - Any array that inherits from {@link Collection}
+     * @param target - The item we are looking for
      */
     @Nullable
     public static <T> T findOnCollection(Collection<T> collection, T target) {
@@ -77,10 +99,10 @@ public class ThreadHelper {
     }
 
     /**
-     * Метод который ищет элемент в любом массиве наследующий от {@link Collection}
-     * @param collection - Любой массив который наследуется от {@link Collection}
-     * @param target - Элемент который ищем
-     * @param threadsCount - Количество ядер которое будет задействовано
+     * A method that looks for an element in any array that inherits from {@link Collection}
+     * @param collection - Any array that inherits from {@link Collection}
+     * @param target - The item we are looking for
+     * @param threadsCount - Number of cores to be used
      */
     @Nullable
     public static <T> T findOnCollection(Collection<T> collection, T target, int threadsCount) {
@@ -111,21 +133,21 @@ public class ThreadHelper {
     }
 
     /**
-     * Метод который ищет элемент по усовию в любом массиве наследующий от {@link Collection}
-     * @param collection - Любой массив который наследуется от {@link Collection}
-     * @param predicate - Условие
-     * @param function - Функция
+     * A method that searches for an element by means in any array that inherits from {@link Collection}
+     * @param collection - Any array that inherits from {@link Collection}
+     * @param predicate - Condition
+     * @param function
      */
     public static <T,R> R findOnCollection(Collection<T> collection, Function<T, R> function, Predicate<T> predicate) {
         return findOnCollection(collection, function, predicate, getFixThreads());
     }
 
     /**
-     * Метод который ищет элемент по усовию в любом массиве наследующий от {@link Collection}
-     * @param collection - Любой массив который наследуется от {@link Collection}
-     * @param predicate - Условие
-     * @param threadsCount - Количество ядер которое будет задействовано
-     * @param function - Функция
+     * A method that searches for an element by means in any array that inherits from {@link Collection}
+     * @param collection - Any array that inherits from {@link Collection}
+     * @param predicate - Condition
+     * @param threadsCount - Number of cores to be used
+     * @param function
      */
     public static <T, R> R findOnCollection(Collection<T> collection, Function<T, R> function, Predicate<T> predicate, int threadsCount) {
         int th = threadsCount;
@@ -189,7 +211,7 @@ public class ThreadHelper {
     }
 
     /**
-     * Метод который блокирует основной поток пока не будут выполены задачи
+     * A method that blocks the main thread until the tasks are executed
      */
     public static <T> T waitSearchTasks(List<Future<T>> tasks) throws ExecutionException, InterruptedException {
         for (Future<T> task : tasks) {

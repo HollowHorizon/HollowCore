@@ -8,51 +8,79 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.world.level.chunk.status.ChunkStatus
 ^///?} elif >=1.20.1 {
-//?} else {
-/^import net.minecraft.world.level.chunk.ChunkStatus
-^///?}
-
+import net.minecraft.world.level.chunk.ChunkStatus
+//?}
 import net.minecraft.commands.synchronization.ArgumentTypeInfo
 import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleType
 import net.minecraft.core.registries.Registries
+import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.stats.StatType
+import net.minecraft.util.valueproviders.FloatProviderType
+import net.minecraft.util.valueproviders.IntProviderType
 import net.minecraft.world.effect.MobEffect
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.ai.attributes.Attribute
 import net.minecraft.world.entity.ai.memory.MemoryModuleType
 import net.minecraft.world.entity.ai.sensing.SensorType
 import net.minecraft.world.entity.ai.village.poi.PoiType
+import net.minecraft.world.entity.animal.CatVariant
+import net.minecraft.world.entity.animal.FrogVariant
 import net.minecraft.world.entity.decoration.PaintingVariant
 import net.minecraft.world.entity.npc.VillagerProfession
+import net.minecraft.world.entity.npc.VillagerType
 import net.minecraft.world.entity.schedule.Activity
 import net.minecraft.world.entity.schedule.Schedule
 import net.minecraft.world.inventory.MenuType
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.CreativeModeTab
+import net.minecraft.world.item.Instrument
 import net.minecraft.world.item.Item
 import net.minecraft.world.item.alchemy.Potion
 import net.minecraft.world.item.crafting.RecipeSerializer
 import net.minecraft.world.item.crafting.RecipeType
+import net.minecraft.world.item.enchantment.Enchantment
 import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.entity.BannerPattern
 import net.minecraft.world.level.block.entity.BlockEntityType
-import net.minecraft.world.level.chunk.ChunkStatus
+import net.minecraft.world.level.gameevent.GameEvent
+import net.minecraft.world.level.gameevent.PositionSourceType
+import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicateType
 import net.minecraft.world.level.levelgen.carver.WorldCarver
 import net.minecraft.world.level.levelgen.feature.Feature
+import net.minecraft.world.level.levelgen.feature.featuresize.FeatureSizeType
 import net.minecraft.world.level.levelgen.feature.foliageplacers.FoliagePlacerType
 import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProviderType
 import net.minecraft.world.level.levelgen.feature.treedecorators.TreeDecoratorType
+import net.minecraft.world.level.levelgen.heightproviders.HeightProviderType
+import net.minecraft.world.level.levelgen.placement.PlacementModifierType
+import net.minecraft.world.level.levelgen.structure.StructureType
+import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceType
+import net.minecraft.world.level.levelgen.structure.placement.StructurePlacementType
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElementType
+import net.minecraft.world.level.levelgen.structure.templatesystem.PosRuleTestType
+import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTestType
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType
+import net.minecraft.world.level.levelgen.structure.templatesystem.rule.blockentity.RuleBlockEntityModifierType
 import net.minecraft.world.level.material.Fluid
+import net.minecraft.world.level.storage.loot.entries.LootPoolEntryType
+import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType
+import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType
+import net.minecraft.world.level.storage.loot.providers.nbt.LootNbtProviderType
+import net.minecraft.world.level.storage.loot.providers.number.LootNumberProviderType
+import net.minecraft.world.level.storage.loot.providers.score.LootScoreProviderType
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import net.minecraftforge.registries.DeferredRegister
 import net.minecraftforge.registries.ForgeRegistries
+import net.minecraftforge.registries.IForgeRegistry
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.common.objects.blocks.BlockItemProperties
 import ru.hollowhorizon.hc.common.objects.items.CreativeTab
 import ru.hollowhorizon.hc.common.registry.AutoModelType
 import ru.hollowhorizon.hc.common.registry.IRegistryHolder
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 @Suppress("UNCHECKED_CAST")
@@ -64,159 +92,79 @@ class RegistryHolderForge<T : Any>(
     val target: Class<T>,
 ) : IRegistryHolder<T> {
     val registryType: DeferredRegister<T> = with(target) {
+        fun KClass<*>.isAssigned(): Boolean = this.java.isAssignableFrom(this@with)
+        fun <T> liteRegister(reg: IForgeRegistry<T>): DeferredRegister<T> {
+            val lreg by lazy { DeferredRegister.create(reg, location.namespace) }
+            return lreg
+        }
+        fun <T> liteRegister(reg: ResourceKey<out Registry<T>>): DeferredRegister<T> {
+            val lreg by lazy { DeferredRegister.create(reg, location.namespace) }
+            return lreg
+        }
+
         when {
-            Block::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.BLOCKS,
-                location.namespace
-            )
-
-            Item::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.ITEMS,
-                location.namespace
-            )
-
-            EntityType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.ENTITY_TYPES,
-                location.namespace
-            )
-
-            BlockEntityType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.BLOCK_ENTITY_TYPES,
-                location.namespace
-            )
-
-            SoundEvent::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.SOUND_EVENTS,
-                location.namespace
-            )
-
-            Feature::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.FEATURES,
-                location.namespace
-            )
-
-            RecipeSerializer::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.RECIPE_SERIALIZERS,
-                location.namespace
-            )
-
-            MenuType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.MENU_TYPES,
-                location.namespace
-            )
-
-            Fluid::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.FLUIDS,
-                location.namespace
-            )
-
-            //? if >=1.20.1 {
-            CreativeModeTab::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                Registries.CREATIVE_MODE_TAB, location.namespace
-            )
-            //?}
-
-            ParticleType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.PARTICLE_TYPES,
-                location.namespace
-            )
+            GameEvent::class.isAssigned() -> liteRegister(Registries.GAME_EVENT)
+            SoundEvent::class.isAssigned() -> liteRegister(ForgeRegistries.SOUND_EVENTS)
+            Fluid::class.isAssigned() -> liteRegister(ForgeRegistries.FLUIDS)
+            MobEffect::class.isAssigned() -> liteRegister(ForgeRegistries.MOB_EFFECTS)
+            Block::class.isAssigned() -> liteRegister(ForgeRegistries.BLOCKS)
+            Enchantment::class.isAssigned() -> liteRegister(ForgeRegistries.ENCHANTMENTS)
+            EntityType::class.isAssigned() -> liteRegister(ForgeRegistries.ENTITY_TYPES)
+            Item::class.isAssigned() -> liteRegister(ForgeRegistries.ITEMS)
+            Potion::class.isAssigned() -> liteRegister(ForgeRegistries.POTIONS)
+            ParticleType::class.isAssigned() -> liteRegister(ForgeRegistries.PARTICLE_TYPES)
+            BlockEntityType::class.isAssigned() -> liteRegister(ForgeRegistries.BLOCK_ENTITY_TYPES)
+            PaintingVariant::class.isAssigned() -> liteRegister(ForgeRegistries.PAINTING_VARIANTS)
+            ChunkStatus::class.isAssigned() -> liteRegister(ForgeRegistries.CHUNK_STATUS)
+            RuleTestType::class.isAssigned() -> liteRegister(Registries.RULE_TEST)
+            RuleBlockEntityModifierType::class.isAssigned() -> liteRegister(Registries.RULE_BLOCK_ENTITY_MODIFIER)
+            PosRuleTestType::class.isAssigned() -> liteRegister(Registries.POS_RULE_TEST)
+            MenuType::class.isAssigned() -> liteRegister(ForgeRegistries.MENU_TYPES)
+            RecipeType::class.isAssigned() -> liteRegister(ForgeRegistries.RECIPE_TYPES)
+            RecipeSerializer::class.isAssigned() -> liteRegister(ForgeRegistries.RECIPE_SERIALIZERS)
+            Attribute::class.isAssigned() -> liteRegister(ForgeRegistries.ATTRIBUTES)
+            PositionSourceType::class.isAssigned() -> liteRegister(Registries.POSITION_SOURCE_TYPE)
+            ArgumentTypeInfo::class.isAssigned() -> liteRegister(ForgeRegistries.COMMAND_ARGUMENT_TYPES)
+            StatType::class.isAssigned() -> liteRegister(ForgeRegistries.STAT_TYPES)
+            VillagerType::class.isAssigned() -> liteRegister(Registries.VILLAGER_TYPE)
+            VillagerProfession::class.isAssigned() -> liteRegister(ForgeRegistries.VILLAGER_PROFESSIONS)
+            PoiType::class.isAssigned() -> liteRegister(ForgeRegistries.POI_TYPES)
+            MemoryModuleType::class.isAssigned() -> liteRegister(ForgeRegistries.MEMORY_MODULE_TYPES)
+            SensorType::class.isAssigned() -> liteRegister(ForgeRegistries.SENSOR_TYPES)
+            Schedule::class.isAssigned() -> liteRegister(ForgeRegistries.SCHEDULES)
+            Activity::class.isAssigned() -> liteRegister(ForgeRegistries.ACTIVITIES)
+            LootPoolEntryType::class.isAssigned() -> liteRegister(Registries.LOOT_POOL_ENTRY_TYPE)
+            LootItemFunctionType::class.isAssigned() -> liteRegister(Registries.LOOT_FUNCTION_TYPE)
+            LootItemConditionType::class.isAssigned() -> liteRegister(Registries.LOOT_CONDITION_TYPE)
+            LootNumberProviderType::class.isAssigned() -> liteRegister(Registries.LOOT_NUMBER_PROVIDER_TYPE)
+            LootNbtProviderType::class.isAssigned() -> liteRegister(Registries.LOOT_NBT_PROVIDER_TYPE)
+            LootScoreProviderType::class.isAssigned() -> liteRegister(Registries.LOOT_SCORE_PROVIDER_TYPE)
+            FloatProviderType::class.isAssigned() -> liteRegister(Registries.FLOAT_PROVIDER_TYPE)
+            IntProviderType::class.isAssigned() -> liteRegister(Registries.INT_PROVIDER_TYPE)
+            HeightProviderType::class.isAssigned() -> liteRegister(Registries.HEIGHT_PROVIDER_TYPE)
+            BlockPredicateType::class.isAssigned() -> liteRegister(Registries.BLOCK_PREDICATE_TYPE)
+            WorldCarver::class.isAssigned() -> liteRegister(ForgeRegistries.WORLD_CARVERS)
+            Feature::class.isAssigned() -> liteRegister(ForgeRegistries.FEATURES)
+            StructurePlacementType::class.isAssigned() -> liteRegister(Registries.STRUCTURE_PLACEMENT)
+            StructurePieceType::class.isAssigned() -> liteRegister(Registries.STRUCTURE_PIECE)
+            StructureType::class.isAssigned() -> liteRegister(Registries.STRUCTURE_TYPE)
+            PlacementModifierType::class.isAssigned() -> liteRegister(Registries.PLACEMENT_MODIFIER_TYPE)
+            BlockStateProviderType::class.isAssigned() -> liteRegister(ForgeRegistries.BLOCK_STATE_PROVIDER_TYPES)
+            FoliagePlacerType::class.isAssigned() -> liteRegister(ForgeRegistries.FOLIAGE_PLACER_TYPES)
+            TreeDecoratorType::class.isAssigned() -> liteRegister(ForgeRegistries.TREE_DECORATOR_TYPES)
+            FeatureSizeType::class.isAssigned() -> liteRegister(Registries.FEATURE_SIZE_TYPE)
+            StructureProcessorType::class.isAssigned() -> liteRegister(Registries.STRUCTURE_PROCESSOR)
+            StructurePoolElementType::class.isAssigned() -> liteRegister(Registries.STRUCTURE_POOL_ELEMENT)
+            CatVariant::class.isAssigned() -> liteRegister(Registries.CAT_VARIANT)
+            FrogVariant::class.isAssigned() -> liteRegister(Registries.FROG_VARIANT)
+            BannerPattern::class.isAssigned() -> liteRegister(Registries.BANNER_PATTERN)
+            Instrument::class.isAssigned() -> liteRegister(Registries.INSTRUMENT)
+            CreativeModeTab::class.isAssigned() -> liteRegister(Registries.CREATIVE_MODE_TAB)
             //? if >=1.21 {
-            /^DataComponentType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                BuiltInRegistries.DATA_COMPONENT_TYPE.key(), location.namespace
-            )
+            /^DataComponentType::class.isAssigned() -> liteRegister(BuiltInRegistries.DATA_COMPONENT_TYPE.key())
             ^///?}
 
-            MobEffect::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.MOB_EFFECTS,
-                location.namespace
-            )
-
-            Potion::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.POTIONS,
-                location.namespace
-            )
-
-            PaintingVariant::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.PAINTING_VARIANTS,
-                location.namespace
-            )
-
-            RecipeType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.RECIPE_TYPES,
-                location.namespace
-            )
-
-            Attribute::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.ATTRIBUTES,
-                location.namespace
-            )
-
-            StatType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.STAT_TYPES,
-                location.namespace
-            )
-
-            ArgumentTypeInfo::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.COMMAND_ARGUMENT_TYPES,
-                location.namespace
-            )
-
-            VillagerProfession::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.VILLAGER_PROFESSIONS,
-                location.namespace
-            )
-
-            PoiType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.POI_TYPES,
-                location.namespace
-            )
-
-            MemoryModuleType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.MEMORY_MODULE_TYPES,
-                location.namespace
-            )
-
-            SensorType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.SENSOR_TYPES,
-                location.namespace
-            )
-
-            Schedule::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.SCHEDULES,
-                location.namespace
-            )
-
-            Activity::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.ACTIVITIES,
-                location.namespace
-            )
-
-            WorldCarver::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.WORLD_CARVERS,
-                location.namespace
-            )
-
-            ChunkStatus::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.CHUNK_STATUS,
-                location.namespace
-            )
-
-            BlockStateProviderType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.BLOCK_STATE_PROVIDER_TYPES,
-                location.namespace
-            )
-
-            FoliagePlacerType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.FOLIAGE_PLACER_TYPES,
-                location.namespace
-            )
-
-            TreeDecoratorType::class.java.isAssignableFrom(this) -> DeferredRegister.create(
-                ForgeRegistries.TREE_DECORATOR_TYPES,
-                location.namespace
-            )
-
-            registry != null -> DeferredRegister.create(registry.key(), location.namespace)
+            registry != null -> liteRegister(registry.key())
 
             else -> throw UnsupportedOperationException("Unsupported registry object: ${target.simpleName}")
         }

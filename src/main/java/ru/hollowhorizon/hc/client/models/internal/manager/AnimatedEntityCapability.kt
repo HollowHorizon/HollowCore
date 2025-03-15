@@ -36,25 +36,25 @@ import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.common.utils.nbt.deserialize
 import ru.hollowhorizon.hc.common.utils.nbt.serialize
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
-import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
+import ru.hollowhorizon.hc.common.capabilities.HollowCapability
 
 /**
- * Представляет хранилище данных для анимированного объекта, предоставляя различные свойства,
- * связанные с анимационными слоями, текстурами и трансформациями.
+ * Represents a data store for an animated object, providing various properties,
+ * related to animation layers, textures, and transformations.
  *
- * @property definedLayer Внутренный слой для автоматических анимаций.
- * @property headLayer Внутренний слой, специально для анимаций головы.
- * @property rawPose Текущая поза объекта, может быть null.
- * @property model Модель, объекта с значением по умолчанию "%NO_MODEL%" - нет модели.
- * @property layers Список слоев анимаций.
- * @property textures Карта идентификаторов текстур и их соответствующих путей.
- * @property animations Карта типов анимаций и их соответствующих идентификаторов.
- * @property transform Трансформация, применяемая к объекту.
- * @property subModels Карта идентификаторов подмоделей и их соответствующих подмоделей.
- * @property switchHeadRot Флаг, указывающий, следует ли переключать вращение головы.
- * @property pose Сырая поза объекта, синхронизируется и может быть null.
+ * @property definedLayer Inner layer for automatic animations.
+ * @property headLayer Inner layer, especially for head animations.
+ * @property rawPose The current pose of the object, can be null.
+ * @property model Model, the object with the default value of "%NO_MODEL%" does not have a model.
+ * @property layers List of animation layers.
+ * @property textures Map of texture identifiers and their corresponding paths.
+ * @property animations Map of animation types and their corresponding identifiers.
+ * @property transform The transformation applied to the object.
+ * @property subModels Map of submodel IDs and their corresponding submodels.
+ * @property switchHeadRot Flag indicating whether to toggle the head rotation.
+ * @property pose Raw pose of an object, synchronized and can be null.
  */
-@HollowCapabilityV2(IAnimated::class, Player::class)
+@HollowCapability(IAnimated::class, Player::class)
 class AnimatedEntityCapability : CapabilityInstance() {
     internal val definedLayer = DefinedLayer()
     internal val headLayer = HeadLayer()

@@ -34,7 +34,6 @@ object TagManager {
 fun Block.addTag(tag: ResourceLocation) = addTag(TagKey.create(Registries.BLOCK, tag))
 fun Block.addTag(tag: TagKey<Block>) = TagManager.BLOCK_TAGS.getOrPut(tag, ::HashSet).add(this)
 
-
 fun Item.addTag(tag: ResourceLocation) {
     val tagKey = TagKey.create(Registries.ITEM, tag)
     TagManager.ITEM_TAGS.getOrPut(tagKey, ::HashSet).add(this)

@@ -3,9 +3,9 @@ package ru.hollowhorizon.hc.common.objects.recipe.builtin.condition
 import com.google.gson.JsonObject
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.GsonHelper
-import ru.hollowhorizon.hc.common.objects.recipe.HollowRecipeHelper
 import ru.hollowhorizon.hc.common.objects.recipe.condition.HollowCondition
 import ru.hollowhorizon.hc.common.objects.recipe.condition.HollowConditionSerializer
+import ru.hollowhorizon.hc.common.utils.HollowRecipeHelper
 import ru.hollowhorizon.hc.common.utils.rl
 
 class NotCondition(private val child: HollowCondition): HollowCondition {

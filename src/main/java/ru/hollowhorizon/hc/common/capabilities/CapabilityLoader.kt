@@ -21,21 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-@file:Suppress("UNCHECKED_CAST")
-
 package ru.hollowhorizon.hc.common.capabilities
 
-import org.objectweb.asm.Type
 import kotlin.reflect.KClass
 
+/**
+ * Annotation for automatic registration [CapabilityInstance].
+ *
+ * Used to bind [CapabilityInstance] to specified classes.
+ * Annotation should be applied to classes that must contain or handle [CapabilityInstance].
+ *
+ * @property value A list of classes to which [CapabilityInstance] will be bound.
+ */
 @Target(AnnotationTarget.CLASS)
-annotation class HollowCapabilityV2(vararg val value: KClass<*>) {
-    companion object {
-        @JvmField
-        val TYPE: Type = Type.getType(HollowCapabilityV2::class.java)
-
-    }
-}
+annotation class HollowCapability(vararg val value: KClass<*>)
 
 val CAPABILITIES = HashMap<Class<*>, MutableList<() -> CapabilityInstance>>()

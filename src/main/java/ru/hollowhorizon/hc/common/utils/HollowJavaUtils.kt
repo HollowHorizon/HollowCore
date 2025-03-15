@@ -29,7 +29,17 @@ import net.minecraft.resources.ResourceLocation
 import java.io.FileNotFoundException
 import java.io.InputStream
 
+/**
+ * Utility class for accessing resources within the game.
+ */
 object HollowJavaUtils {
+    /**
+     * Retrieves an input stream for a given resource location.
+     *
+     * @param location The resource location.
+     * @return An InputStream of the resource.
+     * @throws FileNotFoundException If the resource cannot be found.
+     */
     @JvmStatic
     fun getResource(location: ResourceLocation): InputStream {
         return try {

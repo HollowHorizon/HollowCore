@@ -11,6 +11,33 @@ import ru.hollowhorizon.hc.common.objects.recipe.ingredient.HollowIngredient
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.HollowIngredientSerializer
 import ru.hollowhorizon.hc.common.utils.rl
 
+/**
+ * Represents an ingredient that matches if it is present in the base ingredient but not in the subtracted ingredient.
+ *
+ * You can read more [here](https://0mods.team/docs/hollowcore/ingredient/#differenceingredient)
+ *
+ * Example usage in JSON:
+ * ```json
+ * {
+ *   "ingredients": [
+ *     {
+ *       "hollowcore:type": "hollowcore:difference",
+ *       "base": { "tag": "minecraft:items/planks" },
+ *       "subtracted": {
+ *         "hollowcore:type": "any",
+ *         "ingredients": [
+ *           { "item": "minecraft:oak_planks" },
+ *           { "item": "minecraft:acacia_planks" }
+ *         ]
+ *       }
+ *     }
+ *   ]
+ * }
+ * ```
+ *
+ * @param base The base ingredient set.
+ * @param subtracted The ingredient set to be excluded from the base.
+ */
 class DifferenceIngredient(private val base: Ingredient, private val subtracted: Ingredient): HollowIngredient {
     override fun test(stack: ItemStack): Boolean = base.test(stack) && !subtracted.test(stack)
 

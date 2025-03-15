@@ -41,6 +41,11 @@ import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import kotlin.reflect.KClass
 
+/**
+ * Checks if the game is running in a production environment.
+ *
+ * @return `true` if the game is in production mode, otherwise `false`.
+ */
 val isProduction: Boolean
     get() {
         //? if neoforge {
@@ -51,7 +56,17 @@ val isProduction: Boolean
         return !net.fabricmc.loader.api.FabricLoader.getInstance().isDevelopmentEnvironment
         //?}
     }
+/**
+ * Checks if the current thread is the logical client thread.
+ *
+ * @return `true` if running on the logical client thread, otherwise `false`.
+ */
 val isLogicalClient get() = isPhysicalClient && RenderSystem.isOnRenderThread()
+/**
+ * Determines if the game is running on a physical client.
+ *
+ * @return `true` if running on the client side, otherwise `false`.
+ */
 val isPhysicalClient: Boolean
     get() {
         //? if neoforge {
@@ -65,8 +80,18 @@ val isPhysicalClient: Boolean
 
 val RANDOM = RandomSource.create()
 
+/**
+ * Stores the current Minecraft server instance.
+ */
 lateinit var currentServer: MinecraftServer
 
+/**
+ * Retrieves a capability instance from an object implementing [ICapabilityDispatcher].
+ *
+ * @param capability The capability class type.
+ * @return The instance of the requested capability.
+ * @throws IllegalStateException if the capability is not supported.
+ */
 operator fun <O, T : CapabilityInstance> O.get(capability: KClass<T>): T = get(capability.java)
 
 @Suppress("UNCHECKED_CAST")
@@ -75,17 +100,29 @@ operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T = when (
     else -> throw IllegalStateException("Unsupported capability type: $capability")
 }
 
+/**
+ * Converts a string to a Minecraft resource location.
+ */
 val String.rl get() = ResourceLocation(this)
 
+/**
+ * Converts a string to a literal Minecraft text component.
+ *
+ * @return A MutableComponent representing the literal text.
+ */
 @Deprecated("Use String.literal instead.", ReplaceWith("this.literal"))
 val String.mcText: MutableComponent get() = Component.literal(this)
 val String.literal: MutableComponent get() = Component.literal(this)
 val String.mcTranslate: MutableComponent get() = Component.translatable(this)
 fun String.mcTranslate(vararg args: Any) = Component.translatable(this, *args)
 
+/**
+ * Appends one part to another.
+ */
 operator fun MutableComponent.plus(other: Component): MutableComponent = this.copy().append(other)
 operator fun MutableComponent.plus(text: String): MutableComponent = this.copy().append(text)
 
+// Additional helper methods for text formatting and interaction
 fun MutableComponent.colored(color: Int): MutableComponent = this.withStyle { it.withColor(color) }
 fun MutableComponent.colored(color: ChatFormatting): MutableComponent = this.withStyle { it.withColor(color) }
 fun MutableComponent.bold(): MutableComponent = this.withStyle { it.withBold(true) }
@@ -122,6 +159,11 @@ fun MutableComponent.onHoverEntity(entity: Entity) = this.withStyle {
     )
 }
 
+/**
+ * Memoizes a function, caching its results to improve performance.
+ *
+ * @return A memoized version of the function.
+ */
 fun <A, B> ((A) -> B).memoize(): (A) -> B {
     val cache: MutableMap<A, B> = Object2ObjectOpenHashMap()
     return {
@@ -129,6 +171,17 @@ fun <A, B> ((A) -> B).memoize(): (A) -> B {
     }
 }
 
+/**
+ * Saves an ItemStack to a CompoundTag.
+ *
+ * @return A CompoundTag representing the saved ItemStack.
+ */
 fun ItemStack.save() = CompoundTag().apply(::save)
 
+/**
+ * Reads an ItemStack from a CompoundTag.
+ *
+ * @return An ItemStack instance loaded from the CompoundTag.
+ */
 fun CompoundTag.readItem() = ItemStack.of(this)
+

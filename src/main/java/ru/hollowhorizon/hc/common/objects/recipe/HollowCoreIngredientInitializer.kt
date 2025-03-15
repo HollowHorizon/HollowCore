@@ -4,6 +4,7 @@ import ru.hollowhorizon.hc.common.objects.recipe.builtin.ingredient.ArrayIngredi
 import ru.hollowhorizon.hc.common.objects.recipe.builtin.ingredient.DifferenceIngredient
 import ru.hollowhorizon.hc.common.objects.recipe.builtin.ingredient.NBTIngredient
 import ru.hollowhorizon.hc.common.objects.recipe.builtin.condition.*
+import ru.hollowhorizon.hc.common.utils.HollowRecipeHelper
 
 object HollowCoreIngredientInitializer {
     @JvmStatic

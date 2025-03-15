@@ -14,6 +14,16 @@ import ru.hollowhorizon.hc.common.objects.recipe.ingredient.HollowIngredientSeri
 import ru.hollowhorizon.hc.common.utils.rl
 import java.util.*
 
+/**
+ * Represents a composite ingredient consisting of multiple sub-ingredients.
+ * This abstract class allows the creation of ingredients that require multiple
+ * individual ingredients to match an [ItemStack].
+ *
+ * Subclasses define how multiple ingredients are evaluated together, such as
+ * requiring any or all of them to match.
+ *
+ * @property ingredients An array of [Ingredient] objects representing the sub-ingredients.
+ */
 abstract class ArrayIngredient protected constructor(protected val ingredients: Array<Ingredient>): HollowIngredient {
     init {
         require(ingredients.isNotEmpty()) { "Array ingredient must have at least one sub-ingredient" }
@@ -26,7 +36,29 @@ abstract class ArrayIngredient protected constructor(protected val ingredients: 
 
         return false
     }
-
+    /**
+     * Represents an ingredient that matches if any of its sub-ingredients match.
+     *
+     * You can read more [here](https://0mods.team/docs/hollowcore/ingredient/#anyingredient)
+     *
+     * Example usage in JSON:
+     * ```json
+     * {
+     *   "ingredients": [
+     *     {
+     *       "hollowcore:type": "hollowcore:any",
+     *       "ingredients": [
+     *         { "item": "minecraft:apple" },
+     *         { "item": "minecraft:gold_apple" },
+     *         { "item": "minecraft:diamond" }
+     *       ]
+     *     }
+     *   ]
+     * }
+     * ```
+     *
+     * @param ingredients An array of [Ingredient] objects, at least one of which must match.
+     */
     class AnyIngredient(ingredients: Array<Ingredient>) : ArrayIngredient(ingredients) {
         override fun test(stack: ItemStack): Boolean {
             this.ingredients.forEach {
@@ -51,6 +83,29 @@ abstract class ArrayIngredient protected constructor(protected val ingredients: 
         }
     }
 
+    /**
+     * Represents an ingredient that matches only if all of its sub-ingredients match.
+     *
+     * You can read more [here](https://0mods.team/docs/hollowcore/ingredient/#allingredient)
+     *
+     * Example usage in JSON:
+     * ```json
+     * {
+     *   "ingredients": [
+     *     {
+     *       "hollowcore:type": "hollowcore:all",
+     *       "ingredients": [
+     *         { "item": "minecraft:apple" },
+     *         { "item": "minecraft:gold_apple" },
+     *         { "item": "minecraft:diamond" }
+     *       ]
+     *     }
+     *   ]
+     * }
+     * ```
+     *
+     * @param ingredients An array of [Ingredient] objects, all of which must match.
+     */
     class AllIngredient(ingredients: Array<Ingredient>): ArrayIngredient(ingredients) {
         override fun test(stack: ItemStack): Boolean {
             this.ingredients.forEach { if (!it.test(stack)) return false }

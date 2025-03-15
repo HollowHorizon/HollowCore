@@ -19,6 +19,29 @@ import ru.hollowhorizon.hc.common.objects.recipe.ingredient.HollowIngredient
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.HollowIngredientSerializer
 import java.util.Objects
 
+/**
+ * Represents an ingredient that checks for a specific NBT tag in addition to its base ingredient.
+ *
+ * You can read more [here](https://0mods.team/docs/hollowcore/ingredient/#nbtingredient)
+ *
+ * Example usage in JSON:
+ * ```json
+ * {
+ *   "ingredients": [
+ *     {
+ *       "hollowcore:type": "hollowcore:nbt",
+ *       "base": { "item": "minecraft:stick" },
+ *       "nbt": { "Enchantments": [{ "id": "efficiency", "lvl": 3 }] },
+ *       "strict": false
+ *     }
+ *   ]
+ * }
+ * ```
+ *
+ * @param original The base ingredient to check.
+ * @param tag The NBT data to match against.
+ * @param strict If true, the item's NBT must match exactly; if false, the item must have the specified NBT.
+ */
 class NBTIngredient(
     private val original: Ingredient,
     private val tag: CompoundTag?,

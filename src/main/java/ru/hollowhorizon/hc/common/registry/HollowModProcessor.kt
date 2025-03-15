@@ -30,7 +30,7 @@ import ru.hollowhorizon.hc.api.utils.Polymorphic
 import ru.hollowhorizon.hc.common.utils.nbt.NBT_TAGS
 import ru.hollowhorizon.hc.common.capabilities.CAPABILITIES
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
-import ru.hollowhorizon.hc.common.capabilities.HollowCapabilityV2
+import ru.hollowhorizon.hc.common.capabilities.HollowCapability
 import ru.hollowhorizon.hc.common.events.*
 import ru.hollowhorizon.hc.common.network.HollowPacketHandler
 import ru.hollowhorizon.hc.common.network.HollowPacket
@@ -75,7 +75,7 @@ object HollowModProcessor {
             runnables.forEach(Runnable::run)
         }
 
-        registerClassHandler<HollowCapabilityV2> { clazz, annotation ->
+        registerClassHandler<HollowCapability> { clazz, annotation ->
             val generator: () -> CapabilityInstance = {
                 clazz.getDeclaredConstructor().newInstance() as CapabilityInstance
             }

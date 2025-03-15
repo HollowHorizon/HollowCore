@@ -29,10 +29,26 @@ import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.events.capabilities.LoadCapabilitiesEvent
 import ru.hollowhorizon.hc.common.events.post
 
+/**
+ * Adds the ability to use capability in classes (including children)
+ *
+ * Available by default in [net.minecraft.server.MinecraftServer],
+ * [net.minecraft.world.entity.Entity], [net.minecraft.world.level.block.entity.BlockEntity]
+ * and [net.minecraft.world.level.Level].
+ *
+ * If your class inherits one of the child classes [ICapabilityDispatcher], then you can use the capability system
+ * without any problems.
+ *
+ * [capabilities] returns a list of the assigned [CapabilityInstance]
+ */
 interface ICapabilityDispatcher {
     val capabilities: MutableList<CapabilityInstance>
 }
 
+/**
+ * Serializes all capabilities that have been assigned to a given [ICapabilityDispatcher]
+ * @param tag specifies where all data from capability should be saved
+ */
 fun ICapabilityDispatcher.serializeCapabilities(tag: CompoundTag) {
     val nbt = CompoundTag()
     capabilities.forEach {
@@ -41,6 +57,10 @@ fun ICapabilityDispatcher.serializeCapabilities(tag: CompoundTag) {
     tag.put("hc_capabilities", nbt)
 }
 
+/**
+ * Deserializes [ICapabilityDispatcher] by loading data for [CapabilityInstance] from NBT
+ * @param tag where you need to upload all data from
+ */
 fun ICapabilityDispatcher.deserializeCapabilities(tag: CompoundTag) {
     val capabilities = tag.getCompound("hc_capabilities")
     for (key in capabilities.allKeys) {

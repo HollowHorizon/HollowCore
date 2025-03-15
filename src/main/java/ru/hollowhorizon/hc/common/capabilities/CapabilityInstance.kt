@@ -37,6 +37,19 @@ import ru.hollowhorizon.hc.common.capabilities.containers.HollowContainer
 import ru.hollowhorizon.hc.common.network.sendAllInDimension
 import ru.hollowhorizon.hc.common.network.sendTrackingEntityAndSelf
 
+/**
+ * A base class for HollowCore's implementation of the Capability system.
+ * Provides functionality for creating, serializing, and synchronizing data.
+ *
+ * Example of usage you can find [here](https://0mods.team/docs/hollowcore/capabilities/)
+ *
+ * @property provider The object that provides this Capability.
+ * @property isOneSided Flag indicating one-way capability (server or client only).
+ * @property properties A list of Capability properties to be serialized and synchronized.
+ * @property notUsedTags NBT tags not used in properties, but saved for compatibility.
+ * @property containers List the HollowContainers associated with this Capability.
+ * @property isChanged Flag to indicate that the Capability should be synchronized after the changes.
+ */
 @Suppress("API_STATUS_INTERNAL")
 open class CapabilityInstance {
     lateinit var provider: ICapabilityDispatcher
@@ -44,12 +57,22 @@ open class CapabilityInstance {
     val properties = ArrayList<CapabilityProperty<CapabilityInstance, *>>()
     var notUsedTags = CompoundTag()
     val containers = ArrayList<HollowContainer>()
-    var isChanged = true // Чтобы Capability синхронизировалась после загрузки
+    var isChanged = true // For Capability to sync after start
 
+    /**
+     * Creates a synchronized property with a specified default value.
+     *
+     * @param default The default value for the property.
+     * @return Instance of [CapabilityProperty] with a specified default value.
+     */
     fun <T> syncable(default: T) = CapabilityProperty<CapabilityInstance, T>(default).apply {
         properties += this
     }
 
+    /**
+     * Synchronizes the current state of the Capability with the client or server, depending on the execution side.
+     * If the Capability is one-way, synchronization is not performed.
+     */
     fun synchronize() {
         if(isOneSided) return
 
@@ -83,25 +106,68 @@ open class CapabilityInstance {
         }
     }
 
+    /**
+     * Serializes the current state of the Capability into a [CompoundTag] object.
+     *
+     * @return [CompoundTag] containing serialized Capability data.
+     */
     fun serializeNBT() = notUsedTags.copy().apply {
         properties.forEach { it.serialize(this) }
     }
 
+    /**
+     * Deserializes the Capability state from the [Tag] object.
+     *
+     * @param nbt [Tag] containing data to restore the Capability state.
+     */
     fun deserializeNBT(nbt: Tag) {
         properties.forEach { if (it.deserialize(nbt as? CompoundTag ?: return)) nbt.remove(it.defaultName) }
         val tag = nbt as? CompoundTag ?: return
         notUsedTags.merge(tag)
     }
 
+    /**
+     * Determines whether the Capability can accept data from the client.
+     * Defaults to 'false' to prevent potential vulnerabilities.
+     * Override this method to implement access rights verification or data validation.
+     *
+     * @param player A player who sends data from the client.
+     * @param tag [Tag] containing data sent from the client.
+     * @return 'true' if the data can be accepted; 'false' otherwise.
+     */
     open fun canAcceptFromClient(player: Player, tag: Tag): Boolean {
         return false
     }
 
+    /**
+     * Creates a synchronized list with specified items.
+     * Changes in the list are automatically synchronized between the server and the client.
+     *
+     * @param list Original list (empty by default).
+     * @param [T] The type of items in the list.
+     * @return Synchronized list.
+     */
     inline fun <reified T : Any> syncableList(list: MutableList<T> = ArrayList()) =
         syncable(SyncableListImpl(list, T::class.java) { isChanged = true })
 
+    /**
+     * Creates a synchronized list with specified items.
+     * Changes in the list are automatically synchronized between the server and the client.
+     *
+     * @param elements List items.
+     * @param [T] Item type.
+     * @return Synchronized list.
+     */
     inline fun <reified T : Any> syncableList(vararg elements: T) = syncableList(elements.toMutableList())
 
+    /**
+     * Creates a synchronized map with the specified key and value types.
+     * Changes in the map are automatically synchronized between the server and the client.
+     *
+     * @param [K] Key type.
+     * @param [V] Value type.
+     * @return Synchronized map.
+     */
     inline fun <reified K : Any, reified V : Any> syncableMap() =
         syncable(SyncableMapImpl(HashMap(), K::class.java, V::class.java) { isChanged = true })
 }
