@@ -26,10 +26,10 @@ package ru.hollowhorizon.hc.client.kool
 
 import com.mojang.blaze3d.pipeline.RenderTarget
 import com.mojang.blaze3d.pipeline.TextureTarget
+import de.fabmax.kool.pipeline.MipMapping
 import de.fabmax.kool.pipeline.SamplerSettings
 import de.fabmax.kool.pipeline.Texture
 import de.fabmax.kool.pipeline.Texture2d
-import de.fabmax.kool.pipeline.TextureProps
 import de.fabmax.kool.pipeline.backend.gl.GlTexture
 import de.fabmax.kool.pipeline.backend.gl.LoadedTextureGl
 import net.minecraft.client.Minecraft
@@ -41,17 +41,15 @@ val WINDOW_BUFFER by lazy { createFramebufferTexture(guiFramebuffer) }
 
 
 fun glTexture(id: Int) = Texture2d(
-        TextureProps(generateMipMaps = false, defaultSamplerSettings = SamplerSettings().clamped().nearest())
+    mipMapping = MipMapping.Off,
+    samplerSettings = SamplerSettings().clamped().nearest()
 ).apply {
     gpuTexture = LoadedTextureGl(MCGlApi.TEXTURE_2D, GlTexture(id), MCGlApi.backend, this, 0L)
-    loadingState = Texture.LoadingState.LOADED
 }
 
 fun createFramebufferTexture(texture: RenderTarget) = Texture2d(
-    TextureProps(
-        generateMipMaps = false,
-        defaultSamplerSettings = SamplerSettings().clamped().nearest()
-    )
+    mipMapping = MipMapping.Off,
+    samplerSettings = SamplerSettings().clamped().nearest()
 ).apply {
     val estSize = Texture.estimatedTexSize(texture.width, texture.height, 1, 1, 4).toLong()
     gpuTexture = LoadedTextureGl(
@@ -64,7 +62,6 @@ fun createFramebufferTexture(texture: RenderTarget) = Texture2d(
         width = texture.width
         height = texture.height
     }
-    loadingState = Texture.LoadingState.LOADED
 }
 
 fun onResize(width: Int, height: Int) {

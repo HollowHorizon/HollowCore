@@ -1,5 +1,8 @@
 package ru.hollowhorizon.hc.client.kool
 
+import de.fabmax.kool.pipeline.ClearColorDontCare
+import de.fabmax.kool.pipeline.ClearDepthDontCare
+import de.fabmax.kool.pipeline.ClearDepthLoad
 import de.fabmax.kool.scene.Scene
 import net.minecraft.client.gui.screens.Screen
 import ru.hollowhorizon.hc.api.HudHideable
@@ -30,8 +33,8 @@ open class KoolScreen : Screen("".literal), HudHideable {
 
 open class ScreenScene(name: String? = null): Scene(name) {
     init {
-        clearColor = null
-        clearDepth = false
+        clearColor = ClearColorDontCare
+        clearDepth = ClearDepthDontCare
         isVisible = false
     }
 }

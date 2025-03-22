@@ -6,9 +6,9 @@ import de.fabmax.kool.modules.ui2.Image
 import de.fabmax.kool.modules.ui2.ImageScope
 import de.fabmax.kool.modules.ui2.UiScope
 import de.fabmax.kool.modules.ui2.image
+import de.fabmax.kool.pipeline.MipMapping
 import de.fabmax.kool.pipeline.SamplerSettings
 import de.fabmax.kool.pipeline.Texture2d
-import de.fabmax.kool.pipeline.TextureProps
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
@@ -18,7 +18,7 @@ object ImageManager : ResourceManagerReloadListener {
 
     fun load(location: String): Texture2d = IMAGES.getOrPut(location) {
         Texture2d(
-            TextureProps(generateMipMaps = false, defaultSamplerSettings = SamplerSettings().clamped().nearest())
+            mipMapping = MipMapping.Off, samplerSettings = SamplerSettings().clamped().nearest()
         ) {
             Assets.loadImage2d(location).getOrThrow()
         }
@@ -26,7 +26,7 @@ object ImageManager : ResourceManagerReloadListener {
 
     override fun onResourceManagerReload(resourceManager: ResourceManager) {
         IMAGES.forEach { (location, image) ->
-            image.dispose()
+            image.release()
             image.uploadLazy {
                 Assets.loadImage2d(location).getOrThrow()
             }

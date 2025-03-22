@@ -30,8 +30,6 @@
     "capabilities.LevelMixin",
     "kool.ClipboardMixin",
     "kool.PlatformInputJvmMixin",
-    "kool.RenderBackendGlAccessor",
-    "kool.ShaderManagerAccessor",
     "loot.LootDataManagerMixin",
     "tags.TagEntryAccessor",
     "tags.TagLoaderMixin"

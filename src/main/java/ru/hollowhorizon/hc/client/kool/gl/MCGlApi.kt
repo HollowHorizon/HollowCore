@@ -68,6 +68,7 @@ object MCGlApi: GlApi {
     override val TEXTURE_2D = GL_TEXTURE_2D
     override val TEXTURE_2D_ARRAY = GL_TEXTURE_2D_ARRAY
     override val TEXTURE_3D = GL_TEXTURE_3D
+    override val TEXTURE_BASE_LEVEL = GL_TEXTURE_BASE_LEVEL
     override val TEXTURE_COMPARE_MODE = GL_TEXTURE_COMPARE_MODE
     override val TEXTURE_COMPARE_FUNC = GL_TEXTURE_COMPARE_FUNC
     override val TEXTURE_CUBE_MAP = GL_TEXTURE_CUBE_MAP
@@ -79,7 +80,10 @@ object MCGlApi: GlApi {
     override val TEXTURE_CUBE_MAP_POSITIVE_Z = GL_TEXTURE_CUBE_MAP_POSITIVE_Z
     override val TEXTURE_CUBE_MAP_NEGATIVE_Z = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
     override val TEXTURE_MAG_FILTER = GL_TEXTURE_MAG_FILTER
+    override val TEXTURE_MAX_LEVEL = GL_TEXTURE_MAX_LEVEL
+    override val TEXTURE_MAX_LOD = GL_TEXTURE_MAX_LOD
     override val TEXTURE_MIN_FILTER = GL_TEXTURE_MIN_FILTER
+    override val TEXTURE_MIN_LOD = GL_TEXTURE_MIN_LOD
     override val TEXTURE_WRAP_R = GL_TEXTURE_WRAP_R
     override val TEXTURE_WRAP_S = GL_TEXTURE_WRAP_S
     override val TEXTURE_WRAP_T = GL_TEXTURE_WRAP_T
@@ -131,6 +135,7 @@ object MCGlApi: GlApi {
     override val RG32UI = GL_RG32UI
     override val RGB32UI = GL_RGB32UI
     override val RGBA32UI = GL_RGBA32UI
+    override val R11F_G11F_B10F = GL_R11F_G11F_B10F
 
     override val ALWAYS = GL_ALWAYS
     override val NEVER = GL_NEVER
@@ -184,6 +189,7 @@ object MCGlApi: GlApi {
     override fun bindVertexArray(vao: GlVertexArrayObject) = glBindVertexArray(vao.handle)
     override fun blendFunc(sFactor: Int, dFactor: Int) = glBlendFunc(sFactor, dFactor)
     override fun blitFramebuffer(srcX0: Int, srcY0: Int, srcX1: Int, srcY1: Int, dstX0: Int, dstY0: Int, dstX1: Int, dstY1: Int, mask: Int, filter: Int) = glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter)
+    override fun bufferData(target: Int, size: Int, usage: Int) = nglBufferData(target, size.toLong(), 0L, usage)
     override fun bufferData(target: Int, buffer: Uint8Buffer, usage: Int) = buffer.useRaw { glBufferData(target, it, usage) }
     override fun bufferData(target: Int, buffer: Uint16Buffer, usage: Int) = buffer.useRaw { glBufferData(target, it, usage) }
     override fun bufferData(target: Int, buffer: Int32Buffer, usage: Int) = buffer.useRaw { glBufferData(target, it, usage) }
@@ -354,7 +360,7 @@ object MCGlApi: GlApi {
         )
     }
 
-    override fun readBuffer(gpuBuffer: BufferResource, dstBuffer: Buffer): Boolean {
+    override fun readBuffer(gpuBuffer: GpuBufferGl, dstBuffer: Buffer): Boolean {
         var success = false
         gpuBuffer.bind()
 

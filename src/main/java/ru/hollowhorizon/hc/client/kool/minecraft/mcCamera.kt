@@ -18,6 +18,9 @@ import kotlin.math.min
 class MinecraftCamera : PerspectiveCamera() {
     override fun updateProjectionMatrix(updateEvent: RenderPass.UpdateEvent) {
         super.updateProjectionMatrix(updateEvent)
+
+        if(Minecraft.getInstance().player == null || Minecraft.getInstance().level == null) return
+
         bobHurt(proj, Minecraft.getInstance().frameTime)
         if (Minecraft.getInstance().options.bobView().get()) {
             bobView(proj, Minecraft.getInstance().frameTime)
@@ -27,7 +30,7 @@ class MinecraftCamera : PerspectiveCamera() {
 
 fun Scene.mcCamera() {
     val camera = MinecraftCamera()
-    mainRenderPass.screenView.camera = camera
+    mainRenderPass.defaultView.camera = camera
     val gameRenderer = Minecraft.getInstance().gameRenderer
 
     onUpdate {

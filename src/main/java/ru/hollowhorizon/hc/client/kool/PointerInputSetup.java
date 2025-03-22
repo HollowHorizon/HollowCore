@@ -68,7 +68,7 @@ public class PointerInputSetup {
             if (mouseButtonOld != null) mouseButtonOld.invoke(handle, btn, act, mods);
         });
         cursorPosOld = GLFW.glfwSetCursorPosCallback(windowHandle, (handle, x, y) -> {
-            PointerInput.INSTANCE.handleMouseMove$kool_core(x, y);
+            PointerInput.INSTANCE.handleMouseMove$kool_core((float) x, (float) y);
             if (cursorPosOld != null) cursorPosOld.invoke(handle, x, y);
         });
         cursorEnterOld = GLFW.glfwSetCursorEnterCallback(windowHandle, (handle, entered) -> {
@@ -78,7 +78,7 @@ public class PointerInputSetup {
             if (cursorEnterOld != null) cursorEnterOld.invoke(handle, entered);
         });
         scrollOld = GLFW.glfwSetScrollCallback(windowHandle, (handle, xOff, yOff) -> {
-            PointerInput.INSTANCE.handleMouseScroll$kool_core(xOff, yOff);
+            PointerInput.INSTANCE.handleMouseScroll$kool_core((float) xOff, (float) yOff);
             if (scrollOld != null) scrollOld.invoke(handle, xOff, yOff);
         });
 

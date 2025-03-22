@@ -13,13 +13,12 @@ object KoolDrawer {
     fun drawOverlays() {
         val scenes = KoolManager.context.scenes
         scenes.forEach { it.isVisible = it is ScreenScene }
+        guiFramebuffer.clear(Minecraft.ON_OSX)
         draw()
         scenes.forEach { it.isVisible = it !is ScreenScene }
     }
 
     fun draw() {
-        guiFramebuffer.clear(Minecraft.ON_OSX)
-
         MCGlApi.clipControl(MCGlApi.LOWER_LEFT, MCGlApi.NEGATIVE_ONE_TO_ONE)
         val activeTexture = GlStateManager._getActiveTexture()
         val currentTexture = GL33.glGetInteger(GL33.GL_TEXTURE_BINDING_2D)
@@ -47,6 +46,8 @@ object KoolDrawer {
             else -> MCGlApi.disable(MCGlApi.CULL_FACE)
         }
         if(GlRenderPass.GlState.lineWidth != 0f) MCGlApi.lineWidth(GlRenderPass.GlState.lineWidth)
+
+        MCGlApi.disable(MCGlApi.DEPTH_TEST)
 
         KoolManager.context.renderFrame()
 

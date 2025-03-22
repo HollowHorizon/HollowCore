@@ -56,8 +56,8 @@ inline fun UiScope.GlCanvas(
         drawGlCanvas(x, y, width, height, false, image.modifier.zLayer) { x, y, width, height ->
             GL33.glEnable(GL33.GL_DEPTH_TEST)
             GL33.glDepthFunc(GL33.GL_LEQUAL)
-            val mouse = PointerInput.primaryPointer
-            image.glCanvas(mouse.x, mouse.y, x, y, width, height)
+            val mouse = PointerInput.primaryPointer.pos
+            image.glCanvas(mouse.x.toDouble(), mouse.y.toDouble(), x, y, width, height)
             GL33.glDisable(GL33.GL_DEPTH_TEST)
         }
     }

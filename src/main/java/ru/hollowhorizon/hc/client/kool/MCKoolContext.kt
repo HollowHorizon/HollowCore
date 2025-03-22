@@ -21,8 +21,10 @@ class MCKoolContext : KoolContext() {
         val map = shapesField.get(PlatformInputJvm) as MutableMap<CursorShape, Long>
         createStandardCursors(map)
         PointerInputSetup.setup(Minecraft.getInstance().window.window)
-        windowScale = HollowCore.config.guiScale
+        KoolHooks.setScale(this, HollowCore.config.guiScale)
     }
+
+    override var renderScale = 1f
 
     private fun createStandardCursors(cursorShapes: MutableMap<CursorShape, Long>): MutableMap<CursorShape, Long> {
         cursorShapes[CursorShape.DEFAULT] = 0L
