@@ -20,10 +20,7 @@ public class PackRepositoryMixin {
         List<RepositorySource> l = new ArrayList<>(Arrays.asList(providers));
 
 
-        l.add(src -> {
-            EventBus.post(new RegisterResourcePacksEvent(src));
-            HollowLoggerKt.getLOGGER().info("HollowPack registered!");
-        });
+        l.add(src -> EventBus.post(new RegisterResourcePacksEvent(src)));
 
         return l.toArray(new RepositorySource[0]);
     }
