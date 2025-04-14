@@ -12,6 +12,7 @@ import net.minecraft.util.Mth
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
+import java.io.File
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -19,7 +20,7 @@ class MinecraftCamera : PerspectiveCamera() {
     override fun updateProjectionMatrix(updateEvent: RenderPass.UpdateEvent) {
         super.updateProjectionMatrix(updateEvent)
 
-        if(Minecraft.getInstance().player == null || Minecraft.getInstance().level == null) return
+        if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null) return
 
         bobHurt(proj, Minecraft.getInstance().frameTime)
         if (Minecraft.getInstance().options.bobView().get()) {

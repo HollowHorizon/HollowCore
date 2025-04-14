@@ -10,7 +10,7 @@ import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.client.kool.gl.MCGlApi
 
 object KoolDrawer {
-    fun drawOverlays() {
+    fun \drawOverlays() {
         val scenes = KoolManager.context.scenes
         scenes.forEach { it.isVisible = it is ScreenScene }
         guiFramebuffer.clear(Minecraft.ON_OSX)

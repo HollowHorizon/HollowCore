@@ -5,7 +5,6 @@ import de.fabmax.kool.input.CursorShape
 import de.fabmax.kool.input.PlatformInputJvm
 import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW.*
-import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.kool.gl.MCRenderBackendGl
 import java.awt.Desktop
 import java.net.URI
@@ -21,7 +20,10 @@ class MCKoolContext : KoolContext() {
         val map = shapesField.get(PlatformInputJvm) as MutableMap<CursorShape, Long>
         createStandardCursors(map)
         PointerInputSetup.setup(Minecraft.getInstance().window.window)
-        KoolHooks.setScale(this, HollowCore.config.guiScale)
+        val xScale = FloatArray(1)
+        val yScale = FloatArray(1)
+        glfwGetWindowContentScale(Minecraft.getInstance().window.window, xScale, yScale)
+        KoolHooks.setScale(this, xScale[0])
     }
 
     override var renderScale = 1f

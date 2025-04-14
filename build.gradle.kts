@@ -31,6 +31,7 @@ setupEnviroment(container, kotlinVersion, "TheHollowHorizon", includeKotlin = tr
 dependencies {
     // CONFIG //
     install("com.akuleshov7:ktoml-core-jvm:0.5.1")
+    install("org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.8.1")
 
     // GRAPHICS //
     install("de.fabmax.kool:kool-core-desktop:0.17.0-0mods-SNAPSHOT")
