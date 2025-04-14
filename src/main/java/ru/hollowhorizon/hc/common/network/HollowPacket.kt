@@ -44,6 +44,8 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.Level
 import ru.hollowhorizon.hc.HollowCore.MODID
+import ru.hollowhorizon.hc.common.utils.bytebuf.ByteBufFormat
+import ru.hollowhorizon.hc.common.utils.bytebuf.serializeNoInline
 import ru.hollowhorizon.hc.common.utils.rl
 
 interface HollowPacket<T : HollowPacket<T>> {
@@ -98,7 +100,7 @@ fun HollowPacket<*>.sendAllInDimension(level: Level) {
 //? if fabric {
 fun HollowPacket<*>.asVanillaPacket(toClient: Boolean): Packet<*> {
     val byteBuf = FriendlyByteBuf(Unpooled.buffer())
-    byteBuf.writeNbt(NBTFormat.serializeNoInline(this, javaClass) as CompoundTag)
+    ByteBufFormat.serializeNoInline(this, javaClass, byteBuf)
     return if (!toClient) ClientPlayNetworking.createC2SPacket(packetName, byteBuf)
     else ServerPlayNetworking.createS2CPacket(packetName, byteBuf)
 

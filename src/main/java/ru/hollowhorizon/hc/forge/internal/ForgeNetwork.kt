@@ -81,15 +81,13 @@ fun <T : HollowPacket<T>> registerPacket(type: Class<T>) {
 }
 *///?} elif forge {
 /*import net.minecraft.client.Minecraft
-import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraftforge.network.NetworkDirection
-import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
-import ru.hollowhorizon.hc.common.utils.nbt.deserializeNoInline
-import ru.hollowhorizon.hc.common.utils.nbt.serializeNoInline
 import ru.hollowhorizon.hc.common.network.HollowPacket
 import ru.hollowhorizon.hc.common.network.HollowPacketHandler
+import ru.hollowhorizon.hc.common.utils.bytebuf.ByteBufFormat
+import ru.hollowhorizon.hc.common.utils.bytebuf.deserializeNoInline
+import ru.hollowhorizon.hc.common.utils.bytebuf.serializeNoInline
 import java.util.function.BiConsumer
 
 var id = 0
@@ -100,20 +98,10 @@ fun <T : HollowPacket<T>> registerPacket(type: Class<T>) {
     val annotation = type.getAnnotation(HollowPacketHandler::class.java)
 
     val encoder: BiConsumer<T, FriendlyByteBuf> = BiConsumer { packet: T, buffer: FriendlyByteBuf ->
-        val tag = NBTFormat.serializeNoInline(packet, type)
-        if (tag is CompoundTag) buffer.writeNbt(tag)
-        else buffer.writeNbt(CompoundTag().apply { put("data", tag) })
+        ByteBufFormat.serializeNoInline(packet, type, buffer)
     }
     val decoder = { buffer: FriendlyByteBuf ->
-        try {
-            val tag = buffer.readNbt() ?: throw IllegalStateException("NBT is null")
-            if (tag.contains("data")) NBTFormat.deserializeNoInline(tag.get("%%data")!!, type)
-            else NBTFormat.deserializeNoInline(tag, type)
-        } catch (e: Exception) {
-            // Без этого эта ошибка затеряется фиг пойми где, а так будет хоть какая-то информация
-            HollowCore.LOGGER.error("Can't decode ${type.name} packet!", e)
-            throw e
-        }
+        ByteBufFormat.deserializeNoInline(buffer, type)
     }
 
     when (annotation.toTarget) {

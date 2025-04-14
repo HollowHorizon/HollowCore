@@ -9,11 +9,11 @@ import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.network.FriendlyByteBuf
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.HollowCore.MODID
-import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
-import ru.hollowhorizon.hc.common.utils.nbt.deserializeNoInline
-import ru.hollowhorizon.hc.common.utils.rl
-import ru.hollowhorizon.hc.common.network.HollowPacketHandler
 import ru.hollowhorizon.hc.common.network.HollowPacket
+import ru.hollowhorizon.hc.common.network.HollowPacketHandler
+import ru.hollowhorizon.hc.common.utils.bytebuf.ByteBufFormat
+import ru.hollowhorizon.hc.common.utils.bytebuf.deserializeNoInline
+import ru.hollowhorizon.hc.common.utils.rl
 
 fun <T : HollowPacket<T>> registerPacket(type: Class<T>) {
     val annotation = type.getAnnotation(HollowPacketHandler::class.java)
@@ -21,14 +21,7 @@ fun <T : HollowPacket<T>> registerPacket(type: Class<T>) {
 
 
     val deserializer: (FriendlyByteBuf) -> T = { buffer ->
-        try {
-            val tag = buffer.readNbt() ?: throw IllegalStateException("NBT is null")
-            NBTFormat.deserializeNoInline(tag, type)
-        } catch (e: Exception) {
-            // Без этого эта ошибка затеряется фиг пойми где, а так будет хоть какая-то информация
-            HollowCore.LOGGER.error("Error while deserializing ${type.simpleName} packet", e)
-            throw e
-        }
+        ByteBufFormat.deserializeNoInline(buffer, type)
     }
 
     val isClient = FabricLoader.getInstance().environmentType == EnvType.CLIENT
