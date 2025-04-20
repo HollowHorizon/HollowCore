@@ -37,6 +37,7 @@ import net.minecraft.world.phys.Vec3
 import ru.hollowhorizon.hc.client.models.gltf.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.gltf.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.gltf.manager.IAnimated
+import ru.hollowhorizon.hc.client.render.effekseer.EffekseerNatives
 import ru.hollowhorizon.hc.client.render.effekseer.ParticleEmitter
 import ru.hollowhorizon.hc.client.utils.get
 import ru.hollowhorizon.hc.client.utils.math.Basis
@@ -183,6 +184,8 @@ open class ParticleEmitterInfo : Cloneable {
     }
 
     fun spawnInWorld(level: Level, player: Player?) {
+        if(!EffekseerNatives.isInitialized) return
+
         EffectRegistry.get(effek)?.let { effek ->
             val emitter = effek.play(emitterName = this.emitter)
             val x: Float

@@ -31,6 +31,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ru.hollowhorizon.hc.client.render.effekseer.EffekseerNatives;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.EffekFpvRenderer;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderContext;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
@@ -44,6 +45,8 @@ public class MixinGameRenderer {
 
     @Inject(method = "renderLevel", at = @At("TAIL"))
     private void renderLevelTail(float partial, long l, PoseStack poseStack, CallbackInfo ci) {
+        if (!EffekseerNatives.isInitialized()) return;
+
         glDepthMask(true);
         glDepthFunc(GL_LEQUAL);
 

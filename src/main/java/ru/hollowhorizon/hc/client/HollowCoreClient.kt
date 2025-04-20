@@ -110,7 +110,7 @@ object HollowCoreClient {
     }
 
     private fun onRegisterReloadListener(event: RegisterClientReloadListenersEvent) {
-        event.registerReloadListener(EffekAssets)
+        if(EffekseerNatives.isInitialized) event.registerReloadListener(EffekAssets)
         event.registerReloadListener(GltfManager)
         event.registerReloadListener(PostChain)
         event.registerReloadListener(ShadersLoader)

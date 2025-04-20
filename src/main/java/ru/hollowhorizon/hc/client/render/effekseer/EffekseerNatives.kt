@@ -40,6 +40,9 @@ enum class EffekseerNatives(private val libraryFormat: String) {
     fun formatFileName(dllName: String) = dllName+libraryFormat
 
     companion object {
+        @JvmStatic
+        var isInitialized = false
+
         private const val DLL_NAME = "EffekseerNativeForJava"
         private val installFolder by lazy { findNativeFolder() }
         val current by lazy { findCurrent() }
@@ -62,20 +65,26 @@ enum class EffekseerNatives(private val libraryFormat: String) {
         fun install(
             installPath: File = current.getNativeInstallPath(DLL_NAME),
         ) {
-            if (!installPath.isFile) {
-                HollowCore.LOGGER.info("Installing Effekseer native library at " + installPath.canonicalPath)
+            try {
+                if (!installPath.isFile) {
+                    HollowCore.LOGGER.info("Installing Effekseer native library at " + installPath.canonicalPath)
 
-                val from = current.formatFileName(DLL_NAME)
-                val out = installPath.outputStream()
-                EffekseerNatives::class.java.classLoader.getResource("natives/$from")?.openStream()?.transferTo(out)
-                    ?: throw IOException("Failed to extract $from to $installPath")
-                out.close()
-            } else {
-                HollowCore.LOGGER.debug("Loading Effekseer native library at " + installPath.canonicalPath)
+                    val from = current.formatFileName(DLL_NAME)
+                    val out = installPath.outputStream()
+                    EffekseerNatives::class.java.classLoader.getResource("natives/$from")?.openStream()?.transferTo(out)
+                        ?: throw IOException("Failed to extract $from to $installPath")
+                    out.close()
+                } else {
+                    HollowCore.LOGGER.debug("Loading Effekseer native library at " + installPath.canonicalPath)
+                }
+
+
+                System.load(installPath.canonicalPath)
+                isInitialized = true
+            } catch (e: Exception) {
+                HollowCore.LOGGER.warn("Failed to install $installPath", e)
+
             }
-
-
-            System.load(installPath.canonicalPath)
         }
     }
 }

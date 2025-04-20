@@ -26,6 +26,7 @@ package ru.hollowhorizon.hc.mixins.particles.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
+import ru.hollowhorizon.hc.client.render.effekseer.EffekseerNatives;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderContext;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
 import ru.hollowhorizon.hc.client.render.effekseer.render.EffekRenderer;
@@ -44,6 +45,8 @@ import static ru.hollowhorizon.hc.client.render.effekseer.render.RenderUtil.copy
 public class MixinLevelRenderer {
     @Inject(method = "renderLevel", at = @At("RETURN"))
     private void onRenderLevelLast(PoseStack poseStack, float partial, long l, boolean bl, Camera camera, GameRenderer arg3, LightTexture arg4, Matrix4f projection, CallbackInfo ci) {
+        if (!EffekseerNatives.isInitialized()) return;
+
         var capture = RenderStateCapture.LEVEL;
         var currentPose = poseStack.last();
         var capturedPose = capture.pose.last();

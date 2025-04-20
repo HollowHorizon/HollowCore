@@ -40,6 +40,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ru.hollowhorizon.hc.client.render.effekseer.EffekseerNatives;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.EffekFpvRenderer;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderContext;
 import ru.hollowhorizon.hc.client.render.effekseer.internal.RenderStateCapture;
@@ -55,6 +56,8 @@ public class MixinItemInHandRenderer implements EffekFpvRenderer {
 
     @Inject(method = "renderArmWithItem", at = @At("HEAD"))
     private void resetCaptureState(AbstractClientPlayer player, float f, float g, InteractionHand hand, float h, ItemStack itemStack, float i, PoseStack poseStack, MultiBufferSource multiBufferSource, int j, CallbackInfo ci) {
+        if (!EffekseerNatives.isInitialized()) return;
+
         var capture = Captures.INSTANCE.getCAPTURES().computeIfAbsent(hand, arg -> new RenderStateCapture());
         capture.hasCapture = false;
         capture.item = null;
@@ -65,6 +68,8 @@ public class MixinItemInHandRenderer implements EffekFpvRenderer {
             at = @At(value = "INVOKE", shift = At.Shift.AFTER, target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/renderer/block/model/ItemTransforms$TransformType;ZLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V")
     )
     private void setFpvRenderState(AbstractClientPlayer player, float partial, float g, InteractionHand hand, float h, ItemStack stack, float i, PoseStack poseStack, MultiBufferSource buffer, int j, CallbackInfo ci) {
+        if (!EffekseerNatives.isInitialized()) return;
+
         var stackTop = poseStack.last();
         var capture = Objects.requireNonNull(Captures.INSTANCE.getCAPTURES().get(hand));
         capture.hasCapture = true;
@@ -76,6 +81,8 @@ public class MixinItemInHandRenderer implements EffekFpvRenderer {
 
     @Inject(method = "renderHandsWithItems", at = @At("RETURN"))
     private void captureHandDepth(float partial, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, LocalPlayer player, int i, CallbackInfo ci) {
+        if (!EffekseerNatives.isInitialized()) return;
+
         if (RenderContext.renderHandDeferred()) {
             if (RenderContext.captureHandDepth()) {
                 copyCurrentDepthTo(RenderStateCapture.CAPTURED_HAND_DEPTH_BUFFER);
@@ -87,6 +94,8 @@ public class MixinItemInHandRenderer implements EffekFpvRenderer {
 
     @Override
     public void hollowcore$renderFpvEffek(float partial, @NotNull LocalPlayer player) {
+        if (!EffekseerNatives.isInitialized()) return;
+
         var oldProjection = RenderSystem.getProjectionMatrix();
 
         var camera = Minecraft.getInstance().gameRenderer.getMainCamera();
