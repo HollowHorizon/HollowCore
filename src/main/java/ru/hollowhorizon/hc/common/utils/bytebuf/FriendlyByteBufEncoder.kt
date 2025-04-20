@@ -13,7 +13,7 @@ class FriendlyByteBufEncoder(
     private val buf: FriendlyByteBuf,
 ) : AbstractEncoder() {
     override fun encodeBoolean(value: Boolean) {
-        buf.writeByte(if (value) 1 else 0)
+        buf.writeBoolean(value)
     }
 
     override fun encodeByte(value: Byte) {

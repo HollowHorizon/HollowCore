@@ -14,7 +14,7 @@ class FriendlyByteBufDecoder(
     private var elementsCount: Int = 0,
 ) : AbstractDecoder() {
     private var elementIndex = 0
-    override fun decodeBoolean(): Boolean = input.readByte().toInt() != 0
+    override fun decodeBoolean(): Boolean = input.readBoolean()
     override fun decodeByte(): Byte = input.readByte()
     override fun decodeShort(): Short = input.readShort()
     override fun decodeInt(): Int = input.readInt()
