@@ -1,4 +1,4 @@
-name: mavenPublish
+name: GH Maven
 on:
   push:
     branches: [ "1.20.1" ]
