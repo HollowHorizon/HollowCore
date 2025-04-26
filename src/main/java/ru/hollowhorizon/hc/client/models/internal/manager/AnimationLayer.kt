@@ -122,17 +122,18 @@ class DefinedLayer {
     private var lastAnimation = AnimationType.IDLE
     private var currentStartTime = 0.0
     private var priority = 0f
+    var oldTime = 0f
 
     fun update(animationType: AnimationType, currentSpeed: Float, currentTick: Int, partialTick: Float) {
         val currentTime = Blaze3D.getTime()
 
-        val difference = (currentTime - currentStartTime).coerceAtMost(0.5)
-        priority = (difference * 2).toFloat()
+        val difference = (currentTime - currentStartTime).coerceAtMost(0.25)
+        priority = (difference * 4).toFloat()
         if (animationType == currentAnimation) return
         lastAnimation = currentAnimation
         currentAnimation = animationType
 
-        currentStartTime = currentTime - (0.5 - difference)
+        currentStartTime = currentTime - (0.25 - difference)
         priority = 1f - priority
     }
 

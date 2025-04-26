@@ -278,7 +278,7 @@ data class Transformation(
             return Transformation(
                 tF.lerp(tS, step),
                 rF.lerp(rS, step),
-                sF.lerp(sS, step)
+                sF.lerpScale(sS, step)
             )
         }
     }
@@ -287,6 +287,12 @@ data class Transformation(
 private fun Vector3f?.lerp(other: Vector3f?, factor: Float): Vector3f? {
     if (this == null) return other?.mul(factor)
     if (other == null) return this.mul(1f - factor)
+    return this.lerp(other, factor)
+}
+
+private fun Vector3f?.lerpScale(other: Vector3f?, factor: Float): Vector3f? {
+    if (this == null) return other
+    if (other == null) return this
     return this.lerp(other, factor)
 }
 
