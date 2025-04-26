@@ -8,6 +8,7 @@ plugins {
     kotlin("plugin.serialization")
 }
 
+val koolVersion: String by properties
 val modId: String by properties
 val modName: String by properties
 val modVersion: String by properties
@@ -34,7 +35,7 @@ dependencies {
     install("org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.8.1")
 
     // GRAPHICS //
-    install("de.fabmax.kool:kool-core-desktop:0.17.0-0mods-SNAPSHOT")
+    install("de.fabmax.kool:kool-core-desktop:$koolVersion")
 }
 
 kotlin.compilerOptions.freeCompilerArgs.add("-Xjvm-default=all")
