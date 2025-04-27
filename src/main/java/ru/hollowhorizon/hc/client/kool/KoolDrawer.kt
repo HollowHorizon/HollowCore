@@ -12,10 +12,10 @@ import ru.hollowhorizon.hc.client.kool.gl.MCGlApi
 object KoolDrawer {
     fun drawOverlays() {
         val scenes = KoolManager.context.scenes
-        scenes.forEach { it.isVisible = it is ScreenScene }
+        scenes.forEach { it.isVisible = it.isScreenScene() }
         guiFramebuffer.clear(Minecraft.ON_OSX)
         draw()
-        scenes.forEach { it.isVisible = it !is ScreenScene }
+        scenes.forEach { it.isVisible = !it.isScreenScene() }
     }
 
     fun draw() {

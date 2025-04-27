@@ -1,15 +1,21 @@
 package ru.hollowhorizon.hc.client.kool
 
+import de.fabmax.kool.modules.ui2.setupUiScene
 import de.fabmax.kool.pipeline.ClearColorDontCare
 import de.fabmax.kool.pipeline.ClearDepthDontCare
 import de.fabmax.kool.pipeline.ClearDepthLoad
+import de.fabmax.kool.scene.OrthographicCamera
 import de.fabmax.kool.scene.Scene
 import net.minecraft.client.gui.screens.Screen
 import ru.hollowhorizon.hc.api.HudHideable
 import ru.hollowhorizon.hc.common.utils.literal
 
 open class KoolScreen : Screen("".literal), HudHideable {
-    val scene = ScreenScene(title.string)
+    val scene = Scene(title.string).apply {
+        setupUiScene()
+        clearColor = ClearColorDontCare
+        clearDepth = ClearDepthDontCare
+    }
 
     private var isLoaded = false
     override fun init() {
@@ -31,10 +37,13 @@ open class KoolScreen : Screen("".literal), HudHideable {
     }
 }
 
-open class ScreenScene(name: String? = null): Scene(name) {
-    init {
-        clearColor = ClearColorDontCare
-        clearDepth = ClearDepthDontCare
-        isVisible = false
-    }
+fun Scene.isScreenScene(): Boolean {
+    (camera as? OrthographicCamera)?.let { cam ->
+        if(cam.left != 0f) return false
+        if(cam.top != 0f) return false
+        val viewport = mainRenderPass.viewport
+        if(cam.right != viewport.width.toFloat()) return false
+        if(cam.bottom != -viewport.height.toFloat()) return false
+    } ?: return false
+    return true
 }

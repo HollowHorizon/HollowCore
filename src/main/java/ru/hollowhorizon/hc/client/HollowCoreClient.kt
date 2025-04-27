@@ -33,6 +33,7 @@ import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.kool.*
+import ru.hollowhorizon.hc.client.kool.minecraft.Image
 import ru.hollowhorizon.hc.client.kool.minecraft.ImageManager
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
@@ -93,6 +94,7 @@ object HollowCoreClient {
                                 modifier.size(Grow.Std, Grow.Std)
                             }
                         }
+                        Image("hollowcore:textures/block/example.png")
                     }
                 }
             }.open()
