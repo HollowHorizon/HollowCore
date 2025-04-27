@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.client.models.internal
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.resources.ResourceLocation
 import org.joml.Matrix3f
 import org.joml.Matrix4f
@@ -339,32 +340,10 @@ class Primitive(
         if (morphTargets.isNotEmpty()) updateMorphTargets()
 
         val shader = AnimatedModel.SHADER
+
         //Всякие настройки смешивания, материалы и т.п.
-        val texture = consumer(material.texture)
+        val (normal, specular) = applyMaterial(consumer, shader, material)
 
-        GL33.glVertexAttrib4f(1, material.color.x(), material.color.y(), material.color.z(), material.color.w())
-
-        var normal = 0
-        var specular = 0
-
-        if (areShadersEnabled) {
-            //т.к. Iris использует отличные от Optifine id текстур стоит взять их из самого шейдера
-            GL33.glGetUniformLocation(shader.id, "normals").takeIf { it != -1 }?.let {
-                GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
-                normal = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-                GL33.glBindTexture(GL33.GL_TEXTURE_2D, material.normalTexture.toTexture().id)
-            }
-            GL33.glGetUniformLocation(shader.id, "specular").takeIf { it != -1 }?.let {
-                GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
-                specular = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
-                GL33.glBindTexture(GL33.GL_TEXTURE_2D, material.specularTexture.toTexture().id)
-            }
-        }
-
-        GL13.glActiveTexture(COLOR_MAP_INDEX)
-        RenderSystem.bindTexture(texture)
-
-        if (material.doubleSided) RenderSystem.disableCull()
         //Подключение VAO и IBO
         GL33.glBindVertexArray(vao)
         if (indexBuffer != -1) GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
@@ -415,6 +394,44 @@ class Primitive(
         if (tangentBuffer != -1) GL33.glDisableVertexAttribArray(9)
         if (hasShaders) GL20.glDisableVertexAttribArray(8)
 
+    }
+
+    private fun applyMaterial(consumer: (ResourceLocation) -> Int, shader: ShaderInstance, material: Material): Pair<Int, Int> {
+        GL33.glVertexAttrib4f(1, material.color.x(), material.color.y(), material.color.z(), material.color.w())
+
+        var normal = 0
+        var specular = 0
+
+        if (areShadersEnabled) {
+            //т.к. Iris использует отличные от Optifine id текстур стоит взять их из самого шейдера
+            GL33.glGetUniformLocation(shader.id, "normals").takeIf { it != -1 }?.let {
+                GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
+                normal = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
+                GL33.glBindTexture(GL33.GL_TEXTURE_2D, material.normalTexture.toTexture().id)
+            }
+            GL33.glGetUniformLocation(shader.id, "specular").takeIf { it != -1 }?.let {
+                GL33.glActiveTexture(COLOR_MAP_INDEX + GL33.glGetUniformi(shader.id, it))
+                specular = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
+                GL33.glBindTexture(GL33.GL_TEXTURE_2D, material.specularTexture.toTexture().id)
+            }
+        }
+
+        GL13.glActiveTexture(COLOR_MAP_INDEX)
+        val texture = consumer(material.texture)
+        RenderSystem.bindTexture(texture)
+
+        if (material.doubleSided) RenderSystem.disableCull()
+        when(material.blend) {
+            Material.Blend.OPAQUE -> {
+                RenderSystem.disableBlend()
+            }
+            Material.Blend.BLEND -> {
+                RenderSystem.enableBlend()
+                RenderSystem.defaultBlendFunc()
+            }
+        }
+
+        return normal to specular
     }
 
     private fun updateMorphTargets() {

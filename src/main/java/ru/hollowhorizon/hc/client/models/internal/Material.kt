@@ -11,4 +11,7 @@ data class Material(
     var normalTexture: ResourceLocation = "${HollowCore.MODID}:default_normal_map".rl,
     var specularTexture: ResourceLocation = "${HollowCore.MODID}:default_specular_map".rl,
     var doubleSided: Boolean = false,
-)
+    var blend: Blend = Blend.OPAQUE
+) {
+    enum class Blend { OPAQUE, BLEND }
+}
