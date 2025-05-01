@@ -35,10 +35,12 @@ class DefaultHollowIngredient(override val hollowIngredient: HollowIngredient) :
 
     override fun getItems(): Array<ItemStack> {
         if (this.itemStacks == null) {
-            this.itemStacks = hollowIngredient.items.toTypedArray()
+            val items = hollowIngredient.items.toTypedArray()
+            this.itemStacks = items
+            return items
         }
 
-        return this.itemStacks!!
+        return this.itemStacks
     }
 
     override fun test(stack: ItemStack?): Boolean = stack != null && this.hollowIngredient.test(stack)
