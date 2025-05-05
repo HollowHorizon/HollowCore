@@ -45,10 +45,10 @@ import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.animations.PlayMode
 import ru.hollowhorizon.hc.client.models.internal.manager.*
 import ru.hollowhorizon.hc.client.utils.*
-import ru.hollowhorizon.hc.common.utils.rl
-import ru.hollowhorizon.hc.client.utils.use
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
+import ru.hollowhorizon.hc.common.utils.rl
+import kotlin.math.abs
 
 open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimated {
@@ -194,6 +194,18 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                 )
             }
 
+            abs(entity.y - entity.yo) > 1 / 256 -> {
+                val name = manager.typeToAnimationMap[AnimationType.JUMP]?.name ?: return
+                if (layers.any { it.animation == name }) return
+
+                layers += AnimationLayer(
+                    name,
+                    LayerMode.ADD,
+                    PlayMode.ONCE,
+                    1.0f, fadeIn = 5
+                )
+            }
+
             !entity.isAlive -> {
                 val name = manager.typeToAnimationMap[AnimationType.DEATH]?.name ?: return
                 if (layers.any { it.animation == name }) return
@@ -226,7 +238,13 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
     companion object {
         const val NO_MODEL = "%NO_MODEL%"
+        const val MOVEMENT_FACTOR = (1 / 256f) * (1 / 256f) // 1/256 — это минимально заметное смещение в движении
     }
 
-    private fun T.isMoving(): Boolean = deltaMovement.length() > 0.075
+    private fun T.isMoving(): Boolean {
+        val pos = position()
+        val dx = pos.x - xo
+        val dz = pos.z - zo
+        return dx * dx + dz * dz >= MOVEMENT_FACTOR
+    }
 }

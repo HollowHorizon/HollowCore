@@ -64,7 +64,7 @@ fun Vector4f.array(): FloatArray {
 }
 
 enum class AnimationType {
-    IDLE, IDLE_SNEAKED, WALK, WALK_SNEAKED, HURT,
+    IDLE, IDLE_SNEAKED, WALK, WALK_SNEAKED, JUMP, HURT,
     RUN, SWIM, FALL, FLY, SIT, SLEEP, SWING, DEATH;
 
     val hasSpeed get() = this == RUN || this == WALK || this == WALK_SNEAKED
