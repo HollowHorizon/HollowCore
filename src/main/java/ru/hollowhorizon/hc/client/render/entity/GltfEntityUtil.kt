@@ -46,7 +46,7 @@ import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.client.utils.use
 
 object GltfEntityUtil {
-    lateinit var itemRenderer: ItemInHandRenderer
+    val itemRenderer = Minecraft.getInstance().gameRenderer.itemInHandRenderer
 
     @Suppress("DEPRECATION")
     fun render(

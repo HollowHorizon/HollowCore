@@ -138,6 +138,8 @@ object GltfManager : ResourceManagerReloadListener {
 
         createSkinningProgramGL33()
     }
+
+    val allModels get() = models.keys
 }
 
 fun create(data: ByteArray) = create(data, 0, data.size)

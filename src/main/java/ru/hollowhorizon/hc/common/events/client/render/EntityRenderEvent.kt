@@ -1,16 +1,20 @@
 package ru.hollowhorizon.hc.common.events.client.render
 
 import com.google.common.collect.ImmutableMap
+import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.model.EntityModel
 import net.minecraft.client.model.SkullModelBase
 import net.minecraft.client.model.geom.EntityModelSet
 import net.minecraft.client.model.geom.ModelLayerLocation
 import net.minecraft.client.model.geom.builders.LayerDefinition
+import net.minecraft.client.player.AbstractClientPlayer
+import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.entity.*
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.SkullBlock
+import ru.hollowhorizon.hc.common.events.Cancelable
 import ru.hollowhorizon.hc.common.utils.JavaHacks
 import ru.hollowhorizon.hc.common.events.Event
 
@@ -43,4 +47,15 @@ class CreateEntitySkullModels(
     fun registerSkullModel(type: SkullBlock.Type, model: SkullModelBase) {
         builder.put(type, model)
     }
+}
+
+class RenderPlayerEvent(
+    val player: AbstractClientPlayer,
+    val entityYaw: Float,
+    val partialTicks: Float,
+    val poseStack: PoseStack,
+    val buffer: MultiBufferSource,
+    val packedLight: Int
+) : Event, Cancelable {
+    override var isCanceled = false
 }

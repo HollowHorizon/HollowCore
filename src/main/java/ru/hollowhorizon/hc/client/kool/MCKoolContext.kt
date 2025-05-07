@@ -42,7 +42,6 @@ class MCKoolContext : KoolContext() {
         return cursorShapes
     }
 
-    private var prevFrameTime = 0L
     override val backend = MCRenderBackendGl(this)
     private val window = Minecraft.getInstance().window
 
@@ -66,14 +65,8 @@ class MCKoolContext : KoolContext() {
         KoolHooks.resetShaders(this)
         KoolHooks.executeCoroutineTasks()
 
-
-        // determine time delta
-        val time = System.nanoTime()
-        val dt = (time - prevFrameTime) / 1e9
-        prevFrameTime = time
-
         // setup draw queues for all scenes / render passes
-        render(dt)
+        render(Minecraft.getInstance().deltaFrameTime.toDouble() / 20f)
 
         // execute draw queues
         backend.renderFrame(this)

@@ -8,9 +8,9 @@ import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.item.ArmorItem
 import org.joml.Matrix4f
 import org.joml.Quaternionf
-import ru.hollowhorizon.hc.common.utils.getArmorTexture
 import ru.hollowhorizon.hc.client.utils.toTexture
 import ru.hollowhorizon.hc.client.utils.use
+import ru.hollowhorizon.hc.common.utils.getArmorTexture
 import java.util.*
 
 class Node(
@@ -125,7 +125,7 @@ class Node(
         }
     }
 
-
+    val rootNode: Node get() = parent?.rootNode ?: this
     var parent: Node? = null
     val isHead: Boolean get() = name?.lowercase()?.contains("head") == true && parent?.isHead == false
 

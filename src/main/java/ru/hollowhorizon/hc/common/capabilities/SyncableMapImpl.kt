@@ -38,10 +38,10 @@ import net.minecraft.nbt.Tag
 import ru.hollowhorizon.hc.common.utils.nbt.INBTSerializable
 import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
 
-class SyncableMapImpl<K : Any, V : Any>(
+class SyncableMapImpl<K : Any, V : Any>  (
     val map: MutableMap<K, V>,
-    keyType: Class<K>? = null,
-    valueType: Class<V>? = null,
+    keyType: Class<K>,
+    valueType: Class<V>,
     val syncMethod: () -> Unit = {},
 ) : MutableMap<K, V>, INBTSerializable {
     companion object {

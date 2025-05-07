@@ -24,8 +24,10 @@
 
 package ru.hollowhorizon.hc.client.models.internal.animations
 
+import net.minecraft.client.Minecraft
+import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.ai.attributes.Attributes
+import ru.hollowhorizon.hc.client.gui.DebugOverlay
 import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
 import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.Transformation
@@ -48,13 +50,14 @@ open class GLTFAnimationPlayer(val model: AnimatedModel) {
     val typeToAnimationMap: Map<AnimationType, Animation> =
         templates.mapNotNull { it.key to (nameToAnimationMap[it.value] ?: return@mapNotNull null) }.toMap()
     var currentLoopAnimation = AnimationType.IDLE
-    var currentTick = 0
     val head by lazy { nodeModels.filter(Node::isHead) }
 
     fun updateEntity(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
+        if (Minecraft.getInstance().isPaused) return
         val switchRot = capability.switchHeadRot
-        currentSpeed = entity.attributes.getValue(Attributes.MOVEMENT_SPEED).toFloat() / 0.2f
-        if (entity.isShiftKeyDown) currentSpeed *= 0.6f
+        currentSpeed = calculateSpeedViaDeltaMovement(entity)
+        DebugOverlay.debugText["Current Speed"] = currentSpeed.toString()
+
         head.forEach {
             val newRot = capability.headLayer.computeRotation(entity, switchRot, partialTick)
             it.transform.addRotationRight(newRot)
@@ -64,9 +67,11 @@ open class GLTFAnimationPlayer(val model: AnimatedModel) {
     /**
      * Метод, обновляющий все анимации с учётом приоритетов
      */
-    fun update(capability: AnimatedEntityCapability, partialTick: Float) {
+    fun update(capability: AnimatedEntityCapability) {
+        if (Minecraft.getInstance().isPaused) return
         val definedLayer = capability.definedLayer
-        definedLayer.update(currentLoopAnimation, currentSpeed, currentTick, partialTick)
+        definedLayer.update(currentLoopAnimation, currentSpeed)
+        capability.layers.forEach { it.update() }
         val pose = capability.pose
         var rawPose = capability.rawPose
 
@@ -79,7 +84,7 @@ open class GLTFAnimationPlayer(val model: AnimatedModel) {
             capability.pose = null
         }
 
-        rawPose?.update(currentTick, partialTick)
+        rawPose?.update()
 
         val animationOverrides = typeToAnimationMap + capability.animations.mapNotNull {
             it.key to (nameToAnimationMap[it.value] ?: return@mapNotNull null)
@@ -89,19 +94,19 @@ open class GLTFAnimationPlayer(val model: AnimatedModel) {
         nodeModels.forEach { node ->
             node.clearTransform()
             val transform = node.transform.copy()
-            definedLayer.computeTransform(node, animationOverrides, currentSpeed, currentTick, partialTick)
+            definedLayer.computeTransform(node, animationOverrides)
                 ?.let { animPose ->
                     transform.set(node.fromLocal(animPose))
                 }
             node.transform.set(transform)
             layers.forEach {
-                val animPose = it.computeTransform(node, nameToAnimationMap, currentTick, partialTick)
+                val animPose = it.computeTransform(node, nameToAnimationMap)
 
                 if (animPose != null) {
                     when (it.layerMode) {
                         LayerMode.ADD -> transform.add(animPose)
                         LayerMode.OVERWRITE -> {
-                            node.clearTransform()
+                            //node.clearTransform()
                             transform.set(node.fromLocal(animPose))
                         }
                     }
@@ -111,12 +116,28 @@ open class GLTFAnimationPlayer(val model: AnimatedModel) {
             node.transform.set(transform)
         }
 
-        if(rawPose?.canRemove == true) capability.rawPose = null
+        if (rawPose?.canRemove == true) capability.rawPose = null
 
-        layers.removeIf { it.isEnd(currentTick, partialTick) }
+        layers.removeIf { it.isEnd() }
     }
 
-    fun setTick(tick: Int) {
-        this.currentTick = tick
+    companion object {
+        fun calculateSpeedViaDeltaMovement(entity: LivingEntity): Float {
+            // 1) берём горизонтальную часть вектора скорости (блоки/тик)
+            val vel = entity.deltaMovement
+            val dx = vel.x.toFloat()
+            val dz = vel.z.toFloat()
+
+            // 2) вектор «вперед» по ориентации тела
+            val yawRad = Math.toRadians(entity.yBodyRot.toDouble()).toFloat()
+            val forwardX = -Mth.sin(yawRad)
+            val forwardZ = Mth.cos(yawRad)
+
+            // 3) проекция вектора скорости на вектор «вперед» (чтобы знать направленную скорость)
+            val dot = dx * forwardX + dz * forwardZ
+
+            // 4) переводим блоки/тик → блоки/сек
+            return dot * 20f
+        }
     }
 }

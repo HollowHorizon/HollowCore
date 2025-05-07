@@ -31,13 +31,17 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import net.minecraft.world.entity.LivingEntity
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
-import ru.hollowhorizon.hc.common.objects.molang.asMolang
+import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.particles.ParticleEffect
 import ru.hollowhorizon.hc.client.particles.Transform
-import ru.hollowhorizon.hc.common.utils.rl
+import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterCommandsEvent
+import ru.hollowhorizon.hc.common.objects.molang.asMolang
+import ru.hollowhorizon.hc.common.utils.get
+import ru.hollowhorizon.hc.common.utils.rl
 
 object HollowCommands {
     var brightness = 1f
@@ -90,6 +94,14 @@ object HollowCommands {
                     (Minecraft.getInstance().level as ParticlesProvider).system.remove(
                         file.particleEffect.description.identifier
                     )
+                }
+
+                "player-model"(
+                    arg("model", StringArgumentType.greedyString()) {
+                        GltfManager.allModels.map { it.toString() } + "%NO_MODEL%"
+                    }
+                ) {
+                    source.player?.let { it[AnimatedEntityCapability::class].model = StringArgumentType.getString(this, "model") }
                 }
             }
         }

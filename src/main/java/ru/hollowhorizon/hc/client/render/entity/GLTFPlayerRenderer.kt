@@ -27,15 +27,13 @@ package ru.hollowhorizon.hc.client.render.entity
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
-import net.minecraft.client.renderer.entity.EntityRenderer
-import net.minecraft.client.renderer.entity.EntityRendererProvider
 import net.minecraft.client.renderer.texture.OverlayTexture
-import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.FlyingAnimal
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemDisplayContext
 import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.models.internal.ModelData
@@ -44,34 +42,26 @@ import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.animations.PlayMode
 import ru.hollowhorizon.hc.client.models.internal.manager.*
+import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer.Companion.MOVEMENT_FACTOR
 import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
 import ru.hollowhorizon.hc.common.utils.rl
 import kotlin.math.abs
 
-open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
-    EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimated {
-    private val itemInHandRenderer = manager.itemInHandRenderer
+object GLTFPlayerRenderer {
+    private val itemInHandRenderer = Minecraft.getInstance().gameRenderer.itemInHandRenderer
 
-    override fun getTextureLocation(entity: T): ResourceLocation {
-        return TextureManager.INTENTIONAL_MISSING_TEXTURE
-    }
-
-    @Suppress("DEPRECATION")
-    override fun render(
-        entity: T,
-        yaw: Float,
+    fun render(
+        entity: Player,
         partialTick: Float,
         stack: PoseStack,
         source: MultiBufferSource,
         packedLight: Int,
     ) {
-        super.render(entity, yaw, partialTick, stack, source, packedLight)
-
         val capability = entity[AnimatedEntityCapability::class]
         val modelPath = capability.model
-        if (modelPath == NO_MODEL) return
+        if (modelPath == GLTFEntityRenderer.NO_MODEL) return
 
         val model = GltfManager.getOrCreate(modelPath.rl)
 
@@ -114,7 +104,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         stack.popPose()
     }
 
-    protected open fun drawVisuals(
+    private fun drawVisuals(
         entity: LivingEntity,
         stack: PoseStack,
         node: Node,
@@ -130,8 +120,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         ) {
             val isLeft = node.name.contains("left", ignoreCase = true)
             val item =
-                (if (isLeft) entity.getItemInHand(InteractionHand.OFF_HAND) else entity.getItemInHand(InteractionHand.MAIN_HAND))
-                    ?: return
+                (if (isLeft) entity.getItemInHand(InteractionHand.OFF_HAND) else entity.getItemInHand(InteractionHand.MAIN_HAND)) ?: return
 
             stack.pushPose()
             stack.mulPose(Quaternionf().rotateX(-90 * Mth.DEG_TO_RAD))
@@ -151,7 +140,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     }
 
     private fun preRender(
-        entity: T,
+        entity: Player,
         capability: AnimatedEntityCapability,
         manager: GLTFAnimationPlayer,
         stack: PoseStack,
@@ -159,78 +148,6 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         stack.mulPoseMatrix(capability.transform.matrix)
         stack.last().normal().mul(capability.transform.normalMatrix)
         stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
-        updateAnimations(entity, capability, manager)
-    }
-
-    companion object {
-
-        fun updateAnimations(entity: LivingEntity, capability: AnimatedEntityCapability, manager: GLTFAnimationPlayer) {
-            val layers = capability.layers
-            when {
-                entity.hurtTime > 0 -> {
-                    val name = manager.typeToAnimationMap[AnimationType.HURT]?.name ?: return
-                    if (layers.any { it.animation == name }) {
-                        layers.filter { it.animation == name }.forEach { it.reset() }
-                        return
-                    }
-
-                    layers += AnimationLayer(
-                        name,
-                        LayerMode.ADD,
-                        PlayMode.ONCE,
-                        1.0f, fadeIn = 5
-                    )
-                }
-
-                entity.swinging -> {
-                    val name = manager.typeToAnimationMap[AnimationType.SWING]?.name ?: return
-                    if (layers.any { it.animation == name }) return
-
-                    layers += AnimationLayer(
-                        name,
-                        LayerMode.ADD,
-                        PlayMode.ONCE,
-                        1.0f, fadeIn = 5
-                    )
-                }
-
-                !entity.isAlive -> {
-                    val name = manager.typeToAnimationMap[AnimationType.DEATH]?.name ?: return
-                    if (layers.any { it.animation == name }) return
-
-                    layers += AnimationLayer(
-                        name,
-                        LayerMode.ADD,
-                        PlayMode.LAST_FRAME,
-                        1.0f, fadeIn = 5
-                    )
-                }
-            }
-
-            manager.currentLoopAnimation = when {
-                entity is FlyingAnimal && entity.isFlying -> AnimationType.FLY
-                entity.isSleeping -> AnimationType.SLEEP
-                entity.vehicle != null -> AnimationType.SIT
-                entity.fallFlyingTicks > 4 -> AnimationType.FALL
-
-                entity.jumping -> AnimationType.JUMP
-                entity.isMoving() -> {
-                    when {
-                        entity.isVisuallySwimming -> AnimationType.SWIM
-                        entity.isShiftKeyDown -> AnimationType.WALK_SNEAKED
-                        entity.isSprinting -> AnimationType.RUN
-                        else -> AnimationType.WALK
-                    }
-                }
-
-                else -> AnimationType.IDLE
-            }
-        }
-
-        private fun LivingEntity.isMoving() =
-            abs(GLTFAnimationPlayer.calculateSpeedViaDeltaMovement(this)) >= MOVEMENT_FACTOR
-
-        const val NO_MODEL = "%NO_MODEL%"
-        const val MOVEMENT_FACTOR = (1 / 256f)
+        GLTFEntityRenderer.updateAnimations(entity, capability, manager)
     }
 }

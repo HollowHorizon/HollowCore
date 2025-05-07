@@ -56,8 +56,7 @@ class StartAnimationPacket(
                     name,
                     layerMode,
                     playType,
-                    speed,
-                    0
+                    speed
                 )
             }
         }

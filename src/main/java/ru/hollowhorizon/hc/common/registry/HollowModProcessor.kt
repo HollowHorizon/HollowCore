@@ -25,7 +25,7 @@
 package ru.hollowhorizon.hc.common.registry
 
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.api.HollowMod
+import ru.hollowhorizon.hc.api.Init
 import ru.hollowhorizon.hc.api.utils.Polymorphic
 import ru.hollowhorizon.hc.common.utils.nbt.NBT_TAGS
 import ru.hollowhorizon.hc.common.capabilities.CAPABILITIES
@@ -94,7 +94,7 @@ object HollowModProcessor {
             NBT_TAGS.computeIfAbsent(annotation.baseClass) { ArrayList() }.add(type.kotlin)
         }
 
-        registerClassHandler<HollowMod> { type, _ ->
+        registerClassHandler<Init> { type, _ ->
             type.kotlin.objectInstance ?: throw IllegalArgumentException("${type.simpleName} must be an object!")
         }
 

@@ -37,7 +37,7 @@ object SubModelPlayer {
             node.clearTransform()
             val transform = node.transform.copy()
             layers.forEach {
-                val animPose = it.computeTransform(node, model.animationPlayer.nameToAnimationMap, currentTick, partialTick)
+                val animPose = it.computeTransform(node, model.animationPlayer.nameToAnimationMap)
 
                 if (animPose != null) {
                     when (it.layerMode) {
@@ -52,6 +52,6 @@ object SubModelPlayer {
             node.transform.set(transform)
         }
 
-        layers.removeIf { it.isEnd(currentTick, partialTick) }
+        layers.removeIf { it.isEnd() }
     }
 }

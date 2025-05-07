@@ -61,11 +61,9 @@ class AnimatedModel(val modelTree: Model) {
     val nodes = modelTree.walkNodes().associateBy { (it.name ?: "Unnamed") }
     val animationPlayer = GLTFAnimationPlayer(this)
     var visuals: NodeRenderer = { _, _, _, _, _ -> }
-    private val hasSkinning = nodes.values.any { it.skin != null }
 
-    fun update(capability: AnimatedEntityCapability, currentTick: Int, partialTick: Float) {
-        animationPlayer.setTick(currentTick)
-        animationPlayer.update(capability, partialTick)
+    fun update(capability: AnimatedEntityCapability) {
+        animationPlayer.update(capability)
     }
 
     fun entityUpdate(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {

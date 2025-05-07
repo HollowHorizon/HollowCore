@@ -93,6 +93,7 @@ enum class AnimationType {
                     else -> 5
                 }
             } ?: ""
+            animations[JUMP] = names.findOr("jump", "hop", "leap") ?: animations[WALK] ?: ""
             animations[HURT] = names.findOr("hurt", "damage") ?: ""
             animations[WALK_SNEAKED] = names.findAnd("walk", "sneak") ?: animations[WALK] ?: ""
             animations[RUN] = names.findOr("run", "flee", "dash") ?: animations[WALK] ?: ""

@@ -24,6 +24,7 @@
 
 package ru.hollowhorizon.hc.client.models.internal.manager
 
+import de.fabmax.kool.util.Time
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.serialization.Serializable
 import net.minecraft.nbt.Tag
@@ -32,11 +33,11 @@ import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.Transform
 import ru.hollowhorizon.hc.client.models.internal.Transformation
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
+import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
+import ru.hollowhorizon.hc.common.capabilities.HollowCapability
 import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
 import ru.hollowhorizon.hc.common.utils.nbt.deserialize
 import ru.hollowhorizon.hc.common.utils.nbt.serialize
-import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
-import ru.hollowhorizon.hc.common.capabilities.HollowCapability
 
 /**
  * Represents a data store for an animated object, providing various properties,
@@ -82,9 +83,11 @@ class Pose(val map: MutableMap<Node, Transformation>) {
     var fadeIn = 0f
     var fadeOut = 0f
     var shouldRemove = false
-    private var startTime = 0
-    private var endTime = 0
-    val canRemove get() = shouldRemove && fadeOut >= 10f
+    val canRemove get() = shouldRemove && fadeOut >= 1f
+
+    private var startTime = 0f
+    private var endTime = 0f
+    private var currentTime = 0f
 
     fun computeTransform(
         node: Node,
@@ -104,13 +107,15 @@ class Pose(val map: MutableMap<Node, Transformation>) {
         }
     }
 
-    fun update(currentTick: Int, partialTick: Float) {
-        if (fadeIn < 10f) {
-            if(startTime == 0) startTime = currentTick
-            fadeIn = currentTick - startTime + partialTick
+    fun update() {
+        currentTime += Time.deltaT
+
+        if (fadeIn < 1f) {
+            if (startTime == 0f) startTime = currentTime
+            fadeIn = currentTime - startTime
         } else if (shouldRemove) {
-            if(endTime == 0) endTime = currentTick
-            fadeOut = currentTick - endTime + partialTick
+            if (endTime == 0f) endTime = currentTime
+            fadeOut = currentTime - endTime
         }
     }
 }

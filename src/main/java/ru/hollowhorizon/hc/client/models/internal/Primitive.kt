@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.client.models.internal
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
+import de.fabmax.kool.math.Mat4f
 import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.resources.ResourceLocation
 import org.joml.Matrix3f

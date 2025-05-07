@@ -8,7 +8,7 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.world.Container
 import net.minecraft.world.item.TooltipFlag
 import org.lwjgl.glfw.GLFW
-import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT_DATA
+import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT
 import ru.hollowhorizon.hc.client.render.render
 import ru.hollowhorizon.hc.common.containers.ClientContainerManager
 
@@ -26,7 +26,7 @@ fun UiScope.DragStackTooltip() {
 
             Text(dragItem.count.toString()) {
                 modifier.align(AlignmentX.End, AlignmentY.Bottom)
-                    .font(MsdfFont(MONOCRAFT_DATA, 26f)).zLayer(2500)
+                    .font(MsdfFont(MONOCRAFT, 26f)).zLayer(2500)
             }
         }
         modifier.background(null)
@@ -47,7 +47,7 @@ fun UiScope.Slot(container: Container, slotId: Int, slotSize: Dimension) = GlCan
     val item = container.getItem(slotId)
     if (item.count > 0) Text(item.count.toString()) {
         modifier.align(AlignmentX.End, AlignmentY.Bottom)
-            .font(MsdfFont(MONOCRAFT_DATA, 26f)).zLayer(400)
+            .font(MsdfFont(MONOCRAFT, 26f)).zLayer(400)
     }
 
     val state = this@Slot.remember { TooltipState(0.0) }

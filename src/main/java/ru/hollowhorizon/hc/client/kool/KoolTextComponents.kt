@@ -8,7 +8,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.ComponentContents
 import net.minecraft.network.chat.contents.LiteralContents
 import net.minecraft.network.chat.contents.TranslatableContents
-import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT_DATA
+import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT
 
 fun UiScope.Component(
     vararg components: Component,
@@ -57,7 +57,7 @@ private fun Component.attributes(parentColor: Int): Pair<String, TextAttributes>
 
     if (isObfuscated) text = obfuscatedString(text.length)
 
-    return text to TextAttributes(MsdfFont(MONOCRAFT_DATA, 30f), Color(red, green, blue))
+    return text to TextAttributes(MsdfFont(MONOCRAFT, 30f), Color(red, green, blue))
 }
 
 private fun obfuscatedString(length: Int): String {

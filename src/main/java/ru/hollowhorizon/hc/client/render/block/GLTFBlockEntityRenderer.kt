@@ -79,7 +79,7 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
             else -> {}
         }
 
-        model.update(capability, level.gameTime.toInt(), partialTick)
+        model.update(capability)
 
         model.render(
             stack,

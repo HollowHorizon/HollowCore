@@ -9,6 +9,7 @@ data class GltfAnimation(
     val channels: ListOrSingle<Channel>,
     val samplers: ListOrSingle<Sampler>,
     val name: String? = null,
+    val speed: Float = 1f
 ) {
 
     @Serializable

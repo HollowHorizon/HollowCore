@@ -37,7 +37,6 @@ import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.EntityBlock
 import org.joml.Quaternionf
-import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
@@ -83,7 +82,7 @@ object GLTFItemRenderer : BlockEntityWithoutLevelRenderer(
 
         stack.translate(0.5, 0.0, 0.5)
         preRender(capability, model.animationPlayer, stack)
-        model.update(capability, TickHandler.currentTicks, TickHandler.partialTick)
+        model.update(capability)
 
         model.render(
             stack,

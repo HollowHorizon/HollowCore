@@ -1,11 +1,13 @@
 package ru.hollowhorizon.hc.client.kool
 
 import com.mojang.blaze3d.platform.GlStateManager
+import com.mojang.blaze3d.systems.RenderSystem
 import de.fabmax.kool.pipeline.CullMethod
 import de.fabmax.kool.pipeline.DepthCompareOp
 import de.fabmax.kool.pipeline.backend.gl.GlRenderPass
 import de.fabmax.kool.pipeline.backend.gl.glOp
 import net.minecraft.client.Minecraft
+import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.client.kool.gl.MCGlApi
 
@@ -14,11 +16,11 @@ object KoolDrawer {
         val scenes = KoolManager.context.scenes
         scenes.forEach { it.isVisible = it.isScreenScene() }
         guiFramebuffer.clear(Minecraft.ON_OSX)
-        draw()
+        draw(true)
         scenes.forEach { it.isVisible = !it.isScreenScene() }
     }
 
-    fun draw() {
+    fun draw(isScreenPass: Boolean = false) {
         MCGlApi.clipControl(MCGlApi.LOWER_LEFT, MCGlApi.NEGATIVE_ONE_TO_ONE)
         val activeTexture = GlStateManager._getActiveTexture()
         val currentTexture = GL33.glGetInteger(GL33.GL_TEXTURE_BINDING_2D)
@@ -46,8 +48,12 @@ object KoolDrawer {
             else -> MCGlApi.disable(MCGlApi.CULL_FACE)
         }
         if(GlRenderPass.GlState.lineWidth != 0f) MCGlApi.lineWidth(GlRenderPass.GlState.lineWidth)
-
-        MCGlApi.disable(MCGlApi.DEPTH_TEST)
+        if(!isScreenPass) {
+            MCGlApi.enable(MCGlApi.DEPTH_TEST)
+            MCGlApi.depthFunc(MCGlApi.LEQUAL)
+        } else {
+            MCGlApi.disable(MCGlApi.DEPTH_TEST)
+        }
 
         KoolManager.context.renderFrame()
 

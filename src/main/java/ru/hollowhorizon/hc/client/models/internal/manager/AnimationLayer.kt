@@ -24,7 +24,7 @@
 
 package ru.hollowhorizon.hc.client.models.internal.manager
 
-import com.mojang.blaze3d.Blaze3D
+import de.fabmax.kool.util.Time
 import kotlinx.serialization.Serializable
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
@@ -35,6 +35,7 @@ import ru.hollowhorizon.hc.client.models.internal.animations.Animation
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationState
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.PlayMode
+import kotlin.math.abs
 
 
 @Serializable
@@ -43,25 +44,29 @@ data class AnimationLayer(
     val layerMode: LayerMode,
     val playMode: PlayMode,
     val speed: Float,
-    var time: Int = 0,
     var state: AnimationState = AnimationState.STARTING,
     var fadeIn: Int = 10,
     var fadeOut: Int = 10,
 ) {
-    private var finishTicks = 0
     private val fadeInSeconds get() = fadeIn / 20f
     private val fadeOutSeconds get() = fadeOut / 20f
 
-    fun isEnd(
-        currentTick: Int,
-        partialTick: Float,
-    ): Boolean {
+    private var currentTime = 0f
+    private var finishTime = 0f
+
+    fun reset() {
+        currentTime = 0f
+        finishTime = 0f
+    }
+
+    fun update() {
+        currentTime += Time.deltaT
+    }
+
+    fun isEnd(): Boolean {
         if (state == AnimationState.FINISHED) {
-            if (finishTicks == 0) finishTicks = currentTick
-
-            val currentTime = (currentTick - finishTicks + partialTick) / 20f
-
-            return currentTime >= fadeOutSeconds
+            if (finishTime == 0f) finishTime = currentTime
+            return currentTime - finishTime >= fadeOutSeconds
         }
         return false
     }
@@ -69,13 +74,10 @@ data class AnimationLayer(
     fun computeTransform(
         node: Node,
         nameToAnimationMap: Map<String, Animation>,
-        currentTick: Int,
-        partialTick: Float,
     ): Transformation? {
         val animation = nameToAnimationMap[animation] ?: return null
 
-        if (time == 0) time = currentTick
-        val rawTime = (currentTick - time + partialTick) / 20f * speed
+        val rawTime = currentTime * speed
 
         val currentTime = when (playMode) {
             PlayMode.LOOPED -> rawTime % animation.maxTime
@@ -106,11 +108,11 @@ data class AnimationLayer(
 
             AnimationState.PLAYING -> animation.compute(node, currentTime)
             AnimationState.FINISHED -> {
-                if (finishTicks == 0) finishTicks = currentTick
+                if (finishTime == 0f) finishTime = currentTime
                 Transformation.lerp(
                     animation.compute(node, currentTime),
                     null,
-                    (currentTick - finishTicks + partialTick) / 20f / fadeOutSeconds
+                    (currentTime - finishTime) / fadeOutSeconds
                 )
             }
         }
@@ -118,47 +120,59 @@ data class AnimationLayer(
 }
 
 class DefinedLayer {
-    private var currentAnimation = AnimationType.IDLE
-    private var lastAnimation = AnimationType.IDLE
-    private var currentStartTime = 0.0
-    private var priority = 0f
-    var oldTime = 0f
+    private var current = AnimationType.IDLE
+    private var last    = AnimationType.IDLE
 
-    fun update(animationType: AnimationType, currentSpeed: Float, currentTick: Int, partialTick: Float) {
-        val currentTime = Blaze3D.getTime()
+    private var currentElapsed   = 0f
+    private var lastElapsed      = 0f
+    private var transitionElapsed = 0f
 
-        val difference = (currentTime - currentStartTime).coerceAtMost(0.25)
-        priority = (difference * 4).toFloat()
-        if (animationType == currentAnimation) return
-        lastAnimation = currentAnimation
-        currentAnimation = animationType
+    companion object {
+        const val TRANSITION_FACTOR = 0.25f
+    }
 
-        currentStartTime = currentTime - (0.25 - difference)
-        priority = 1f - priority
+    fun update(next: AnimationType, speed: Float) {
+        val dtAnim = Time.deltaT * if (next.hasSpeed) abs(speed) else 1f
+        currentElapsed   += dtAnim
+        lastElapsed      += dtAnim
+        transitionElapsed += Time.deltaT
+
+        // если анимация не сменилась — только обновляем таймер перехода
+        if (next == current) return
+
+        // начало перехода в новую
+        last    = current
+        current = next
+
+        // сбрасываем
+        lastElapsed      = currentElapsed    // старая анимация начинается с того же момента, что и новая
+        currentElapsed   = 0f
+        transitionElapsed = 0f
     }
 
     fun computeTransform(
         node: Node,
-        animationCache: Map<AnimationType, Animation>,
-        currentSpeed: Float,
-        currentTick: Int,
-        partialTick: Float,
+        animations: Map<AnimationType, Animation>
     ): Transformation? {
-        val f = animationCache[currentAnimation]
-        val s = animationCache[lastAnimation]
+        val f = animations[current] ?: return null
+        val s = animations[last]    ?: return f.compute(node, wrap(currentElapsed, f.maxTime, current))
 
-        val speed = if (currentAnimation.hasSpeed) currentSpeed else 1.0f
+        val t = (transitionElapsed / TRANSITION_FACTOR).coerceIn(0f, 1f)
 
-        val time = (currentTick + partialTick) / 20 * speed
+        val timeCur  = wrap(currentElapsed,   f.maxTime, current)
+        val timeLast = wrap(lastElapsed,      s.maxTime, last)
 
-        val firstTime = time % (f?.maxTime ?: 0f)
-        val secondTime = time % (s?.maxTime ?: 0f)
+        val poseCur  = f.compute(node, timeCur)
+        val poseLast = s.compute(node, timeLast)
 
-        return Transformation.lerp(
-            s?.compute(node, secondTime),
-            f?.compute(node, firstTime),
-            priority
-        )
+        return Transformation.lerp(poseLast, poseCur, t)
+    }
+
+    private fun wrap(time: Float, max: Float, type: AnimationType): Float {
+        if (max <= 0f) return 0f
+        var r = time % max
+        if (r < 0f) r += max
+        return r
     }
 }
 

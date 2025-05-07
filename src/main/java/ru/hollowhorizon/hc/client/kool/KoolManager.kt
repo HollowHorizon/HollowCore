@@ -30,7 +30,7 @@ object KoolManager {
     }
 
     val context = MCKoolContext()
-    val MONOCRAFT_DATA by lazy {
+    val MONOCRAFT by lazy {
         val fontInfo = JsonFormat.decodeFromStream<MsdfMeta>("hollowcore:fonts/monocraft.json".rl.stream)
         val msdfMap = Texture2d(TexFormat.RGBA, MipMapping.Off, SamplerSettings(), "MsdfFont:${fontInfo.name}") {
             Assets.loadImage2d("fonts/monocraft.png")
