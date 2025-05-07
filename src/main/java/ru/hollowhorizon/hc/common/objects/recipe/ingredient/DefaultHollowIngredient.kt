@@ -40,7 +40,7 @@ class DefaultHollowIngredient(override val hollowIngredient: HollowIngredient) :
             return items
         }
 
-        return this.itemStacks
+        return this.itemStacks ?: error("ItemStack list is null!")
     }
 
     override fun test(stack: ItemStack?): Boolean = stack != null && this.hollowIngredient.test(stack)
