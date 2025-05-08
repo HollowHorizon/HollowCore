@@ -74,6 +74,7 @@ data class AnimationLayer(
     fun computeTransform(
         node: Node,
         nameToAnimationMap: Map<String, Animation>,
+        baseTransform: Transformation?
     ): Transformation? {
         val animation = nameToAnimationMap[animation] ?: return null
 
@@ -100,7 +101,7 @@ data class AnimationLayer(
                     state = AnimationState.PLAYING
                 }
                 Transformation.lerp(
-                    null,
+                    baseTransform,
                     animation.compute(node, rawTime),
                     (rawTime / fadeInSeconds).coerceAtMost(1.0f)
                 )
@@ -111,7 +112,7 @@ data class AnimationLayer(
                 if (finishTime == 0f) finishTime = currentTime
                 Transformation.lerp(
                     animation.compute(node, currentTime),
-                    null,
+                    baseTransform,
                     (currentTime - finishTime) / fadeOutSeconds
                 )
             }

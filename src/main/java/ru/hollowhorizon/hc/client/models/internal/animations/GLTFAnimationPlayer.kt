@@ -100,17 +100,21 @@ open class GLTFAnimationPlayer(val model: AnimatedModel) {
                 }
             node.transform.set(transform)
             layers.forEach {
-                val animPose = it.computeTransform(node, nameToAnimationMap)
 
-                if (animPose != null) {
-                    when (it.layerMode) {
-                        LayerMode.ADD -> transform.add(animPose)
-                        LayerMode.OVERWRITE -> {
-                            //node.clearTransform()
-                            transform.set(node.fromLocal(animPose))
-                        }
+                when (it.layerMode) {
+                    LayerMode.ADD -> {
+                        val animPose = it.computeTransform(node, nameToAnimationMap, null)
+                        animPose?.let(transform::add)
+                    }
+
+                    LayerMode.OVERWRITE -> {
+                        it.computeTransform(node, nameToAnimationMap, node.toLocal(transform))
+                            ?.let { animPose ->
+                                transform.set(node.fromLocal(animPose))
+                            }
                     }
                 }
+
             }
             rawPose?.let { transform.add(it.computeTransform(node) ?: Transformation(), false) }
             node.transform.set(transform)

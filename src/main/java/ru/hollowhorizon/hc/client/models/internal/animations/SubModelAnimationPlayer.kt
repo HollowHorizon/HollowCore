@@ -32,22 +32,26 @@ import ru.hollowhorizon.hc.client.models.internal.manager.SubModel
 object SubModelPlayer {
     fun update(model: AnimatedModel, capability: SubModel, currentTick: Int, partialTick: Float) {
         val layers = capability.layers
-
+        val nameToAnimationMap = model.animationPlayer.nameToAnimationMap
         model.animationPlayer.nodeModels.forEach { node ->
             node.clearTransform()
             val transform = node.transform.copy()
             layers.forEach {
-                val animPose = it.computeTransform(node, model.animationPlayer.nameToAnimationMap)
 
-                if (animPose != null) {
-                    when (it.layerMode) {
-                        LayerMode.ADD -> transform.add(animPose)
-                        LayerMode.OVERWRITE -> {
-                            node.clearTransform()
-                            transform.set(node.fromLocal(animPose))
-                        }
+                when (it.layerMode) {
+                    LayerMode.ADD -> {
+                        val animPose = it.computeTransform(node, nameToAnimationMap, null)
+                        animPose?.let(transform::add)
+                    }
+
+                    LayerMode.OVERWRITE -> {
+                        it.computeTransform(node, nameToAnimationMap, transform)
+                            ?.let { animPose ->
+                                transform.set(node.fromLocal(animPose))
+                            }
                     }
                 }
+
             }
             node.transform.set(transform)
         }

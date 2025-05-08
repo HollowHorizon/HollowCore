@@ -176,7 +176,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
                     layers += AnimationLayer(
                         name,
-                        LayerMode.ADD,
+                        LayerMode.OVERWRITE,
                         PlayMode.ONCE,
                         1.0f, fadeIn = 5
                     )
@@ -188,7 +188,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
                     layers += AnimationLayer(
                         name,
-                        LayerMode.ADD,
+                        LayerMode.OVERWRITE,
                         PlayMode.ONCE,
                         1.0f, fadeIn = 5
                     )
@@ -200,7 +200,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
                     layers += AnimationLayer(
                         name,
-                        LayerMode.ADD,
+                        LayerMode.OVERWRITE,
                         PlayMode.LAST_FRAME,
                         1.0f, fadeIn = 5
                     )
@@ -213,7 +213,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
                 entity.vehicle != null -> AnimationType.SIT
                 entity.fallFlyingTicks > 4 -> AnimationType.FALL
 
-                entity.jumping -> AnimationType.JUMP
+                entity.jumping || entity.y - entity.yo > MOVEMENT_FACTOR -> AnimationType.JUMP
                 entity.isMoving() -> {
                     when {
                         entity.isVisuallySwimming -> AnimationType.SWIM
