@@ -48,11 +48,12 @@ object KoolDrawer {
             else -> MCGlApi.disable(MCGlApi.CULL_FACE)
         }
         if(GlRenderPass.GlState.lineWidth != 0f) MCGlApi.lineWidth(GlRenderPass.GlState.lineWidth)
-        if(!isScreenPass) {
+        if(isScreenPass) {
+            MCGlApi.disable(MCGlApi.DEPTH_TEST)
+            MCGlApi.depthFunc(MCGlApi.GEQUAL)
+        } else {
             MCGlApi.enable(MCGlApi.DEPTH_TEST)
             MCGlApi.depthFunc(MCGlApi.LEQUAL)
-        } else {
-            MCGlApi.disable(MCGlApi.DEPTH_TEST)
         }
 
         KoolManager.context.renderFrame()

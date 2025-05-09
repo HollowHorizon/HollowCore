@@ -24,6 +24,7 @@
 
 package ru.hollowhorizon.hc.client.models.internal.animations
 
+import net.irisshaders.iris.api.v0.IrisApi
 import net.minecraft.client.Minecraft
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
@@ -34,6 +35,7 @@ import ru.hollowhorizon.hc.client.models.internal.Transformation
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.LayerMode
 import ru.hollowhorizon.hc.client.models.internal.manager.Pose
+import ru.hollowhorizon.hc.fabric.internal.IrisHelper
 
 
 open class GLTFAnimationPlayer(val model: AnimatedModel) {
@@ -53,7 +55,7 @@ open class GLTFAnimationPlayer(val model: AnimatedModel) {
     val head by lazy { nodeModels.filter(Node::isHead) }
 
     fun updateEntity(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
-        if (Minecraft.getInstance().isPaused) return
+        if (Minecraft.getInstance().isPaused || IrisHelper.isShadowRendering()) return
         val switchRot = capability.switchHeadRot
         currentSpeed = calculateSpeedViaDeltaMovement(entity)
         DebugOverlay.debugText["Current Speed"] = currentSpeed.toString()
@@ -68,7 +70,7 @@ open class GLTFAnimationPlayer(val model: AnimatedModel) {
      * Метод, обновляющий все анимации с учётом приоритетов
      */
     fun update(capability: AnimatedEntityCapability) {
-        if (Minecraft.getInstance().isPaused) return
+        if (Minecraft.getInstance().isPaused || IrisHelper.isShadowRendering()) return
         val definedLayer = capability.definedLayer
         definedLayer.update(currentLoopAnimation, currentSpeed)
         capability.layers.forEach { it.update() }
