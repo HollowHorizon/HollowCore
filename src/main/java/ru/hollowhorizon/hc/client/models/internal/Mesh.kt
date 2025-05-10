@@ -17,6 +17,7 @@ data class Mesh(
         consumer: (ResourceLocation) -> Int,
     ) {
         primitives.forEach {
+            it.setWeights(node.transform.weights.toFloatArray())
             it.render(stack, node, consumer)
         }
     }

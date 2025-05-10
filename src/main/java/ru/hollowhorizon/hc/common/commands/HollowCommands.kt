@@ -31,12 +31,14 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import net.minecraft.world.entity.LivingEntity
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
+import ru.hollowhorizon.hc.client.models.internal.animations.PlayMode
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.internal.manager.AnimationLayer
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.LayerMode
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.particles.ParticleEffect
 import ru.hollowhorizon.hc.client.particles.Transform
-import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterCommandsEvent
 import ru.hollowhorizon.hc.common.objects.molang.asMolang
@@ -101,7 +103,19 @@ object HollowCommands {
                         GltfManager.allModels.map { it.toString() } + "%NO_MODEL%"
                     }
                 ) {
-                    source.player?.let { it[AnimatedEntityCapability::class].model = StringArgumentType.getString(this, "model") }
+                    source.player?.let {
+                        it[AnimatedEntityCapability::class].model = StringArgumentType.getString(this, "model")
+                    }
+                }
+
+                "player-model-anim"(
+                    arg("anim", StringArgumentType.greedyString())
+                ) {
+                    val name = StringArgumentType.getString(this, "anim")
+                    source.player?.let {
+                        if(name in it[AnimatedEntityCapability::class].layers.map { it.animation }) it[AnimatedEntityCapability::class].layers.removeIf { it.animation == name }
+                        else it[AnimatedEntityCapability::class].layers.add(AnimationLayer(name, LayerMode.OVERWRITE, PlayMode.LOOPED, 1f))
+                    }
                 }
             }
         }

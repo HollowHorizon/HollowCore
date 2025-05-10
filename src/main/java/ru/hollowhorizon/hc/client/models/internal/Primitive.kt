@@ -23,7 +23,7 @@ class Primitive(
     val mode: Int,
     val material: Material,
     private val morphTargets: List<Map<String, FloatArray>>,
-    private val weights: FloatArray,
+    private var weights: FloatArray,
 ) {
     val hasSkinning = attributes[GltfMesh.Primitive.ATTRIBUTE_JOINTS_0] != null
             && attributes[GltfMesh.Primitive.ATTRIBUTE_WEIGHTS_0] != null
@@ -48,6 +48,11 @@ class Primitive(
     private var skinVertexBuffer = -1
     private var skinNormalBuffer = -1
     private var jointMatrixBuffer = -1
+
+    fun setWeights(values: FloatArray) {
+        if(values.isEmpty()) return
+        weights = values
+    }
 
     fun init() {
         val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
