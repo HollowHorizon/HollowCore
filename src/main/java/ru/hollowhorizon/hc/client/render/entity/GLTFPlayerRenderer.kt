@@ -47,6 +47,7 @@ import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
 import ru.hollowhorizon.hc.common.utils.rl
+import ru.hollowhorizon.hc.fabric.internal.IrisHelper
 import kotlin.math.abs
 
 object GLTFPlayerRenderer {
@@ -73,8 +74,12 @@ object GLTFPlayerRenderer {
         stack.mulPose(Quaternionf().rotateY(-lerpBodyRot * Mth.DEG_TO_RAD))
 
         model.visuals = ::drawVisuals
-        model.update(capability)
+
+        // Без этого от 1 лица не будет обновляться тень
+        IrisHelper.bypassShadow = Minecraft.getInstance().options.cameraType.isFirstPerson
         model.entityUpdate(entity, capability, partialTick)
+        model.update(capability)
+        IrisHelper.bypassShadow = false
 
         model.render(
             stack,

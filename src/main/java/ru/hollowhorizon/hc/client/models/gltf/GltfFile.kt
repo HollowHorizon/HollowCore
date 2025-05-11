@@ -111,6 +111,7 @@ data class GltfFile(
     val materials: ListOrSingle<GltfMaterial> = emptyList(),
     val meshes: List<GltfMesh> = emptyList(),
     val nodes: List<GltfNode> = emptyList(),
+    val cameras: List<GltfCamera> = emptyList(),
     val samplers: List<GltfSampler> = emptyList(),
     val scene: Int = 0,
     val scenes: List<GltfScene> = emptyList(),

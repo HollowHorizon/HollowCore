@@ -13,5 +13,7 @@ object IrisHelper {
 
     val hasIris = ModList.isLoaded("iris") || ModList.isLoaded("oculus")
 
-    fun isShadowRendering() = hasIris && IrisApi.getInstance().isRenderingShadowPass
+    var bypassShadow = false
+
+    fun isShadowRendering() = (hasIris && IrisApi.getInstance().isRenderingShadowPass) && !bypassShadow
 }

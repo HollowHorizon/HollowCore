@@ -48,13 +48,14 @@ object KoolDrawer {
             else -> MCGlApi.disable(MCGlApi.CULL_FACE)
         }
         if(GlRenderPass.GlState.lineWidth != 0f) MCGlApi.lineWidth(GlRenderPass.GlState.lineWidth)
-        if(isScreenPass) {
-            MCGlApi.disable(MCGlApi.DEPTH_TEST)
-            MCGlApi.depthFunc(MCGlApi.GEQUAL)
-        } else {
-            MCGlApi.enable(MCGlApi.DEPTH_TEST)
-            MCGlApi.depthFunc(MCGlApi.LEQUAL)
-        }
+//        if(isScreenPass) {
+//            MCGlApi.disable(MCGlApi.CULL_FACE)
+//            MCGlApi.enable(MCGlApi.DEPTH_TEST)
+//            MCGlApi.depthFunc(MCGlApi.LEQUAL)
+//        } else {
+//            MCGlApi.enable(MCGlApi.DEPTH_TEST)
+//            MCGlApi.depthFunc(MCGlApi.LEQUAL)
+//        }
 
         KoolManager.context.renderFrame()
 

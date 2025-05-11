@@ -83,8 +83,8 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         stack.mulPose(Quaternionf().rotateY(-lerpBodyRot * Mth.DEG_TO_RAD))
 
         model.visuals = ::drawVisuals
-        model.update(capability)
         model.entityUpdate(entity, capability, partialTick)
+        model.update(capability)
 
         model.render(
             stack,

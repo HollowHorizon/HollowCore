@@ -54,8 +54,6 @@ object RenderManager {
     fun onRenderParticles(event: RenderLevelStageEvent) {
         if (event.stage != RenderStage.AFTER_PARTICLES) return
 
-        KoolDrawer.draw()
-
         val level = Minecraft.getInstance().level as? ParticlesProvider ?: return
         val camera = event.camera
 
