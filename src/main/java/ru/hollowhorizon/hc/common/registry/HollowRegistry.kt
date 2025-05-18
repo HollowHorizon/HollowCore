@@ -81,18 +81,19 @@ open class HollowRegistry(val modId: String = MODID) {
 }
 
 open class CoreRegistry<T>(val registryName: ResourceLocation) {
-    private val entries: MutableMap<ResourceLocation, T> = Object2ObjectOpenHashMap()
+    private val _entries: MutableMap<ResourceLocation, T> = Object2ObjectOpenHashMap()
+    val entries: Map<ResourceLocation, T> get() = _entries.toMap()
 
     operator fun set(key: ResourceLocation, value: T) {
-        entries[key] = value
+        _entries[key] = value
     }
 
     operator fun get(id: ResourceLocation): T =
-        entries[id] ?: throw IllegalStateException("Element $id not found in registry $registryName")
+        _entries[id] ?: throw IllegalStateException("Element $id not found in registry $registryName")
 
-    operator fun get(value: T): ResourceLocation = entries.entries.first { it.value == value }.key
+    operator fun get(value: T): ResourceLocation = _entries.entries.first { it.value == value }.key
 
-    operator fun contains(id: ResourceLocation): Boolean = entries.keys.any { it == id }
+    operator fun contains(id: ResourceLocation): Boolean = _entries.keys.any { it == id }
 }
 
 @Retention(AnnotationRetention.RUNTIME)

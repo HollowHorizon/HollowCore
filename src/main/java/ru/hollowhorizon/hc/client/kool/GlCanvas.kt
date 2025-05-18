@@ -31,7 +31,6 @@ inline fun UiScope.Entity(entity: LivingEntity, scopeName: String? = null, block
         entity.render(x, y, width, height, 1f, mouseX.toFloat(), mouseY.toFloat(), 0f, 0f, true)
     }, block)
 
-
 @OptIn(ExperimentalContracts::class)
 inline fun UiScope.GlCanvas(
     scopeName: String? = null,

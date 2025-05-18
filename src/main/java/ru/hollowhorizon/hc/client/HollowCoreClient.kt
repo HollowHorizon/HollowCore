@@ -48,6 +48,7 @@ import ru.hollowhorizon.hc.common.events.registry.RegisterKeyBindingsEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterResourcePacksEvent
 import ru.hollowhorizon.hc.common.events.tick.TickEvent
+import ru.hollowhorizon.hc.common.objects.entities.TestEntity
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor
 import ru.hollowhorizon.hc.common.registry.ModEntities
 
@@ -90,7 +91,7 @@ object HollowCoreClient {
                     addWindowSurface(window) {
                         Column(Grow.Std, Grow.Std) {
                             TitleBar(window)
-                            Entity(Minecraft.getInstance().player!!) {
+                            Entity(TestEntity(ModEntities.TEST_ENTITY, Minecraft.getInstance().level!!)) {
                                 modifier.size(Grow.Std, Grow.Std)
                             }
                         }
