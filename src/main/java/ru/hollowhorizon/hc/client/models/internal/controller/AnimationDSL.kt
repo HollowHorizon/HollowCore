@@ -4,8 +4,6 @@ import de.fabmax.kool.math.QuatF
 import de.fabmax.kool.math.Vec3f
 import de.fabmax.kool.scene.TrsTransformF
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import ru.hollowhorizon.hc.client.gui.DebugOverlay
@@ -64,8 +62,12 @@ data class Controller(var layers: List<Layer>) {
         isReady = true
     }
 
+    fun uploadAnimations(animations: Map<String, Animation>) {
+        layers.forEach { it.stateMachine.states.forEach { it.animations = animations } }
+    }
+
     fun update(node: Node, query: EntityQuery, time: Float) {
-        if(!initDeferred.isCompleted) return
+        if (!initDeferred.isCompleted) return
         layers.forEach { layer ->
             if (node.name !in layer.mask.bones && layer.mask.bones.isNotEmpty()) return@forEach
 
@@ -78,10 +80,10 @@ data class Controller(var layers: List<Layer>) {
         }
     }
 
-    fun updateProcedural(model: AnimatedModel) {
-        if(!isReady) return
+    fun updateProcedural(model: AnimatedModel, query: EntityQuery) {
+        if (!isReady) return
         layers.forEach {
-            it.updateProcedural(model)
+            it.updateProcedural(model, query)
         }
     }
 }
@@ -119,8 +121,8 @@ data class Layer(
         return stateMachine.update(node, query, time)
     }
 
-    fun updateProcedural(model: AnimatedModel) {
-        stateMachine.updateProcedural(model)
+    fun updateProcedural(model: AnimatedModel, query: EntityQuery) {
+        stateMachine.updateProcedural(model, query)
     }
 }
 
@@ -130,9 +132,9 @@ class LayerBuilder(
     val weight: Float,
     val mask: Mask,
 ) {
-    private var stateMachine = StateMachineBuilder(emptyMap()).build()
-    fun stateMachine(animations: Map<String, Animation>, block: StateMachineBuilder.() -> Unit) {
-        stateMachine = StateMachineBuilder(animations).apply(block).build()
+    private var stateMachine = StateMachineBuilder().build()
+    fun stateMachine(block: StateMachineBuilder.() -> Unit) {
+        stateMachine = StateMachineBuilder().apply(block).build()
     }
 
     fun build() = Layer(name, priority, weight, mask, stateMachine)
@@ -267,22 +269,21 @@ data class StateMachine(
         return currentState?.update(node, query, time)
     }
 
-    fun updateProcedural(model: AnimatedModel) {
+    fun updateProcedural(model: AnimatedModel, query: EntityQuery) {
         currentState?.let { state ->
             state.procedural?.let { procedural ->
-                procedural.evaluate(ExecuteContext(), ModelContext(model))
+                procedural.evaluate(model, query)
             }
         }
     }
 }
 
-class StateMachineBuilder(val animations: Map<String, Animation>) {
+class StateMachineBuilder() {
     private val states = mutableListOf<State>()
     private val transitions = mutableListOf<Transition>()
 
     fun state(name: String, block: StateBuilder.() -> Unit): State {
         val state = StateBuilder(name).apply(block).build()
-        state.animations = animations
         states += state
         return state
     }
@@ -424,46 +425,81 @@ data class BlendNode(val clip: ClipNode, val threshold: Float) {
 // Procedural
 
 @Serializable
-data class ProceduralNode(val evaluate: ExecuteContext.(context: ModelContext) -> Unit) {
-    suspend fun init() {
+data class ProceduralNode(val functions: HashMap<String, ProceduralTransformer>) {
+    @Transient
+    val commandsDeferred = MolangCompilerScope.async {
+        functions.forEach { (node, command) ->
+            val nodeCommands = commands.computeIfAbsent(node) { ArrayList() }
+            if (command.translation.isNotEmpty()) {
+                Molang.compileVec3f(command.translation).let { exec ->
+                    nodeCommands.add { model, query ->
+                        model.animationPlayer.nodeModels.filter { it.name == node && it.mesh == null }
+                            .forEach { it.transform.translation.set(exec(query)) }
+                    }
+                }
+            }
+            if (command.rotation.isNotEmpty()) {
+                Molang.compileQuatF(command.rotation).let { exec ->
+                    nodeCommands.add { model, query ->
+                        model.animationPlayer.nodeModels.filter { it.name == node && it.mesh == null }
+                            .forEach { it.transform.rotation.set(exec(query)) }
+                    }
+                }
+            }
+            if (command.scale.isNotEmpty()) {
+                Molang.compileVec3f(command.scale).let { exec ->
+                    nodeCommands.add { model, query ->
+                        model.animationPlayer.nodeModels.filter { it.name == node && it.mesh == null }
+                            .forEach { it.transform.scale.set(exec(query)) }
+                    }
+                }
+            }
+        }
+    }
 
+    @Transient
+    val commands = HashMap<String, MutableList<(AnimatedModel, EntityQuery) -> Unit>>()
+
+    suspend fun init() {
+        commandsDeferred.await()
+    }
+
+
+    fun evaluate(model: AnimatedModel, query: EntityQuery) {
+        commands.values.forEach { command -> command.forEach { it(model, query) } }
     }
 }
 
-@Serializable
-class ExecuteContext {
-    var time = 0f
-}
-
-@Serializable
-class ModelContext(val model: @Contextual AnimatedModel) {
+class ModelContext(private val proceduralCommands: HashMap<String, ProceduralTransformer>) {
     fun setBoneRotation(node: String, rotation: String) {
-        return
-//        val nodes = model.animationPlayer.nodeModels
-//
-//        var changed = false
-//        nodes.filter { it.mesh == null && it.name == node }.forEach {
-//            it.transform.rotation.set(rotation)
-//            changed = true
-//        }
-//        if (!changed) {
-//            nodes.filter { it.name == node }.forEach {
-//                it.transform.rotation.set(rotation)
-//            }
-//        }
+        proceduralCommands.getOrPut(node) { ProceduralTransformer() }.rotation = rotation
+    }
+
+    fun setBoneTranslation(node: String, translation: String) {
+        proceduralCommands.getOrPut(node) { ProceduralTransformer() }.translation = translation
+    }
+
+    fun setBoneScale(node: String, scale: String) {
+        proceduralCommands.getOrPut(node) { ProceduralTransformer() }.scale = scale
     }
 }
 
 class ProceduralBuilder {
-    private var fn: ExecuteContext.(ModelContext) -> Unit = {}
-    fun onEvaluate(block: ExecuteContext.(context: ModelContext) -> Unit) {
-        fn = block
+    private val proceduralCommands = HashMap<String, ProceduralTransformer>()
+
+    fun onEvaluate(block: (context: ModelContext) -> Unit) {
+        block(ModelContext(proceduralCommands))
     }
 
-    fun build() = ProceduralNode(fn)
+    fun build() = ProceduralNode(proceduralCommands)
 }
 
-// Clip and Delta nodes
+@Serializable
+class ProceduralTransformer {
+    var translation = ""
+    var rotation = ""
+    var scale = ""
+}
 
 @Serializable
 data class ClipNode(

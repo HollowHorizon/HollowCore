@@ -77,9 +77,11 @@ object GLTFPlayerRenderer {
         // Без этого от 1 лица не будет обновляться тень
         IrisHelper.bypassShadow = Minecraft.getInstance().options.cameraType.isFirstPerson
         model.entityUpdate(entity, capability, partialTick)
+        val controller = entity[AnimationController::class].controller
+        controller.uploadAnimations(model.animationPlayer.nameToAnimationMap)
         model.update(
-            entity[AnimationController::class].controller, EntityQuery(entity),
-            (TickHandler.time) / 20f
+            controller, EntityQuery(entity),
+            (entity.tickCount + partialTick) / 20f
         )
         IrisHelper.bypassShadow = false
 

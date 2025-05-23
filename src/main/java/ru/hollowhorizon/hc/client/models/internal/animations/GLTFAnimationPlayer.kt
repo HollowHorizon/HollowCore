@@ -72,6 +72,6 @@ open class GLTFAnimationPlayer(val model: AnimatedModel) {
             node.transform.set(node.baseTransform)
             controller.update(node, query, time)
         }
-        controller.updateProcedural(model)
+        controller.updateProcedural(model, query)
     }
 }

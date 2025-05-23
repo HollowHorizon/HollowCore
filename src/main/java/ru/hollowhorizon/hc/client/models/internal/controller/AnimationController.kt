@@ -21,17 +21,15 @@ class AnimationController : CapabilityInstance() {
 
     val controller by lazy {
         animationController {
-            val animations =
-                GltfManager.getOrCreate(entity[AnimatedEntityCapability::class].model.rl).animationPlayer.nameToAnimationMap
             layer("Basic") {
-                stateMachine(animations) {
+                stateMachine {
                     val idle = state("Idle") {
                         clip("Idle", wrap = WrapMode.Loop)
                     }
                     val move = state("Move") {
                         blendTree {
                             factor("q.ground_speed", 0.75f)
-                            clip("Walking", 2.35f, speed = "min(q.ground_speed / 2, 4f)")
+                            clip("Walking", 2.35f, speed = "min(q.ground_speed / 1.5, 4f)")
                             clip("Running", 3f, speed = "min(q.ground_speed / 2, 3f)")
                         }
                     }
@@ -89,25 +87,18 @@ class AnimationController : CapabilityInstance() {
                 }
             }
             layer("Head") {
-                stateMachine(animations) {
+                stateMachine {
                     state("Idle") {
                         procedural {
                             onEvaluate {
-                                listOf(
-                                    "Head"
-                                ).forEach { bone ->
-                                    it.setBoneRotation(
-                                        bone,
-                                        "q.head_rot"
-                                    )
-                                }
+                                it.setBoneRotation("Head", "q.head_rot")
                             }
                         }
                     }
                 }
             }
             layer("Eyes", priority = 10) {
-                stateMachine(animations) {
+                stateMachine {
                     state("Eyes") {
                         clip("FaceLoop", wrap = WrapMode.Loop)
                     }

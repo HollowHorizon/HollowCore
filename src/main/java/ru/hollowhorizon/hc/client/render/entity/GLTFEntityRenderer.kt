@@ -87,8 +87,10 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
         model.visuals = ::drawVisuals
         model.entityUpdate(entity, capability, partialTick)
+        val controller = entity[AnimationController::class].controller
+        controller.uploadAnimations(model.animationPlayer.nameToAnimationMap)
         model.update(
-            entity[AnimationController::class].controller, EntityQuery(entity),
+            controller, EntityQuery(entity),
             (entity.tickCount + partialTick) / 20f
         )
 
