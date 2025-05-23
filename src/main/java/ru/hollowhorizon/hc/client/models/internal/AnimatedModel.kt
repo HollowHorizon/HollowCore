@@ -28,6 +28,7 @@ package ru.hollowhorizon.hc.client.models.internal
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
+import de.fabmax.kool.math.*
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.ItemInHandRenderer
@@ -36,16 +37,15 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemStack
-import org.joml.Matrix4f
-import org.joml.Quaternionf
-import org.joml.Vector3f
 import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.internal.controller.Controller
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.shouldOverrideShaders
 import ru.hollowhorizon.hc.common.registry.ModShaders
+import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
 
 
 typealias NodeRenderer = (LivingEntity, PoseStack, Node, MultiBufferSource, Int) -> Unit
@@ -62,8 +62,8 @@ class AnimatedModel(val modelTree: Model) {
     val animationPlayer = GLTFAnimationPlayer(this)
     var visuals: NodeRenderer = { _, _, _, _, _ -> }
 
-    fun update(capability: AnimatedEntityCapability) {
-        animationPlayer.update(capability)
+    fun update(controller: Controller, query: EntityQuery, time: Float) {
+        animationPlayer.update(controller, query, time)
     }
 
     fun entityUpdate(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
@@ -148,19 +148,19 @@ class AnimatedModel(val modelTree: Model) {
         modelTree.walkNodes().mapNotNull { it.mesh }.flatMap { it.primitives }.forEach(Primitive::destroy)
     }
 
-    fun findPosition(name: String, entity: LivingEntity): Matrix4f? {
+    fun findPosition(name: String, entity: LivingEntity): Mat4f? {
         val node = nodes[name] ?: return null
         var lerpBodyRot = -Mth.rotLerp(TickHandler.partialTick, entity.yBodyRotO, entity.yBodyRot)
-        val YP = Vector3f(0.0f, 1.0f, 0.0f)
+        val YP = Vec3f(0.0f, 1.0f, 0.0f)
 
         lerpBodyRot *= 0.017453292f
 
-        return Matrix4f().rotation(Quaternionf(0f, Mth.sin(lerpBodyRot / 2.0f), 0f, Mth.cos(lerpBodyRot / 2.0f)))
+        return MutableMat4f().rotate(MutableQuatF(0f, Mth.sin(lerpBodyRot / 2.0f), 0f, Mth.cos(lerpBodyRot / 2.0f)))
             .mul(node.globalMatrix)
     }
 
-    fun findRotation(name: String): Quaternionf {
-        val node = nodes[name] ?: return Quaternionf(0.0f, 0.0f, 0.0f, 1.0f)
+    fun findRotation(name: String): QuatF {
+        val node = nodes[name] ?: return MutableQuatF(0.0f, 0.0f, 0.0f, 1.0f)
         return node.globalRotation
     }
 

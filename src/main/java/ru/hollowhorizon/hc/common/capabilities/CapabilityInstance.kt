@@ -111,7 +111,7 @@ open class CapabilityInstance {
      *
      * @return [CompoundTag] containing serialized Capability data.
      */
-    fun serializeNBT() = notUsedTags.copy().apply {
+    open fun serializeNBT() = notUsedTags.copy().apply {
         properties.forEach { it.serialize(this) }
     }
 
@@ -120,7 +120,7 @@ open class CapabilityInstance {
      *
      * @param nbt [Tag] containing data to restore the Capability state.
      */
-    fun deserializeNBT(nbt: Tag) {
+    open fun deserializeNBT(nbt: Tag) {
         properties.forEach { if (it.deserialize(nbt as? CompoundTag ?: return)) nbt.remove(it.defaultName) }
         val tag = nbt as? CompoundTag ?: return
         notUsedTags.merge(tag)

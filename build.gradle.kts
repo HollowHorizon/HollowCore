@@ -36,6 +36,7 @@ dependencies {
 
     // GRAPHICS //
     install("de.fabmax.kool:kool-core-desktop:$koolVersion")
+    install("org.codehaus.janino:janino:3.1.12")
 }
 
 kotlin.compilerOptions.freeCompilerArgs.add("-Xjvm-default=all")

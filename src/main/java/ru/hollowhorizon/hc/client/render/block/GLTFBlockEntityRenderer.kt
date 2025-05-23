@@ -35,16 +35,20 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntity
 import org.joml.Quaternionf
+import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
+import ru.hollowhorizon.hc.client.models.internal.controller.AnimationController
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.internal.controller.Controller
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
+import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
 import ru.hollowhorizon.hc.common.utils.rl
 
 
@@ -79,7 +83,7 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
             else -> {}
         }
 
-        model.update(capability)
+        model.update(entity[AnimationController::class].controller, EntityQuery(Minecraft.getInstance().player!!), TickHandler.time / 20f)
 
         model.render(
             stack,

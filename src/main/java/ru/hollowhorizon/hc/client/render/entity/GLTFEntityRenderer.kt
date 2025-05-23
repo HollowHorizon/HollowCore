@@ -43,10 +43,13 @@ import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.animations.PlayMode
+import ru.hollowhorizon.hc.client.models.internal.controller.AnimationController
 import ru.hollowhorizon.hc.client.models.internal.manager.*
 import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
+import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
+import ru.hollowhorizon.hc.common.utils.molang.calculateSpeedViaDeltaMovement
 import ru.hollowhorizon.hc.common.utils.rl
 import kotlin.math.abs
 
@@ -84,7 +87,10 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
         model.visuals = ::drawVisuals
         model.entityUpdate(entity, capability, partialTick)
-        model.update(capability)
+        model.update(
+            entity[AnimationController::class].controller, EntityQuery(entity),
+            (entity.tickCount + partialTick) / 20f
+        )
 
         model.render(
             stack,
@@ -102,14 +108,14 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
             OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
         )
 
-        capability.subModels.forEach { (node, child) ->
-            model.nodes[node]?.let {
-                stack.use {
-                    stack.mulPoseMatrix(it.globalMatrix)
-                    GltfEntityUtil.render(entity, child, entity.tickCount, partialTick, stack, source, packedLight)
-                }
-            }
-        }
+//        capability.subModels.forEach { (node, child) ->
+//            model.nodes[node]?.let {
+//                stack.use {
+//                    stack.mulPoseMatrix(it.globalMatrix)
+//                    GltfEntityUtil.render(entity, child, entity.tickCount, partialTick, stack, source, packedLight)
+//                }
+//            }
+//        }
 
         stack.popPose()
     }
@@ -228,7 +234,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         }
 
         private fun LivingEntity.isMoving() =
-            abs(GLTFAnimationPlayer.calculateSpeedViaDeltaMovement(this)) >= MOVEMENT_FACTOR
+            abs(calculateSpeedViaDeltaMovement(this)) >= MOVEMENT_FACTOR
 
         const val NO_MODEL = "%NO_MODEL%"
         const val MOVEMENT_FACTOR = (1 / 256f)

@@ -33,28 +33,28 @@ object SubModelPlayer {
     fun update(model: AnimatedModel, capability: SubModel, currentTick: Int, partialTick: Float) {
         val layers = capability.layers
         val nameToAnimationMap = model.animationPlayer.nameToAnimationMap
-        model.animationPlayer.nodeModels.forEach { node ->
-            node.clearTransform()
-            val transform = node.transform.copy()
-            layers.forEach {
-
-                when (it.layerMode) {
-                    LayerMode.ADD -> {
-                        val animPose = it.computeTransform(node, nameToAnimationMap, null)
-                        animPose?.let(transform::add)
-                    }
-
-                    LayerMode.OVERWRITE -> {
-                        it.computeTransform(node, nameToAnimationMap, transform)
-                            ?.let { animPose ->
-                                transform.set(node.fromLocal(animPose))
-                            }
-                    }
-                }
-
-            }
-            node.transform.set(transform)
-        }
+//        model.animationPlayer.nodeModels.forEach { node ->
+//            node.clearTransform()
+//            val transform = node.transform.copy()
+//            layers.forEach {
+//
+//                when (it.layerMode) {
+//                    LayerMode.ADD -> {
+//                        val animPose = it.computeTransform(node, nameToAnimationMap, null)
+//                        animPose?.let(transform::add)
+//                    }
+//
+//                    LayerMode.OVERWRITE -> {
+//                        it.computeTransform(node, nameToAnimationMap, transform)
+//                            ?.let { animPose ->
+//                                transform.set(node.fromLocal(animPose))
+//                            }
+//                    }
+//                }
+//
+//            }
+//            node.transform.set(transform)
+//        }
 
         layers.removeIf { it.isEnd() }
     }

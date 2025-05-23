@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.common.objects.molang
 
+import de.fabmax.kool.math.MutableVec4f
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.ai.attributes.Attributes
@@ -50,7 +51,7 @@ class BoneWrapper<T>(val entity: T, val boneName: String) : Transform where T : 
     override val isValid: Boolean get() = entity.isAlive
     override val position: Vector3f
         get() {
-            val pos = Vector4f().mul(model.findPosition(boneName, entity))
+            val pos = model.findPosition(boneName, entity)!!.transform(MutableVec4f())
             return Vector3f(pos.x, pos.y, pos.z)
         }
     override val rotation: Quaternion

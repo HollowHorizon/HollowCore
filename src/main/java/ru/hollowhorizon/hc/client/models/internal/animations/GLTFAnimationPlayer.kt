@@ -24,17 +24,16 @@
 
 package ru.hollowhorizon.hc.client.models.internal.animations
 
-import net.irisshaders.iris.api.v0.IrisApi
 import net.minecraft.client.Minecraft
-import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import ru.hollowhorizon.hc.client.gui.DebugOverlay
+import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
 import ru.hollowhorizon.hc.client.models.internal.Node
-import ru.hollowhorizon.hc.client.models.internal.Transformation
+import ru.hollowhorizon.hc.client.models.internal.controller.Controller
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.internal.manager.LayerMode
-import ru.hollowhorizon.hc.client.models.internal.manager.Pose
+import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
+import ru.hollowhorizon.hc.common.utils.molang.calculateSpeedViaDeltaMovement
 import ru.hollowhorizon.hc.fabric.internal.IrisHelper
 
 
@@ -62,88 +61,17 @@ open class GLTFAnimationPlayer(val model: AnimatedModel) {
 
         head.forEach {
             val newRot = capability.headLayer.computeRotation(entity, switchRot, partialTick)
-            it.transform.addRotationRight(newRot)
+            it.transform.rotation.setIdentity()
+            it.transform.rotate(newRot)
+            //it.transform.addRotationRight(newRot)
         }
     }
 
-    /**
-     * Метод, обновляющий все анимации с учётом приоритетов
-     */
-    fun update(capability: AnimatedEntityCapability) {
-        if (Minecraft.getInstance().isPaused || IrisHelper.isShadowRendering()) return
-        val definedLayer = capability.definedLayer
-        definedLayer.update(currentLoopAnimation, currentSpeed)
-        capability.layers.forEach { it.update() }
-        val pose = capability.pose
-        var rawPose = capability.rawPose
-
-        if (pose != null) {
-            if (pose.map.isEmpty()) rawPose?.shouldRemove = true
-            else rawPose = Pose(capability.pose!!.map.mapNotNull {
-                (model.modelTree.findNodeByIndex(it.key) ?: return@mapNotNull null) to it.value
-            }.toMap().toMutableMap())
-            capability.rawPose = rawPose
-            capability.pose = null
-        }
-
-        rawPose?.update()
-
-        val animationOverrides = typeToAnimationMap + capability.animations.mapNotNull {
-            it.key to (nameToAnimationMap[it.value] ?: return@mapNotNull null)
-        }.toMap()
-
-        val layers = capability.layers
+    fun update(controller: Controller, query: EntityQuery, time: Float) {
         nodeModels.forEach { node ->
-            node.clearTransform()
-            val transform = node.transform.copy()
-            definedLayer.computeTransform(node, animationOverrides)
-                ?.let { animPose ->
-                    transform.set(node.fromLocal(animPose))
-                }
-            node.transform.set(transform)
-            layers.forEach {
-
-                when (it.layerMode) {
-                    LayerMode.ADD -> {
-                        val animPose = it.computeTransform(node, nameToAnimationMap, null)
-                        animPose?.let(transform::add)
-                    }
-
-                    LayerMode.OVERWRITE -> {
-                        it.computeTransform(node, nameToAnimationMap, node.toLocal(transform))
-                            ?.let { animPose ->
-                                transform.set(node.fromLocal(animPose))
-                            }
-                    }
-                }
-
-            }
-            rawPose?.let { transform.add(it.computeTransform(node) ?: Transformation(), false) }
-            node.transform.set(transform)
+            node.transform.set(node.baseTransform)
+            controller.update(node, query, time)
         }
-
-        if (rawPose?.canRemove == true) capability.rawPose = null
-
-        layers.removeIf { it.isEnd() }
-    }
-
-    companion object {
-        fun calculateSpeedViaDeltaMovement(entity: LivingEntity): Float {
-            // 1) берём горизонтальную часть вектора скорости (блоки/тик)
-            val vel = entity.deltaMovement
-            val dx = vel.x.toFloat()
-            val dz = vel.z.toFloat()
-
-            // 2) вектор «вперед» по ориентации тела
-            val yawRad = Math.toRadians(entity.yBodyRot.toDouble()).toFloat()
-            val forwardX = -Mth.sin(yawRad)
-            val forwardZ = Mth.cos(yawRad)
-
-            // 3) проекция вектора скорости на вектор «вперед» (чтобы знать направленную скорость)
-            val dot = dx * forwardX + dz * forwardZ
-
-            // 4) переводим блоки/тик → блоки/сек
-            return dot * 20f
-        }
+        controller.updateProcedural(model)
     }
 }

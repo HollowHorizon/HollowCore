@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
+import de.fabmax.kool.util.Color
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.Serializable
@@ -30,7 +31,7 @@ data class GltfMaterial(
     suspend fun toMaterial(file: GltfFile, location: ResourceLocation): Material = coroutineScope {
         val material = Material()
         val colorList = pbrMetallicRoughness.baseColorFactor
-        material.color = Vector4f(colorList[0], colorList[1], colorList[2], colorList[3])
+        material.color = Color(colorList[0], colorList[1], colorList[2], colorList[3])
 
         val baseColorTextureDeferred = pbrMetallicRoughness.baseColorTexture?.let {
             async { it.getTexture(file, location) }

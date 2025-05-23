@@ -2,11 +2,12 @@ package ru.hollowhorizon.hc.client.models.internal
 
 
 import com.mojang.blaze3d.vertex.PoseStack
+import de.fabmax.kool.math.*
+import de.fabmax.kool.scene.TrsTransformF
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.item.ArmorItem
-import org.joml.Matrix4f
 import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.utils.toTexture
 import ru.hollowhorizon.hc.client.utils.use
@@ -16,13 +17,16 @@ import java.util.*
 class Node(
     val index: Int,
     val children: List<Node>,
-    val transform: Transformation,
+    val transform: TrsTransformF,
     val mesh: Mesh? = null,
     val skin: Skin? = null,
     val name: String? = null,
 ) {
-    val baseTransform = transform.copy()
-
+    val baseTransform = TrsTransformF().apply {
+        translate(transform.translation)
+        rotate(transform.rotation)
+        scale(transform.scale)
+    }
 
     fun renderDecorations(
         stack: PoseStack,
@@ -32,8 +36,9 @@ class Node(
         packedLight: Int,
     ) {
         stack.use {
-            mulPoseMatrix(localMatrix)
-            last().normal().mul(normalMatrix)
+            translate(transform.translation.x, transform.translation.y, transform.translation.z)
+            mulPose(Quaternionf(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w))
+            scale(transform.scale.x, transform.scale.y, transform.scale.z)
 
             data.entity?.let {
                 nodeRenderer(it, this, this@Node, source, packedLight)
@@ -47,21 +52,6 @@ class Node(
         mesh?.transformSkinning(this@Node)
         children.forEach { it.transformSkinning() }
     }
-
-    fun clearTransform() = transform.set(baseTransform)
-
-
-    fun toLocal(transform: Transformation): Transformation {
-        return baseTransform.copy().apply { sub(transform) }
-    }
-
-    fun fromLocal(transform: Transformation): Transformation {
-        return baseTransform.copy().apply { add(transform) }
-    }
-
-    var isHovered = false
-
-    fun isAllHovered(): Boolean = isHovered || parent?.isAllHovered() == true
 
     val isArmor = name?.contains("armor", ignoreCase = true) == true
     val isHelmet = isArmor && name?.contains("helmet", ignoreCase = true) == true
@@ -118,36 +108,36 @@ class Node(
         }
 
         stack.use {
-            mulPoseMatrix(localMatrix)
+            translate(transform.translation.x, transform.translation.y, transform.translation.z)
+            mulPose(Quaternionf(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w))
+            scale(transform.scale.x, transform.scale.y, transform.scale.z)
 
             mesh?.render(this@Node, stack, changedTexture)
             children.forEach { it.render(stack, nodeRenderer, data, changedTexture, light) }
         }
     }
 
-    val rootNode: Node get() = parent?.rootNode ?: this
     var parent: Node? = null
     val isHead: Boolean get() = name?.lowercase()?.contains("head") == true && parent?.isHead == false
 
-    val globalMatrix: Matrix4f
+    val globalMatrix: Mat4f
         get() {
-            return Matrix4f(NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.computeIfAbsent(this) {
-                val matrix = Matrix4f(parent?.globalMatrix ?: return@computeIfAbsent localMatrix)
+            return MutableMat4f(NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.computeIfAbsent(this) {
+                val matrix = MutableMat4f(parent?.globalMatrix ?: return@computeIfAbsent localMatrix)
                 return@computeIfAbsent matrix.mul(localMatrix)
             })
         }
 
-    val globalRotation: Quaternionf
+    val globalRotation: QuatF
         get() {
-            val rotation = parent?.globalRotation ?: return transform.rotation
+            var rotation = parent?.globalRotation ?: return transform.rotation
             transform.apply {
-                rotation.mulLeft(this.rotation)
+                rotation = rotation.mul(this.rotation, MutableQuatF())
             }
             return rotation
         }
 
-    val localMatrix get() = transform.getMatrix()
-    val normalMatrix get() = transform.getNormalMatrix()
+    private val localMatrix get() = transform.matrixF
 }
 
-val NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE = IdentityHashMap<Node, Matrix4f>()
+val NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE = IdentityHashMap<Node, Mat4f>()

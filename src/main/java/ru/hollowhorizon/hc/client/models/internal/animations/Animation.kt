@@ -24,43 +24,52 @@
 
 package ru.hollowhorizon.hc.client.models.internal.animations
 
+import de.fabmax.kool.math.QuatF
+import de.fabmax.kool.math.Vec3f
+import de.fabmax.kool.math.Vec4f
+import de.fabmax.kool.scene.TrsTransformF
 import kotlinx.serialization.Serializable
-import org.joml.Quaternionf
-import org.joml.Vector3f
-import org.joml.Vector4f
 import ru.hollowhorizon.hc.client.models.internal.Model
 import ru.hollowhorizon.hc.client.models.internal.Node
-import ru.hollowhorizon.hc.client.models.internal.Transformation
 import ru.hollowhorizon.hc.client.models.internal.animations.interpolations.Interpolator
 
 class Animation(val name: String, private val animationData: Map<Node, AnimationData>) {
     val maxTime = animationData.values.maxOf { it.maxTime }
 
-    fun compute(node: Node, currentTime: Float): Transformation? {
+    val temp = TrsTransformF()
+
+    fun compute(node: Node, currentTime: Float): TrsTransformF? {
         return animationData[node]?.let {
             val t = it.translation?.compute(currentTime)
             val r = it.rotation?.compute(currentTime)
             val s = it.scale?.compute(currentTime)
-            val w = it.weights?.compute(currentTime)?.toList() ?: ArrayList()
 
-            node.toLocal(Transformation(t, r?.let { Quaternionf(r.x, r.y, r.z, r.w) }, s, weights = w))
+            temp.setIdentity()
+            t?.let(temp::translate)
+            r?.let(temp::rotate)
+            s?.let(temp::scale)
+            temp
         }
+    }
+
+    fun computeWeights(node: Node, currentTime: Float): FloatArray? {
+        return animationData[node]?.weights?.compute(currentTime)
     }
 
     override fun toString() = name
 
 }
 
-fun Vector3f.array(): FloatArray {
-    return floatArrayOf(x(), y(), z())
+fun Vec3f.array(): FloatArray {
+    return floatArrayOf(x, y, z)
 }
 
-fun Quaternionf.array(): FloatArray {
-    return floatArrayOf(x(), y(), z(), w())
+fun QuatF.array(): FloatArray {
+    return floatArrayOf(x, y, z, w)
 }
 
-fun Vector4f.array(): FloatArray {
-    return floatArrayOf(x(), y(), z(), w())
+fun Vec4f.array(): FloatArray {
+    return floatArrayOf(x, y, z, w)
 }
 
 enum class AnimationType {
@@ -125,9 +134,9 @@ enum class PlayMode {
 
 class AnimationData(
     val node: Node,
-    val translation: Interpolator<Vector3f>?,
-    val rotation: Interpolator<Vector4f>?,
-    val scale: Interpolator<Vector3f>?,
+    val translation: Interpolator<Vec3f>?,
+    val rotation: Interpolator<QuatF>?,
+    val scale: Interpolator<Vec3f>?,
     val weights: Interpolator<FloatArray>?,
 ) {
     val maxTime = maxOf(

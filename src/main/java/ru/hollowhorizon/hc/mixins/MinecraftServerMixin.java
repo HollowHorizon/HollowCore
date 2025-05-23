@@ -1,6 +1,9 @@
 package ru.hollowhorizon.hc.mixins;
 
 import com.mojang.datafixers.DataFixer;
+import kotlinx.coroutines.CoroutineDispatcher;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.CoroutineScopeKt;
 import net.minecraft.core.LayeredRegistryAccess;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -29,6 +32,8 @@ import ru.hollowhorizon.hc.HollowCore;
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher;
 import ru.hollowhorizon.hc.api.ICapabilityDispatcherKt;
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
+import ru.hollowhorizon.hc.common.coroutines.ServerDispatcher;
+import ru.hollowhorizon.hc.common.coroutines.SingleThreadDispatcher;
 import ru.hollowhorizon.hc.common.events.EventBus;
 import ru.hollowhorizon.hc.common.events.level.LevelEvent;
 import ru.hollowhorizon.hc.common.utils.nbt.NBTFormatKt;
@@ -41,10 +46,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static kotlinx.coroutines.SupervisorKt.SupervisorJob;
+
 @Mixin(MinecraftServer.class)
-public abstract class MinecraftServerMixin implements ICapabilityDispatcher {
+public abstract class MinecraftServerMixin implements ICapabilityDispatcher, ServerDispatcher {
     @Unique
     private final List<CapabilityInstance> hollowCore$capabilities = new ArrayList<>();
+    @Unique
+    private SingleThreadDispatcher hollowcore$dispatcher;
+    @Unique
+    private CoroutineScope hollowcore$coroutineScope;
 
     @NotNull
     @Override
@@ -70,6 +81,9 @@ public abstract class MinecraftServerMixin implements ICapabilityDispatcher {
 
     @Inject(method = "<init>", at=@At("TAIL"))
     private void onInit(Thread serverThread, LevelStorageSource.LevelStorageAccess storageSource, PackRepository packRepository, WorldStem worldStem, Proxy proxy, DataFixer fixerUpper, Services services, ChunkProgressListenerFactory progressListenerFactory, CallbackInfo ci) {
+        hollowcore$dispatcher = new SingleThreadDispatcher("MinecraftServer.dispatcher");
+        hollowcore$coroutineScope = CoroutineScopeKt.CoroutineScope(SupervisorJob(null).plus(hollowcore$dispatcher));
+
         ICapabilityDispatcherKt.initialize(this);
 
         //? if fabric {
@@ -115,5 +129,32 @@ public abstract class MinecraftServerMixin implements ICapabilityDispatcher {
         } catch (IOException e) {
             HollowCore.LOGGER.error("Can't load {}", file.getName(), e);
         }
+    }
+
+    @Inject(method = "tickServer", at = @At("HEAD"))
+    protected void essential$runTasks(CallbackInfo ci) {
+        hollowcore$dispatcher.runTasks();
+    }
+
+    @Inject(method = "stopServer", at = @At("HEAD"))
+    private void cancelCoroutineScope(CallbackInfo ci) {
+        CoroutineScopeKt.cancel(hollowcore$coroutineScope, null);
+
+        hollowcore$dispatcher.runTasks();
+    }
+
+    @Inject(method = "stopServer", at = @At("RETURN"))
+    private void shutdownDispatcher(CallbackInfo ci) {
+        hollowcore$dispatcher.shutdown();
+    }
+
+    @Override
+    public @NotNull CoroutineDispatcher getHollowcore$dispatcher() {
+        return hollowcore$dispatcher;
+    }
+
+    @Override
+    public @NotNull CoroutineScope getHollowcore$coroutineScope() {
+        return hollowcore$coroutineScope;
     }
 }

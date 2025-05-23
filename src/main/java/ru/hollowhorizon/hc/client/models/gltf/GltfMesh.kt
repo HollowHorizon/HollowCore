@@ -7,9 +7,14 @@ import ru.hollowhorizon.hc.common.utils.nbt.ListOrSingle
 @Serializable
 data class GltfMesh(
     val primitives: ListOrSingle<Primitive>,
-    val weights: List<Float>? = null,
+    val weights: List<Float> = listOf(),
     val name: String? = null,
+    val extras: ListOrSingle<MeshExtras> = listOf(),
 ) {
+    @Serializable
+    data class MeshExtras(
+        val targetNames: ListOrSingle<String> = listOf(),
+    )
 
     @Serializable
     data class Primitive(

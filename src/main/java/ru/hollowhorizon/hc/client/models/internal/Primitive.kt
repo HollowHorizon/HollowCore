@@ -2,7 +2,9 @@ package ru.hollowhorizon.hc.client.models.internal
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import de.fabmax.kool.math.Mat4f
+import de.fabmax.kool.math.MutableMat4f
+import de.fabmax.kool.math.Vec3f
+import de.fabmax.kool.math.Vec4f
 import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.resources.ResourceLocation
 import org.joml.Matrix3f
@@ -50,7 +52,7 @@ class Primitive(
     private var jointMatrixBuffer = -1
 
     fun setWeights(values: FloatArray) {
-        if(values.isEmpty()) return
+        if (values.isEmpty()) return
         weights = values
     }
 
@@ -107,7 +109,7 @@ class Primitive(
             }
             if (normals != null) {
                 val buffer = BufferUtils.createFloatBuffer(normals.size * 3)
-                for (n in normals) buffer.put(n.x()).put(n.y()).put(n.z())
+                for (n in normals) buffer.put(n.x).put(n.y).put(n.z)
                 buffer.flip()
 
                 morphCommands += { array ->
@@ -192,7 +194,7 @@ class Primitive(
             if (tangents != null) {
                 val buffer = BufferUtils.createFloatBuffer(tangents.size * 4)
                 for (t in tangents) {
-                    buffer.put(t.x()).put(t.y()).put(t.z()).put(1f)
+                    buffer.put(t.x).put(t.y).put(t.z).put(1f)
                 }
                 buffer.flip()
 
@@ -285,7 +287,7 @@ class Primitive(
         GL33.glVertexAttribPointer(0, 4, GL33.GL_INT, false, 0, 0)
 
         val weightsBuffer = BufferUtils.createFloatBuffer(weights.size * 4)
-        for (n in weights) weightsBuffer.put(n.x()).put(n.y()).put(n.z()).put(n.w())
+        for (n in weights) weightsBuffer.put(n.x).put(n.y).put(n.z).put(n.w)
         weightsBuffer.flip()
 
         this.weightsBuffer = GL33.glGenBuffers()
@@ -296,7 +298,7 @@ class Primitive(
         if (positions != null) {
             posSize = positions.size * 12L //bytes size
             val buffer = BufferUtils.createFloatBuffer(positions.size * 3)
-            for (n in positions) buffer.put(n.x()).put(n.y()).put(n.z())
+            for (n in positions) buffer.put(n.x).put(n.y).put(n.z)
             buffer.flip()
 
             skinVertexBuffer = GL33.glGenBuffers()
@@ -308,7 +310,7 @@ class Primitive(
         if (normals != null) {
             norSize = normals.size * 12L //bytes size
             val buffer = BufferUtils.createFloatBuffer(normals.size * 3)
-            for (n in normals) buffer.put(n.x()).put(n.y()).put(n.z())
+            for (n in normals) buffer.put(n.x).put(n.y).put(n.z)
             buffer.flip()
 
             skinNormalBuffer = GL33.glGenBuffers()
@@ -368,7 +370,18 @@ class Primitive(
         //Нормали
         shader.getUniform("NormalMat")?.let {
             val normal = Matrix3f(stack.last().normal())
-            normal.mul(Matrix3f(node.globalMatrix))
+//            val m = node.globalMatrix
+//                //.transpose(MutableMat4f())
+//            normal.mul(
+//                Matrix3f(
+//                    Matrix4f(
+//                        m.m00, m.m01, m.m02, m.m03,
+//                        m.m10, m.m11, m.m12, m.m13,
+//                        m.m20, m.m21, m.m22, m.m23,
+//                        m.m30, m.m31, m.m32, m.m33
+//                    )
+//                )
+//            )
             it.set(normal)
             it.upload()
         }
@@ -402,8 +415,12 @@ class Primitive(
 
     }
 
-    private fun applyMaterial(consumer: (ResourceLocation) -> Int, shader: ShaderInstance, material: Material): Pair<Int, Int> {
-        GL33.glVertexAttrib4f(1, material.color.x(), material.color.y(), material.color.z(), material.color.w())
+    private fun applyMaterial(
+        consumer: (ResourceLocation) -> Int,
+        shader: ShaderInstance,
+        material: Material,
+    ): Pair<Int, Int> {
+        GL33.glVertexAttrib4f(1, material.color.r, material.color.g, material.color.b, material.color.a)
 
         var normal = 0
         var specular = 0
@@ -427,10 +444,11 @@ class Primitive(
         RenderSystem.bindTexture(texture)
 
         if (material.doubleSided) RenderSystem.disableCull()
-        when(material.blend) {
+        when (material.blend) {
             Material.Blend.OPAQUE -> {
                 RenderSystem.disableBlend()
             }
+
             Material.Blend.BLEND -> {
                 RenderSystem.enableBlend()
                 RenderSystem.defaultBlendFunc()
@@ -479,22 +497,22 @@ class Primitive(
 
         val buffer = BufferUtils.createFloatBuffer(matrices.size * 16)
         for (m in matrices) {
-            buffer.put(m.m00())
-            buffer.put(m.m01())
-            buffer.put(m.m02())
-            buffer.put(m.m03())
-            buffer.put(m.m10())
-            buffer.put(m.m11())
-            buffer.put(m.m12())
-            buffer.put(m.m13())
-            buffer.put(m.m20())
-            buffer.put(m.m21())
-            buffer.put(m.m22())
-            buffer.put(m.m23())
-            buffer.put(m.m30())
-            buffer.put(m.m31())
-            buffer.put(m.m32())
-            buffer.put(m.m33())
+            buffer.put(m.m00)
+            buffer.put(m.m01)
+            buffer.put(m.m02)
+            buffer.put(m.m03)
+            buffer.put(m.m10)
+            buffer.put(m.m11)
+            buffer.put(m.m12)
+            buffer.put(m.m13)
+            buffer.put(m.m20)
+            buffer.put(m.m21)
+            buffer.put(m.m22)
+            buffer.put(m.m23)
+            buffer.put(m.m30)
+            buffer.put(m.m31)
+            buffer.put(m.m32)
+            buffer.put(m.m33)
         }
         buffer.flip()
         return buffer
@@ -512,5 +530,24 @@ class Primitive(
 
         GL30.glDeleteBuffers(skinVertexBuffer)
         GL30.glDeleteBuffers(skinNormalBuffer)
+    }
+}
+
+fun Vec3f.get(i: Int): Float {
+    return when (i) {
+        0 -> x
+        1 -> y
+        2 -> z
+        else -> error("Invalid Vec3f index")
+    }
+}
+
+fun Vec4f.get(i: Int): Float {
+    return when (i) {
+        0 -> x
+        1 -> y
+        2 -> z
+        3 -> w
+        else -> error("Invalid Vec4f index")
     }
 }

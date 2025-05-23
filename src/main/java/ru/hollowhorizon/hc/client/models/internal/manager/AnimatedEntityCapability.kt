@@ -24,20 +24,11 @@
 
 package ru.hollowhorizon.hc.client.models.internal.manager
 
-import de.fabmax.kool.util.Time
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
-import kotlinx.serialization.Serializable
-import net.minecraft.nbt.Tag
 import net.minecraft.world.entity.player.Player
-import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.Transform
-import ru.hollowhorizon.hc.client.models.internal.Transformation
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.HollowCapability
-import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
-import ru.hollowhorizon.hc.common.utils.nbt.deserialize
-import ru.hollowhorizon.hc.common.utils.nbt.serialize
 
 /**
  * Represents a data store for an animated object, providing various properties,
@@ -58,8 +49,7 @@ import ru.hollowhorizon.hc.common.utils.nbt.serialize
 @HollowCapability(IAnimated::class, Player::class)
 class AnimatedEntityCapability : CapabilityInstance() {
     internal val definedLayer = DefinedLayer()
-    internal val headLayer = HeadLayer()
-    var rawPose: Pose? = null
+    internal val headLayer = HeadLayer
     var model by syncable("%NO_MODEL%")
     val layers by syncableList<AnimationLayer>()
     val textures by syncableMap<String, String>()
@@ -67,55 +57,5 @@ class AnimatedEntityCapability : CapabilityInstance() {
     var transform by syncable(Transform())
     val subModels by syncableMap<String, SubModel>()
     var switchHeadRot by syncable(false)
-    var pose: RawPose? by syncable(null)
 }
 
-@Serializable
-class RawPose(val map: Map<Int, Transformation> = Int2ObjectOpenHashMap()) {
-    fun toNBT() = NBTFormat.serialize(this)
-
-    companion object {
-        fun fromNBT(tag: Tag) = NBTFormat.deserialize<RawPose>(tag)
-    }
-}
-
-class Pose(val map: MutableMap<Node, Transformation>) {
-    var fadeIn = 0f
-    var fadeOut = 0f
-    var shouldRemove = false
-    val canRemove get() = shouldRemove && fadeOut >= 1f
-
-    private var startTime = 0f
-    private var endTime = 0f
-    private var currentTime = 0f
-
-    fun computeTransform(
-        node: Node,
-    ): Transformation? {
-        return if (shouldRemove) {
-            Transformation.lerp(
-                map[node]?.copy(),
-                null,
-                fadeOut / 10f
-            )
-        } else {
-            Transformation.lerp(
-                null,
-                map[node]?.copy(),
-                fadeIn / 10f
-            )
-        }
-    }
-
-    fun update() {
-        currentTime += Time.deltaT
-
-        if (fadeIn < 1f) {
-            if (startTime == 0f) startTime = currentTime
-            fadeIn = currentTime - startTime
-        } else if (shouldRemove) {
-            if (endTime == 0f) endTime = currentTime
-            fadeOut = currentTime - endTime
-        }
-    }
-}

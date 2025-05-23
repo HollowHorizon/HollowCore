@@ -24,20 +24,21 @@
 
 package ru.hollowhorizon.hc.client.models.internal.animations.interpolations
 
-import org.joml.Quaternionf
-import org.joml.Vector3f
-import org.joml.Vector4f
+import de.fabmax.kool.math.MutableQuatF
+import de.fabmax.kool.math.QuatF
+import de.fabmax.kool.math.Vec3f
+import de.fabmax.kool.math.Vec4f
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class Vec3Step(keys: FloatArray, values: Array<Vector3f>) : Interpolator<Vector3f>(keys, values) {
-    override fun compute(time: Float): Vector3f = values[time.animIndex]
+class Vec3Step(keys: FloatArray, values: Array<Vec3f>) : Interpolator<Vec3f>(keys, values) {
+    override fun compute(time: Float): Vec3f = values[time.animIndex]
 }
 
-class QuatStep(keys: FloatArray, values: Array<Vector4f>) : Interpolator<Vector4f>(keys, values) {
-    override fun compute(time: Float): Vector4f = values[time.animIndex]
+class QuatStep(keys: FloatArray, values: Array<QuatF>) : Interpolator<QuatF>(keys, values) {
+    override fun compute(time: Float): QuatF = values[time.animIndex]
 }
 
 class LinearSingle(keys: FloatArray, values: Array<FloatArray>) : Interpolator<FloatArray>(keys, values) {
@@ -60,8 +61,8 @@ class LinearSingle(keys: FloatArray, values: Array<FloatArray>) : Interpolator<F
 
 }
 
-class Linear(keys: FloatArray, values: Array<Vector3f>) : Interpolator<Vector3f>(keys, values) {
-    override fun compute(time: Float): Vector3f {
+class Linear(keys: FloatArray, values: Array<Vec3f>) : Interpolator<Vec3f>(keys, values) {
+    override fun compute(time: Float): Vec3f {
         if (time <= keys.first() || keys.size == 1) return values.first()
         else if (time >= keys.last()) return values.last()
         else {
@@ -70,15 +71,15 @@ class Linear(keys: FloatArray, values: Array<Vector3f>) : Interpolator<Vector3f>
             val local = time - keys[previousIndex]
             val delta = keys[nextIndex] - keys[previousIndex]
             val alpha = local / delta
-            val previousPoint = Vector3f(values[previousIndex])
+            val previousPoint = Vec3f(values[previousIndex])
             val nextPoint = values[nextIndex]
-            return previousPoint.lerp(nextPoint, alpha)
+            return previousPoint.mix(nextPoint, alpha)
         }
     }
 }
 
-class SphericalLinear(keys: FloatArray, values: Array<Vector4f>) : Interpolator<Vector4f>(keys, values) {
-    override fun compute(time: Float): Vector4f {
+class SphericalLinear(keys: FloatArray, values: Array<QuatF>) : Interpolator<QuatF>(keys, values) {
+    override fun compute(time: Float): QuatF {
         if (time <= keys.first() || keys.size == 1) return values.first()
         else if (time >= keys.last()) return values.last()
         else {
@@ -91,18 +92,18 @@ class SphericalLinear(keys: FloatArray, values: Array<Vector4f>) : Interpolator<
 
             val prev = values[previousIndex]
             val next = values[nextIndex]
-            val previousPoint = Quaternionf(prev.x, prev.y, prev.z, prev.w)
-            val nextPoint = Quaternionf(next.x, next.y, next.z, next.w)
+            val previousPoint = QuatF(prev.x, prev.y, prev.z, prev.w)
+            val nextPoint = QuatF(next.x, next.y, next.z, next.w)
 
-            val r = previousPoint.slerp(nextPoint, alpha)
-            return Vector4f(r.x, r.y, r.z, r.w)
+            val r = previousPoint.mix(nextPoint, alpha)
+            return QuatF(r.x, r.y, r.z, r.w)
         }
     }
 
 }
 
-fun Quaternionf.sphericalLerp(target: Quaternionf, alpha: Float) {
-    val cosom = Math.fma(x(), target.x(), Math.fma(y(), target.y(), Math.fma(z(), target.z(), w() * target.w())))
+fun MutableQuatF.sphericalLerp(target: QuatF, alpha: Float) {
+    val cosom = Math.fma(x, target.x, Math.fma(y, target.y, Math.fma(z, target.z, w * target.w)))
     val absCosom = abs(cosom)
     val scale0: Float
     var scale1: Float
@@ -118,9 +119,9 @@ fun Quaternionf.sphericalLerp(target: Quaternionf, alpha: Float) {
     }
     scale1 = if (cosom >= 0.0f) scale1 else -scale1
     set(
-        Math.fma(scale0, x(), scale1 * target.w()),
-        Math.fma(scale0, y(), scale1 * target.z()),
-        Math.fma(scale0, z(), scale1 * target.y()),
-        Math.fma(scale0, w(), scale1 * target.x())
+        Math.fma(scale0, x, scale1 * target.w),
+        Math.fma(scale0, y, scale1 * target.z),
+        Math.fma(scale0, z, scale1 * target.y),
+        Math.fma(scale0, w, scale1 * target.x)
     )
 }

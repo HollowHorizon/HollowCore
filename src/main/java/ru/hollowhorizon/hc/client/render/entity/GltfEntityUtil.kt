@@ -82,15 +82,15 @@ object GltfEntityUtil {
             packedLight,
             OverlayTexture.NO_OVERLAY
         )
-
-        model.subModels.forEach { (bone, model) ->
-            realModel.nodes[bone]?.let {
-                stack.use {
-                    stack.mulPoseMatrix(it.globalMatrix)
-                    render(entity, model, tickCount, partialTick, stack, source, packedLight)
-                }
-            }
-        }
+//
+//        model.subModels.forEach { (bone, model) ->
+//            realModel.nodes[bone]?.let {
+//                stack.use {
+//                    stack.mulPoseMatrix(it.globalMatrix)
+//                    render(entity, model, tickCount, partialTick, stack, source, packedLight)
+//                }
+//            }
+//        }
     }
 
     private fun drawVisuals(entity: LivingEntity, stack: PoseStack, node: Node, source: MultiBufferSource, light: Int) {

@@ -1,8 +1,8 @@
 package ru.hollowhorizon.hc.client.models.gltf
 
+import de.fabmax.kool.math.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import org.joml.*
 
 @Serializable
 data class GltfAccessor(
@@ -240,18 +240,18 @@ class Vec2fAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
         }
     }
 
-    fun next(): Vector2f = next(Vector2f())
+    fun next(): Vec2f = next(MutableVec2f())
 
-    fun next(result: Vector2f): Vector2f {
+    fun next(result: MutableVec2f): Vec2f {
         result.x = nextFloat()
         result.y = nextFloat()
         advance()
         return result
     }
 
-    fun nextD(): Vector2d = nextD(Vector2d())
+    fun nextD(): Vec2d = nextD(MutableVec2d())
 
-    fun nextD(result: Vector2d): Vector2d {
+    fun nextD(result: MutableVec2d): MutableVec2d {
         result.x = nextDouble()
         result.y = nextDouble()
         advance()
@@ -270,9 +270,9 @@ class Vec3fAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
         }
     }
 
-    fun next(): Vector3f = next(Vector3f())
+    fun next(): Vec3f = next(MutableVec3f())
 
-    fun next(result: Vector3f): Vector3f {
+    fun next(result: MutableVec3f): Vec3f {
         result.x = nextFloat()
         result.y = nextFloat()
         result.z = nextFloat()
@@ -280,9 +280,9 @@ class Vec3fAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
         return result
     }
 
-    fun nextD(): Vector3d = nextD(Vector3d())
+    fun nextD(): Vec3d = nextD(MutableVec3d())
 
-    fun nextD(result: Vector3d): Vector3d {
+    fun nextD(result: MutableVec3d): Vec3d {
         result.x = nextDouble()
         result.y = nextDouble()
         result.z = nextDouble()
@@ -302,9 +302,9 @@ class Vec4fAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
         }
     }
 
-    fun next(): Vector4f = next(Vector4f())
+    fun next(): Vec4f = next(MutableVec4f())
 
-    fun next(result: Vector4f): Vector4f {
+    fun next(result: MutableVec4f): Vec4f {
         result.x = nextFloat()
         result.y = nextFloat()
         result.z = nextFloat()
@@ -313,9 +313,9 @@ class Vec4fAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
         return result
     }
 
-    fun nextD(): Vector4d = nextD(Vector4d())
+    fun nextD(): Vec4d = nextD(MutableVec4d())
 
-    fun nextD(result: Vector4d): Vector4d {
+    fun nextD(result: MutableVec4d): Vec4d {
         result.x = nextDouble()
         result.y = nextDouble()
         result.z = nextDouble()
@@ -339,9 +339,9 @@ class Vec4iAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
         }
     }
 
-    fun next(): Vector4i = next(Vector4i())
+    fun next(): Vec4i = next(MutableVec4i())
 
-    fun next(result: Vector4i): Vector4i {
+    fun next(result: MutableVec4i): Vec4i {
         result.x = nextInt()
         result.y = nextInt()
         result.z = nextInt()
@@ -366,9 +366,9 @@ class Mat4fAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
         }
     }
 
-    fun next(): Matrix4f = next(Matrix4f())
+    fun next(): Mat4f = next(MutableMat4f())
 
-    fun next(result: Matrix4f): Matrix4f {
+    fun next(result: MutableMat4f): Mat4f {
         for (col in 0..3) {
             for (row in 0..3) {
                 result[row, col] = nextFloat()
@@ -378,9 +378,9 @@ class Mat4fAccessor(accessor: GltfAccessor) : DataStreamAccessor(accessor) {
         return result
     }
 
-    fun nextD(): Matrix4d = nextD(Matrix4d())
+    fun nextD(): Mat4d = nextD(MutableMat4d())
 
-    fun nextD(result: Matrix4d): Matrix4d {
+    fun nextD(result: MutableMat4d): Mat4d {
         for (col in 0..3) {
             for (row in 0..3) {
                 result[row, col] = nextDouble()

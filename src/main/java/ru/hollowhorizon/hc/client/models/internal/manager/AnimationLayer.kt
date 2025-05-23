@@ -24,13 +24,16 @@
 
 package ru.hollowhorizon.hc.client.models.internal.manager
 
+import de.fabmax.kool.math.MutableQuatF
+import de.fabmax.kool.math.QuatF
+import de.fabmax.kool.math.Vec3f
+import de.fabmax.kool.math.deg
+import de.fabmax.kool.scene.TrsTransformF
 import de.fabmax.kool.util.Time
 import kotlinx.serialization.Serializable
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
-import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.models.internal.Node
-import ru.hollowhorizon.hc.client.models.internal.Transformation
 import ru.hollowhorizon.hc.client.models.internal.animations.Animation
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationState
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
@@ -74,8 +77,8 @@ data class AnimationLayer(
     fun computeTransform(
         node: Node,
         nameToAnimationMap: Map<String, Animation>,
-        baseTransform: Transformation?
-    ): Transformation? {
+        baseTransform: TrsTransformF?,
+    ): TrsTransformF? {
         val animation = nameToAnimationMap[animation] ?: return null
 
         val rawTime = currentTime * speed
@@ -95,37 +98,38 @@ data class AnimationLayer(
             }
         }
 
-        return when (state) {
-            AnimationState.STARTING -> {
-                if (rawTime > fadeInSeconds) {
-                    state = AnimationState.PLAYING
-                }
-                Transformation.lerp(
-                    baseTransform,
-                    animation.compute(node, rawTime),
-                    (rawTime / fadeInSeconds).coerceAtMost(1.0f)
-                )
-            }
-
-            AnimationState.PLAYING -> animation.compute(node, currentTime)
-            AnimationState.FINISHED -> {
-                if (finishTime == 0f) finishTime = currentTime
-                Transformation.lerp(
-                    animation.compute(node, currentTime),
-                    baseTransform,
-                    (currentTime - finishTime) / fadeOutSeconds
-                )
-            }
-        }
+        return null
+//        return when (state) {
+//            AnimationState.STARTING -> {
+//                if (rawTime > fadeInSeconds) {
+//                    state = AnimationState.PLAYING
+//                }
+//                TrsTransformF().lerp(
+//                    baseTransform,
+//                    animation.compute(node, rawTime),
+//                    (rawTime / fadeInSeconds).coerceAtMost(1.0f)
+//                )
+//            }
+//
+//            AnimationState.PLAYING -> animation.compute(node, currentTime)
+//            AnimationState.FINISHED -> {
+//                if (finishTime == 0f) finishTime = currentTime
+//                Transformation.lerp(
+//                    animation.compute(node, currentTime),
+//                    baseTransform,
+//                    (currentTime - finishTime) / fadeOutSeconds
+//                )
+//            }
+//        }
     }
 }
 
 class DefinedLayer {
     private var current = AnimationType.IDLE
-    private var last    = AnimationType.IDLE
+    private var last = AnimationType.IDLE
 
-    private var currentElapsed   = 0f
-    private var lastElapsed      = 0f
+    private var currentElapsed = 0f
+    private var lastElapsed = 0f
     private var transitionElapsed = 0f
 
     companion object {
@@ -134,39 +138,40 @@ class DefinedLayer {
 
     fun update(next: AnimationType, speed: Float) {
         val dtAnim = Time.deltaT * if (next.hasSpeed) abs(speed) else 1f
-        currentElapsed   += dtAnim
-        lastElapsed      += dtAnim
+        currentElapsed += dtAnim
+        lastElapsed += dtAnim
         transitionElapsed += Time.deltaT
 
         // если анимация не сменилась — только обновляем таймер перехода
         if (next == current) return
 
         // начало перехода в новую
-        last    = current
+        last = current
         current = next
 
         // сбрасываем
-        lastElapsed      = currentElapsed    // старая анимация начинается с того же момента, что и новая
-        currentElapsed   = 0f
+        lastElapsed = currentElapsed    // старая анимация начинается с того же момента, что и новая
+        currentElapsed = 0f
         transitionElapsed = 0f
     }
 
     fun computeTransform(
         node: Node,
-        animations: Map<AnimationType, Animation>
-    ): Transformation? {
-        val f = animations[current] ?: return null
-        val s = animations[last]    ?: return f.compute(node, wrap(currentElapsed, f.maxTime, current))
-
-        val t = (transitionElapsed / TRANSITION_FACTOR).coerceIn(0f, 1f)
-
-        val timeCur  = wrap(currentElapsed,   f.maxTime, current)
-        val timeLast = wrap(lastElapsed,      s.maxTime, last)
-
-        val poseCur  = f.compute(node, timeCur)
-        val poseLast = s.compute(node, timeLast)
-
-        return Transformation.lerp(poseLast, poseCur, t)
+        animations: Map<AnimationType, Animation>,
+    ): TrsTransformF? {
+        return null
+//        val f = animations[current] ?: return null
+//        val s = animations[last]    ?: return f.compute(node, wrap(currentElapsed, f.maxTime, current))
+//
+//        val t = (transitionElapsed / TRANSITION_FACTOR).coerceIn(0f, 1f)
+//
+//        val timeCur  = wrap(currentElapsed,   f.maxTime, current)
+//        val timeLast = wrap(lastElapsed,      s.maxTime, last)
+//
+//        val poseCur  = f.compute(node, timeCur)
+//        val poseLast = s.compute(node, timeLast)
+//
+//        return Transformation.lerp(poseLast, poseCur, t)
     }
 
     private fun wrap(time: Float, max: Float, type: AnimationType): Float {
@@ -177,27 +182,27 @@ class DefinedLayer {
     }
 }
 
-class HeadLayer {
+object HeadLayer {
     fun computeRotation(
         animatable: LivingEntity,
         switchHeadRot: Boolean,
         partialTick: Float,
-    ): Quaternionf {
+    ): QuatF {
 
         val bodyYaw = -Mth.rotLerp(partialTick, animatable.yBodyRotO, animatable.yBodyRot)
         val headYaw = -Mth.rotLerp(partialTick, animatable.yHeadRotO, animatable.yHeadRot)
         val netHeadYaw = headYaw - bodyYaw
         val headPitch = -Mth.rotLerp(partialTick, animatable.xRotO, animatable.xRot)
 
-        val xRot: Quaternionf
-        val yRot: Quaternionf
+        val xRot: QuatF
+        val yRot: QuatF
 
         if (switchHeadRot) {
-            xRot = Quaternionf().rotateY(headPitch * Mth.DEG_TO_RAD)
-            yRot = Quaternionf().rotateX(netHeadYaw * Mth.DEG_TO_RAD)
+            xRot = MutableQuatF().rotate(headPitch.deg, Vec3f.Y_AXIS)
+            yRot = MutableQuatF().rotate(netHeadYaw.deg, Vec3f.X_AXIS)
         } else {
-            xRot = Quaternionf().rotateX(headPitch * Mth.DEG_TO_RAD)
-            yRot = Quaternionf().rotateY(netHeadYaw * Mth.DEG_TO_RAD)
+            xRot = MutableQuatF().rotate(headPitch.deg, Vec3f.X_AXIS)
+            yRot = MutableQuatF().rotate(netHeadYaw.deg, Vec3f.Y_AXIS)
         }
 
         return yRot.mul(xRot)

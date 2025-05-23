@@ -24,10 +24,8 @@
 
 package ru.hollowhorizon.hc.client.models.internal.animations
 
+import de.fabmax.kool.math.*
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import org.joml.Quaternionf
-import org.joml.Vector3f
-import org.joml.Vector4f
 import ru.hollowhorizon.hc.client.models.gltf.*
 import ru.hollowhorizon.hc.client.models.internal.Model
 import ru.hollowhorizon.hc.client.models.internal.Node
@@ -44,23 +42,24 @@ object AnimationLoader {
     @Suppress("UNCHECKED_CAST")
     fun createAnimation(model: Model, animationModel: ru.hollowhorizon.hc.client.models.internal.Animation): Animation {
         val animData = animationModel.channels.map { channel ->
-            val timeKeys = channel.times.toFloatArray()
+            val node = model.findNodeByIndex(channel.node)
+                ?: throw AnimationException("Node with index ${channel.node} not found!")
 
+            val timeKeys = channel.times.toFloatArray()
             val target = AnimationTarget.valueOf(channel.path.uppercase())
 
-            val size = if (target == AnimationTarget.WEIGHTS) {
-                model.findNodeByIndex(channel.node)?.mesh?.weights?.size ?: 0
-            } else -1
+            val size = if (target == AnimationTarget.WEIGHTS) node.mesh?.weights?.size ?: 0
+            else -1
 
             return@map Pair(target, readAnimationData(
+                node,
                 channel.interpolation,
                 target,
                 channel.values,
                 timeKeys,
                 size
             ).apply {
-                this.node = model.findNodeByIndex(channel.node)
-                    ?: throw AnimationException("Node with index ${channel.node} not found!")
+                this.node = node
             })
         }
 
@@ -70,9 +69,9 @@ object AnimationLoader {
         data.forEach { (key, values) ->
             result[key] = AnimationData(
                 key,
-                values.find { it.first == AnimationTarget.TRANSLATION }?.second as? Interpolator<Vector3f>,
-                values.find { it.first == AnimationTarget.ROTATION }?.second as? Interpolator<Vector4f>,
-                values.find { it.first == AnimationTarget.SCALE }?.second as? Interpolator<Vector3f>,
+                values.find { it.first == AnimationTarget.TRANSLATION }?.second as? Interpolator<Vec3f>,
+                values.find { it.first == AnimationTarget.ROTATION }?.second as? Interpolator<QuatF>,
+                values.find { it.first == AnimationTarget.SCALE }?.second as? Interpolator<Vec3f>,
                 values.find { it.first == AnimationTarget.WEIGHTS }?.second as? Interpolator<FloatArray>
             )
         }
@@ -81,6 +80,7 @@ object AnimationLoader {
     }
 
     private fun readAnimationData(
+        node: Node,
         interpolation: String,
         target: AnimationTarget,
         outputData: GltfAccessor,
@@ -88,22 +88,23 @@ object AnimationLoader {
         componentCount: Int = -1,
     ): Interpolator<*> {
         return when (interpolation) {
-            GltfAnimation.Sampler.INTERPOLATION_STEP -> loadStep(outputData, timeKeys, target, componentCount)
-            GltfAnimation.Sampler.INTERPOLATION_LINEAR -> loadLinear(outputData, timeKeys, target, componentCount)
+            GltfAnimation.Sampler.INTERPOLATION_STEP -> loadStep(node, outputData, timeKeys, target, componentCount)
+            GltfAnimation.Sampler.INTERPOLATION_LINEAR -> loadLinear(node, outputData, timeKeys, target, componentCount)
             else -> throw UnsupportedOperationException("Animation type $interpolation not supported yet!")
         }
     }
 
     private fun loadStep(
+        node: Node,
         outputData: GltfAccessor,
         keys: FloatArray,
         target: AnimationTarget,
         componentCount: Int = -1,
     ): Interpolator<*> {
         return when (target) {
-            AnimationTarget.TRANSLATION -> Vec3Step(keys, Vec3fAccessor(outputData).list)
-            AnimationTarget.ROTATION -> QuatStep(keys, Vec4fAccessor(outputData).list)
-            AnimationTarget.SCALE -> Vec3Step(keys, Vec3fAccessor(outputData).list)
+            AnimationTarget.TRANSLATION -> Vec3Step(keys, Vec3fAccessor(outputData).list.map { it - node.baseTransform.translation }.toTypedArray())
+            AnimationTarget.ROTATION -> QuatStep(keys, Vec4fAccessor(outputData).list.map { MutableQuatF(node.baseTransform.rotation).inverted().mul(it.toQuatF()) }.toTypedArray())
+            AnimationTarget.SCALE -> Vec3Step(keys, Vec3fAccessor(outputData).list.map { it / node.baseTransform.scale }.toTypedArray())
             AnimationTarget.WEIGHTS -> LinearSingle(
                 keys,
                 splitListByN(FloatAccessor(outputData).list.toList(), componentCount).toTypedArray()
@@ -112,15 +113,16 @@ object AnimationLoader {
     }
 
     private fun loadLinear(
+        node: Node,
         outputData: GltfAccessor,
         keys: FloatArray,
         target: AnimationTarget,
         componentCount: Int = -1,
     ): Interpolator<*> {
         return when (target) {
-            AnimationTarget.TRANSLATION -> Linear(keys, Vec3fAccessor(outputData).list)
-            AnimationTarget.ROTATION -> SphericalLinear(keys, Vec4fAccessor(outputData).list)
-            AnimationTarget.SCALE -> Linear(keys, Vec3fAccessor(outputData).list)
+            AnimationTarget.TRANSLATION -> Linear(keys, Vec3fAccessor(outputData).list.map { it - node.baseTransform.translation }.toTypedArray())
+            AnimationTarget.ROTATION -> SphericalLinear(keys, Vec4fAccessor(outputData).list.map { MutableQuatF(node.baseTransform.rotation).inverted().mul(it.toQuatF()) }.toTypedArray())
+            AnimationTarget.SCALE -> Linear(keys, Vec3fAccessor(outputData).list.map { it / node.baseTransform.scale }.toTypedArray())
             AnimationTarget.WEIGHTS -> LinearSingle(
                 keys,
                 splitListByN(FloatAccessor(outputData).list.toList(), componentCount).toTypedArray()
@@ -143,4 +145,4 @@ fun splitListByN(list: List<Float>, n: Int): List<FloatArray> {
     return result
 }
 
-val Vector4f.asQuaternion get() = Quaternionf(x(), y(), z(), w())
+val Vec4f.asQuaternion get() = QuatF(x, y, z, w)

@@ -40,7 +40,9 @@ import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
+import ru.hollowhorizon.hc.client.models.internal.controller.AnimationController
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.internal.controller.Controller
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
@@ -82,7 +84,7 @@ object GLTFItemRenderer : BlockEntityWithoutLevelRenderer(
 
         stack.translate(0.5, 0.0, 0.5)
         preRender(capability, model.animationPlayer, stack)
-        model.update(capability)
+        //model.update(state[AnimationController::class].controller)
 
         model.render(
             stack,

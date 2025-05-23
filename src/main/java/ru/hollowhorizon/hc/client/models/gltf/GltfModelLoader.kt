@@ -24,6 +24,8 @@
 
 package ru.hollowhorizon.hc.client.models.gltf
 
+import de.fabmax.kool.math.*
+import de.fabmax.kool.scene.TrsTransformF
 import kotlinx.coroutines.*
 import net.minecraft.resources.ResourceLocation
 import org.joml.*
@@ -32,6 +34,7 @@ import ru.hollowhorizon.hc.client.models.internal.*
 import ru.hollowhorizon.hc.client.utils.exists
 import ru.hollowhorizon.hc.common.utils.rl
 import java.util.*
+import kotlin.collections.HashMap
 
 
 object GltfModelLoader {
@@ -97,9 +100,7 @@ object GltfModelLoader {
         return coroutineScope {
             async {
                 val children = node.children.map { parseNode(file, it, file.nodes[it], skins, materials) }
-                val weights = ArrayList<Float>()
                 val mesh = node.meshRef?.let { mesh ->
-                    weights.addAll(mesh.weights ?: emptyList())
                     val primitives = mesh.primitives.map { prim ->
                         Primitive(
                             prim.attributes.map { it.key to file.accessors[it.value] }.toMap(),
@@ -129,29 +130,24 @@ object GltfModelLoader {
                         )
                     }
 
-                    return@let Mesh(primitives, weights)
+                    return@let Mesh(primitives, mesh.weights.toFloatArray())
                 }
                 val skin = if (node.skin != -1) skins[node.skin] else null
 
-                val transform = Transformation(
-                    translation = node.translation?.let { Vector3f(it[0], it[1], it[2]) } ?: Vector3f(),
-                    rotation = node.rotation?.let { Quaternionf(it[0], it[1], it[2], it[3]) } ?: Quaternionf(
-                        0.0f,
-                        0.0f,
-                        0.0f,
-                        1.0f
-                    ),
-                    scale = node.scale?.let { Vector3f(it[0], it[1], it[2]) } ?: Vector3f(1.0f, 1.0f, 1.0f),
-                    weights = weights,
-                    matrix = node.matrix?.let {
-                        Matrix4f(
+                val transform = TrsTransformF()
+                node.matrix?.let {
+                    transform.setMatrix(
+                        Mat4f(
                             it[0], it[1], it[2], it[3],
                             it[4], it[5], it[6], it[7],
                             it[8], it[9], it[10], it[11],
                             it[12], it[13], it[14], it[15],
                         )
-                    } ?: Matrix4f()
-                )
+                    )
+                }
+                transform.translate(node.translation?.let { Vec3f(it[0], it[1], it[2]) } ?: MutableVec3f())
+                transform.rotate(node.rotation?.let { QuatF(it[0], it[1], it[2], it[3]) } ?: MutableQuatF())
+                transform.scale(node.scale?.let { Vec3f(it[0], it[1], it[2]) } ?: MutableVec3f(1f, 1f, 1f))
 
                 Node(nodeIndex, children.awaitAll(), transform, mesh, skin, node.name).apply {
                     this.children.forEach { it.parent = this }

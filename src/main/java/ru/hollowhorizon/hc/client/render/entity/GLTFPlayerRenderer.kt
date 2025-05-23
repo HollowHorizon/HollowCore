@@ -32,23 +32,22 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.animal.FlyingAnimal
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemDisplayContext
 import org.joml.Quaternionf
+import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.Node
-import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
-import ru.hollowhorizon.hc.client.models.internal.animations.PlayMode
-import ru.hollowhorizon.hc.client.models.internal.manager.*
-import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer.Companion.MOVEMENT_FACTOR
-import ru.hollowhorizon.hc.client.utils.*
+import ru.hollowhorizon.hc.client.models.internal.controller.AnimationController
+import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
+import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
 import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.fabric.internal.IrisHelper
-import kotlin.math.abs
 
 object GLTFPlayerRenderer {
     private val itemInHandRenderer = Minecraft.getInstance().gameRenderer.itemInHandRenderer
@@ -78,7 +77,10 @@ object GLTFPlayerRenderer {
         // Без этого от 1 лица не будет обновляться тень
         IrisHelper.bypassShadow = Minecraft.getInstance().options.cameraType.isFirstPerson
         model.entityUpdate(entity, capability, partialTick)
-        model.update(capability)
+        model.update(
+            entity[AnimationController::class].controller, EntityQuery(entity),
+            (TickHandler.time) / 20f
+        )
         IrisHelper.bypassShadow = false
 
         model.render(
@@ -96,15 +98,15 @@ object GLTFPlayerRenderer {
             packedLight,
             OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
         )
-
-        capability.subModels.forEach { (node, child) ->
-            model.nodes[node]?.let {
-                stack.use {
-                    stack.mulPoseMatrix(it.globalMatrix)
-                    GltfEntityUtil.render(entity, child, entity.tickCount, partialTick, stack, source, packedLight)
-                }
-            }
-        }
+//
+//        capability.subModels.forEach { (node, child) ->
+//            model.nodes[node]?.let {
+//                stack.use {
+//                    stack.mulPoseMatrix(it.globalMatrix)
+//                    GltfEntityUtil.render(entity, child, entity.tickCount, partialTick, stack, source, packedLight)
+//                }
+//            }
+//        }
 
         stack.popPose()
     }
@@ -125,7 +127,8 @@ object GLTFPlayerRenderer {
         ) {
             val isLeft = node.name.contains("left", ignoreCase = true)
             val item =
-                (if (isLeft) entity.getItemInHand(InteractionHand.OFF_HAND) else entity.getItemInHand(InteractionHand.MAIN_HAND)) ?: return
+                (if (isLeft) entity.getItemInHand(InteractionHand.OFF_HAND) else entity.getItemInHand(InteractionHand.MAIN_HAND))
+                    ?: return
 
             stack.pushPose()
             stack.mulPose(Quaternionf().rotateX(-90 * Mth.DEG_TO_RAD))
