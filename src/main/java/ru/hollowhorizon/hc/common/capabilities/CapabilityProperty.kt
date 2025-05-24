@@ -40,9 +40,10 @@ import kotlin.reflect.jvm.jvmErasure
 
 @Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalStdlibApi::class)
-open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : ReadWriteProperty<T, V> {
+open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V, val transferFrom: (new: V, old: V?) -> Unit = { n, o -> }) : ReadWriteProperty<T, V> {
     var defaultName = ""
     var defaultType: Class<out V>? = null
+
     override fun getValue(thisRef: T, property: KProperty<*>): V {
         if (defaultName.isEmpty()) {
             defaultName = property.name
@@ -60,6 +61,7 @@ open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : 
 
     override fun setValue(thisRef: T, property: KProperty<*>, value: V) {
         if (defaultName.isEmpty()) defaultName = property.name
+        transferFrom(value, this.value)
         this.value = value
         if (defaultType == null) defaultType =
             if (this.value == null) property.returnType.javaType as Class<out V> else this.value!!.javaClass
@@ -88,11 +90,15 @@ open class CapabilityProperty<T : CapabilityInstance, V : Any?>(var value: V) : 
                 else if (INBTSerializable::class.java.isAssignableFrom(defaultType!!)) (value as INBTSerializable).deserialize(
                     tag[defaultName]!!
                 )
-                else value = NBTFormat.deserializeNoInline(tag[defaultName]!!, this.defaultType!!)
+                else value = (NBTFormat.deserializeNoInline(tag[defaultName]!!, this.defaultType!!) as V).apply {
+                    transferFrom(this, value)
+                }
                 return true
             } catch (e: Exception) {
                 HollowCore.LOGGER.error("Error while deserializing {}: {}", defaultType, tag[defaultName], e)
             }
+        } else {
+            transferFrom(value, null)
         }
         return false
     }

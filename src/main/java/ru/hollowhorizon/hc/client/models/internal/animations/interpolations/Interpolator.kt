@@ -30,7 +30,7 @@ import java.util.*
 abstract class Interpolator<T>(val keys: FloatArray, val values: Array<T>) {
     abstract fun compute(time: Float): T
 
-    val maxTime = keys.last()
+    val duration = keys.last()
 
     val Float.animIndex: Int
         get() {

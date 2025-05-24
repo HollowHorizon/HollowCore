@@ -6,10 +6,12 @@ import de.fabmax.kool.scene.TrsTransformF
 import kotlinx.coroutines.async
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.gui.DebugOverlay
 import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
 import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.animations.Animation
+import ru.hollowhorizon.hc.client.models.internal.controller.Controller.Companion.AUTOMATIC_LAYER
 import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
 import ru.hollowhorizon.hc.common.utils.molang.Molang
 import ru.hollowhorizon.hc.common.utils.molang.MolangCompilerScope
@@ -20,22 +22,19 @@ private fun Float.modPositive(divisor: Float): Float =
 
 enum class WrapMode(val wrapTime: (Animation, Float) -> Float) {
     Once({ animation, time ->
-        if (time < 0) animation.maxTime + time else time
+        if (time < 0) animation.duration + time else time
     }),
     Loop({ animation, time ->
-        time.modPositive(animation.maxTime)
+        time.modPositive(animation.duration)
     }),
     PingPong({ animation, time ->
-        val period = animation.maxTime * 2
+        val period = animation.duration * 2
         val m = time.modPositive(period)
-        if (m <= animation.maxTime) m else period - m
-    }),
-    Reverse({ animation, time ->
-        if (time < 0) time else animation.maxTime - time
+        if (m <= animation.duration) m else period - m
     }),
     ClampForever({ animation, time ->
-        if (time < 0) animation.maxTime - (-time).coerceAtMost(animation.maxTime)
-        else time.coerceAtMost(animation.maxTime)
+        if (time < 0) animation.duration - (-time).coerceAtMost(animation.duration)
+        else time.coerceAtMost(animation.duration)
     });
 }
 
@@ -49,17 +48,21 @@ data class Mask(val bones: Set<String>) {
     }
 }
 
+@Serializable
 data class Controller(var layers: List<Layer>) {
     init {
         layers = layers.sortedBy { it.priority }
     }
 
-    private val initDeferred = MolangCompilerScope.async { init() }
-    private var isReady = false
+    @Transient
+    internal var initDeferred = MolangCompilerScope.async { init() }
 
     suspend fun init() {
-        layers.forEach { it.stateMachine.init() }
-        isReady = true
+        try {
+            layers.forEach { it.stateMachine.init() }
+        } catch (e: Exception) {
+            HollowCore.LOGGER.error("Error while compiling math expressions!", e)
+        }
     }
 
     fun uploadAnimations(animations: Map<String, Animation>) {
@@ -72,19 +75,45 @@ data class Controller(var layers: List<Layer>) {
             if (node.name !in layer.mask.bones && layer.mask.bones.isNotEmpty()) return@forEach
 
             layer.update(node, query, time)?.let { transform ->
-                node.transform
-                    .translate(Vec3f.ZERO.mix(transform.translation, layer.weight))
-                    .rotate(QuatF.IDENTITY.mix(transform.rotation, layer.weight))
-                    .scale(Vec3f.ONES.mix(transform.scale, layer.weight))
+                node.transform.apply {
+                    when (layer.blendMode) {
+                        BlendMode.Additive -> {
+                            translate(Vec3f.ZERO.mix(transform.translation, layer.weight))
+                            rotate(QuatF.IDENTITY.mix(transform.rotation, layer.weight))
+                            scale(Vec3f.ONES.mix(transform.scale, layer.weight))
+                        }
+
+                        BlendMode.Override -> {
+                            val base = node.baseTransform
+                            translation.set(base.translation + Vec3f.ZERO.mix(transform.translation, layer.weight))
+                            rotation.set(base.rotation * QuatF.IDENTITY.mix(transform.rotation, layer.weight))
+                            scale.set(base.scale * Vec3f.ONES.mix(transform.scale, layer.weight))
+                        }
+                    }
+                }
             }
         }
     }
 
     fun updateProcedural(model: AnimatedModel, query: EntityQuery) {
-        if (!isReady) return
+        if (!initDeferred.isCompleted || initDeferred.isCancelled) return
         layers.forEach {
             it.updateProcedural(model, query)
         }
+    }
+
+    fun transferFrom(old: Controller?) {
+        if (old == null) return
+        val oldLayers = old.layers.associateBy { it.name }
+        for (layer in layers) {
+            val oldLayer = oldLayers[layer.name] ?: continue
+
+            layer.stateMachine.transferStateFrom(oldLayer.stateMachine)
+        }
+    }
+
+    companion object {
+        const val AUTOMATIC_LAYER = "__Automatic__"
     }
 }
 
@@ -94,16 +123,21 @@ fun animationController(block: ControllerBuilder.() -> Unit): Controller =
 class ControllerBuilder {
     private val layers = mutableListOf<Layer>()
 
+    fun layer(layer: Layer) = layers.add(layer)
+
+    fun automatic(priority: Int = 0, weight: Float = 1f, blendMode: BlendMode = BlendMode.Override) =
+        layers.add(Layer(AUTOMATIC_LAYER, priority, weight, Mask.full(), blendMode, StateMachine(listOf(), listOf())))
+
     fun layer(
         name: String,
         priority: Int = 0,
         weight: Float = 1f,
         mask: Mask = Mask.full(),
+        blendMode: BlendMode = BlendMode.Additive,
         block: LayerBuilder.() -> Unit,
     ) {
         require(layers.none { it.name == name }) { "Layer '$name' already defined" }
-        layers += LayerBuilder(name, priority, weight, mask).apply(block).build()
-        layers.sortByDescending { it.priority }
+        layers += LayerBuilder(name, priority, weight, blendMode, mask).apply(block).build()
     }
 
     fun build(): Controller = Controller(layers)
@@ -115,7 +149,8 @@ data class Layer(
     val priority: Int,
     val weight: Float,
     val mask: Mask,
-    val stateMachine: StateMachine,
+    val blendMode: BlendMode,
+    var stateMachine: StateMachine,
 ) {
     fun update(node: Node, query: EntityQuery, time: Float): TrsTransformF? {
         return stateMachine.update(node, query, time)
@@ -130,6 +165,7 @@ class LayerBuilder(
     val name: String,
     val priority: Int,
     val weight: Float,
+    val blend: BlendMode,
     val mask: Mask,
 ) {
     private var stateMachine = StateMachineBuilder().build()
@@ -137,10 +173,8 @@ class LayerBuilder(
         stateMachine = StateMachineBuilder().apply(block).build()
     }
 
-    fun build() = Layer(name, priority, weight, mask, stateMachine)
+    fun build() = Layer(name, priority, weight, mask, blend, stateMachine)
 }
-
-// State Machine
 
 @Serializable
 data class State(
@@ -173,12 +207,17 @@ data class State(
         procedural?.init()
     }
 
+    fun transferStateFrom(oldState: State) {
+        oldState.clip?.let { clip?.transferFrom(it) }
+        oldState.blendTree?.let { blendTree?.transferFrom(it) }
+    }
+
 }
 
 @Serializable
 data class Transition(
-    val from: State,
-    val to: State,
+    val from: String,
+    val to: String,
     private val function: String,
     val duration: Float,
     val transitionClip: ClipNode?,
@@ -186,6 +225,12 @@ data class Transition(
 ) {
     @Transient
     lateinit var condition: (EntityQuery) -> Boolean
+
+    @Transient
+    var fromRef: State? = null
+
+    @Transient
+    var toRef: State? = null
 
     @Transient
     private val conditionDeferred = MolangCompilerScope.async {
@@ -202,12 +247,12 @@ data class Transition(
     fun start(query: EntityQuery, time: Float) {
         startTime = time
         isFinished = false
-        to.reset(query, time)
+        toRef?.reset(query, time)
     }
 
     fun update(node: Node, query: EntityQuery, time: Float): TrsTransformF? {
-        val from = from.update(node, query, time)
-        val to = to.update(node, query, time)
+        val from = fromRef?.update(node, query, time)
+        val to = toRef?.update(node, query, time)
 
         val factor = ((time - startTime) / duration).coerceIn(0f..1f)
         if (factor == 1f) isFinished = true
@@ -233,8 +278,18 @@ data class StateMachine(
     val states: List<State>,
     val transitions: List<Transition>,
 ) {
+    @Transient
     var currentState: State? = null
+
+    @Transient
     var currentTransition: Transition? = null
+
+    init {
+        transitions.forEach { transition ->
+            transition.fromRef = states.firstOrNull { it.name == transition.from }
+            transition.toRef = states.firstOrNull { it.name == transition.to }
+        }
+    }
 
     suspend fun init() {
         states.forEach { it.init() }
@@ -243,10 +298,15 @@ data class StateMachine(
 
     fun update(node: Node, query: EntityQuery, time: Float): TrsTransformF? {
         if (currentTransition == null) {
-            transitions.firstOrNull { (it.from == currentState || currentState == null) && it.condition(query) }
-                ?.let {
-                    currentTransition = it
-                    it.start(query, time)
+            transitions.firstOrNull {
+                (it.from == currentState?.name || it.from == "*" || currentState == null) &&
+                        it.condition(query)
+            }
+                ?.let { transition ->
+                    transition.fromRef = states.firstOrNull { it.name == transition.from } ?: currentState
+                    transition.toRef = states.firstOrNull { it.name == transition.to }
+                    currentTransition = transition
+                    transition.start(query, time)
                 }
 
             if (transitions.isEmpty() && currentState == null) currentState = states.firstOrNull()
@@ -255,7 +315,7 @@ data class StateMachine(
         currentTransition?.let { transition ->
             if (transition.isFinished) {
                 currentTransition = null
-                currentState = transition.to
+                currentState = states.firstOrNull { it.name == transition.to }
                 return@let
             }
             return transition.update(node, query, time)
@@ -276,9 +336,20 @@ data class StateMachine(
             }
         }
     }
+
+    fun transferStateFrom(old: StateMachine) {
+        val oldStates = old.states.associateBy { it.name }
+
+        for (state in states) {
+            val oldState = oldStates[state.name] ?: continue
+            state.transferStateFrom(oldState)
+        }
+
+        currentState = old.currentState
+    }
 }
 
-class StateMachineBuilder() {
+class StateMachineBuilder {
     private val states = mutableListOf<State>()
     private val transitions = mutableListOf<Transition>()
 
@@ -288,7 +359,7 @@ class StateMachineBuilder() {
         return state
     }
 
-    fun transition(from: State, to: State, block: TransitionBuilder.() -> Unit) {
+    fun transition(from: String, to: String, block: TransitionBuilder.() -> Unit) {
         transitions += TransitionBuilder(from, to).apply(block).build()
     }
 
@@ -303,10 +374,9 @@ class StateBuilder(val name: String) {
     fun clip(
         name: String,
         wrap: WrapMode = WrapMode.Loop,
-        blend: BlendMode = BlendMode.Override,
         speed: String = "1f",
     ) {
-        clip = ClipNode(name, wrap, blend, speed)
+        clip = ClipNode(name, wrap, speed)
     }
 
     fun blendTree(block: BlendTreeBuilder.() -> Unit) {
@@ -381,6 +451,17 @@ data class BlendTree(
             }
         }
     }
+
+    fun transferFrom(old: BlendTree) {
+        old.nodes
+        nodes.forEachIndexed { i, node ->
+            old.nodes.getOrNull(i)?.let { oldNode ->
+                node.transferFrom(oldNode)
+            }
+        }
+        lastTime = old.lastTime
+        lastFiltered = old.lastFiltered
+    }
 }
 
 class BlendTreeBuilder {
@@ -392,16 +473,11 @@ class BlendTreeBuilder {
         name: String,
         threshold: Float,
         wrap: WrapMode = WrapMode.Loop,
-        blend: BlendMode = BlendMode.Override,
         speed: String,
     ) {
-        nodes += BlendNode(ClipNode(name, wrap, blend, speed), threshold)
+        nodes += BlendNode(ClipNode(name, wrap, speed), threshold)
     }
 
-    /**
-     * Устанавливает функцию фактора смешивания (например, скорость) и время сглаживания.
-     * @param smoothingTime Время сглаживания в секундах (0 - без сглаживания)
-     */
     fun factor(function: String, smoothingTime: Float = 0f) {
         this.factor = function
         this.smoothingTime = smoothingTime
@@ -420,9 +496,11 @@ data class BlendNode(val clip: ClipNode, val threshold: Float) {
         clip.reset(query, time)
     }
 
-}
+    fun transferFrom(oldNode: BlendNode) {
+        clip.transferFrom(oldNode.clip)
+    }
 
-// Procedural
+}
 
 @Serializable
 data class ProceduralNode(val functions: HashMap<String, ProceduralTransformer>) {
@@ -505,7 +583,6 @@ class ProceduralTransformer {
 data class ClipNode(
     val name: String,
     val wrap: WrapMode,
-    val blend: BlendMode,
     private val function: String,
 ) {
     @Transient
@@ -551,18 +628,9 @@ data class ClipNode(
 
         val animation = animations[name] ?: return null
 
-        when (wrap) {
-            WrapMode.Once -> {
-                if (oldSpeed > 0 && rawTime > animation.maxTime) return null
-                if (oldSpeed < 0 && rawTime < 0f) return null
-            }
-
-            WrapMode.Reverse -> {
-                if (oldSpeed > 0 && rawTime < 0f) return null
-                if (oldSpeed < 0 && rawTime > animation.maxTime) return null
-            }
-
-            else -> {}
+        if (wrap == WrapMode.Once) {
+            if (oldSpeed > 0 && rawTime > animation.duration) return null
+            if (oldSpeed < 0 && rawTime < 0f) return null
         }
 
         val sampleTime = wrap.wrapTime(animation, rawTime)
@@ -574,6 +642,12 @@ data class ClipNode(
         return animation.compute(node, sampleTime)
     }
 
+    fun transferFrom(old: ClipNode) {
+        pausedAnimTime = old.pausedAnimTime
+        startTime = old.startTime
+        oldSpeed = old.oldSpeed
+    }
+
 }
 
 @Serializable
@@ -581,7 +655,7 @@ data class DeltaNode(val targetPose: String)
 
 // Transition builder
 
-class TransitionBuilder(val from: State, val to: State) {
+class TransitionBuilder(val from: String, val to: String) {
     internal var condition: String = "false"
     internal var duration: Float = 0.2f
     internal var transitionClip: ClipNode? = null
@@ -596,7 +670,7 @@ class TransitionBuilder(val from: State, val to: State) {
     }
 
     fun clip(name: String, wrap: WrapMode = WrapMode.Once, speed: String = "1f") {
-        transitionClip = ClipNode(name, wrap, BlendMode.Override, speed)
+        transitionClip = ClipNode(name, wrap, speed)
     }
 
     fun deltaClip(targetPose: String) {

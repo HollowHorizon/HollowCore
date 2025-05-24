@@ -34,7 +34,7 @@ import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.animations.interpolations.Interpolator
 
 class Animation(val name: String, private val animationData: Map<Node, AnimationData>) {
-    val maxTime = animationData.values.maxOf { it.maxTime }
+    val duration = animationData.values.maxOf { it.duration }
 
     val temp = TrsTransformF()
 
@@ -76,45 +76,73 @@ enum class AnimationType {
     IDLE, IDLE_SNEAKED, WALK, WALK_SNEAKED, JUMP, HURT,
     RUN, SWIM, FALL, FLY, SIT, SLEEP, SWING, DEATH;
 
-    val hasSpeed get() = this == RUN || this == WALK || this == WALK_SNEAKED
-
     companion object {
+        // @formatter:off
+        private val patterns: Map<AnimationType, List<List<String>>> = mapOf(
+            IDLE            to listOf(listOf("idle")),
+            IDLE_SNEAKED    to listOf(listOf("sneak"), listOf("crouch", "idle")),
+            WALK            to listOf(listOf("walk"), listOf("move"), listOf("go")),
+            WALK_SNEAKED    to listOf(listOf("walk", "sneak"), listOf("crouch", "walk")),
+            RUN             to listOf(listOf("run"), listOf("dash"), listOf("flee")),
+            JUMP            to listOf(listOf("jump"), listOf("hop"), listOf("leap")),
+            FALL            to listOf(listOf("fall")),
+            FLY             to listOf(listOf("fly"), listOf("glide")),
+            SWIM            to listOf(listOf("swim")),
+            SIT             to listOf(listOf("sit")),
+            SLEEP           to listOf(listOf("sleep"), listOf("rest")),
+            HURT            to listOf(listOf("hurt"), listOf("damage")),
+            SWING           to listOf(listOf("swing"), listOf("attack"), listOf("use")),
+            DEATH           to listOf(listOf("death"), listOf("die"), listOf("dead"))
+        )
+        // @formatter:on
+
         @JvmStatic
         fun load(model: Model): HashMap<AnimationType, String> {
-            val names = model.animations.map { it.name ?: "Unnamed" }
+            val names = model.animations.mapNotNull { it.name }.toMutableList()
+            val result = hashMapOf<AnimationType, String>()
 
-            fun List<String>.findOr(vararg names: String) =
-                this.find { anim -> names.any { anim.contains(it, ignoreCase = true) } }
+            // Утилиты поиска
+            fun String.scoreAgainst(keys: List<String>): Int {
+                val lower = lowercase()
+                // +100 за точное совпадение
+                if (lower == keys.joinToString("_")) return 100
+                // +50 за startsWith любого ключевого слова
+                if (keys.any { lower.startsWith(it) }) return 50
+                // +10 за contains всех ключевых слов
+                if (keys.all { lower.contains(it) }) return 10
+                return 0
+            }
 
-            fun List<String>.findAnd(vararg names: String) =
-                this.find { anim -> names.all { anim.contains(it, ignoreCase = true) } }
+            fun List<String>.findBest(keys: List<String>): String? {
+                return this
+                    .asSequence()
+                    .map { it to it.scoreAgainst(keys) }
+                    .filter { it.second > 0 }
+                    .sortedWith(compareByDescending<Pair<String, Int>> { it.second }
+                        .thenByDescending { (name, _) ->
+                            // для speed-анимаций можно учесть цифры в имени
+                            if (keys.any { it in listOf("run", "walk", "sneak") }) {
+                                Regex("""\d+""").find(name)?.value?.toInt() ?: 0
+                            } else 0
+                        })
+                    .map { it.first }
+                    .firstOrNull()
+            }
 
-            val animations = hashMapOf<AnimationType, String>()
-
-            animations[IDLE] = names.findOr("idle") ?: ""
-            animations[IDLE_SNEAKED] = names.findAnd("idle", "sneak") ?: animations[IDLE] ?: ""
-            animations[WALK] = names.minByOrNull {
-                when {
-                    it.contains("walk", ignoreCase = true) -> 0
-                    it.contains("go", ignoreCase = true) -> 1
-                    it.contains("run", ignoreCase = true) -> 2
-                    it.contains("move", ignoreCase = true) -> 3
-                    else -> 5
+            for (type in entries) {
+                val keysList = patterns[type] ?: continue
+                var found: String? = null
+                for (keys in keysList) {
+                    found = names.findBest(keys)
+                    if (found != null) break
                 }
-            } ?: ""
-            animations[JUMP] = names.findOr("jump", "hop", "leap") ?: animations[WALK] ?: ""
-            animations[HURT] = names.findOr("hurt", "damage") ?: ""
-            animations[WALK_SNEAKED] = names.findAnd("walk", "sneak") ?: animations[WALK] ?: ""
-            animations[RUN] = names.findOr("run", "flee", "dash") ?: animations[WALK] ?: ""
-            animations[SWIM] = names.findOr("swim") ?: animations[WALK] ?: ""
-            animations[FALL] = names.findOr("fall") ?: animations[IDLE] ?: ""
-            animations[FLY] = names.findOr("fly") ?: animations[IDLE] ?: ""
-            animations[SIT] = names.findOr("sit") ?: animations[IDLE] ?: ""
-            animations[SLEEP] = names.findOr("sleep") ?: animations[SLEEP] ?: ""
-            animations[SWING] = names.findOr("attack", "swing", "use") ?: ""
-            animations[DEATH] = names.findOr("death") ?: ""
+                if (found != null) {
+                    result[type] = found
+                    names.remove(found)
+                }
+            }
 
-            return animations
+            return result
         }
     }
 }
@@ -139,17 +167,12 @@ class AnimationData(
     val scale: Interpolator<Vec3f>?,
     val weights: Interpolator<FloatArray>?,
 ) {
-    val maxTime = maxOf(
-        translation?.maxTime ?: 0f,
-        rotation?.maxTime ?: 0f,
-        scale?.maxTime ?: 0f,
-        weights?.maxTime ?: 0f
+    val duration = maxOf(
+        translation?.duration ?: 0f,
+        rotation?.duration ?: 0f,
+        scale?.duration ?: 0f,
+        weights?.duration ?: 0f
     )
 }
 
-enum class AnimationTarget {
-    TRANSLATION, ROTATION, SCALE, WEIGHTS;
-
-    val numComponents: Int
-        get() = if (this == ROTATION) 4 else 3
-}
+enum class AnimationTarget { TRANSLATION, ROTATION, SCALE, WEIGHTS }

@@ -24,11 +24,21 @@
 
 package ru.hollowhorizon.hc.client.models.internal.manager
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.client.models.internal.Transform
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
+import ru.hollowhorizon.hc.client.models.internal.controller.AutoController
+import ru.hollowhorizon.hc.client.models.internal.controller.Controller
+import ru.hollowhorizon.hc.client.models.internal.controller.StateMachineBuilder
+import ru.hollowhorizon.hc.client.models.internal.controller.animationController
+import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.HollowCapability
+import ru.hollowhorizon.hc.common.utils.get
+import ru.hollowhorizon.hc.common.utils.molang.MolangCompilerScope
+import ru.hollowhorizon.hc.common.utils.rl
 
 /**
  * Represents a data store for an animated object, providing various properties,
@@ -48,14 +58,23 @@ import ru.hollowhorizon.hc.common.capabilities.HollowCapability
  */
 @HollowCapability(IAnimated::class, Player::class)
 class AnimatedEntityCapability : CapabilityInstance() {
-    internal val definedLayer = DefinedLayer()
-    internal val headLayer = HeadLayer
     var model by syncable("%NO_MODEL%")
-    val layers by syncableList<AnimationLayer>()
     val textures by syncableMap<String, String>()
-    val animations by syncableMap<AnimationType, String>()
     var transform by syncable(Transform())
-    val subModels by syncableMap<String, SubModel>()
-    var switchHeadRot by syncable(false)
+
+    var controller by syncable(
+        animationController {
+            automatic()
+        }
+    ) { new, old ->
+        new.layers.find { it.name == Controller.AUTOMATIC_LAYER }?.let {
+            if (model == GLTFEntityRenderer.NO_MODEL) return@let
+            val model = GltfManager.getOrCreate(model.rl)
+            val stateMachine = AutoController.create(StateMachineBuilder(), AnimationType.load(model.modelTree))
+            it.stateMachine = stateMachine.build()
+            new.initDeferred = MolangCompilerScope.async { new.init() }
+        }
+        new.transferFrom(old)
+    }
 }
 

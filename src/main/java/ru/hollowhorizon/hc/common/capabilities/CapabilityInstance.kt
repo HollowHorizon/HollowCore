@@ -65,16 +65,17 @@ open class CapabilityInstance {
      * @param default The default value for the property.
      * @return Instance of [CapabilityProperty] with a specified default value.
      */
-    fun <T> syncable(default: T) = CapabilityProperty<CapabilityInstance, T>(default).apply {
-        properties += this
-    }
+    fun <T> syncable(default: T, transferFrom: (T, T?) -> Unit = { o, n -> }) =
+        CapabilityProperty<CapabilityInstance, T>(default, transferFrom).apply {
+            properties += this
+        }
 
     /**
      * Synchronizes the current state of the Capability with the client or server, depending on the execution side.
      * If the Capability is one-way, synchronization is not performed.
      */
     fun synchronize() {
-        if(isOneSided) return
+        if (isOneSided) return
 
         val tag = serializeNBT()
 

@@ -31,11 +31,9 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import net.minecraft.world.entity.LivingEntity
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
-import ru.hollowhorizon.hc.client.models.internal.animations.PlayMode
+import ru.hollowhorizon.hc.client.models.internal.controller.animationController
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.internal.manager.AnimationLayer
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
-import ru.hollowhorizon.hc.client.models.internal.manager.LayerMode
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.particles.ParticleEffect
 import ru.hollowhorizon.hc.client.particles.Transform
@@ -113,8 +111,21 @@ object HollowCommands {
                 ) {
                     val name = StringArgumentType.getString(this, "anim")
                     source.player?.let {
-                        if(name in it[AnimatedEntityCapability::class].layers.map { it.animation }) it[AnimatedEntityCapability::class].layers.removeIf { it.animation == name }
-                        else it[AnimatedEntityCapability::class].layers.add(AnimationLayer(name, LayerMode.OVERWRITE, PlayMode.LOOPED, 1f))
+                        val controller = it[AnimatedEntityCapability::class].controller
+                        it[AnimatedEntityCapability::class].controller = animationController {
+                            controller.layers.forEach(::layer)
+                            layer("CommandLayer") {
+                                stateMachine {
+                                    state(name + "_layer") {
+                                        clip(name)
+                                    }
+                                    transition("null", name+"_layer") {
+                                        condition("true")
+                                        duration(0.25f)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -40,7 +40,6 @@ import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
-import ru.hollowhorizon.hc.client.models.internal.controller.AnimationController
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.controller.Controller
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager

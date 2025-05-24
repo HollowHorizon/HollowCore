@@ -39,9 +39,7 @@ import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
-import ru.hollowhorizon.hc.client.models.internal.controller.AnimationController
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.internal.controller.Controller
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
@@ -83,7 +81,11 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
             else -> {}
         }
 
-        model.update(entity[AnimationController::class].controller, EntityQuery(Minecraft.getInstance().player!!), TickHandler.time / 20f)
+        model.update(
+            capability.controller,
+            EntityQuery(Minecraft.getInstance().player!!),
+            TickHandler.time / 20f
+        )
 
         model.render(
             stack,

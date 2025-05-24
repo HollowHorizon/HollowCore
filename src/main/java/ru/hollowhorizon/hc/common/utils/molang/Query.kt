@@ -2,6 +2,7 @@ package ru.hollowhorizon.hc.common.utils.molang
 
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.animal.FlyingAnimal
 import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.internal.manager.HeadLayer
 import kotlin.math.abs
@@ -10,6 +11,20 @@ class EntityQuery(val entity: LivingEntity) {
     @JvmField val ground_speed = calculateSpeedViaDeltaMovement(entity)
     @JvmField val is_moving = abs(ground_speed) >= MOVEMENT_FACTOR
     @JvmField val is_sneaking = entity.isShiftKeyDown
+    @JvmField val is_sprinting = entity.isSprinting
+    @JvmField val is_jumping = entity.jumping
+    @JvmField val velocity_y = entity.deltaMovement.y
+    @JvmField val velocity_x = entity.deltaMovement.x
+    @JvmField val velocity_z = entity.deltaMovement.z
+    @JvmField val is_flying = entity is FlyingAnimal && entity.isFlying
+    @JvmField val fall_ticks = entity.fallFlyingTicks
+    @JvmField val is_swimming = entity.isSwimming
+    @JvmField val is_sitting = entity.vehicle != null
+    @JvmField val is_sleeping = entity.isSleeping
+    @JvmField val is_hurt = entity.hurtTime > 0
+    @JvmField val is_swinging = entity.swingTime > 0
+    @JvmField val is_alive = entity.isAlive
+    @JvmField val is_on_ground = entity.onGround()
     @JvmField val head_rot = HeadLayer.computeRotation(entity, false, TickHandler.partialTick)
 }
 

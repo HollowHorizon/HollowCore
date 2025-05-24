@@ -35,23 +35,19 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.animal.FlyingAnimal
 import net.minecraft.world.item.ItemDisplayContext
 import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.Node
-import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
-import ru.hollowhorizon.hc.client.models.internal.animations.PlayMode
-import ru.hollowhorizon.hc.client.models.internal.controller.AnimationController
-import ru.hollowhorizon.hc.client.models.internal.manager.*
-import ru.hollowhorizon.hc.client.utils.*
+import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
+import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
 import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
-import ru.hollowhorizon.hc.common.utils.molang.calculateSpeedViaDeltaMovement
 import ru.hollowhorizon.hc.common.utils.rl
-import kotlin.math.abs
 
 open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
     EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimated {
@@ -87,7 +83,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
         model.visuals = ::drawVisuals
         model.entityUpdate(entity, capability, partialTick)
-        val controller = entity[AnimationController::class].controller
+        val controller = capability.controller
         controller.uploadAnimations(model.animationPlayer.nameToAnimationMap)
         model.update(
             controller, EntityQuery(entity),
@@ -167,77 +163,9 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         stack.mulPoseMatrix(capability.transform.matrix)
         stack.last().normal().mul(capability.transform.normalMatrix)
         stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
-        updateAnimations(entity, capability, manager)
     }
 
     companion object {
-
-        fun updateAnimations(entity: LivingEntity, capability: AnimatedEntityCapability, manager: GLTFAnimationPlayer) {
-            val layers = capability.layers
-            when {
-                entity.hurtTime > 0 -> {
-                    val name = manager.typeToAnimationMap[AnimationType.HURT]?.name ?: return
-                    if (layers.any { it.animation == name }) {
-                        layers.filter { it.animation == name }.forEach { it.reset() }
-                        return
-                    }
-
-                    layers += AnimationLayer(
-                        name,
-                        LayerMode.OVERWRITE,
-                        PlayMode.ONCE,
-                        1.0f, fadeIn = 5
-                    )
-                }
-
-                entity.swinging -> {
-                    val name = manager.typeToAnimationMap[AnimationType.SWING]?.name ?: return
-                    if (layers.any { it.animation == name }) return
-
-                    layers += AnimationLayer(
-                        name,
-                        LayerMode.OVERWRITE,
-                        PlayMode.ONCE,
-                        1.0f, fadeIn = 5
-                    )
-                }
-
-                !entity.isAlive -> {
-                    val name = manager.typeToAnimationMap[AnimationType.DEATH]?.name ?: return
-                    if (layers.any { it.animation == name }) return
-
-                    layers += AnimationLayer(
-                        name,
-                        LayerMode.OVERWRITE,
-                        PlayMode.LAST_FRAME,
-                        1.0f, fadeIn = 5
-                    )
-                }
-            }
-
-            manager.currentLoopAnimation = when {
-                entity is FlyingAnimal && entity.isFlying -> AnimationType.FLY
-                entity.isSleeping -> AnimationType.SLEEP
-                entity.vehicle != null -> AnimationType.SIT
-                entity.fallFlyingTicks > 4 -> AnimationType.FALL
-
-                entity.jumping || entity.y - entity.yo > MOVEMENT_FACTOR -> AnimationType.JUMP
-                entity.isMoving() -> {
-                    when {
-                        entity.isVisuallySwimming -> AnimationType.SWIM
-                        entity.isShiftKeyDown -> AnimationType.WALK_SNEAKED
-                        entity.isSprinting -> AnimationType.RUN
-                        else -> AnimationType.WALK
-                    }
-                }
-
-                else -> AnimationType.IDLE
-            }
-        }
-
-        private fun LivingEntity.isMoving() =
-            abs(calculateSpeedViaDeltaMovement(this)) >= MOVEMENT_FACTOR
-
         const val NO_MODEL = "%NO_MODEL%"
         const val MOVEMENT_FACTOR = (1 / 256f)
     }

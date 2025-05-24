@@ -51,20 +51,8 @@ open class GLTFAnimationPlayer(val model: AnimatedModel) {
     val typeToAnimationMap: Map<AnimationType, Animation> =
         templates.mapNotNull { it.key to (nameToAnimationMap[it.value] ?: return@mapNotNull null) }.toMap()
     var currentLoopAnimation = AnimationType.IDLE
-    val head by lazy { nodeModels.filter(Node::isHead) }
 
     fun updateEntity(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
-        if (Minecraft.getInstance().isPaused || IrisHelper.isShadowRendering()) return
-        val switchRot = capability.switchHeadRot
-        currentSpeed = calculateSpeedViaDeltaMovement(entity)
-        DebugOverlay.debugText["Current Speed"] = currentSpeed.toString()
-
-        head.forEach {
-            val newRot = capability.headLayer.computeRotation(entity, switchRot, partialTick)
-            it.transform.rotation.setIdentity()
-            it.transform.rotate(newRot)
-            //it.transform.addRotationRight(newRot)
-        }
     }
 
     fun update(controller: Controller, query: EntityQuery, time: Float) {

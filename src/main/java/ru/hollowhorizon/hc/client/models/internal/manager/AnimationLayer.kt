@@ -84,16 +84,16 @@ data class AnimationLayer(
         val rawTime = currentTime * speed
 
         val currentTime = when (playMode) {
-            PlayMode.LOOPED -> rawTime % animation.maxTime
-            PlayMode.LAST_FRAME -> rawTime.coerceAtMost(animation.maxTime)
+            PlayMode.LOOPED -> rawTime % animation.duration
+            PlayMode.LAST_FRAME -> rawTime.coerceAtMost(animation.duration)
             PlayMode.REVERSED -> {
-                val isReversed = (rawTime / animation.maxTime).toInt() % 2 == 1
-                if (!isReversed) rawTime % animation.maxTime
-                else animation.maxTime - (rawTime % animation.maxTime)
+                val isReversed = (rawTime / animation.duration).toInt() % 2 == 1
+                if (!isReversed) rawTime % animation.duration
+                else animation.duration - (rawTime % animation.duration)
             }
 
             PlayMode.ONCE -> {
-                if (rawTime >= animation.maxTime) state = AnimationState.FINISHED
+                if (rawTime >= animation.duration) state = AnimationState.FINISHED
                 rawTime
             }
         }
@@ -137,7 +137,7 @@ class DefinedLayer {
     }
 
     fun update(next: AnimationType, speed: Float) {
-        val dtAnim = Time.deltaT * if (next.hasSpeed) abs(speed) else 1f
+        val dtAnim = Time.deltaT * 1f
         currentElapsed += dtAnim
         lastElapsed += dtAnim
         transitionElapsed += Time.deltaT

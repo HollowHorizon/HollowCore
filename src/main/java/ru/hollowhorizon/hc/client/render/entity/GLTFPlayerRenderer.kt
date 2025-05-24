@@ -35,11 +35,9 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemDisplayContext
 import org.joml.Quaternionf
-import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
-import ru.hollowhorizon.hc.client.models.internal.controller.AnimationController
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
@@ -77,7 +75,7 @@ object GLTFPlayerRenderer {
         // Без этого от 1 лица не будет обновляться тень
         IrisHelper.bypassShadow = Minecraft.getInstance().options.cameraType.isFirstPerson
         model.entityUpdate(entity, capability, partialTick)
-        val controller = entity[AnimationController::class].controller
+        val controller = capability.controller
         controller.uploadAnimations(model.animationPlayer.nameToAnimationMap)
         model.update(
             controller, EntityQuery(entity),
@@ -158,6 +156,5 @@ object GLTFPlayerRenderer {
         stack.mulPoseMatrix(capability.transform.matrix)
         stack.last().normal().mul(capability.transform.normalMatrix)
         stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
-        GLTFEntityRenderer.updateAnimations(entity, capability, manager)
     }
 }
