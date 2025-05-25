@@ -48,7 +48,7 @@ import ru.hollowhorizon.hc.common.utils.bytebuf.ByteBufFormat
 import ru.hollowhorizon.hc.common.utils.bytebuf.serializeNoInline
 import ru.hollowhorizon.hc.common.utils.rl
 
-interface HollowPacket<T : HollowPacket<T>> {
+interface HollowPacket {
     fun handle(player: Player)
 
     fun send() {
@@ -62,12 +62,12 @@ interface HollowPacket<T : HollowPacket<T>> {
     }
 }
 
-val HollowPacket<*>.packetName: ResourceLocation
+val HollowPacket.packetName: ResourceLocation
     get() = "$MODID:${
         this.javaClass.name.lowercase().replace("\$", ".")
     }".rl
 
-fun HollowPacket<*>.sendTrackingEntity(entity: Entity) {
+fun HollowPacket.sendTrackingEntity(entity: Entity) {
     val chunkCache = entity.level().chunkSource
     if (chunkCache is ServerChunkCache) {
         //? if forge {
@@ -83,12 +83,12 @@ fun HollowPacket<*>.sendTrackingEntity(entity: Entity) {
     }
 }
 
-fun HollowPacket<*>.sendTrackingEntityAndSelf(entity: Entity) {
+fun HollowPacket.sendTrackingEntityAndSelf(entity: Entity) {
     sendTrackingEntity(entity)
     if (entity is ServerPlayer) send(entity)
 }
 
-fun HollowPacket<*>.sendAllInDimension(level: Level) {
+fun HollowPacket.sendAllInDimension(level: Level) {
     val server = level.server ?: return
     //? if forge {
     /*ForgeNetworkHelper.hollowCoreChannel.send(PacketDistributor.DIMENSION.with { level.dimension() }, this)
@@ -98,7 +98,7 @@ fun HollowPacket<*>.sendAllInDimension(level: Level) {
 }
 
 //? if fabric {
-fun HollowPacket<*>.asVanillaPacket(toClient: Boolean): Packet<*> {
+fun HollowPacket.asVanillaPacket(toClient: Boolean): Packet<*> {
     val byteBuf = FriendlyByteBuf(Unpooled.buffer())
     ByteBufFormat.serializeNoInline(this, javaClass, byteBuf)
     return if (!toClient) ClientPlayNetworking.createC2SPacket(packetName, byteBuf)
@@ -107,7 +107,7 @@ fun HollowPacket<*>.asVanillaPacket(toClient: Boolean): Packet<*> {
     throw NotImplementedError("AsVanillaPacket method is not implemented for this platform")
 }//?}
 
-lateinit var sendPacketToServer: (HollowPacket<*>) -> Unit
-lateinit var sendPacketToClient: (ServerPlayer, HollowPacket<*>) -> Unit
+lateinit var sendPacketToServer: (HollowPacket) -> Unit
+lateinit var sendPacketToClient: (ServerPlayer, HollowPacket) -> Unit
 lateinit var registerPacket: (Class<*>) -> Unit
 lateinit var registerPackets: () -> Unit

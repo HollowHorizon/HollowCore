@@ -42,7 +42,7 @@ import ru.hollowhorizon.hc.common.events.post
  * [capabilities] returns a list of the assigned [CapabilityInstance]
  */
 interface ICapabilityDispatcher {
-    val capabilities: MutableList<CapabilityInstance>
+    val capabilities: MutableMap<String, CapabilityInstance>
 }
 
 /**
@@ -52,7 +52,7 @@ interface ICapabilityDispatcher {
 fun ICapabilityDispatcher.serializeCapabilities(tag: CompoundTag) {
     val nbt = CompoundTag()
     capabilities.forEach {
-        nbt.put(it.javaClass.name, it.serializeNBT())
+        nbt.put(it.key, it.value.serializeNBT())
     }
     tag.put("hc_capabilities", nbt)
 }
@@ -64,12 +64,12 @@ fun ICapabilityDispatcher.serializeCapabilities(tag: CompoundTag) {
 fun ICapabilityDispatcher.deserializeCapabilities(tag: CompoundTag) {
     val capabilities = tag.getCompound("hc_capabilities")
     for (key in capabilities.allKeys) {
-        this.capabilities.find { it.javaClass.name == key }?.deserializeNBT(capabilities.getCompound(key))
+        this.capabilities[key]?.deserializeNBT(capabilities.getCompound(key))
     }
 }
 
 fun ICapabilityDispatcher.syncIfNeeded() {
-    capabilities.filter { it.isChanged }.forEach {
+    capabilities.values.filter { it.isChanged }.forEach {
         it.synchronize()
         it.isChanged = false
     }

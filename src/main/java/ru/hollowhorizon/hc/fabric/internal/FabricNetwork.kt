@@ -15,7 +15,7 @@ import ru.hollowhorizon.hc.common.utils.bytebuf.ByteBufFormat
 import ru.hollowhorizon.hc.common.utils.bytebuf.deserializeNoInline
 import ru.hollowhorizon.hc.common.utils.rl
 
-fun <T : HollowPacket<T>> registerPacket(type: Class<T>) {
+fun <T : HollowPacket> registerPacket(type: Class<T>) {
     val annotation = type.getAnnotation(HollowPacketHandler::class.java)
     val location = "$MODID:${type.name.lowercase().replace("\$", ".")}".rl
 

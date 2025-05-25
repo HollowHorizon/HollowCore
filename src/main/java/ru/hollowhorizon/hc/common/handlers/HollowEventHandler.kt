@@ -61,7 +61,7 @@ object HollowEventHandler {
 
     @SubscribeEvent
     fun onStartTracking(event: EntityTrackingEvent) {
-        (event.entity as ICapabilityDispatcher).capabilities.forEach(CapabilityInstance::synchronize)
+        (event.entity as ICapabilityDispatcher).capabilities.values.forEach(CapabilityInstance::synchronize)
     }
 
     @SubscribeEvent
@@ -70,7 +70,10 @@ object HollowEventHandler {
             val oldCapabilities = (event.oldPlayer as ICapabilityDispatcher).capabilities
             val newCapabilities = (event.player as ICapabilityDispatcher).capabilities
             newCapabilities.clear()
-            newCapabilities.addAll(oldCapabilities)
+            oldCapabilities.forEach { (key, value) ->
+                newCapabilities[key] = value
+            }
+            event.player.capabilities.values.forEach(CapabilityInstance::synchronize)
         }
     }
 
@@ -78,7 +81,7 @@ object HollowEventHandler {
     fun onPlayerLoggedIn(event: PlayerEvent.Join) {
         val player = event.player as ICapabilityDispatcher
 
-        player.capabilities.forEach(CapabilityInstance::synchronize)
+        player.capabilities.values.forEach(CapabilityInstance::synchronize)
     }
 
     @SubscribeEvent
@@ -114,7 +117,7 @@ object HollowEventHandler {
 
     @SubscribeEvent
     fun onChangeDimension(event: PlayerEvent.ChangeDimension) {
-        (event.to as ICapabilityDispatcher).capabilities.forEach(CapabilityInstance::synchronize)
+        (event.to as ICapabilityDispatcher).capabilities.values.forEach(CapabilityInstance::synchronize)
     }
 
     @SubscribeEvent
@@ -123,7 +126,7 @@ object HollowEventHandler {
             ENTITY_TAGS[event.entity.id]?.let { map ->
                 val capabilities = (event.entity as ICapabilityDispatcher).capabilities
                 map.forEach { (name, tag) ->
-                    capabilities.find { it.javaClass.name == name }?.deserializeNBT(tag)
+                    capabilities[name]?.deserializeNBT(tag)
                 }
                 ENTITY_TAGS.remove(event.entity.id)
             }

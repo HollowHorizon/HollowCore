@@ -16,7 +16,7 @@ import ru.hollowhorizon.hc.common.network.HollowPacketHandler
 import net.minecraft.network.codec.StreamCodec
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 
-fun <T : HollowPacket<T>> registerPacket(type: Class<T>) {
+fun <T : HollowPacket> registerPacket(type: Class<T>) {
     val annotation = type.getAnnotation(HollowPacketHandler::class.java)
     val location = CustomPacketPayload.Type<T>(ResourceLocation.fromNamespaceAndPath(MODID, type.name.lowercase()))
 
@@ -94,7 +94,7 @@ var id = 0
 
 fun idPlPl() = id++
 
-fun <T : HollowPacket<T>> registerPacket(type: Class<T>) {
+fun <T : HollowPacket> registerPacket(type: Class<T>) {
     val annotation = type.getAnnotation(HollowPacketHandler::class.java)
 
     val encoder: BiConsumer<T, FriendlyByteBuf> = BiConsumer { packet: T, buffer: FriendlyByteBuf ->

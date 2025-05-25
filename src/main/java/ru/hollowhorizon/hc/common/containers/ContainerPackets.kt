@@ -8,18 +8,22 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.entity.BlockEntity
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
+import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
+import ru.hollowhorizon.hc.common.network.HollowPacket
+import ru.hollowhorizon.hc.common.network.HollowPacketHandler
 import ru.hollowhorizon.hc.common.utils.mcText
 import ru.hollowhorizon.hc.common.utils.nbt.ForBlockPos
-import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
-import ru.hollowhorizon.hc.common.network.HollowPacketHandler
-import ru.hollowhorizon.hc.common.network.HollowPacket
 
 @Serializable
 @HollowPacketHandler(HollowPacketHandler.Direction.TO_SERVER)
 class SyncEntityContainerPacket(
-    private val entityId: Int, val capability: String, private val fromId: Int, private val toId: Int,
-    val id: Int, private val leftButton: Boolean, private val doubleClick: Boolean, private val hasShift: Boolean,
-) : HollowPacket<SyncEntityContainerPacket> {
+    private val entityId: Int,
+    val capability: String, private val fromId: Int, private val toId: Int,
+    val id: Int,
+    private val leftButton: Boolean,
+    private val doubleClick: Boolean,
+    private val hasShift: Boolean,
+) : HollowPacket {
     override fun handle(player: Player) {
         val serverPlayer = player as ServerPlayer
 
@@ -37,7 +41,7 @@ class SyncEntityContainerPacket(
         if (id == -1) return player.inventory
 
         val entity = player.serverLevel().getEntity(entityId)
-        val cap = (entity as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
+        val cap = (entity as ICapabilityDispatcher).capabilities[capability] ?: error("Capability not found: $capability")
 
         if (cap.containers.size <= id) {
             player.connection.disconnect("Invalid inventory operation!".mcText)
@@ -58,7 +62,7 @@ class SyncBlockEntityContainerPacket(
     private val leftButton: Boolean,
     private val doubleClick: Boolean,
     private val hasShift: Boolean,
-) : HollowPacket<SyncBlockEntityContainerPacket> {
+) : HollowPacket {
     override fun handle(player: Player) {
         val serverPlayer = player as ServerPlayer
 
@@ -76,7 +80,7 @@ class SyncBlockEntityContainerPacket(
         if (id == -1) return player.inventory
 
         val entity = player.serverLevel().getBlockEntity(pos)
-        val cap = (entity as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
+        val cap = (entity as ICapabilityDispatcher).capabilities[capability] ?: error("Capability not found: $capability")
 
         if (cap.containers.size <= id) {
             player.connection.disconnect("Invalid inventory operation!".mcText)
@@ -90,7 +94,7 @@ fun CapabilityInstance.createSyncPacket(
     fromContainer: Container, toContainer: Container, id: Int,
     leftButton: Boolean, doubleClick: Boolean,
     hasShift: Boolean,
-): HollowPacket<*> {
+): HollowPacket {
     return when (val p = provider) {
         is Entity -> SyncEntityContainerPacket(
             p.id,

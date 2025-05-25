@@ -24,6 +24,7 @@
 
 package ru.hollowhorizon.hc.common.commands
 
+import com.mojang.brigadier.arguments.BoolArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import net.minecraft.client.Minecraft
 import net.minecraft.commands.arguments.EntityArgument
@@ -31,9 +32,11 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import net.minecraft.world.entity.LivingEntity
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
-import ru.hollowhorizon.hc.client.models.internal.controller.animationController
+import ru.hollowhorizon.hc.client.models.internal.controller.WrapMode
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.play
+import ru.hollowhorizon.hc.client.models.internal.manager.stop
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.particles.ParticleEffect
 import ru.hollowhorizon.hc.client.particles.Transform
@@ -106,26 +109,25 @@ object HollowCommands {
                     }
                 }
 
-                "player-model-anim"(
+                "player-anim"(
+                    arg("anim", StringArgumentType.string()),
+                    arg("loop", BoolArgumentType.bool())
+                ) {
+                    val name = StringArgumentType.getString(this, "anim")
+                    val loop = BoolArgumentType.getBool(this, "loop")
+                    source.player?.let {
+                        val controller = it[AnimatedEntityCapability::class]
+                        controller.play(name, wrapMode = if(loop) WrapMode.Loop else WrapMode.Once)
+                    }
+                }
+
+                "player-stop-anim"(
                     arg("anim", StringArgumentType.greedyString())
                 ) {
                     val name = StringArgumentType.getString(this, "anim")
                     source.player?.let {
-                        val controller = it[AnimatedEntityCapability::class].controller
-                        it[AnimatedEntityCapability::class].controller = animationController {
-                            controller.layers.forEach(::layer)
-                            layer("CommandLayer") {
-                                stateMachine {
-                                    state(name + "_layer") {
-                                        clip(name)
-                                    }
-                                    transition("null", name+"_layer") {
-                                        condition("true")
-                                        duration(0.25f)
-                                    }
-                                }
-                            }
-                        }
+                        val controller = it[AnimatedEntityCapability::class]
+                        controller.stop(name)
                     }
                 }
             }

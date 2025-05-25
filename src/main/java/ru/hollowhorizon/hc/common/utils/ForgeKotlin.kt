@@ -96,7 +96,7 @@ operator fun <O, T : CapabilityInstance> O.get(capability: KClass<T>): T = get(c
 
 @Suppress("UNCHECKED_CAST")
 operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T = when (this) {
-    is ICapabilityDispatcher -> this.capabilities.first { it.javaClass == capability } as T
+    is ICapabilityDispatcher -> this.capabilities[capability.name] as T
     else -> throw IllegalStateException("Unsupported capability type: $capability")
 }
 

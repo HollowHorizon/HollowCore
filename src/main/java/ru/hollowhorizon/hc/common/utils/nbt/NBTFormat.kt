@@ -168,11 +168,4 @@ internal fun compoundTagInvalidKeyKind(keyDescriptor: SerialDescriptor) = Illega
             "It should have either primitive or enum kind, but its kind is ${keyDescriptor.kind}."
 )
 
-fun main() {
-    println(NBTFormat.serialize(1L))
-    println(NBTFormat.serialize(BlockPos(1, 1, 1)))
-
-    val type = Int::class.java
-}
-
 fun KClass<*>.isSerializable() = annotations.any { it is Serializable }

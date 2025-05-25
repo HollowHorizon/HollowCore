@@ -122,9 +122,9 @@ open class CapabilityInstance {
      * @param nbt [Tag] containing data to restore the Capability state.
      */
     open fun deserializeNBT(nbt: Tag) {
-        properties.forEach { if (it.deserialize(nbt as? CompoundTag ?: return)) nbt.remove(it.defaultName) }
         val tag = nbt as? CompoundTag ?: return
         notUsedTags.merge(tag)
+        properties.forEach { if (it.deserialize(tag)) nbt.remove(it.defaultName) }
     }
 
     /**

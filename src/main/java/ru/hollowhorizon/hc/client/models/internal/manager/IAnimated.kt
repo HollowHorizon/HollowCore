@@ -24,4 +24,99 @@
 
 package ru.hollowhorizon.hc.client.models.internal.manager
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import net.minecraft.client.Minecraft
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.player.Player
+import ru.hollowhorizon.hc.client.models.internal.controller.*
+import ru.hollowhorizon.hc.common.capabilities.CSyncEntityCapabilityPacket
+import ru.hollowhorizon.hc.common.coroutines.coroutineScope
+import ru.hollowhorizon.hc.common.network.HollowPacket
+import ru.hollowhorizon.hc.common.network.HollowPacketHandler
+import ru.hollowhorizon.hc.common.network.sendTrackingEntity
+import ru.hollowhorizon.hc.common.network.sendTrackingEntityAndSelf
+import ru.hollowhorizon.hc.common.utils.get
+
 interface IAnimated
+
+val IAnimated.manager get() = this[AnimatedEntityCapability::class]
+val Player.manager get() = this[AnimatedEntityCapability::class]
+
+fun AnimatedEntityCapability.play(
+    animation: String,
+    blendMode: BlendMode = BlendMode.Additive,
+    wrapMode: WrapMode = WrapMode.Once,
+    priority: Int = 0,
+    mask: Mask = Mask.full(),
+    speed: String = "1f",
+    transitionTime: Float = 0.25f
+) {
+    if (wrapMode == WrapMode.Once) {
+        AddOnceLayerPacket(animation, (provider as Entity).id, priority, mask, blendMode, speed, transitionTime).sendTrackingEntity(provider as Entity)
+        return
+    }
+
+    controller = animationController {
+        controller.layers.forEach(::layer)
+        layer("__${animation}_layer__", blendMode = blendMode, priority = priority, mask = mask) {
+            stateMachine {
+                state(animation + "_state") {
+                    clip(animation, wrap = wrapMode, speed = speed)
+                }
+                transition("*", animation + "_state") {
+                    condition("true")
+                    duration(transitionTime)
+                }
+            }
+        }
+    }
+}
+
+fun AnimatedEntityCapability.stop(
+    animation: String, transitionTime: Float = 0.25f
+) {
+    val layer = controller.layers.find { it.name == "__${animation}_layer__" }?.also {
+        it.stateMachine.transitions.add(
+            TransitionBuilder("${animation}_state", "*").apply { condition("true"); duration(transitionTime); exitTime(true) }.build()
+        )
+    }
+    CSyncEntityCapabilityPacket((provider as Entity).id, AnimatedEntityCapability::class.java.name, serializeNBT()).sendTrackingEntity((provider as Entity))
+    controller.layers.remove(layer) // Удалим без обновления
+}
+
+@HollowPacketHandler(HollowPacketHandler.Direction.TO_CLIENT)
+@Serializable
+class AddOnceLayerPacket(
+    private val animation: String,
+    private val entityId: Int,
+    private val priority: Int,
+    private val mask: Mask,
+    private val blendMode: BlendMode,
+    private val speed: String,
+    private val transition: Float,
+) : HollowPacket {
+    override fun handle(player: Player) {
+        val level = Minecraft.getInstance().level ?: return
+        val entity = level.getEntity(entityId) ?: return
+        val controller = entity[AnimatedEntityCapability::class].controller
+        val layers = controller.layers
+
+        layers.removeIf { it.name == animation }
+        layers.add(Layer("__${animation}_layer__ (once)", priority, 1f, mask, blendMode, StateMachineBuilder().apply {
+            val animState = state(animation + "_state") {
+                clip(animation, WrapMode.Once, speed)
+            }
+
+            transition("*", animState.name) {
+                condition("true")
+                duration(transition)
+            }
+
+            exit(animState.name, transition)
+        }.build()))
+        controller.recompile()
+    }
+
+}

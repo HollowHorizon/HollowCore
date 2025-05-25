@@ -6,7 +6,7 @@ import ru.hollowhorizon.hc.common.events.Event
 import ru.hollowhorizon.hc.common.events.awaitEvent
 import ru.hollowhorizon.hc.common.events.post
 
-abstract class RequestPacket<T : RequestPacket<T>> : HollowPacket<T>, Event {
+abstract class RequestPacket<T : RequestPacket<T>> : HollowPacket, Event {
     override fun handle(player: Player) {
         if (player.level().isClientSide) handleClient(player)
         else handleServer(player)

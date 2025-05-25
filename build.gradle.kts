@@ -21,7 +21,6 @@ val container = ModContainer(
 )
 
 val kotlinVersion: String by properties
-val imguiVersion: String by rootProject
 
 group = properties["mod_group"].toString()
 version = modVersion

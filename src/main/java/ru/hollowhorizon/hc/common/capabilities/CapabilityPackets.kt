@@ -33,12 +33,12 @@ import net.minecraft.nbt.Tag
 import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
+import ru.hollowhorizon.hc.common.handlers.HollowEventHandler
+import ru.hollowhorizon.hc.common.network.HollowPacket
+import ru.hollowhorizon.hc.common.network.HollowPacketHandler
+import ru.hollowhorizon.hc.common.network.sendAllInDimension
 import ru.hollowhorizon.hc.common.utils.nbt.ForTag
 import ru.hollowhorizon.hc.common.utils.rl
-import ru.hollowhorizon.hc.common.handlers.HollowEventHandler
-import ru.hollowhorizon.hc.common.network.HollowPacketHandler
-import ru.hollowhorizon.hc.common.network.HollowPacket
-import ru.hollowhorizon.hc.common.network.sendAllInDimension
 
 @HollowPacketHandler(HollowPacketHandler.Direction.TO_CLIENT)
 @Serializable
@@ -46,17 +46,17 @@ class CSyncEntityCapabilityPacket(
     private val entityId: Int,
     val capability: String,
     val value: @Serializable(ForTag::class) Tag,
-) : HollowPacket<CSyncEntityCapabilityPacket> {
+) : HollowPacket {
     override fun handle(player: Player) {
         val entity = player.level().getEntity(entityId)
         if (entity == null) {
             HollowEventHandler.ENTITY_TAGS.computeIfAbsent(entityId) { mutableMapOf() }[capability] = value
             return
         }
-        val cap = (entity as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
+        val cap = (entity as ICapabilityDispatcher).capabilities[capability]
 
         if ((value as? CompoundTag)?.isEmpty == false) {
-            cap.deserializeNBT(value)
+            cap?.deserializeNBT(value)
         }
     }
 }
@@ -67,11 +67,12 @@ class SSyncEntityCapabilityPacket(
     private val entityId: Int,
     val capability: String,
     val value: @Serializable(ForTag::class) Tag,
-) : HollowPacket<SSyncEntityCapabilityPacket> {
+) : HollowPacket {
     override fun handle(player: Player) {
         val entity = player.level().getEntity(entityId)
             ?: throw IllegalStateException("Entity with id $entityId not found: $this".apply(HollowCore.LOGGER::warn))
-        val cap = (entity as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
+        val cap =
+            (entity as ICapabilityDispatcher).capabilities[capability] ?: error("Capability not found: $capability")
 
         if (cap.canAcceptFromClient(player, value)) {
             cap.deserializeNBT(value)
@@ -88,13 +89,13 @@ class SSyncEntityCapabilityPacket(
 class CSyncLevelCapabilityPacket(
     val capability: String,
     val value: @Serializable(ForTag::class) Tag,
-) : HollowPacket<CSyncLevelCapabilityPacket> {
+) : HollowPacket {
     override fun handle(player: Player) {
         val level = player.level() as ICapabilityDispatcher
-        val cap = level.capabilities.first { it.javaClass.name == capability }
+        val cap = level.capabilities[capability]
 
         if ((value as? CompoundTag)?.isEmpty == false) {
-            cap.deserializeNBT(value)
+            cap?.deserializeNBT(value)
         }
     }
 }
@@ -105,14 +106,15 @@ class SSyncLevelCapabilityPacket(
     val level: String,
     val capability: String,
     val value: @Serializable(ForTag::class) Tag,
-) : HollowPacket<SSyncLevelCapabilityPacket> {
+) : HollowPacket {
     override fun handle(player: Player) {
         val server = player.server ?: throw IllegalStateException("Server not found".apply(HollowCore.LOGGER::warn))
         val levelKey = server.levelKeys().find { it.location() == level.rl }
             ?: throw IllegalStateException("Unknown level: $level".apply(HollowCore.LOGGER::warn))
         val level = server.getLevel(levelKey)
             ?: throw IllegalStateException("Level not found: $level".apply(HollowCore.LOGGER::warn))
-        val cap = (level as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
+        val cap =
+            (level as ICapabilityDispatcher).capabilities[capability] ?: error("Capability not found: $capability")
 
         if (cap.canAcceptFromClient(player, value)) {
             cap.deserializeNBT(value)
@@ -127,12 +129,11 @@ class SSyncLevelCapabilityPacket(
 class CSyncServerCapabilityPacket(
     val capability: String,
     val value: @Serializable(ForTag::class) Tag,
-): HollowPacket<CSyncLevelCapabilityPacket> {
+) : HollowPacket {
     override fun handle(player: Player) {
         Minecraft.getInstance().singleplayerServer?.let { server ->
-            val cap = (server as ICapabilityDispatcher).capabilities.first { it.javaClass.name == capability }
-
-            cap.deserializeNBT(value)
+            (server as ICapabilityDispatcher).capabilities[capability]
+                ?.deserializeNBT(value)
         }
     }
 

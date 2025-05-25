@@ -83,7 +83,7 @@ fun onRemove(event: BlockEvent.Break) {
     val state = event.state
     if (state.block !is EntityBlock) return
     val dispatcher = event.level.getBlockEntity(event.pos) as ICapabilityDispatcher
-    dispatcher.capabilities.forEach {
+    dispatcher.capabilities.values.forEach {
         it.containers.forEach { container ->
             Containers.dropContents(event.level, event.pos, container)
         }

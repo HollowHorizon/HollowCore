@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.mixins;
 
 import com.mojang.datafixers.DataFixer;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import kotlinx.coroutines.CoroutineDispatcher;
 import kotlinx.coroutines.CoroutineScope;
 import kotlinx.coroutines.CoroutineScopeKt;
@@ -51,17 +52,19 @@ import static kotlinx.coroutines.SupervisorKt.SupervisorJob;
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerMixin implements ICapabilityDispatcher, ServerDispatcher {
     @Unique
-    private final List<CapabilityInstance> hollowCore$capabilities = new ArrayList<>();
-    @Unique
     private SingleThreadDispatcher hollowcore$dispatcher;
     @Unique
     private CoroutineScope hollowcore$coroutineScope;
 
+    @Unique
+    private final Map<String, CapabilityInstance> hollowCore$capabilities = new Object2ObjectOpenHashMap<>();
+
     @NotNull
     @Override
-    public List<CapabilityInstance> getCapabilities() {
+    public Map<String, CapabilityInstance> getCapabilities() {
         return hollowCore$capabilities;
     }
+
 
     @Shadow
     @Final

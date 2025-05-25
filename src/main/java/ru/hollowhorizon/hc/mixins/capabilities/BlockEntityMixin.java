@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.mixins.capabilities;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
@@ -15,17 +16,19 @@ import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Mixin(BlockEntity.class)
 public class BlockEntityMixin implements ICapabilityDispatcher {
     @Unique
-    private final List<CapabilityInstance> hollowCore$capabilities = new ArrayList<>();
+    private final Map<String, CapabilityInstance> hollowCore$capabilities = new Object2ObjectOpenHashMap<>();
 
     @NotNull
     @Override
-    public List<CapabilityInstance> getCapabilities() {
+    public Map<String, CapabilityInstance> getCapabilities() {
         return hollowCore$capabilities;
     }
+
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {

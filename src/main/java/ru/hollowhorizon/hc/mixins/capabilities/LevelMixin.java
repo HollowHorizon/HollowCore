@@ -1,5 +1,6 @@
 package ru.hollowhorizon.hc.mixins.capabilities;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -18,22 +19,23 @@ import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance;
 import ru.hollowhorizon.hc.common.events.EventBus;
 import ru.hollowhorizon.hc.common.events.blocks.BlockEvent;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
+import java.util.Map;
 
 @Mixin(Level.class)
 public abstract class LevelMixin implements ICapabilityDispatcher {
-    @Shadow public abstract BlockState getBlockState(BlockPos pos);
+    @Shadow
+    public abstract BlockState getBlockState(BlockPos pos);
 
     @Unique
-    private final List<CapabilityInstance> hollowCore$capabilities = new ArrayList<>();
+    private final Map<String, CapabilityInstance> hollowCore$capabilities = new Object2ObjectOpenHashMap<>();
 
     @NotNull
     @Override
-    public List<CapabilityInstance> getCapabilities() {
+    public Map<String, CapabilityInstance> getCapabilities() {
         return hollowCore$capabilities;
     }
+
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {

@@ -65,15 +65,34 @@ class AnimatedEntityCapability : CapabilityInstance() {
     var controller by syncable(
         animationController {
             automatic()
+            head()
         }
     ) { new, old ->
+        var recompile = false
         new.layers.find { it.name == Controller.AUTOMATIC_LAYER }?.let {
             if (model == GLTFEntityRenderer.NO_MODEL) return@let
             val model = GltfManager.getOrCreate(model.rl)
             val stateMachine = AutoController.create(StateMachineBuilder(), AnimationType.load(model.modelTree))
             it.stateMachine = stateMachine.build()
-            new.initDeferred = MolangCompilerScope.async { new.init() }
+            recompile = true
         }
+        new.layers.find { it.name == "__HeadLayer__" }?.let {
+            it.stateMachine = StateMachineBuilder().apply {
+                state("HeadState") {
+                    procedural {
+                        onEvaluate {
+                            it.setBoneRotation("Head", "q.head_rot")
+                        }
+                    }
+                }
+
+                transition("*", "HeadState") {
+                    duration(0.25f)
+                }
+            }.build()
+            recompile = true
+        }
+        if(recompile) new.recompile()
         new.transferFrom(old)
     }
 }

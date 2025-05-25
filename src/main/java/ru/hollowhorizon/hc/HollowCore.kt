@@ -34,13 +34,13 @@ import ru.hollowhorizon.hc.common.registry.HollowModProcessor.initMod
 object HollowCore {
     const val MODID: String = "hollowcore"
     val platform: Platform =
-    //? if forge {
+            //? if forge {
             /*Platform.FORGE
             *///?} elif neoforge {
             /*Platform.NEOFORGE
             *///?} else {
-        Platform.FABRIC
-    //?}
+            Platform.FABRIC
+            //?}
 
     @JvmField
     val LOGGER: Logger = ru.hollowhorizon.hc.LOGGER
