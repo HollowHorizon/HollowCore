@@ -24,7 +24,6 @@
 
 package ru.hollowhorizon.hc.common.commands
 
-import com.mojang.brigadier.arguments.BoolArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
 import net.minecraft.client.Minecraft
 import net.minecraft.commands.arguments.EntityArgument
@@ -32,11 +31,8 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import net.minecraft.world.entity.LivingEntity
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
-import ru.hollowhorizon.hc.client.models.internal.controller.WrapMode
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
-import ru.hollowhorizon.hc.client.models.internal.manager.play
-import ru.hollowhorizon.hc.client.models.internal.manager.stop
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.particles.ParticleEffect
 import ru.hollowhorizon.hc.client.particles.Transform
@@ -44,6 +40,7 @@ import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterCommandsEvent
 import ru.hollowhorizon.hc.common.objects.molang.asMolang
 import ru.hollowhorizon.hc.common.utils.get
+import ru.hollowhorizon.hc.common.utils.literal
 import ru.hollowhorizon.hc.common.utils.rl
 
 object HollowCommands {
@@ -100,8 +97,8 @@ object HollowCommands {
                 }
 
                 "player-model"(
-                    arg("model", StringArgumentType.greedyString()) {
-                        GltfManager.allModels.map { it.toString() } + "%NO_MODEL%"
+                    arg("model", StringArgumentType.string()) {
+                        (GltfManager.allModels.map { it.toString() } + "%NO_MODEL%").map { '"' + it + '"' }
                     }
                 ) {
                     source.player?.let {
@@ -109,25 +106,23 @@ object HollowCommands {
                     }
                 }
 
-                "player-anim"(
-                    arg("anim", StringArgumentType.string()),
-                    arg("loop", BoolArgumentType.bool())
-                ) {
-                    val name = StringArgumentType.getString(this, "anim")
-                    val loop = BoolArgumentType.getBool(this, "loop")
-                    source.player?.let {
-                        val controller = it[AnimatedEntityCapability::class]
-                        controller.play(name, wrapMode = if(loop) WrapMode.Loop else WrapMode.Once)
+                "model"(
+                    arg("model", StringArgumentType.string()) {
+                        (GltfManager.allModels.map { it.toString() }).map { '"' + it + '"' }
                     }
-                }
-
-                "player-stop-anim"(
-                    arg("anim", StringArgumentType.greedyString())
                 ) {
-                    val name = StringArgumentType.getString(this, "anim")
-                    source.player?.let {
-                        val controller = it[AnimatedEntityCapability::class]
-                        controller.stop(name)
+                    val model = GltfManager.getOrCreate(StringArgumentType.getString(this, "model").rl)
+
+                    source.player?.let { player ->
+                        player.sendSystemMessage("Animations:".literal)
+                        model.animations.keys.forEach {
+                            player.sendSystemMessage(it.literal)
+                        }
+                        player.sendSystemMessage("Textures:".literal)
+                        model.model.walkNodes().mapNotNull { it.mesh?.primitives?.map { it.material.texture } }
+                            .flatten().distinct().forEach {
+                                player.sendSystemMessage(it.toString().literal)
+                            }
                     }
                 }
             }

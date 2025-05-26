@@ -97,7 +97,7 @@ object GltfManager : ResourceManagerReloadListener {
             HollowCore.LOGGER.info("Loaded ${models.size} models in $time")
         }
 
-        models.forEach { it.value.modelTree.initGl() }
+        models.forEach { it.value.model.initGl() }
 
     }
 

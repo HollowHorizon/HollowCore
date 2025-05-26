@@ -51,13 +51,15 @@ class BoneWrapper<T>(val entity: T, val boneName: String) : Transform where T : 
     override val isValid: Boolean get() = entity.isAlive
     override val position: Vector3f
         get() {
-            val pos = model.findPosition(boneName, entity)!!.transform(MutableVec4f())
-            return Vector3f(pos.x, pos.y, pos.z)
+            TODO()
+            //val pos = model.findPosition(boneName, entity)!!.transform(MutableVec4f())
+            //return Vector3f(pos.x, pos.y, pos.z)
         }
     override val rotation: Quaternion
         get() {
-            val rot = model.findRotation(boneName)
-            return Quaternion(rot.x, rot.y, rot.z, rot.w)
+            TODO()
+            //val rot = model.findRotation(boneName)
+            //return Quaternion(rot.x, rot.y, rot.z, rot.w)
         }
     override val velocity: Vector3f = Vector3f(0f, 0f, 0f)
 

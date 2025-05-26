@@ -6,12 +6,17 @@ import de.fabmax.kool.scene.TrsTransformF
 import kotlinx.coroutines.async
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import net.minecraft.client.Minecraft
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.gui.DebugOverlay
 import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
 import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.animations.Animation
+import ru.hollowhorizon.hc.client.models.internal.controller.BlendMode.Additive
+import ru.hollowhorizon.hc.client.models.internal.controller.BlendMode.Override
 import ru.hollowhorizon.hc.client.models.internal.controller.Controller.Companion.AUTOMATIC_LAYER
+import ru.hollowhorizon.hc.client.models.internal.controller.WrapMode.*
+import ru.hollowhorizon.hc.common.utils.literal
 import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
 import ru.hollowhorizon.hc.common.utils.molang.Molang
 import ru.hollowhorizon.hc.common.utils.molang.MolangCompilerScope
@@ -20,9 +25,17 @@ import java.util.*
 private fun Float.modPositive(divisor: Float): Float =
     ((this % divisor) + divisor) % divisor
 
+/**
+ * Режимы воспроизведения анимации
+ * @property Once Проиграть анимацию 1 раз.
+ * @property Loop Проигрывать анимацию в цикле.
+ * @property PingPong Проигрывать анимацию до последнего кадра и в обратном порядке зациклено.
+ * @property ClampForever Проигрывать анимацию остановившись на последнем кадре.
+ */
 enum class WrapMode(val wrapTime: (Animation, Float) -> Float) {
     Once({ animation, time ->
-        if (time < 0) animation.duration + time else time
+        if (time < 0) animation.duration - (-time).coerceAtMost(animation.duration)
+        else time.coerceAtMost(animation.duration)
     }),
     Loop({ animation, time ->
         time.modPositive(animation.duration)
@@ -38,18 +51,61 @@ enum class WrapMode(val wrapTime: (Animation, Float) -> Float) {
     });
 }
 
+/**
+ * Режимы смешивания анимаций
+ * @property Override Переопределяет анимацию полностью заменяя прошлую позу текущей.
+ * @property Additive Добавляет к прошлой позе текущую, накапливая эффект. Рекомендуется использовать вместе с референс-позой.
+ */
 enum class BlendMode { Override, Additive }
 
 @Serializable
-data class Mask(val bones: Set<String>) {
+data class Mask(val includes: Set<String>, val excludes: Set<String>) {
+    @Transient
+    private var bakedNodes: Set<Node>? = null
+
     companion object {
-        fun full() = Mask(emptySet())
-        fun of(vararg bones: String) = Mask(bones.toSet())
+        fun full() = Mask(emptySet(), emptySet())
+        fun of(vararg bones: String): Mask {
+            val include = mutableSetOf<String>()
+            val exclude = mutableSetOf<String>()
+
+            for (pattern in bones) {
+                val isExclude = pattern.startsWith("!")
+                val raw = if (isExclude) pattern.drop(1) else pattern
+                if (isExclude) exclude += raw else include += raw
+            }
+            return Mask(include, exclude)
+        }
+    }
+
+    fun bake(root: Node): Set<Node> {
+        bakedNodes?.let { return it }
+        val allBones = root.allBones()
+        val result = mutableSetOf<Node>()
+
+        for (bone in allBones) {
+            val path = bone.path
+            if (includes.isEmpty() || includes.any { it.endsWith(path) }) {
+                if (excludes.none { it.endsWith(path) }) {
+                    result += bone
+                }
+            }
+        }
+        bakedNodes = result
+        return result
+    }
+
+    fun reset() {
+        bakedNodes = null
     }
 }
 
 @Serializable
 data class Controller(var layers: MutableList<Layer>) {
+    companion object {
+        const val AUTOMATIC_LAYER = "__Automatic__"
+    }
+
     init {
         layers.sortBy { it.priority }
     }
@@ -59,41 +115,71 @@ data class Controller(var layers: MutableList<Layer>) {
 
     suspend fun init() {
         try {
-            layers.forEach { it.stateMachine.init() }
+            layers.forEach { it.stateMachine.init(); it.mask.reset() }
         } catch (e: Exception) {
             HollowCore.LOGGER.error("Error while compiling math expressions!", e)
         }
     }
 
     fun uploadAnimations(animations: Map<String, Animation>) {
-        layers.forEach { it.stateMachine.states.forEach { it.animations = animations } }
+        layers.forEach {
+            it.stateMachine.uploadAnimations(animations)
+            animations[it.referencePose]?.let { animation ->
+                it.referencePoseRef = { animation.compute(it, 0f) }
+            } ?: run { it.referencePoseRef = { TrsTransformF() } }
+        }
     }
 
     fun update(node: Node, query: EntityQuery, time: Float) {
         if (!initDeferred.isCompleted) return
         layers.removeIf { layer ->
-            if (node.name !in layer.mask.bones && layer.mask.bones.isNotEmpty()) return@removeIf false
+            if (node !in layer.mask.bake(node.root)) return@removeIf false
 
             layer.update(node, query, time)?.let { transform ->
                 node.transform.apply {
                     when (layer.blendMode) {
-                        BlendMode.Additive -> {
-                            translate(Vec3f.ZERO.mix(transform.translation, layer.weight))
-                            rotate(QuatF.IDENTITY.mix(transform.rotation, layer.weight))
-                            scale(Vec3f.ONES.mix(transform.scale, layer.weight))
-                        }
-
-                        BlendMode.Override -> {
-                            val base = node.baseTransform
-                            translation.set(base.translation + Vec3f.ZERO.mix(transform.translation, layer.weight))
-                            rotation.set(base.rotation * QuatF.IDENTITY.mix(transform.rotation, layer.weight))
-                            scale.set(base.scale * Vec3f.ONES.mix(transform.scale, layer.weight))
-                        }
+                        Additive -> applyAdditiveLayer(layer, node, transform, time)
+                        Override -> applyOverrideLayer(layer, node, transform)
                     }
                 }
             }
             layer.stateMachine.isEnded
         }
+    }
+
+    private fun TrsTransformF.applyAdditiveLayer(
+        layer: Layer,
+        node: Node,
+        transform: TrsTransformF,
+        time: Float,
+    ) {
+        var reference = layer.referencePoseRef(node) ?: TrsTransformF()
+        val transition = layer.stateMachine.currentTransition
+        if (transition != null) { // Без этого он будет переходить из Т-позы в начальную. Нам же надо, чтобы он всегда начинал с референса
+            if (transition.from == "*") {
+                val duration = transition.let { (time - it.startTime) / it.duration }
+                reference = reference.mix(TrsTransformF(), 1f - duration) ?: TrsTransformF()
+            } else if (transition.to == "*") {
+                val duration = transition.let { (time - it.startTime) / it.duration }
+                reference = reference.mix(TrsTransformF(), duration) ?: TrsTransformF()
+            }
+        }
+        translate(Vec3f.ZERO.mix(transform.translation - reference.translation, layer.weight))
+        rotate(
+            QuatF.IDENTITY.mix(reference.rotation.invert().mul(transform.rotation), layer.weight)
+        )
+        scale(Vec3f.ONES.mix(transform.scale / reference.scale, layer.weight))
+    }
+
+    private fun TrsTransformF.applyOverrideLayer(
+        layer: Layer,
+        node: Node,
+        transform: TrsTransformF,
+    ) {
+        val base = node.baseTransform
+        translation.set(base.translation + Vec3f.ZERO.mix(transform.translation, layer.weight))
+        rotation.set(base.rotation * QuatF.IDENTITY.mix(transform.rotation, layer.weight))
+        scale.set(base.scale * Vec3f.ONES.mix(transform.scale, layer.weight))
     }
 
     fun updateProcedural(model: AnimatedModel, query: EntityQuery) {
@@ -116,10 +202,6 @@ data class Controller(var layers: MutableList<Layer>) {
     fun recompile() {
         initDeferred = MolangCompilerScope.async { init() }
     }
-
-    companion object {
-        const val AUTOMATIC_LAYER = "__Automatic__"
-    }
 }
 
 fun animationController(block: ControllerBuilder.() -> Unit): Controller =
@@ -130,7 +212,7 @@ class ControllerBuilder {
 
     fun layer(layer: Layer) = layers.add(layer)
 
-    fun automatic(priority: Int = 0, weight: Float = 1f, blendMode: BlendMode = BlendMode.Override) =
+    fun automatic(priority: Int = 0, weight: Float = 1f, blendMode: BlendMode = Override) =
         layers.add(
             Layer(
                 AUTOMATIC_LAYER,
@@ -142,14 +224,14 @@ class ControllerBuilder {
             )
         )
 
-    fun head() {
+    fun head(name: String = "Head") {
         layers.add(
             Layer(
                 "__HeadLayer__",
                 1,
                 1f,
-                Mask.of("Head"),
-                BlendMode.Override,
+                Mask.of(name),
+                Override,
                 StateMachine(listOf(), mutableListOf())
             )
         )
@@ -160,11 +242,12 @@ class ControllerBuilder {
         priority: Int = 0,
         weight: Float = 1f,
         mask: Mask = Mask.full(),
-        blendMode: BlendMode = BlendMode.Additive,
+        blendMode: BlendMode = Additive,
+        referencePose: String = "",
         block: LayerBuilder.() -> Unit,
     ) {
         layers.removeIf { it.name == name }
-        layers += LayerBuilder(name, priority, weight, blendMode, mask).apply(block).build()
+        layers += LayerBuilder(name, priority, weight, blendMode, mask, referencePose).apply(block).build()
     }
 
     fun build(): Controller = Controller(layers)
@@ -178,7 +261,11 @@ data class Layer(
     val mask: Mask,
     val blendMode: BlendMode,
     var stateMachine: StateMachine,
+    var referencePose: String = "",
 ) {
+    @Transient
+    lateinit var referencePoseRef: (Node) -> TrsTransformF?
+
     fun update(node: Node, query: EntityQuery, time: Float): TrsTransformF? {
         return stateMachine.update(node, query, time)
     }
@@ -194,13 +281,14 @@ class LayerBuilder(
     val weight: Float,
     val blend: BlendMode,
     val mask: Mask,
+    val referencePose: String,
 ) {
     private var stateMachine = StateMachineBuilder().build()
     fun stateMachine(block: StateMachineBuilder.() -> Unit) {
         stateMachine = StateMachineBuilder().apply(block).build()
     }
 
-    fun build() = Layer(name, priority, weight, mask, blend, stateMachine)
+    fun build() = Layer(name, priority, weight, mask, blend, stateMachine, referencePose)
 }
 
 @Serializable
@@ -296,7 +384,7 @@ data class Transition(
             val rawTime = it.rawTime(query, time)
             if (exitTime < 0f) return rawTime >= (currentState.animations[it.name]?.duration ?: 0f)
 
-            if (rawTime >= exitTime) return true
+            return rawTime >= exitTime
         }
         return true
     }
@@ -343,15 +431,14 @@ data class StateMachine(
     fun update(node: Node, query: EntityQuery, time: Float): TrsTransformF? {
         if (currentTransition == null) {
             transitions.firstOrNull {
-                (it.from == currentState?.name || (it.from == "*" && it.to != currentState?.name) || currentState == null) &&
+                (it.from == currentState?.name || (it.from == "*" && it.to != currentState?.name || it.from == "__null__" && currentState == null)) &&
                         it.condition(query) && it.canExit(currentState, query, time)
+            }?.let { transition ->
+                transition.fromRef = states.firstOrNull { it.name == transition.from } ?: currentState
+                transition.toRef = states.firstOrNull { it.name == transition.to }
+                currentTransition = transition
+                transition.start(query, time)
             }
-                ?.let { transition ->
-                    transition.fromRef = states.firstOrNull { it.name == transition.from } ?: currentState
-                    transition.toRef = states.firstOrNull { it.name == transition.to }
-                    currentTransition = transition
-                    transition.start(query, time)
-                }
 
             if (transitions.isEmpty() && currentState == null) currentState = states.firstOrNull()
         }
@@ -359,7 +446,7 @@ data class StateMachine(
         currentTransition?.let { transition ->
             if (transition.isFinished) {
                 currentTransition = null
-                if (transition.to == "*") {
+                if (transition.to == "__end__") {
                     isEnded = true
                 } else {
                     currentState = states.firstOrNull { it.name == transition.to }
@@ -369,11 +456,6 @@ data class StateMachine(
             return transition.update(node, query, time)
         }
 
-        DebugOverlay.debugText["State"] = StringBuilder().apply {
-            append("Moving: ${query.is_moving}\n")
-            append("Sneaking: ${query.is_sneaking}\n")
-            append("Speed: ${query.ground_speed}")
-        }.toString()
         return currentState?.update(node, query, time)
     }
 
@@ -381,9 +463,7 @@ data class StateMachine(
         if (currentState == null) currentState = states.firstOrNull { it.procedural != null }
 
         currentState?.let { state ->
-            state.procedural?.let { procedural ->
-                procedural.evaluate(model, query)
-            }
+            state.procedural?.evaluate(model, query)
         }
     }
 
@@ -396,6 +476,10 @@ data class StateMachine(
         }
 
         currentState = old.currentState
+    }
+
+    fun uploadAnimations(animations: Map<String, Animation>) {
+        states.forEach { it.animations = animations }
     }
 }
 
@@ -414,7 +498,7 @@ class StateMachineBuilder {
     }
 
     fun exit(from: String, duration: Float, condition: String = "true") {
-        transitions += TransitionBuilder(from, "*").apply {
+        transitions += TransitionBuilder(from, "__end__").apply {
             condition(condition)
             duration(duration)
             exitTime(true)
@@ -569,24 +653,24 @@ data class ProceduralNode(val functions: HashMap<String, ProceduralTransformer>)
             if (command.translation.isNotEmpty()) {
                 Molang.compileVec3f(command.translation).let { exec ->
                     nodeCommands.add { model, query ->
-                        model.animationPlayer.nodeModels.filter { it.name == node && it.mesh == null }
-                            .forEach { it.transform.translation.set(exec(query)) }
+                        model.nodes.firstOrNull { it.path.endsWith(node) }
+                            ?.transform?.translation?.set(exec(query))
                     }
                 }
             }
             if (command.rotation.isNotEmpty()) {
                 Molang.compileQuatF(command.rotation).let { exec ->
                     nodeCommands.add { model, query ->
-                        model.animationPlayer.nodeModels.filter { it.name == node && it.mesh == null }
-                            .forEach { it.transform.rotation.set(exec(query)) }
+                        model.nodes.firstOrNull { it.path.endsWith(node) }
+                            ?.transform?.rotation?.set(exec(query))
                     }
                 }
             }
             if (command.scale.isNotEmpty()) {
                 Molang.compileVec3f(command.scale).let { exec ->
                     nodeCommands.add { model, query ->
-                        model.animationPlayer.nodeModels.filter { it.name == node && it.mesh == null }
-                            .forEach { it.transform.scale.set(exec(query)) }
+                        model.nodes.firstOrNull { it.path.endsWith(node) }
+                            ?.transform?.scale?.set(exec(query))
                     }
                 }
             }
@@ -689,11 +773,6 @@ data class ClipNode(
         val rawTime = rawTime(query, time)
 
         val animation = animations[name] ?: return null
-
-        if (wrap == WrapMode.Once) {
-            if (oldSpeed > 0 && rawTime > animation.duration) return null
-            if (oldSpeed < 0 && rawTime < 0f) return null
-        }
 
         val sampleTime = wrap.wrapTime(animation, rawTime)
         animation.computeWeights(node, sampleTime)?.let { weights ->

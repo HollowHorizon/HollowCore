@@ -22,7 +22,7 @@ fun UiScope.Multiblock(
     multiblock: Multiblock,
     scopeName: String? = null,
     layer: Int = 1000,
-) = GlCanvas(scopeName = scopeName, { mouseX, mouseY, x, y, width, height ->
+) = GlCanvas(scopeName = scopeName, {
     val source = Minecraft.getInstance().renderBuffers().bufferSource()
     val blockRenderer = Minecraft.getInstance().blockRenderer
     val modelRenderer = blockRenderer.modelRenderer

@@ -39,7 +39,6 @@ import net.minecraft.world.level.block.EntityBlock
 import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
-import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.controller.Controller
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
@@ -82,8 +81,11 @@ object GLTFItemRenderer : BlockEntityWithoutLevelRenderer(
         stack.pushPose()
 
         stack.translate(0.5, 0.0, 0.5)
-        preRender(capability, model.animationPlayer, stack)
-        //model.update(state[AnimationController::class].controller)
+
+        stack.mulPoseMatrix(capability.transform.matrix)
+        stack.last().normal().mul(capability.transform.normalMatrix)
+        if(model.model.isBlockBench) stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
+        //model.update(capability.controller)
 
         model.render(
             stack,
@@ -100,17 +102,5 @@ object GLTFItemRenderer : BlockEntityWithoutLevelRenderer(
         )
 
         stack.popPose()
-    }
-
-    private fun preRender(
-        capability: AnimatedEntityCapability,
-        animationPlayer: GLTFAnimationPlayer,
-        stack: PoseStack,
-    ) {
-        stack.mulPoseMatrix(capability.transform.matrix)
-
-        stack.last().normal().mul(capability.transform.normalMatrix)
-        stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
-        animationPlayer.currentLoopAnimation = AnimationType.IDLE
     }
 }

@@ -61,6 +61,7 @@ inline fun drawWithShader(
         GL33.glUniform1i(index, texture)
     }
 
+
     body()
 
     shader.clear()

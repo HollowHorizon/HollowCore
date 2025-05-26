@@ -25,11 +25,13 @@
 package ru.hollowhorizon.hc.client
 
 import com.mojang.blaze3d.systems.RenderSystem
+import de.fabmax.kool.math.Vec2f
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.modules.ui2.docking.UiDockable
 import de.fabmax.kool.scene.Scene
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
+import net.minecraft.world.item.Items
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.kool.*
@@ -88,16 +90,30 @@ object HollowCoreClient {
                     setupUiScene()
 
                     val window = UiDockable("Example")
+                    val w2 = UiDockable("W2")
                     addWindowSurface(window) {
                         Column(Grow.Std, Grow.Std) {
                             TitleBar(window)
                             Entity(TestEntity(ModEntities.TEST_ENTITY, Minecraft.getInstance().level!!)) {
                                 modifier.size(Grow.Std, Grow.Std)
+                                    .mouseRotation(5f)
                             }
                         }
                         Image("hollowcore:textures/block/example.png")
                     }
+                    addWindowSurface(w2) {
+                        Column(Grow.Std, Grow.Std) {
+                            TitleBar(w2)
+                            Entity(Minecraft.getInstance().player!!) {
+                                modifier.size(Grow.Std, Grow.Std)
+                                    .mouseRotation(3f)
+                                    .padding(sizes.gap)
+                            }
+                        }
+                        Item(Items.DIAMOND.defaultInstance) {}
+                    }
                 }
+
             }.open()
         }
     }

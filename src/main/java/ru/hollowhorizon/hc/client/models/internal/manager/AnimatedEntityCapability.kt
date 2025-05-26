@@ -24,9 +24,6 @@
 
 package ru.hollowhorizon.hc.client.models.internal.manager
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.client.models.internal.Transform
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.controller.AutoController
@@ -36,27 +33,9 @@ import ru.hollowhorizon.hc.client.models.internal.controller.animationController
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.HollowCapability
-import ru.hollowhorizon.hc.common.utils.get
-import ru.hollowhorizon.hc.common.utils.molang.MolangCompilerScope
 import ru.hollowhorizon.hc.common.utils.rl
 
-/**
- * Represents a data store for an animated object, providing various properties,
- * related to animation layers, textures, and transformations.
- *
- * @property definedLayer Inner layer for automatic animations.
- * @property headLayer Inner layer, especially for head animations.
- * @property rawPose The current pose of the object, can be null.
- * @property model Model, the object with the default value of "%NO_MODEL%" does not have a model.
- * @property layers List of animation layers.
- * @property textures Map of texture identifiers and their corresponding paths.
- * @property animations Map of animation types and their corresponding identifiers.
- * @property transform The transformation applied to the object.
- * @property subModels Map of submodel IDs and their corresponding submodels.
- * @property switchHeadRot Flag indicating whether to toggle the head rotation.
- * @property pose Raw pose of an object, synchronized and can be null.
- */
-@HollowCapability(IAnimated::class, Player::class)
+@HollowCapability(IAnimated::class)
 class AnimatedEntityCapability : CapabilityInstance() {
     var model by syncable("%NO_MODEL%")
     val textures by syncableMap<String, String>()
@@ -65,23 +44,23 @@ class AnimatedEntityCapability : CapabilityInstance() {
     var controller by syncable(
         animationController {
             automatic()
-            head()
+            head("Head")
         }
     ) { new, old ->
         var recompile = false
         new.layers.find { it.name == Controller.AUTOMATIC_LAYER }?.let {
             if (model == GLTFEntityRenderer.NO_MODEL) return@let
             val model = GltfManager.getOrCreate(model.rl)
-            val stateMachine = AutoController.create(StateMachineBuilder(), AnimationType.load(model.modelTree))
+            val stateMachine = AutoController.create(StateMachineBuilder(), AnimationType.load(model.model))
             it.stateMachine = stateMachine.build()
             recompile = true
         }
-        new.layers.find { it.name == "__HeadLayer__" }?.let {
-            it.stateMachine = StateMachineBuilder().apply {
+        new.layers.find { it.name == "__HeadLayer__" }?.let { layer ->
+            layer.stateMachine = StateMachineBuilder().apply {
                 state("HeadState") {
                     procedural {
                         onEvaluate {
-                            it.setBoneRotation("Head", "q.head_rot")
+                            it.setBoneRotation(layer.mask.includes.first(), "q.head_rot")
                         }
                     }
                 }
@@ -92,7 +71,7 @@ class AnimatedEntityCapability : CapabilityInstance() {
             }.build()
             recompile = true
         }
-        if(recompile) new.recompile()
+        if (recompile) new.recompile()
         new.transferFrom(old)
     }
 }

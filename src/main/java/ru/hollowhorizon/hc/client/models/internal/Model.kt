@@ -6,6 +6,8 @@ data class Model(
     val animations: List<Animation>,
     val materials: Set<Material>,
 ) {
+    var isBlockBench = false
+
     fun initGl() {
         walkNodes().forEach { it.mesh?.primitives?.forEach { it.init() } }
     }

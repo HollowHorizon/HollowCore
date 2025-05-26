@@ -28,19 +28,16 @@ package ru.hollowhorizon.hc.client.models.internal
 import com.mojang.blaze3d.platform.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import de.fabmax.kool.math.*
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.ItemInHandRenderer
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.resources.ResourceLocation
-import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemStack
 import org.lwjgl.opengl.GL33
-import ru.hollowhorizon.hc.client.handlers.TickHandler
-import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
-import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
+import ru.hollowhorizon.hc.client.models.internal.animations.Animation
+import ru.hollowhorizon.hc.client.models.internal.animations.AnimationLoader
 import ru.hollowhorizon.hc.client.models.internal.controller.Controller
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.shouldOverrideShaders
@@ -57,17 +54,18 @@ class ModelData(
     val entity: LivingEntity?,
 )
 
-class AnimatedModel(val modelTree: Model) {
-    val nodes = modelTree.walkNodes().associateBy { (it.name ?: "Unnamed") }
-    val animationPlayer = GLTFAnimationPlayer(this)
+class AnimatedModel(val model: Model) {
+    val animations: Map<String, Animation> = model.animations.associate {
+        (it.name ?: "Unnamed animation") to AnimationLoader.createAnimation(model, it)
+    }
+    val nodes = model.walkNodes()
     var visuals: NodeRenderer = { _, _, _, _, _ -> }
 
     fun update(controller: Controller, query: EntityQuery, time: Float) {
-        animationPlayer.update(controller, query, time)
-    }
-
-    fun entityUpdate(entity: LivingEntity, capability: AnimatedEntityCapability, partialTick: Float) {
-        animationPlayer.updateEntity(entity, capability, partialTick)
+        nodes.forEach {
+            controller.update(it, query, time)
+        }
+        controller.updateProcedural(this, query)
     }
 
     fun render(
@@ -80,7 +78,7 @@ class AnimatedModel(val modelTree: Model) {
     ) {
         NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.clear()
 
-        modelTree.scenes.forEach { scene ->
+        model.scenes.forEach { scene ->
             scene.nodes.forEach { node -> node.renderDecorations(stack, visuals, modelData, source, light) }
         }
 
@@ -117,7 +115,7 @@ class AnimatedModel(val modelTree: Model) {
         val texture = GlStateManager.TEXTURES[GlStateManager.activeTexture].binding
 
         drawWithShader(SHADER) {
-            modelTree.scenes.forEach {
+            model.scenes.forEach {
                 it.render(stack, visuals, modelData, consumer, light)
             }
         }
@@ -139,29 +137,13 @@ class AnimatedModel(val modelTree: Model) {
     private fun transformSkinning() {
         GL33.glUseProgram(GltfManager.glProgramSkinning)
         GL33.glEnable(GL33.GL_RASTERIZER_DISCARD)
-        modelTree.scenes.forEach { it.transformSkinning() }
+        model.scenes.forEach { it.transformSkinning() }
         GL33.glBindBuffer(GL33.GL_TEXTURE_BUFFER, 0)
         GL33.glDisable(GL33.GL_RASTERIZER_DISCARD)
     }
 
     fun destroy() {
-        modelTree.walkNodes().mapNotNull { it.mesh }.flatMap { it.primitives }.forEach(Primitive::destroy)
-    }
-
-    fun findPosition(name: String, entity: LivingEntity): Mat4f? {
-        val node = nodes[name] ?: return null
-        var lerpBodyRot = -Mth.rotLerp(TickHandler.partialTick, entity.yBodyRotO, entity.yBodyRot)
-        val YP = Vec3f(0.0f, 1.0f, 0.0f)
-
-        lerpBodyRot *= 0.017453292f
-
-        return MutableMat4f().rotate(MutableQuatF(0f, Mth.sin(lerpBodyRot / 2.0f), 0f, Mth.cos(lerpBodyRot / 2.0f)))
-            .mul(node.globalMatrix)
-    }
-
-    fun findRotation(name: String): QuatF {
-        val node = nodes[name] ?: return MutableQuatF(0.0f, 0.0f, 0.0f, 1.0f)
-        return node.globalRotation
+        model.walkNodes().mapNotNull { it.mesh }.flatMap { it.primitives }.forEach(Primitive::destroy)
     }
 
     companion object {

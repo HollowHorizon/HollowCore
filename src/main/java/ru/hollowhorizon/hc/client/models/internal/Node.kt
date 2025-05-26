@@ -118,6 +118,7 @@ class Node(
     }
 
     var parent: Node? = null
+    val root: Node by lazy { parent?.root ?: this }
     val isHead: Boolean get() = name?.lowercase()?.contains("head") == true && parent?.isHead == false
 
     val globalMatrix: Mat4f
@@ -138,6 +139,9 @@ class Node(
         }
 
     private val localMatrix get() = transform.matrixF
+
+    fun allBones(): Set<Node> = setOf(this) + children.flatMap { it.allBones() }
+    val path: String get() = parent?.let { it.name + "/" + name } ?: name ?: "Unnamed Bone"
 }
 
 val NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE = IdentityHashMap<Node, Mat4f>()

@@ -39,7 +39,6 @@ import net.minecraft.world.item.ItemDisplayContext
 import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.Node
-import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
@@ -75,16 +74,17 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         val model = GltfManager.getOrCreate(modelPath.rl)
 
         stack.pushPose()
+        stack.mulPoseMatrix(capability.transform.matrix)
+        stack.last().normal().mul(capability.transform.normalMatrix)
+        if(model.model.isBlockBench) stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
 
-        preRender(entity, capability, model.animationPlayer, stack)
 
         val lerpBodyRot = Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot)
         stack.mulPose(Quaternionf().rotateY(-lerpBodyRot * Mth.DEG_TO_RAD))
 
         model.visuals = ::drawVisuals
-        model.entityUpdate(entity, capability, partialTick)
         val controller = capability.controller
-        controller.uploadAnimations(model.animationPlayer.nameToAnimationMap)
+        controller.uploadAnimations(model.animations)
         model.update(
             controller, EntityQuery(entity),
             (entity.tickCount + partialTick) / 20f
@@ -152,17 +152,6 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
 
             stack.popPose()
         }
-    }
-
-    private fun preRender(
-        entity: T,
-        capability: AnimatedEntityCapability,
-        manager: GLTFAnimationPlayer,
-        stack: PoseStack,
-    ) {
-        stack.mulPoseMatrix(capability.transform.matrix)
-        stack.last().normal().mul(capability.transform.normalMatrix)
-        stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
     }
 
     companion object {

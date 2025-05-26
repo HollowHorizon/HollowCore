@@ -370,18 +370,6 @@ class Primitive(
         //Нормали
         shader.getUniform("NormalMat")?.let {
             val normal = Matrix3f(stack.last().normal())
-//            val m = node.globalMatrix
-//                //.transpose(MutableMat4f())
-//            normal.mul(
-//                Matrix3f(
-//                    Matrix4f(
-//                        m.m00, m.m01, m.m02, m.m03,
-//                        m.m10, m.m11, m.m12, m.m13,
-//                        m.m20, m.m21, m.m22, m.m23,
-//                        m.m30, m.m31, m.m32, m.m33
-//                    )
-//                )
-//            )
             it.set(normal)
             it.upload()
         }

@@ -26,15 +26,15 @@ package ru.hollowhorizon.hc.client.models.gltf
 
 import de.fabmax.kool.math.*
 import de.fabmax.kool.scene.TrsTransformF
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import net.minecraft.resources.ResourceLocation
-import org.joml.*
 import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.client.models.internal.*
 import ru.hollowhorizon.hc.client.utils.exists
 import ru.hollowhorizon.hc.common.utils.rl
-import java.util.*
-import kotlin.collections.HashMap
 
 
 object GltfModelLoader {
@@ -48,6 +48,7 @@ object GltfModelLoader {
         val animations = parseAnimations(file)
 
         return Model(file.scene, scenes, animations, materials.toSet()).apply {
+            isBlockBench = file.asset.generator?.contains("blockbench", ignoreCase = true) == true
             for (skin in skins) {
                 for ((i, id) in skin.jointsIds.withIndex()) {
                     skin.joints[i] = walkNodes().first { it.index == id }

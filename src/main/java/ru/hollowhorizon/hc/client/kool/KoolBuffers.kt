@@ -39,14 +39,6 @@ internal val guiFramebuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
 
 val WINDOW_BUFFER by lazy { createFramebufferTexture(guiFramebuffer) }
 
-
-fun glTexture(id: Int) = Texture2d(
-    mipMapping = MipMapping.Off,
-    samplerSettings = SamplerSettings().clamped().nearest()
-).apply {
-    gpuTexture = LoadedTextureGl(MCGlApi.TEXTURE_2D, GlTexture(id), MCGlApi.backend, this, 0L)
-}
-
 fun createFramebufferTexture(texture: RenderTarget) = Texture2d(
     mipMapping = MipMapping.Off,
     samplerSettings = SamplerSettings().clamped().nearest()

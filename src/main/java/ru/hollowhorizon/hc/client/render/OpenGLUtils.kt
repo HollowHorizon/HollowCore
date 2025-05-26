@@ -43,6 +43,7 @@ import org.joml.Quaternionf
 import org.joml.Vector3d
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.client.handlers.TickHandler
+import ru.hollowhorizon.hc.client.kool.EntityModifier
 import java.io.File
 import kotlin.math.atan
 import kotlin.math.min
@@ -75,24 +76,16 @@ fun LivingEntity.render(
     y: Float,
     width: Float,
     height: Float,
-    scale: Float,
-    mouseX: Float,
-    mouseY: Float,
-    offsetX: Float,
-    offsetY: Float,
-    rotation: Boolean,
+    modifier: EntityModifier
 ) {
-    val rotationFactor = if (rotation) 1f else 0f
 
     val stack = PoseStack()
-    val xOffset = x + width / 2 + offsetX
-    val yOffset = y + height + offsetY
+    val xOffset = x + width / 2 + modifier.offset.x
+    val yOffset = y + height + modifier.offset.y
     stack.translate(xOffset, yOffset, 0f)
-    val newScale = min(width / bbWidth, height / bbHeight) * 0.95f * scale
+    val newScale = min(width / bbWidth, height / bbHeight) * 0.95f * modifier.scale
     //stack.mulPoseMatrix(Matrix4f().scaling(1f, -1f, 1f))
     stack.mulPoseMatrix(Matrix4f().scaling(newScale, -newScale, newScale))
-    val rotationX = atan((xOffset - mouseX) / 150.0f / 3) * rotationFactor
-    val rotationY = atan((yOffset - height / 2 - mouseY) / 150.0f / 3) * rotationFactor
 
     RenderSystem.setShaderLights(
         CUSTOM_IMGUI_LIGHT_0,
@@ -100,16 +93,16 @@ fun LivingEntity.render(
     )
     val renderDispatcher = Minecraft.getInstance().entityRenderDispatcher
 
-    stack.mulPose(Quaternionf().rotateX(rotationY * -20f * Mth.DEG_TO_RAD))
+    stack.mulPose(Quaternionf().rotateX(modifier.pitch * Mth.DEG_TO_RAD))
 
     val yBodyRotOld: Float = yBodyRot
     val yRotOld: Float = yRot
     val xRotOld: Float = xRot
     val yHeadRotOOld: Float = yHeadRotO
     val yHeadRotOld: Float = yHeadRot
-    yBodyRot = rotationX * 20f
-    yRot = rotationX * 40f
-    xRot = -rotationY * 20f
+    yBodyRot = modifier.yaw
+    yRot = modifier.yaw * modifier.headRotationModifier
+    xRot = modifier.pitch
     yHeadRot = yRot
     yHeadRotO = yRot
     val old = isCustomNameVisible

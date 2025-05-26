@@ -1,10 +1,13 @@
 package ru.hollowhorizon.hc.common.utils.molang
 
+import de.fabmax.kool.math.MutableQuatF
+import de.fabmax.kool.math.QuatF
+import de.fabmax.kool.math.Vec3f
+import de.fabmax.kool.math.deg
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.FlyingAnimal
 import ru.hollowhorizon.hc.client.handlers.TickHandler
-import ru.hollowhorizon.hc.client.models.internal.manager.HeadLayer
 import kotlin.math.abs
 
 class EntityQuery(val entity: LivingEntity) {
@@ -25,7 +28,7 @@ class EntityQuery(val entity: LivingEntity) {
     @JvmField val is_swinging = entity.swingTime > 0
     @JvmField val is_alive = entity.isAlive
     @JvmField val is_on_ground = entity.onGround()
-    @JvmField val head_rot = HeadLayer.computeRotation(entity, false, TickHandler.partialTick)
+    @JvmField val head_rot = computeRotation(entity, false, TickHandler.partialTick)
 }
 
 private const val MOVEMENT_FACTOR = (1 / 256f)
@@ -46,4 +49,30 @@ fun calculateSpeedViaDeltaMovement(entity: LivingEntity): Float {
 
     // 4) переводим блоки/тик → блоки/сек
     return dot * 20f
+}
+
+private fun computeRotation(
+    animatable: LivingEntity,
+    switchHeadRot: Boolean,
+    partialTick: Float,
+): QuatF {
+
+    val bodyYaw = -Mth.rotLerp(partialTick, animatable.yBodyRotO, animatable.yBodyRot)
+    val headYaw = -Mth.rotLerp(partialTick, animatable.yHeadRotO, animatable.yHeadRot)
+    val netHeadYaw = headYaw - bodyYaw
+    val headPitch = -Mth.rotLerp(partialTick, animatable.xRotO, animatable.xRot)
+
+    val xRot: QuatF
+    val yRot: QuatF
+
+    if (switchHeadRot) {
+        xRot = MutableQuatF().rotate(headPitch.deg, Vec3f.Y_AXIS)
+        yRot = MutableQuatF().rotate(netHeadYaw.deg, Vec3f.X_AXIS)
+    } else {
+        xRot = MutableQuatF().rotate(headPitch.deg, Vec3f.X_AXIS)
+        yRot = MutableQuatF().rotate(netHeadYaw.deg, Vec3f.Y_AXIS)
+    }
+
+    return yRot.mul(xRot)
+
 }

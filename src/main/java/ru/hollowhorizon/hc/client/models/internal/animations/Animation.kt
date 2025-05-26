@@ -80,9 +80,9 @@ enum class AnimationType {
         // @formatter:off
         private val patterns: Map<AnimationType, List<List<String>>> = mapOf(
             IDLE            to listOf(listOf("idle")),
-            IDLE_SNEAKED    to listOf(listOf("sneak"), listOf("crouch", "idle")),
+            IDLE_SNEAKED    to listOf(listOf("sneak"), listOf("crouch", "crouth", "idle")),
             WALK            to listOf(listOf("walk"), listOf("move"), listOf("go")),
-            WALK_SNEAKED    to listOf(listOf("walk", "sneak"), listOf("crouch", "walk")),
+            WALK_SNEAKED    to listOf(listOf("walk", "sneak"), listOf("crouch", "crouth", "walk")),
             RUN             to listOf(listOf("run"), listOf("dash"), listOf("flee")),
             JUMP            to listOf(listOf("jump"), listOf("hop"), listOf("leap")),
             FALL            to listOf(listOf("fall")),

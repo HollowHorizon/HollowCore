@@ -32,13 +32,13 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider
 import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.util.Mth
 import net.minecraft.world.level.block.HorizontalDirectionalBlock
 import net.minecraft.world.level.block.entity.BlockEntity
 import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
-import ru.hollowhorizon.hc.client.models.internal.animations.GLTFAnimationPlayer
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
@@ -71,7 +71,9 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
         stack.pushPose()
 
         stack.translate(0.5, 0.0, 0.5)
-        preRender(entity, capability, model.animationPlayer, stack)
+        stack.mulPoseMatrix(capability.transform.matrix)
+        stack.last().normal().mul(capability.transform.normalMatrix)
+        if(model.model.isBlockBench) stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
 
         when (level.getBlockState(entity.blockPos).getOptionalValue(HorizontalDirectionalBlock.FACING)
             .orElseGet { Direction.NORTH }) {
@@ -104,16 +106,5 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
         )
 
         stack.popPose()
-    }
-
-    private fun preRender(
-        entity: T,
-        capability: AnimatedEntityCapability,
-        animationPlayer: GLTFAnimationPlayer,
-        stack: PoseStack,
-    ) {
-        stack.mulPoseMatrix(capability.transform.matrix)
-        stack.last().normal().mul(capability.transform.normalMatrix)
-        animationPlayer.currentLoopAnimation = AnimationType.IDLE
     }
 }

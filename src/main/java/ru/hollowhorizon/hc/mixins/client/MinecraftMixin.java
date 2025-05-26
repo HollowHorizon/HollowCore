@@ -24,27 +24,26 @@
 
 package ru.hollowhorizon.hc.mixins.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.particle.ParticleEngine;
-import org.spongepowered.asm.mixin.Final;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import ru.hollowhorizon.hc.client.kool.KoolBuffersKt;
+import ru.hollowhorizon.hc.client.kool.KoolManager;
+
+import java.util.concurrent.CompletableFuture;
 
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
-    @Shadow @Final public ParticleEngine particleEngine;
 
     @Inject(method = "resizeDisplay", at = @At("RETURN"))
     private void resizeCapturedDepthBuffer(CallbackInfo ci) {
-        RenderSystem.recordRenderCall(() -> {
-            final var window = Minecraft.getInstance().getWindow();
-            KoolBuffersKt.getGuiFramebuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
-            KoolBuffersKt.onResize(window.getWidth(), window.getHeight());
-        });
+        var init = KoolManager.INSTANCE;
+        final var window = Minecraft.getInstance().getWindow();
+        KoolBuffersKt.getGuiFramebuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
+        KoolBuffersKt.onResize(window.getWidth(), window.getHeight());
     }
 }
