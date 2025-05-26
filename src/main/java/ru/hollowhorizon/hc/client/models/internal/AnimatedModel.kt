@@ -36,6 +36,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.item.ItemStack
 import org.lwjgl.opengl.GL33
+import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.internal.animations.Animation
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationLoader
 import ru.hollowhorizon.hc.client.models.internal.controller.Controller
@@ -62,10 +63,16 @@ class AnimatedModel(val model: Model) {
     var visuals: NodeRenderer = { _, _, _, _, _ -> }
 
     fun update(controller: Controller, query: EntityQuery, time: Float) {
-        nodes.forEach {
-            controller.update(it, query, time)
+        try {
+            nodes.forEach {
+                it.transform.set(it.baseTransform)
+                controller.update(it, query, time)
+            }
+            controller.updateProcedural(this, query)
+        } catch (e: Exception) {
+            HollowCore.LOGGER.error("Error while updating animations!", e)
+            controller.layers.clear()
         }
-        controller.updateProcedural(this, query)
     }
 
     fun render(
