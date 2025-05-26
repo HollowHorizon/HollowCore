@@ -1,19 +1,19 @@
 package ru.hollowhorizon.hc.common.objects.recipe.packet
 
 //? if fabric {
-import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking
+/*import net.fabricmc.fabric.api.client.networking.v1.ClientLoginNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking
 import java.util.concurrent.CompletableFuture
-//?} elif forge {
-/*import net.minecraft.server.level.ServerPlayer
+*///?} elif forge {
+import net.minecraft.server.level.ServerPlayer
 import net.minecraftforge.network.NetworkEvent
 import net.minecraftforge.network.PacketDistributor
 import ru.hollowhorizon.hc.forge.internal.ForgeNetworkHelper
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
 import java.util.function.Supplier
-*///?}
+//?}
 import io.netty.buffer.Unpooled
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
@@ -27,7 +27,7 @@ object HollowIngredientPacketHandler {
     const val PROTOCOL_VERSION_4 = 4
 
     //? if fabric {
-    fun onClientReceiver() {
+    /*fun onClientReceiver() {
         ClientLoginNetworking.registerGlobalReceiver(PACKET_ID) { _, _, buf, _ ->
             val protocolVersion = buf.readVarInt()
             CompletableFuture.completedFuture(this.createResponse(protocolVersion))
@@ -48,8 +48,8 @@ object HollowIngredientPacketHandler {
             h.connection.channel.pipeline().get("encoder")?.setSupportedIngredients(supported)
         }
     }
-    //?} elif forge {
-    /*@JvmStatic
+    *///?} elif forge {
+    @JvmStatic
     @SubscribeEvent
     fun onPlayerJoin(e: PlayerEvent.Join) {
         val buf = FriendlyByteBuf(Unpooled.buffer())
@@ -92,7 +92,7 @@ object HollowIngredientPacketHandler {
             ctx.get().packetHandled = true
         }
     }
-    *///?}
+    //?}
 
     private fun createResponse(protVer: Int): FriendlyByteBuf? {
         if (protVer < PROTOCOL_VERSION_4) return null

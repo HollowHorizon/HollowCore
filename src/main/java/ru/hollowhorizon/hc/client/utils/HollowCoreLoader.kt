@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.client.utils
 
 //? if forge
-/*import net.minecraftforge.fml.loading.FMLConfig*/
+import net.minecraftforge.fml.loading.FMLConfig
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import ru.hollowhorizon.hc.common.config.HollowConfig
@@ -15,10 +15,10 @@ object HollowCoreLoader {
         if (!config.enableRenderDoc) return false
 
         //? if fabric {
-        return true
-        //?} else {
-        /*return !FMLConfig.getBoolConfigValue(FMLConfig.ConfigValue.EARLY_WINDOW_CONTROL)
-        *///?}
+        /*return true
+        *///?} else {
+        return !FMLConfig.getBoolConfigValue(FMLConfig.ConfigValue.EARLY_WINDOW_CONTROL)
+        //?}
     }
 
     @Serializable

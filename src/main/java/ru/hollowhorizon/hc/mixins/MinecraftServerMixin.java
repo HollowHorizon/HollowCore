@@ -90,10 +90,10 @@ public abstract class MinecraftServerMixin implements ICapabilityDispatcher, Ser
         ICapabilityDispatcherKt.initialize(this);
 
         //? if fabric {
-        var file = storageSource.getIconFile().get().getParent().resolve("server_capability.dat").toFile();
-        //?} else {
-        /*var file = storageSource.getWorldDir().resolve(storageSource.getLevelId()).resolve("server_capability.dat").toFile();
-         *///?}
+        /*var file = storageSource.getIconFile().get().getParent().resolve("server_capability.dat").toFile();
+        *///?} else {
+        var file = storageSource.getWorldDir().resolve(storageSource.getLevelId()).resolve("server_capability.dat").toFile();
+         //?}
         if (file.exists()) {
             try {
                 var stream = new FileInputStream(file);
@@ -118,10 +118,10 @@ public abstract class MinecraftServerMixin implements ICapabilityDispatcher, Ser
     @Inject(method = "stopServer", at = @At("HEAD"))
     private void onSave(CallbackInfo ci) {
         //? if fabric {
-        var file = storageSource.getIconFile().get().getParent().resolve("server_capability.dat").toFile();
-        //?} else {
-        /*var file = storageSource.getWorldDir().resolve(storageSource.getLevelId()).resolve("server_capability.dat").toFile();
-         *///?}
+        /*var file = storageSource.getIconFile().get().getParent().resolve("server_capability.dat").toFile();
+        *///?} else {
+        var file = storageSource.getWorldDir().resolve(storageSource.getLevelId()).resolve("server_capability.dat").toFile();
+         //?}
 
         try {
             if (!file.exists()) file.createNewFile();

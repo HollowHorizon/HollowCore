@@ -1,10 +1,10 @@
 //? if fabric {
-package ru.hollowhorizon.hc.fabric.internal
+/*package ru.hollowhorizon.hc.fabric.internal
 
 //? if >=1.21 {
-/*import net.minecraft.core.component.DataComponentType
+/^import net.minecraft.core.component.DataComponentType
 import net.minecraft.world.level.chunk.status.ChunkStatus
-*///?} elif >=1.20.1 {
+^///?} elif >=1.20.1 {
 import net.minecraft.world.level.chunk.ChunkStatus
 //?}
 import net.minecraft.commands.synchronization.ArgumentTypeInfo
@@ -145,8 +145,8 @@ class RegistryHolderFabric<T : Any>(
             Instrument::class.isAssigned() -> BuiltInRegistries.INSTRUMENT
             CreativeModeTab::class.isAssigned() -> BuiltInRegistries.CREATIVE_MODE_TAB
             //? if >=1.21 {
-            /*DataComponentType::class.isAssigned() -> BuiltInRegistries.DATA_COMPONENT_TYPE
-            *///?}
+            /^DataComponentType::class.isAssigned() -> BuiltInRegistries.DATA_COMPONENT_TYPE
+            ^///?}
 
             registry != null -> registry
 
@@ -187,4 +187,4 @@ class RegistryHolderFabric<T : Any>(
         return result
     }
 }
-//?}
+*///?}
