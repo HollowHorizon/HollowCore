@@ -428,3 +428,8 @@ object MolangSerializer : KSerializer<MolangExpression> {
 
     private fun parse(json: JsonElement): MolangExpression = (json as JsonPrimitive).parseMolangExpression()
 }
+
+fun main() {
+    val e = "q.is_shift".parseMolangExpression()
+    println(e)
+}

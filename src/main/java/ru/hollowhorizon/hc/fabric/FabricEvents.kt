@@ -1,5 +1,5 @@
 //? if fabric {
-/*package ru.hollowhorizon.hc.fabric
+package ru.hollowhorizon.hc.fabric
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents
@@ -105,4 +105,4 @@ object FabricEvents {
         }
     }
 }
-*///?}
+//?}

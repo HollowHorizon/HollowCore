@@ -43,7 +43,7 @@ import ru.hollowhorizon.hc.common.utils.JavaHacks;
 @Mixin(Window.class)
 public class WindowMixin {
     //? if fabric {
-    /*@Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J"), remap = false)
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J"), remap = false)
     public void onInit(WindowEventHandler eventHandler, ScreenManager screenManager, DisplayData displayData, String preferredFullscreenVideoMode, String title, CallbackInfo ci) {
         var version = HollowCoreLoader.INSTANCE.getConfig().getOpenGlVersion().split("\\.", 2);
         var major = Integer.parseInt(version[0]);
@@ -51,7 +51,7 @@ public class WindowMixin {
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, major);
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, minor);
     }
-    *///?}
+    //?}
 
     // На Forge ничего делать не надо, там по умолчанию используется последняя версия OpenGL
 

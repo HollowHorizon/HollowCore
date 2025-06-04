@@ -21,9 +21,9 @@ import ru.hollowhorizon.hc.common.events.EventBus;
 import ru.hollowhorizon.hc.common.events.entity.player.PlayerInteractEvent;
 
 //? if fabric {
-/*import ru.hollowhorizon.hc.common.events.entity.ItemEntityEvent;
+import ru.hollowhorizon.hc.common.events.entity.ItemEntityEvent;
 import java.util.Objects;
-*///?}
+//?}
 
 @Mixin(Player.class)
 public abstract class PlayerMixin extends LivingEntity implements IAnimated {
@@ -39,7 +39,7 @@ public abstract class PlayerMixin extends LivingEntity implements IAnimated {
     }
 
     //? if fabric {
-    /*@Inject(
+    @Inject(
             method = "drop(Lnet/minecraft/world/item/ItemStack;Z)Lnet/minecraft/world/entity/item/ItemEntity;",
             at = @At("HEAD"),
             cancellable = true
@@ -60,5 +60,5 @@ public abstract class PlayerMixin extends LivingEntity implements IAnimated {
 
         cir.setReturnValue(e.getEntity());
     }
-    *///?}
+    //?}
 }

@@ -1,5 +1,5 @@
 //? if fabric {
-/*package ru.hollowhorizon.hc.fabric
+package ru.hollowhorizon.hc.fabric
 
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
@@ -69,4 +69,4 @@ object FabricClientEvents {
         })
     }
 }
-*///?}
+//?}

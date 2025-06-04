@@ -1,5 +1,5 @@
 //? if forge {
-package ru.hollowhorizon.hc.forge
+/*package ru.hollowhorizon.hc.forge
 
 import net.minecraftforge.fml.ModList
 import net.minecraftforge.fml.loading.FMLEnvironment
@@ -83,4 +83,4 @@ object CoreInitializationForge {
 private fun Type.hasAnnotation(java: Class<out Annotation>): Boolean {
     return Class.forName(className, false, HollowCore::class.java.classLoader).isAnnotationPresent(java)
 }
-//?}
+*///?}

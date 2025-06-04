@@ -24,20 +24,53 @@
 
 package ru.hollowhorizon.hc.mixins.client;
 
+import kotlinx.coroutines.CoroutineDispatcher;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.CoroutineScopeKt;
 import net.minecraft.client.Minecraft;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.client.main.GameConfig;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import ru.hollowhorizon.hc.client.kool.KoolBuffersKt;
 import ru.hollowhorizon.hc.client.kool.KoolManager;
+import ru.hollowhorizon.hc.common.coroutines.ClientDispatcher;
+import ru.hollowhorizon.hc.common.coroutines.SingleThreadDispatcher;
 
-import java.util.concurrent.CompletableFuture;
+import static kotlinx.coroutines.SupervisorKt.SupervisorJob;
 
 @Mixin(Minecraft.class)
-public class MinecraftMixin {
+public class MinecraftMixin implements ClientDispatcher {
+    @Unique
+    private SingleThreadDispatcher hollowcore$dispatcher;
+    @Unique
+    private CoroutineScope hollowcore$coroutineScope;
+
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void onInit(GameConfig gameConfig, CallbackInfo ci) {
+        hollowcore$dispatcher = new SingleThreadDispatcher("MinecraftServer.dispatcher");
+        hollowcore$coroutineScope = CoroutineScopeKt.CoroutineScope(SupervisorJob(null).plus(hollowcore$dispatcher));
+    }
+
+    @Inject(method = "runTick", at = @At("HEAD"))
+    protected void essential$runTasks(CallbackInfo ci) {
+        hollowcore$dispatcher.runTasks();
+    }
+
+    @Inject(method = "stop", at = @At("HEAD"))
+    private void cancelCoroutineScope(CallbackInfo ci) {
+        CoroutineScopeKt.cancel(hollowcore$coroutineScope, null);
+
+        hollowcore$dispatcher.runTasks();
+    }
+
+    @Inject(method = "stop", at = @At("RETURN"))
+    private void shutdownDispatcher(CallbackInfo ci) {
+        hollowcore$dispatcher.shutdown();
+    }
 
     @Inject(method = "resizeDisplay", at = @At("RETURN"))
     private void resizeCapturedDepthBuffer(CallbackInfo ci) {
@@ -45,5 +78,15 @@ public class MinecraftMixin {
         final var window = Minecraft.getInstance().getWindow();
         KoolBuffersKt.getGuiFramebuffer().resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
         KoolBuffersKt.onResize(window.getWidth(), window.getHeight());
+    }
+
+    @Override
+    public @NotNull CoroutineDispatcher getHollowcore$dispatcher() {
+        return hollowcore$dispatcher;
+    }
+
+    @Override
+    public @NotNull CoroutineScope getHollowcore$coroutineScope() {
+        return hollowcore$coroutineScope;
     }
 }

@@ -1,11 +1,7 @@
 package ru.hollowhorizon.hc.common.events
 
-import ru.hollowhorizon.hc.common.coroutines.onMainThreadSync
-import ru.hollowhorizon.hc.common.coroutines.scopeSync
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.reflect.KClass
@@ -47,21 +43,14 @@ suspend inline fun <reified T : Event> awaitEvent(crossinline isValidCondition: 
     var listener: EventListener<T>? = null
 
     val result: T = suspendCoroutine { continuation ->
-
         listener = EventListener { event ->
-            scopeSync {
-                onMainThreadSync {
-                    if (isValidCondition(event)) continuation.resume(event)
-                }
-            }
+            if (isValidCondition(event)) continuation.resume(event)
         }
         EventBus.register(listener ?: return@suspendCoroutine)
-
     }
 
-    scopeSync {
-        EventBus.unregister(listener ?: return@scopeSync)
-    }
+    EventBus.unregister(listener!!)
+
 
     return result
 }

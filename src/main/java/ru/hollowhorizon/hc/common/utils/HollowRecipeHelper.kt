@@ -35,7 +35,7 @@ import net.minecraft.world.item.Item
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 //? if !fabric
-import net.minecraftforge.common.crafting.CraftingHelper
+/*import net.minecraftforge.common.crafting.CraftingHelper*/
 import ru.hollowhorizon.hc.common.objects.recipe.condition.HollowCondition
 import ru.hollowhorizon.hc.common.objects.recipe.condition.HollowConditionSerializer
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.DefaultHollowIngredient
@@ -170,7 +170,7 @@ object HollowRecipeHelper {
     @JvmStatic
     fun getItemStack(json: JsonObject, readNBT: Boolean = true, disallowAir: Boolean = false): ItemStack {
         //? if fabric {
-        /*val itemName = GsonHelper.getAsString(json, "item")
+        val itemName = GsonHelper.getAsString(json, "item")
         val item = getItem(itemName, disallowAir)
         if (readNBT && json.has("nbt")) {
             val nbt = getNBT(json["nbt"])
@@ -183,9 +183,9 @@ object HollowRecipeHelper {
             return ItemStack.of(tmp)
         }
         return ItemStack(item, GsonHelper.getAsInt(json, "count", 1))
-        *///?} else {
-        return CraftingHelper.getItemStack(json, readNBT, disallowAir)
-        //?}
+        //?} else {
+        /*return CraftingHelper.getItemStack(json, readNBT, disallowAir)
+        *///?}
     }
 
     /**
