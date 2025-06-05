@@ -11,10 +11,13 @@ import net.minecraft.client.renderer.ShaderInstance
 import net.minecraftforge.client.event.EntityRenderersEvent
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent
+import net.minecraftforge.client.event.RenderGuiOverlayEvent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.TickEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
 import ru.hollowhorizon.hc.common.events.EventBus
+import ru.hollowhorizon.hc.common.events.client.render.GuiOverlay
+import ru.hollowhorizon.hc.common.events.client.render.RenderOverlayEvent
 import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.registry.*
 
@@ -26,12 +29,15 @@ object ForgeClientEvents {
         FMLJavaModLoadingContext.get().modEventBus.addListener(ForgeClientEvents::registerReloadListeners)
         MinecraftForge.EVENT_BUS.addListener(ForgeClientEvents::onClientTick)
         MinecraftForge.EVENT_BUS.addListener(ForgeClientEvents::onRenderTooltips)
+        MinecraftForge.EVENT_BUS.addListener(ForgeClientEvents::onRenderOverlayPre)
+        MinecraftForge.EVENT_BUS.addListener(ForgeClientEvents::onRenderOverlayPost)
     }
 
     private fun onEntityRenderers(event: EntityRenderersEvent.RegisterRenderers) {
         RegisterEntityRenderersEvent(event::registerEntityRenderer).post()
         RegisterBlockEntityRenderersEvent(event::registerBlockEntityRenderer).post()
     }
+
     private fun registerReloadListeners(event: RegisterClientReloadListenersEvent) {
         val hcevent = RegisterReloadListenersEvent.Client()
         EventBus.post(hcevent)
@@ -71,6 +77,19 @@ object ForgeClientEvents {
             /^Item.TooltipContext.of(Minecraft.getInstance().level)
             ^///?}
         ).post()
+    }
+
+    private fun onRenderOverlayPre(event: RenderGuiOverlayEvent.Pre) {
+        val hcEvent =
+            RenderOverlayEvent.Pre(event.window, event.guiGraphics, event.partialTick, GuiOverlay[event.overlay.id])
+        hcEvent.post()
+        if (hcEvent.isCanceled) event.isCanceled = true
+    }
+
+    private fun onRenderOverlayPost(event: RenderGuiOverlayEvent.Post) {
+        val hcEvent =
+            RenderOverlayEvent.Post(event.window, event.guiGraphics, event.partialTick, GuiOverlay[event.overlay.id])
+        hcEvent.post()
     }
 }
 *///?}

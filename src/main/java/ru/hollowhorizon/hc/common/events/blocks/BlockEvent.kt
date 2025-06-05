@@ -24,4 +24,10 @@ open class BlockEvent(var state: BlockState, val pos: BlockPos) : Event, Cancela
         state: BlockState,
         val player: Player
     ): BlockEvent(state, pos)
+
+    class Placed(
+        val player: Player,
+        state: BlockState,
+        pos: BlockPos
+    ): BlockEvent(state, pos)
 }

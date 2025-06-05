@@ -1,6 +1,7 @@
 //? if forge {
 /*package ru.hollowhorizon.hc.forge
 
+import net.minecraft.world.entity.player.Player
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.AddReloadListenerEvent
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent
@@ -13,7 +14,7 @@ import net.minecraftforge.event.level.BlockEvent
 import net.minecraftforge.event.server.ServerAboutToStartEvent
 import net.minecraftforge.event.server.ServerStoppingEvent
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext
-import ru.hollowhorizon.hc.common.utils.currentServer
+import ru.hollowhorizon.hc.common.events.EventBus
 import ru.hollowhorizon.hc.common.events.EventBus.post
 import ru.hollowhorizon.hc.common.events.entity.BabySpawnEvent
 import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
@@ -24,6 +25,7 @@ import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityAttributesEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterReloadListenersEvent
 import ru.hollowhorizon.hc.common.events.server.ServerEvent
+import ru.hollowhorizon.hc.common.utils.currentServer
 
 object ForgeEvents {
     init {
@@ -40,6 +42,7 @@ object ForgeEvents {
         MinecraftForge.EVENT_BUS.addListener(::onBlockBreak)
         MinecraftForge.EVENT_BUS.addListener(::onItemEntityToss)
         MinecraftForge.EVENT_BUS.addListener(::onBabySpawn)
+        MinecraftForge.EVENT_BUS.addListener(::onBlockPlaced)
     }
 
     private fun onBuildCreativeTab(event: BuildCreativeModeTabContentsEvent) {
@@ -48,7 +51,12 @@ object ForgeEvents {
     }
 
     private fun onBlockBreak(event: BlockEvent.BreakEvent) {
-        val breakEvent = ru.hollowhorizon.hc.common.events.blocks.BlockEvent.Break(event.player.level(), event.pos, event.state, event.player)
+        val breakEvent = ru.hollowhorizon.hc.common.events.blocks.BlockEvent.Break(
+            event.player.level(),
+            event.pos,
+            event.state,
+            event.player
+        )
         breakEvent.post()
         event.isCanceled = breakEvent.isCanceled
     }
@@ -118,6 +126,13 @@ object ForgeEvents {
 
         e.child = ev.child
         e.isCanceled = ev.isCanceled
+    }
+
+    private fun onBlockPlaced(e: BlockEvent.EntityPlaceEvent) {
+        val player = e.entity as? Player ?: return
+        val event = ru.hollowhorizon.hc.common.events.blocks.BlockEvent.Placed(player, e.placedBlock, e.pos)
+        event.post()
+        if(event.isCanceled) e.isCanceled = true
     }
 }
 *///?}

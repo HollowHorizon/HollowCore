@@ -28,6 +28,7 @@
     "capabilities.BlockEntityMixin",
     "capabilities.EntityMixin",
     "capabilities.LevelMixin",
+    "fabric.BlockItemMixin",
     "kool.ClipboardMixin",
     "kool.PlatformInputJvmMixin",
     "loot.LootDataManagerMixin",
@@ -51,7 +52,11 @@
     "client.ShaderInstanceAccessor",
     "client.SkullBlockRendererMixin",
     "client.SoundManagerMixin",
-    "client.WindowMixin"
+    "client.WindowMixin",
+    "fabric.BossHealthOverlayMixin",
+    "fabric.ChatComponentMixin",
+    "fabric.DebugScreenOverlayMixin",
+    "fabric.GuiMixin"
   ],
   "server": [],
   "injectors": {
