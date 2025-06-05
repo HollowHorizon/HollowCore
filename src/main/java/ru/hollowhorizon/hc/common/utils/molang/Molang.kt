@@ -43,7 +43,7 @@ open class Molang(private val parent: ClassLoader? = null) {
         val cbe = ClassBodyEvaluator().apply {
             setImplementedInterfaces(arrayOf(FloatExpr::class.java))
             setClassName(className)
-            setParentClassLoader(parent ?: this@Molang.javaClass.classLoader)
+            setParentClassLoader(MolangClassLoader(parent ?: this@Molang.javaClass.classLoader))
             setDefaultImports(
                 "java.lang.*",
                 "ru.hollowhorizon.hc.common.utils.molang.*",
@@ -76,7 +76,7 @@ open class Molang(private val parent: ClassLoader? = null) {
         val cbe = ClassBodyEvaluator().apply {
             setImplementedInterfaces(arrayOf(BooleanExpr::class.java))
             setClassName(className)
-            setParentClassLoader(parent ?: this@Molang.javaClass.classLoader)
+            setParentClassLoader(MolangClassLoader(parent ?: this@Molang.javaClass.classLoader))
             setDefaultImports(
                 "java.lang.*",
                 "ru.hollowhorizon.hc.common.utils.molang.*",
@@ -108,7 +108,7 @@ open class Molang(private val parent: ClassLoader? = null) {
         val cbe = ClassBodyEvaluator().apply {
             setImplementedInterfaces(arrayOf(QuatFExpr::class.java))
             setClassName(className)
-            setParentClassLoader(parent ?: this@Molang.javaClass.classLoader)
+            setParentClassLoader(MolangClassLoader(parent ?: this@Molang.javaClass.classLoader))
             setDefaultImports(
                 "java.lang.*",
                 "ru.hollowhorizon.hc.common.utils.molang.*",
@@ -141,7 +141,7 @@ open class Molang(private val parent: ClassLoader? = null) {
         val cbe = ClassBodyEvaluator().apply {
             setImplementedInterfaces(arrayOf(Vec3fExpr::class.java))
             setClassName(className)
-            setParentClassLoader(parent ?: this@Molang.javaClass.classLoader)
+            setParentClassLoader(MolangClassLoader(parent ?: this@Molang.javaClass.classLoader))
             setDefaultImports(
                 "java.lang.*",
                 "ru.hollowhorizon.hc.common.utils.molang.*",
@@ -164,4 +164,59 @@ open class Molang(private val parent: ClassLoader? = null) {
     }
 
     companion object Default : Molang()
+}
+
+class MolangClassLoader(parent: ClassLoader) : ClassLoader(parent) {
+    companion object {
+        val whitelist = mutableSetOf(
+            "java.lang.annotation.Retention",
+            "java.lang.AssertionError",
+            "java.lang.Boolean",
+            "java.lang.Byte",
+            "java.lang.Character",
+            "java.lang.Class",
+            "java.lang.Cloneable",
+            "java.lang.Double",
+            "java.lang.Enum",
+            "java.lang.Error",
+            "java.lang.Exception",
+            "java.lang.Float",
+            "java.lang.Integer",
+            "java.lang.Iterable",
+            "java.lang.Long",
+            "java.lang.Object",
+            "java.lang.Override",
+            "java.lang.RuntimeException",
+            "java.lang.Short",
+            "java.lang.String",
+            "java.lang.StringBuilder",
+            "java.lang.System",
+            "java.lang.Throwable",
+            "java.lang.Void",
+            "java.io.Serializable",
+            "java.util.Iterator",
+            "java.lang.StringBuffer",
+            "java.lang.CharSequence",
+            "java.lang.AbstractStringBuilder",
+            "java.lang.Appendable",
+            "ru.hollowhorizon.hc.common.utils.molang.FloatExpr",
+            "EntityQuery",
+            "java.lang.EntityQuery",
+            "java.lang\$EntityQuery",
+            "java\$lang\$EntityQuery",
+            "ru.hollowhorizon.hc.common.utils.molang.EntityQuery",
+            "ru.hollowhorizon.hc.common.utils.molang.BooleanExpr",
+            "de.fabmax.kool.math.QuatF",
+            "ru.hollowhorizon.hc.common.utils.molang.QuatFExpr",
+            "de.fabmax.kool.math.Vec3f",
+            "ru.hollowhorizon.hc.common.utils.molang.Vec3fExpr",
+            "java.lang.Math",
+            "java.lang.Math\$RandomNumberGeneratorHolder"
+        )
+    }
+
+    override fun loadClass(name: String?): Class<*> {
+        if(name !in whitelist) error("Class $name is not in whitelist!")
+        return super.loadClass(name)
+    }
 }
