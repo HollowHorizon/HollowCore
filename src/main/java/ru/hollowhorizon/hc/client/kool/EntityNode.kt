@@ -16,8 +16,8 @@ interface EntityScope : ImageScope {
     fun EntityModifier.mouseRotation(headRotationModifier: Float = 2f): EntityModifier {
         surface.onUpdate {
             val pointer = PointerInput.primaryPointer.pos
-            val xOffset = uiNode.leftPx + uiNode.paddingStartPx + uiNode.innerWidthPx / 2f
-            val yOffset = uiNode.topPx + uiNode.paddingTopPx + uiNode.innerHeightPx / 2f
+            val xOffset = uiNode.leftPx+ uiNode.widthPx / 2f
+            val yOffset = uiNode.topPx + uiNode.heightPx / 2f
             val rotationX = atan((xOffset - pointer.x) / 150.0f / 3) * 20f
             val rotationY = atan((yOffset - pointer.y) / 150.0f / 3) * 20f
             yaw = rotationX

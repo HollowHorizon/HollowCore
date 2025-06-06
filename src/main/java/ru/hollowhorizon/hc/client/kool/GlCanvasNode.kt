@@ -114,19 +114,19 @@ open class GlCanvasNode(parent: UiNode?, surface: UiSurface) : UiNode(parent, su
 
         surface.onEachFrame {
             drawGlCanvas(
-                leftPx + paddingStartPx, topPx + paddingTopPx,
-                rightPx - paddingEndPx, bottomPx - paddingBottomPx,
+                leftPx, topPx,
+                rightPx, bottomPx,
                 modifier.zLayer
             )
         }
     }
 
     private fun FlatImageProvider.resizeImage() = apply {
-        val u0 = (leftPx + paddingStartPx) / WINDOW_BUFFER.width
-        val v0 = 1f - (topPx + paddingTopPx) / WINDOW_BUFFER.height
+        val u0 = (leftPx) / WINDOW_BUFFER.width
+        val v0 = 1f - (topPx) / WINDOW_BUFFER.height
 
-        val u1 = (rightPx - paddingEndPx) / WINDOW_BUFFER.width
-        val v1 = 1f - (bottomPx - paddingBottomPx) / WINDOW_BUFFER.height
+        val u1 = (rightPx) / WINDOW_BUFFER.width
+        val v1 = 1f - (bottomPx) / WINDOW_BUFFER.height
         uvTopLeft.set(u0, v0)
         uvTopRight.set(u1, v0)
         uvBottomLeft.set(u0, v1)
@@ -211,8 +211,8 @@ open class GlCanvasNode(parent: UiNode?, surface: UiSurface) : UiNode(parent, su
             imgMesh.applyShader(it, modifier.customShader)
         }
         drawGlCanvas(
-            leftPx + paddingStartPx, topPx + paddingTopPx,
-            rightPx - paddingEndPx, bottomPx - paddingBottomPx,
+            leftPx, topPx,
+            rightPx, bottomPx,
             modifier.zLayer
         )
     }
@@ -224,7 +224,7 @@ open class GlCanvasNode(parent: UiNode?, surface: UiSurface) : UiNode(parent, su
         y2: Float,
         zLayer: Int,
     ) {
-        if (x1 == x2 || y1 == y2) return
+        if (x1 >= x2 || y1 >= y2) return
         val oldBuffer = GL33.glGetInteger(GL33.GL_FRAMEBUFFER_BINDING)
         val buffer = guiFramebuffer
         buffer.bindWrite(false)
