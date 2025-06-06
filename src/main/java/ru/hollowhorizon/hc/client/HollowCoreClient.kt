@@ -111,6 +111,7 @@ object HollowCoreClient {
                             }
                         }
                         Item(Items.DIAMOND.defaultInstance) {}
+                        surface.triggerUpdate()
                     }
                 }
 

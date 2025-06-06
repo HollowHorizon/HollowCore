@@ -33,6 +33,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.RenderType
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher
 import net.minecraft.client.renderer.texture.OverlayTexture
 import net.minecraft.util.Mth
 import net.minecraft.world.entity.LivingEntity
@@ -45,7 +46,6 @@ import org.joml.Vector3f
 import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.kool.EntityModifier
 import java.io.File
-import kotlin.math.atan
 import kotlin.math.min
 
 object OpenGLUtils {
@@ -76,7 +76,7 @@ fun LivingEntity.render(
     y: Float,
     width: Float,
     height: Float,
-    modifier: EntityModifier
+    modifier: EntityModifier,
 ) {
 
     val stack = PoseStack()
@@ -84,47 +84,32 @@ fun LivingEntity.render(
     val yOffset = y + height + modifier.offset.y
     stack.translate(xOffset, yOffset, 0f)
     val newScale = min(width / bbWidth, height / bbHeight) * 0.95f * modifier.scale
-    //stack.mulPoseMatrix(Matrix4f().scaling(1f, -1f, 1f))
     stack.mulPoseMatrix(Matrix4f().scaling(newScale, -newScale, newScale))
 
     RenderSystem.setShaderLights(
         CUSTOM_IMGUI_LIGHT_0,
         CUSTOM_IMGUI_LIGHT_1
     )
-    val renderDispatcher = Minecraft.getInstance().entityRenderDispatcher
+    val mc = Minecraft.getInstance()
+    val renderDispatcher = mc.entityRenderDispatcher
 
     stack.mulPose(Quaternionf().rotateX(modifier.pitch * Mth.DEG_TO_RAD))
 
-    val yBodyRotOld: Float = yBodyRot
-    val yRotOld: Float = yRot
-    val xRotOld: Float = xRot
-    val yHeadRotOOld: Float = yHeadRotO
-    val yHeadRotOld: Float = yHeadRot
-    yBodyRot = modifier.yaw
-    yRot = modifier.yaw * modifier.headRotationModifier
-    xRot = modifier.pitch
-    yHeadRot = yRot
-    yHeadRotO = yRot
-    val old = isCustomNameVisible
-    isCustomNameVisible = false
-    renderDispatcher.setRenderShadow(false)
-    RenderSystem.runAsFancy {
-        renderDispatcher.render(
-            this, 0.0, 0.0, 0.0, 0.0f, 1.0f, stack, Minecraft.getInstance().renderBuffers().bufferSource(), 15728880
-        )
+    val renderBuffers = mc.renderBuffers()
+    use(renderDispatcher, modifier) {
+        RenderSystem.runAsFancy {
+            renderDispatcher.render(
+                this, 0.0, 0.0, 0.0,
+                0.0f, 1.0f, stack,
+                renderBuffers.bufferSource(), 15728880
+            )
+        }
+
+        RenderSystem.disableDepthTest()
+        renderBuffers.bufferSource().endBatch()
+        RenderSystem.enableDepthTest()
     }
 
-    RenderSystem.disableDepthTest()
-    Minecraft.getInstance().renderBuffers().bufferSource().endBatch()
-    RenderSystem.enableDepthTest()
-
-    renderDispatcher.setRenderShadow(true)
-    isCustomNameVisible = old
-    yBodyRot = yBodyRotOld
-    yRot = yRotOld
-    xRot = xRotOld
-    yHeadRot = yHeadRotOld
-    yHeadRotO = yHeadRotOOld
     Lighting.setupFor3DItems()
 }
 
@@ -255,4 +240,42 @@ fun fill(
     vertexConsumer.vertex(matrix4f, minX.toFloat(), maxY.toFloat(), z.toFloat()).color(color)
     vertexConsumer.vertex(matrix4f, maxX.toFloat(), maxY.toFloat(), z.toFloat()).color(color)
     vertexConsumer.vertex(matrix4f, maxX.toFloat(), minY.toFloat(), z.toFloat()).color(color)
+}
+
+inline fun LivingEntity.use(dispatcher: EntityRenderDispatcher, modifier: EntityModifier, block: () -> Unit) {
+    val yBodyRotOld = yBodyRot
+    val yBodyRotOldO = yBodyRotO
+    val yRotOld = yRot
+    val yRotOldO = yRotO
+    val xRotOld = xRot
+    val xRotOldO = xRotO
+    val yHeadRotOld: Float = yHeadRot
+    val yHeadRotOldO: Float = yHeadRotO
+
+    yBodyRot = modifier.yaw
+    yBodyRotO = yBodyRot
+    yRot = modifier.yaw * modifier.headRotationModifier
+    yRotO = yRotOld
+    xRot = modifier.pitch
+    xRotO = xRot
+    yHeadRot = yRot
+    yHeadRotO = yHeadRot
+
+    val oldNameStatus = isCustomNameVisible
+    isCustomNameVisible = modifier.isCustomNameVisible
+    dispatcher.setRenderShadow(modifier.isRenderShadow)
+
+    block()
+
+    if (!modifier.isRenderShadow) dispatcher.setRenderShadow(true)
+    isCustomNameVisible = oldNameStatus
+
+    yBodyRot = yBodyRotOld
+    yBodyRotO = yBodyRotOldO
+    yRot = yRotOld
+    yRotO = yRotOldO
+    xRot = xRotOld
+    xRotO = xRotOldO
+    yHeadRot = yHeadRotOld
+    yHeadRotO = yHeadRotOldO
 }

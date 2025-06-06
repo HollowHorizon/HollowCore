@@ -38,6 +38,8 @@ interface EntityScope : ImageScope {
 
 
 open class EntityModifier(surface: UiSurface) : GlCanvasModifier(surface) {
+    var isCustomNameVisible by property(false)
+    var isRenderShadow by property(false)
     var scale by property(1f)
     var offset by property(Vec2f(0f, 0f))
     var yaw by property(0f)
@@ -50,6 +52,8 @@ fun EntityModifier.offset(offset: Vec2f): EntityModifier = apply { this.offset =
 fun EntityModifier.yaw(yaw: Float): EntityModifier = apply { this.yaw = yaw }
 fun EntityModifier.pitch(pitch: Float): EntityModifier = apply { this.pitch = pitch }
 fun EntityModifier.headRotationModifier(headRotationModifier: Float): EntityModifier = apply { this.headRotationModifier = headRotationModifier }
+fun EntityModifier.isCustomNameVisible(visible: Boolean): EntityModifier = apply { this.isCustomNameVisible = visible }
+fun EntityModifier.isRenderShadow(visible: Boolean): EntityModifier = apply { this.isRenderShadow = visible }
 
 @OptIn(ExperimentalContracts::class)
 inline fun UiScope.Entity(

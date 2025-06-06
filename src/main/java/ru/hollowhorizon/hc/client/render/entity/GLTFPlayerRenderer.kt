@@ -82,7 +82,7 @@ object GLTFPlayerRenderer {
             (entity.tickCount + partialTick) / 20f
         )
         IrisHelper.bypassShadow = false
-
+    
         model.render(
             stack,
             ModelData(entity.offhandItem, entity.mainHandItem, itemInHandRenderer, entity),
