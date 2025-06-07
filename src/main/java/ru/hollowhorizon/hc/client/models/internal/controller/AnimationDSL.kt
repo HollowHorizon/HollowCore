@@ -751,7 +751,7 @@ data class ClipNode(
     }
 
     fun rawTime(query: EntityQuery, time: Float): Float {
-        val newSpeed = speed(query).coerceIn(-3f, 3f)
+        val newSpeed = speed(query)
 
         if (newSpeed != oldSpeed) {
             val currentRaw = (time - startTime) * oldSpeed

@@ -47,6 +47,7 @@ fun AnimatedEntityCapability.play(
     mask: Mask = Mask.full(),
     speed: String = "1f",
     transitionTime: Float = 0.25f,
+    referencePose: String = ""
 ) {
     if (wrapMode == WrapMode.Once) {
         AddOnceLayerPacket(
@@ -56,14 +57,15 @@ fun AnimatedEntityCapability.play(
             mask,
             blendMode,
             speed,
-            transitionTime
+            transitionTime,
+            referencePose
         ).sendTrackingEntity(provider as Entity)
         return
     }
 
     controller = animationController {
         controller.layers.forEach(::layer)
-        layer("__${animation}_layer__", blendMode = blendMode, priority = priority, mask = mask) {
+        layer("__${animation}_layer__", blendMode = blendMode, priority = priority, mask = mask, referencePose = referencePose) {
             stateMachine {
                 state(animation + "_state") {
                     clip(animation, wrap = wrapMode, speed = speed)
@@ -107,6 +109,7 @@ class AddOnceLayerPacket(
     private val blendMode: BlendMode,
     private val speed: String,
     private val transition: Float,
+    private val referencePose: String,
 ) : HollowPacket {
     override fun handle(player: Player) {
         val level = Minecraft.getInstance().level ?: return
@@ -126,7 +129,7 @@ class AddOnceLayerPacket(
             }
 
             exit(animState.name, transition)
-        }.build()))
+        }.build(), referencePose))
         controller.recompile()
     }
 
