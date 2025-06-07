@@ -1,4 +1,5 @@
-name: build
+name: Full Build, Tag, and Release
+
 on:
   push:
     branches: [ "1.20.1" ]
@@ -6,34 +7,46 @@ on:
     branches: [ "1.20.1" ]
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        java: [21]
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
-    if: |
-      !contains(github.event.head_commit.message, '[no ci]')
+  build_tag_release:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[no ci]')"
     steps:
-      - name: checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Get the mod version from gradle.properties
         id: get_version
         run: |
-          MOD_VERSION=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2)
+          MOD_VERSION=$(grep '^modVersion=' gradle.properties | cut -d'=' -f2)
+          echo "mod_version=$MOD_VERSION" >> $GITHUB_OUTPUT
           echo "MOD_VERSION=$MOD_VERSION" >> $GITHUB_ENV
-      - name: setup jdk ${{ matrix.java }}
+
+      - name: Setup JDK 21
         uses: actions/setup-java@v1
         with:
-          java-version: ${{ matrix.java }}
-      - name: make gradle wrapper executable
+          java-version: 21
+
+      - name: Make gradle wrapper executable
         run: chmod +x ./gradlew
-      - name: Release to GitHub
+
+      - name: Delete existing tag (if it exists)
+        if: github.event_name == 'push'
+        run: |
+          git tag -d "$MOD_VERSION" || true
+          git push origin --delete "$MOD_VERSION" || true
+
+      - name: Create and push new tag
+        if: github.event_name == 'push'
+        run: |
+          git tag "$MOD_VERSION"
+          git push origin "$MOD_VERSION"
+
+      - name: Build the project
         uses: gradle/gradle-build-action@v2
         with:
           arguments: chiseledBuildAndCollect
-      - name: capture build artifacts
-        if: ${{ runner.os == 'Linux' && matrix.java == '21' }}
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Artifacts
@@ -41,14 +54,26 @@ jobs:
             merged/*.jar
             !merged/*-dev.jar
             !merged/*-sources.jar
-      - name: Create Release
-        id: create_release
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[no release]')
         uses: ncipollo/release-action@v1
         with:
-          name: "[HollowCore 1.20.1 | Latest Release]"
+          name: "HollowCore 1.20.1 - v${{ steps.get_version.outputs.mod_version }}"
+          tag: ${{ steps.get_version.outputs.mod_version }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: "latest-1.20.1"
-          removeArtifacts: true
           allowUpdates: true
+          removeArtifacts: true
           artifacts: "merged/*.jar"
           artifactContentType: application/java-archive
+
+      - name: Publish to Maven
+        if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[no maven]')
+        uses: gradle/gradle-build-action@v2
+        env:
+          MAVEN_USER_ZM: ${{ secrets.MAVEN_USER_ZM }}
+          MAVEN_PASSWORD_ZM: ${{ secrets.MAVEN_PASSWORD_ZM }}
+          MAVEN_USER: ${{ secrets.MAVEN_USER }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+        with:
+          arguments: chiseledPublishMaven
