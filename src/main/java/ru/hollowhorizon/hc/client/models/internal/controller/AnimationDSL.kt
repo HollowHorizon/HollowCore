@@ -159,7 +159,7 @@ data class Controller(var layers: MutableList<Layer>) {
             if (transition.from == "*") {
                 val duration = transition.let { (time - it.startTime) / it.duration }
                 reference = reference.mix(TrsTransformF(), 1f - duration) ?: TrsTransformF()
-            } else if (transition.to == "*") {
+            } else if (transition.to == "*" || transition.to == "__end__") {
                 val duration = transition.let { (time - it.startTime) / it.duration }
                 reference = reference.mix(TrsTransformF(), duration) ?: TrsTransformF()
             }
