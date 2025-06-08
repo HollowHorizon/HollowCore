@@ -47,7 +47,7 @@ fun AnimatedEntityCapability.play(
     mask: Mask = Mask.full(),
     speed: String = "1f",
     transitionTime: Float = 0.25f,
-    referencePose: String = ""
+    referencePose: String = "",
 ) {
     if (wrapMode == WrapMode.Once) {
         AddOnceLayerPacket(
@@ -65,7 +65,13 @@ fun AnimatedEntityCapability.play(
 
     controller = animationController {
         controller.layers.forEach(::layer)
-        layer("__${animation}_layer__", blendMode = blendMode, priority = priority, mask = mask, referencePose = referencePose) {
+        layer(
+            "__${animation}_layer__",
+            blendMode = blendMode,
+            priority = priority,
+            mask = mask,
+            referencePose = referencePose
+        ) {
             stateMachine {
                 state(animation + "_state") {
                     clip(animation, wrap = wrapMode, speed = speed)
@@ -85,11 +91,12 @@ fun AnimatedEntityCapability.stop(
     val layer = controller.layers.find { it.name == "__${animation}_layer__" }?.also {
         it.stateMachine.transitions.add(
             TransitionBuilder("${animation}_state", "__end__").apply {
-                condition("true"); duration(transitionTime); exitTime(
-                true
-            )
+                condition("true"); duration(transitionTime); exitTime(false)
             }.build()
         )
+    } ?: run {
+        StopOnceLayerPacket(animation, (provider as Entity).id, transitionTime).sendTrackingEntity(provider as Entity)
+        return
     }
     CSyncEntityCapabilityPacket(
         (provider as Entity).id,
@@ -118,7 +125,7 @@ class AddOnceLayerPacket(
         val layers = controller.layers
 
         layers.removeIf { it.name == animation }
-        layers.add(Layer("__${animation}_layer__ (once)", priority, 1f, mask, blendMode, StateMachineBuilder().apply {
+        layers.add(Layer("__${animation}_layer__", priority, 1f, mask, blendMode, StateMachineBuilder().apply {
             val animState = state(animation + "_state") {
                 clip(animation, WrapMode.Once, speed)
             }
@@ -131,6 +138,25 @@ class AddOnceLayerPacket(
             exit(animState.name, transition)
         }.build(), referencePose))
         controller.recompile()
+    }
+}
+
+class StopOnceLayerPacket(
+    private val animation: String,
+    private val entityId: Int,
+    private val transition: Float,
+): HollowPacket {
+    override fun handle(player: Player) {
+        val level = Minecraft.getInstance().level ?: return
+        val entity = level.getEntity(entityId) ?: return
+        val controller = entity[AnimatedEntityCapability::class].controller
+        controller.layers.find { it.name == "__${animation}_layer__" }?.also {
+            it.stateMachine.transitions.add(
+                TransitionBuilder("${animation}_state", "__end__").apply {
+                    condition("true"); duration(transition); exitTime(false)
+                }.build()
+            )
+        }
     }
 
 }

@@ -6,9 +6,7 @@ import de.fabmax.kool.scene.TrsTransformF
 import kotlinx.coroutines.async
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import net.minecraft.client.Minecraft
 import ru.hollowhorizon.hc.HollowCore
-import ru.hollowhorizon.hc.client.gui.DebugOverlay
 import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
 import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.animations.Animation
@@ -16,7 +14,6 @@ import ru.hollowhorizon.hc.client.models.internal.controller.BlendMode.Additive
 import ru.hollowhorizon.hc.client.models.internal.controller.BlendMode.Override
 import ru.hollowhorizon.hc.client.models.internal.controller.Controller.Companion.AUTOMATIC_LAYER
 import ru.hollowhorizon.hc.client.models.internal.controller.WrapMode.*
-import ru.hollowhorizon.hc.common.utils.literal
 import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
 import ru.hollowhorizon.hc.common.utils.molang.Molang
 import ru.hollowhorizon.hc.common.utils.molang.MolangCompilerScope
@@ -823,8 +820,8 @@ class TransitionBuilder(val from: String, val to: String) {
         exitTime = time
     }
 
-    fun exitTime(canExit: Boolean) {
-        exitTime = if (canExit) -1f else 0f
+    fun exitTime(hasExitTime: Boolean) {
+        exitTime = if (hasExitTime) -1f else 0f
     }
 
     fun build() = Transition(from, to, condition, duration, transitionClip, deltaClip, exitTime)
