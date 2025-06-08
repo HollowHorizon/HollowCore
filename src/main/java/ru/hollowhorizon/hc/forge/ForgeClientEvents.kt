@@ -81,14 +81,14 @@ object ForgeClientEvents {
 
     private fun onRenderOverlayPre(event: RenderGuiOverlayEvent.Pre) {
         val hcEvent =
-            RenderOverlayEvent.Pre(event.window, event.guiGraphics, event.partialTick, GuiOverlay[event.overlay.id])
+            RenderOverlayEvent.Pre(event.window, event.guiGraphics, event.partialTick, GuiOverlay[event.overlay.id] ?: return)
         hcEvent.post()
         if (hcEvent.isCanceled) event.isCanceled = true
     }
 
     private fun onRenderOverlayPost(event: RenderGuiOverlayEvent.Post) {
         val hcEvent =
-            RenderOverlayEvent.Post(event.window, event.guiGraphics, event.partialTick, GuiOverlay[event.overlay.id])
+            RenderOverlayEvent.Post(event.window, event.guiGraphics, event.partialTick, GuiOverlay[event.overlay.id] ?: return)
         hcEvent.post()
     }
 }

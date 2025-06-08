@@ -37,8 +37,8 @@ enum class GuiOverlay(val location: ResourceLocation) {
     PLAYER_LIST("player_list".rl);
 
     companion object {
-        operator fun get(name: ResourceLocation): GuiOverlay {
-            return entries.first { it.location == name } ?: error("$name is not a gui overlay")
+        operator fun get(name: ResourceLocation): GuiOverlay? {
+            return entries.find { it.location == name }
         }
     }
 }
