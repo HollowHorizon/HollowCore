@@ -141,6 +141,8 @@ class AddOnceLayerPacket(
     }
 }
 
+@Serializable
+@HollowPacketHandler(HollowPacketHandler.Direction.TO_CLIENT)
 class StopOnceLayerPacket(
     private val animation: String,
     private val entityId: Int,

@@ -27,7 +27,6 @@ package ru.hollowhorizon.hc.common.utils
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.util.Mth
-import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.ClipContext
@@ -53,10 +52,7 @@ tailrec fun Player.findRandomPos(radius: Int): Vec3 {
         distance * Mth.sin(rotation)
     )
 
-    val angle = Mth.atan2(pos.z - z, pos.x - x) * 180 / Mth.PI
-    val normalized = normalizeAngle(angle - yHeadRot)
-
-    return if (abs(normalized) > 60.0) {
+    return if (!canSee(BlockPos(pos.x.toInt(), pos.y.toInt(), pos.z.toInt()))) {
         val block = level().getHeightmapPos(
             Heightmap.Types.WORLD_SURFACE_WG,
             BlockPos(pos.x.toInt(), pos.y.toInt(), pos.z.toInt())
@@ -65,40 +61,30 @@ tailrec fun Player.findRandomPos(radius: Int): Vec3 {
     } else findRandomPos(radius)
 }
 
-fun normalizeAngle(angle: Double): Double = (angle + 2 * Math.PI) % (2 * Math.PI)
-
-fun isInFrontOfEntity(entity: LivingEntity, target: Entity): Boolean {
-    val vecTargetsPos: Vec3 = target.position()
-
-    var vecFinal = vecTargetsPos.vectorTo(Vec3(entity.x, entity.y, entity.z)).normalize()
-    vecFinal = Vec3(vecFinal.x, 0.0, vecFinal.z)
-    return vecFinal.dot(entity.lookAngle) < 0.0
+infix fun LivingEntity.canSee(other: LivingEntity): Boolean {
+    if (this.viewBlocked(other)) return false
+    return this angleTo other in -60f..60f
 }
 
-fun LivingEntity.isInSight(other: LivingEntity): Boolean {
-    if (viewBlocked(this, other)) return false
-    return isInFrontOfEntity(this, other)
-}
-
+infix fun LivingEntity.canSee(pos: BlockPos) = this angleTo pos in -60f..60f
 
 private const val headSize = 0.15
 
-fun viewBlocked(viewer: LivingEntity, other: LivingEntity): Boolean {
-    val viewerBoundBox = viewer.boundingBox
+fun LivingEntity.viewBlocked(other: LivingEntity): Boolean {
     val otherBoundingBox = other.boundingBox
     val viewerPoints = arrayOf(
-        Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.minZ),
-        Vec3(viewerBoundBox.minX, viewerBoundBox.minY, viewerBoundBox.maxZ),
-        Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.minZ),
-        Vec3(viewerBoundBox.minX, viewerBoundBox.maxY, viewerBoundBox.maxZ),
-        Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.minZ),
-        Vec3(viewerBoundBox.maxX, viewerBoundBox.maxY, viewerBoundBox.maxZ),
-        Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.maxZ),
-        Vec3(viewerBoundBox.maxX, viewerBoundBox.minY, viewerBoundBox.minZ),
+        Vec3(boundingBox.minX, boundingBox.minY, boundingBox.minZ),
+        Vec3(boundingBox.minX, boundingBox.minY, boundingBox.maxZ),
+        Vec3(boundingBox.minX, boundingBox.maxY, boundingBox.minZ),
+        Vec3(boundingBox.minX, boundingBox.maxY, boundingBox.maxZ),
+        Vec3(boundingBox.maxX, boundingBox.maxY, boundingBox.minZ),
+        Vec3(boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ),
+        Vec3(boundingBox.maxX, boundingBox.minY, boundingBox.maxZ),
+        Vec3(boundingBox.maxX, boundingBox.minY, boundingBox.minZ),
     )
 
-    if (viewer is Player) {
-        val pos = Vec3(viewer.getX(), viewer.getY() + 1.62f, viewer.getZ())
+    if (this is Player) {
+        val pos = position()
         viewerPoints[0] = pos.add(-headSize, -headSize, -headSize)
         viewerPoints[1] = pos.add(-headSize, -headSize, headSize)
         viewerPoints[2] = pos.add(-headSize, headSize, -headSize)
@@ -122,16 +108,16 @@ fun viewBlocked(viewer: LivingEntity, other: LivingEntity): Boolean {
     )
 
     for (i in viewerPoints.indices) {
-        if (viewer.level().clip(
+        if (level().clip(
                 ClipContext(
                     viewerPoints[i],
-                    otherPoints[i], ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, viewer
+                    otherPoints[i], ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this
                 )
             ).type == HitResult.Type.MISS
         ) return false
-        if (rayTraceBlocks(viewer, viewer.level(), viewerPoints[i], otherPoints[i]) { pos ->
-                val state = viewer.level().getBlockState(pos)
-                !canSeeThrough(state, viewer.level(), pos)
+        if (rayTraceBlocks(this, this.level(), viewerPoints[i], otherPoints[i]) { pos ->
+                val state = this.level().getBlockState(pos)
+                !canSeeThrough(state, this.level(), pos)
             } == null) return false
     }
 
@@ -251,4 +237,45 @@ fun canSeeThrough(blockState: BlockState, world: Level, pos: BlockPos): Boolean 
     if (block is DoorBlock) return blockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER
 
     return blockState.getCollisionShape(world, pos) == Shapes.empty()
+}
+
+infix fun LivingEntity.bodyAngleTo(target: LivingEntity): Float {
+    val dx = target.x - this.x
+    val dz = target.z - this.z
+    if (dx == 0.0 && dz == 0.0) return 0f
+    val angleToTarget = Mth.atan2(dx, dz).toFloat() * Mth.RAD_TO_DEG
+    var relativeAngle = angleToTarget
+    relativeAngle = Mth.wrapDegrees(-relativeAngle - yBodyRot)
+    return relativeAngle
+}
+
+infix fun LivingEntity.bodyAngleTo(target: BlockPos): Float {
+    val dx = target.x + 0.5 - this.x
+    val dz = target.z + 0.5 - this.z
+    if (dx == 0.0 && dz == 0.0) return 0f
+    val angleToTarget = Mth.atan2(dx, dz).toFloat()
+    var relativeAngle = angleToTarget
+    relativeAngle = Mth.wrapDegrees(-relativeAngle - yBodyRot)
+    return relativeAngle
+}
+
+
+infix fun LivingEntity.angleTo(target: LivingEntity): Float {
+    val dx = target.x - this.x
+    val dz = target.z - this.z
+    if (dx == 0.0 && dz == 0.0) return 0f
+    val angleToTarget = Mth.atan2(dx, dz).toFloat() * Mth.RAD_TO_DEG
+    var relativeAngle = angleToTarget
+    relativeAngle = Mth.wrapDegrees(-relativeAngle - yHeadRot)
+    return relativeAngle
+}
+
+infix fun LivingEntity.angleTo(target: BlockPos): Float {
+    val dx = target.x + 0.5 - this.x
+    val dz = target.z + 0.5 - this.z
+    if (dx == 0.0 && dz == 0.0) return 0f
+    val angleToTarget = Mth.atan2(dx, dz).toFloat()
+    var relativeAngle = angleToTarget
+    relativeAngle = Mth.wrapDegrees(-relativeAngle - yHeadRot)
+    return relativeAngle
 }
