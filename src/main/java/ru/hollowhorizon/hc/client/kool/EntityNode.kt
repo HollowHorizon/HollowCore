@@ -4,6 +4,7 @@ import de.fabmax.kool.input.PointerInput
 import de.fabmax.kool.math.Vec2f
 import de.fabmax.kool.modules.ui2.*
 import net.minecraft.world.entity.LivingEntity
+import org.lwjgl.opengl.GL33
 import ru.hollowhorizon.hc.client.render.render
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -65,7 +66,7 @@ inline fun UiScope.Entity(
 
     val image = uiNode.createChild(scopeName, EntityNode::class, EntityNode.factory)
     image.modifier.drawer = {
-        val mod = image.modifier
+        GL33.glDepthFunc(GL33.GL_LEQUAL)
         entity.render(x, y, width, height, image.modifier)
     }
     image.block()
