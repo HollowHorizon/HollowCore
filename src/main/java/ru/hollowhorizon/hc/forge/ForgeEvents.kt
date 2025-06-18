@@ -1,6 +1,8 @@
 //? if forge {
 /*package ru.hollowhorizon.hc.forge
 
+import net.minecraft.world.InteractionResult
+import net.minecraft.world.InteractionResultHolder
 import net.minecraft.world.entity.player.Player
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.AddReloadListenerEvent
@@ -10,6 +12,8 @@ import net.minecraftforge.event.TickEvent
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent
 import net.minecraftforge.event.entity.item.ItemTossEvent
 import net.minecraftforge.event.entity.living.BabyEntitySpawnEvent
+import net.minecraftforge.event.entity.player.ArrowLooseEvent
+import net.minecraftforge.event.entity.player.ArrowNockEvent
 import net.minecraftforge.event.level.BlockEvent
 import net.minecraftforge.event.server.ServerAboutToStartEvent
 import net.minecraftforge.event.server.ServerStoppingEvent
@@ -20,6 +24,7 @@ import ru.hollowhorizon.hc.common.events.entity.BabySpawnEvent
 import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
 import ru.hollowhorizon.hc.common.events.entity.ItemEntityEvent
 import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
+import ru.hollowhorizon.hc.common.events.item.ArrowEvent
 import ru.hollowhorizon.hc.common.events.item.BuildTabContentsEvent
 import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityAttributesEvent
@@ -43,6 +48,19 @@ object ForgeEvents {
         MinecraftForge.EVENT_BUS.addListener(::onItemEntityToss)
         MinecraftForge.EVENT_BUS.addListener(::onBabySpawn)
         MinecraftForge.EVENT_BUS.addListener(::onBlockPlaced)
+        MinecraftForge.EVENT_BUS.addListener<ArrowNockEvent> {
+            val evt = ArrowEvent.Nock(it.bow, it.level, it.entity, it.hand, it.hasAmmo())
+            evt.post()
+            if(evt.stack != it.bow) {
+                it.action = InteractionResultHolder(InteractionResult.SUCCESS, evt.stack)
+            }
+        }
+        MinecraftForge.EVENT_BUS.addListener<ArrowLooseEvent> {
+            val evt = ArrowEvent.Loose(it.bow, it.level, it.entity, it.charge, it.hasAmmo())
+            evt.post()
+            it.charge = evt.charge
+            it.isCanceled = evt.isCanceled
+        }
     }
 
     private fun onBuildCreativeTab(event: BuildCreativeModeTabContentsEvent) {

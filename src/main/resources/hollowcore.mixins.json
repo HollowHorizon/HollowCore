@@ -29,6 +29,7 @@
     "capabilities.EntityMixin",
     "capabilities.LevelMixin",
     "fabric.BlockItemMixin",
+    "fabric.BowItemMixin",
     "kool.ClipboardMixin",
     "kool.PlatformInputJvmMixin",
     "loot.LootDataManagerMixin",

@@ -28,12 +28,26 @@ import net.minecraft.world.entity.Mob
 import net.minecraft.world.entity.ai.attributes.Attributes
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.events.item.ArrowEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterEntityAttributesEvent
 import ru.hollowhorizon.hc.common.registry.ModEntities
+import ru.hollowhorizon.hc.common.utils.literal
 
 object HollowCoreCommon {
     @SubscribeEvent
     fun onRegisterAttributes(event: RegisterEntityAttributesEvent) {
         event.register(ModEntities.TEST_ENTITY, Mob.createMobAttributes().add(Attributes.MOVEMENT_SPEED, 0.2).build())
     }
+
+    @SubscribeEvent
+    fun onArrowLoose(event: ArrowEvent.Loose) {
+        event.player.sendSystemMessage("Loose".literal)
+    }
+
+    @SubscribeEvent
+    fun onArrowNock(event: ArrowEvent.Nock) {
+        event.player.sendSystemMessage("Nock".literal)
+    }
+
+
 }
