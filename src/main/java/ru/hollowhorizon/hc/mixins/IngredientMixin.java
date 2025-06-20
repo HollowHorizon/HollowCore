@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import ru.hollowhorizon.hc.HollowLoggerKt;
 import ru.hollowhorizon.hc.common.objects.recipe.deep.HollowCoreIngredient;
 import ru.hollowhorizon.hc.common.objects.recipe.ingredient.DefaultHollowIngredient;
 import ru.hollowhorizon.hc.common.utils.ForgeKotlinKt;
@@ -64,7 +65,8 @@ public class IngredientMixin implements HollowCoreIngredient {
         var serializer = HollowRecipeHelper.getSerializer(id);
 
         if (serializer == null) {
-            throw new IllegalArgumentException("Cannot deserialize ingredient of unknown type " + id);
+            HollowLoggerKt.getLOGGER().warn("Cannot deserialize ingredient of unknown type {}", id);
+            return;
         }
 
         cir.setReturnValue(serializer.fromNetwork(buffer).getAsVanilla());
