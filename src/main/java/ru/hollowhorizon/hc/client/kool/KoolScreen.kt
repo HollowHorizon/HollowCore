@@ -1,5 +1,7 @@
 package ru.hollowhorizon.hc.client.kool
 
+import de.fabmax.kool.math.Vec2i
+import de.fabmax.kool.modules.ui2.UiScale
 import de.fabmax.kool.modules.ui2.setupUiScene
 import de.fabmax.kool.pipeline.ClearColorDontCare
 import de.fabmax.kool.pipeline.ClearDepthDontCare
@@ -9,6 +11,7 @@ import de.fabmax.kool.scene.Scene
 import net.minecraft.client.gui.screens.Screen
 import ru.hollowhorizon.hc.api.HudHideable
 import ru.hollowhorizon.hc.common.utils.literal
+import kotlin.math.min
 
 open class KoolScreen : Screen("".literal), HudHideable {
     val scene = Scene(title.string).apply {
@@ -24,6 +27,11 @@ open class KoolScreen : Screen("".literal), HudHideable {
             isLoaded = true
         }
         super.init()
+        uiSize?.let {
+            val w = KoolManager.context.windowWidth / it.x
+            val h = KoolManager.context.windowHeight / it.y
+            UiScale.uiScale.set(min(w, h) / UiScale.windowScale.value)
+        }
     }
 
     open fun Scene.setup() {}
@@ -35,7 +43,10 @@ open class KoolScreen : Screen("".literal), HudHideable {
     override fun removed() {
         KoolManager.context.removeScene(scene)
         scene.release()
+        uiSize?.let { UiScale.uiScale.set(1f) }
     }
+
+    open var uiSize: Vec2i? = null
 }
 
 fun Scene.isScreenScene(): Boolean {
