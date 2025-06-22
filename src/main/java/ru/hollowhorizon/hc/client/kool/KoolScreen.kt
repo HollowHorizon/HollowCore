@@ -34,6 +34,7 @@ open class KoolScreen : Screen("".literal), HudHideable {
 
     override fun removed() {
         KoolManager.context.removeScene(scene)
+        scene.release()
     }
 }
 
