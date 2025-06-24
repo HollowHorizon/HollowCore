@@ -28,8 +28,8 @@ open class KoolScreen : Screen("".literal), HudHideable {
         }
         super.init()
         uiSize?.let {
-            val w = KoolManager.context.windowWidth / it.x
-            val h = KoolManager.context.windowHeight / it.y
+            val w = KoolManager.context.windowWidth / it.x.toFloat()
+            val h = KoolManager.context.windowHeight / it.y.toFloat()
             UiScale.uiScale.set(min(w, h) / UiScale.windowScale.value)
         }
     }
