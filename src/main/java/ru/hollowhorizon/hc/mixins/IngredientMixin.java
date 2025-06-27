@@ -65,7 +65,7 @@ public class IngredientMixin implements HollowCoreIngredient {
         var serializer = HollowRecipeHelper.getSerializer(id);
 
         if (serializer == null) {
-            HollowLoggerKt.getLOGGER().warn("Cannot deserialize ingredient of unknown type {}", id);
+            buffer.readerIndex(ix);
             return;
         }
 
