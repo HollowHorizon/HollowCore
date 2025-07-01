@@ -413,11 +413,14 @@ data class StateMachine(
     @Transient
     internal var isEnded: Boolean = false
 
+    internal var initialState: String? = null
+
     init {
         transitions.forEach { transition ->
             transition.fromRef = states.firstOrNull { it.name == transition.from }
             transition.toRef = states.firstOrNull { it.name == transition.to }
         }
+        currentState = states.firstOrNull { it.name == initialState }
     }
 
     suspend fun init() {
@@ -428,7 +431,7 @@ data class StateMachine(
     fun update(node: Node, query: EntityQuery, time: Float): TrsTransformF? {
         if (currentTransition == null) {
             transitions.firstOrNull {
-                (it.from == currentState?.name || (it.from == "*" && it.to != currentState?.name || it.from == "__null__" && currentState == null)) &&
+                (it.from == currentState?.name || (it.from == "*" && it.to != currentState?.name)) &&
                         it.condition(query) && it.canExit(currentState, query, time)
             }?.let { transition ->
                 transition.fromRef = states.firstOrNull { it.name == transition.from } ?: currentState
@@ -483,11 +486,16 @@ data class StateMachine(
 class StateMachineBuilder {
     private val states = mutableListOf<State>()
     private val transitions = mutableListOf<Transition>()
+    private var initialState: String? = null
 
     fun state(name: String, block: StateBuilder.() -> Unit): State {
         val state = StateBuilder(name).apply(block).build()
         states += state
         return state
+    }
+
+    fun initialState(name: String) {
+        initialState = name
     }
 
     fun transition(from: String, to: String, block: TransitionBuilder.() -> Unit) {
@@ -502,7 +510,7 @@ class StateMachineBuilder {
         }.build()
     }
 
-    fun build() = StateMachine(states, transitions)
+    fun build() = StateMachine(states, transitions).apply { this.initialState = this@StateMachineBuilder.initialState }
 }
 
 class StateBuilder(val name: String) {
@@ -644,6 +652,9 @@ data class BlendNode(val clip: ClipNode, val threshold: Float) {
 @Serializable
 data class ProceduralNode(val functions: HashMap<String, ProceduralTransformer>) {
     @Transient
+    val commands = HashMap<String, MutableList<(AnimatedModel, EntityQuery) -> Unit>>()
+
+    @Transient
     val commandsDeferred = MolangCompilerScope.async {
         functions.forEach { (node, command) ->
             val nodeCommands = commands.computeIfAbsent(node) { ArrayList() }
@@ -673,9 +684,6 @@ data class ProceduralNode(val functions: HashMap<String, ProceduralTransformer>)
             }
         }
     }
-
-    @Transient
-    val commands = HashMap<String, MutableList<(AnimatedModel, EntityQuery) -> Unit>>()
 
     suspend fun init() {
         commandsDeferred.await()
