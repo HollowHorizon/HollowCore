@@ -16,10 +16,7 @@ object AutoController {
             }
             states += "Idle"
 
-            transition("__null__", "Idle") {
-                duration(0.5f)
-                condition("true")
-            }
+            initialState("Idle")
         }
 
         if (has(AnimationType.WALK) || has(AnimationType.RUN)) {

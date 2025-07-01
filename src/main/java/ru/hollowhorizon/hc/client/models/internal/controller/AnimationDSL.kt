@@ -403,6 +403,7 @@ fun TrsTransformF?.mix(other: TrsTransformF?, factor: Float): TrsTransformF? {
 data class StateMachine(
     val states: List<State>,
     val transitions: MutableList<Transition>,
+    private var initialState: String? = null
 ) {
     @Transient
     var currentState: State? = null
@@ -413,7 +414,6 @@ data class StateMachine(
     @Transient
     internal var isEnded: Boolean = false
 
-    internal var initialState: String? = null
 
     init {
         transitions.forEach { transition ->
@@ -510,7 +510,7 @@ class StateMachineBuilder {
         }.build()
     }
 
-    fun build() = StateMachine(states, transitions).apply { this.initialState = this@StateMachineBuilder.initialState }
+    fun build() = StateMachine(states, transitions, initialState)
 }
 
 class StateBuilder(val name: String) {
