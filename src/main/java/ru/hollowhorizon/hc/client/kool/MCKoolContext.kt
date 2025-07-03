@@ -19,7 +19,6 @@ class MCKoolContext : KoolContext() {
         shapesField.isAccessible = true
         val map = shapesField.get(PlatformInputJvm) as MutableMap<CursorShape, Long>
         createStandardCursors(map)
-        PointerInputSetup.setup(Minecraft.getInstance().window.window)
         val xScale = FloatArray(1)
         val yScale = FloatArray(1)
         glfwGetWindowContentScale(Minecraft.getInstance().window.window, xScale, yScale)

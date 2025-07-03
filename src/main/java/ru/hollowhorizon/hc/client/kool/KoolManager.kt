@@ -8,13 +8,17 @@ import de.fabmax.kool.pipeline.*
 import de.fabmax.kool.util.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.decodeFromStream
+import net.minecraft.resources.ResourceLocation
 import org.apache.logging.log4j.LogManager
 
 import org.apache.logging.log4j.Logger
+import ru.hollowhorizon.hc.client.kool.minecraft.ImageManager
 import ru.hollowhorizon.hc.client.kool.minecraft.MCAssetLoader
 import ru.hollowhorizon.hc.common.utils.json.JsonFormat
 import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.client.utils.stream
+import ru.hollowhorizon.hc.common.events.Event
+import ru.hollowhorizon.hc.common.events.post
 
 @OptIn(ExperimentalSerializationApi::class)
 object KoolManager {
@@ -26,7 +30,7 @@ object KoolManager {
         }
         KoolSystem.initialize(KoolConfigJvm(defaultAssetLoader = MCAssetLoader))
 
-
+        KoolInitEvent().post()
     }
 
     val context = MCKoolContext()
@@ -37,5 +41,11 @@ object KoolManager {
                 .getOrDefault(SingleColorTexture.getColorTextureData(Color.BLACK))
         }
         MsdfFontData(msdfMap, fontInfo)
+    }
+}
+
+class KoolInitEvent: Event {
+    fun loadTexture(texture: ResourceLocation) {
+        ImageManager.load(texture.toString())
     }
 }

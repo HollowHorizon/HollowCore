@@ -57,7 +57,9 @@
     "fabric.BossHealthOverlayMixin",
     "fabric.ChatComponentMixin",
     "fabric.DebugScreenOverlayMixin",
-    "fabric.GuiMixin"
+    "fabric.GuiMixin",
+    "kool.KeyboardHandlerMixin",
+    "kool.MouseHandlerMixin"
   ],
   "server": [],
   "injectors": {
