@@ -1,5 +1,8 @@
 package ru.hollowhorizon.hc.common.events
 
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.resume
@@ -53,4 +56,12 @@ suspend inline fun <reified T : Event> awaitEvent(crossinline isValidCondition: 
 
 
     return result
+}
+
+inline fun <reified T : Event> eventFlow(): Flow<T> = callbackFlow {
+    val listener = EventListener<T> {
+        trySend(it)
+    }
+    EventBus.register(listener)
+    awaitClose { EventBus.unregister(listener) }
 }
