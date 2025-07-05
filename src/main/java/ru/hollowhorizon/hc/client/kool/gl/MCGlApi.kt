@@ -187,7 +187,7 @@ object MCGlApi: GlApi {
     override fun bindRenderbuffer(target: Int, renderbuffer: GlRenderbuffer) = glBindRenderbuffer(target, renderbuffer.handle)
     override fun bindTexture(target: Int, texture: GlTexture) = glBindTexture(target, texture.handle)
     override fun bindVertexArray(vao: GlVertexArrayObject) = glBindVertexArray(vao.handle)
-    override fun blendFunc(sFactor: Int, dFactor: Int) = glBlendFunc(sFactor, dFactor)
+    override fun blendFunc(sFactor: Int, dFactor: Int) = RenderSystem.blendFunc(sFactor, dFactor)
     override fun blitFramebuffer(srcX0: Int, srcY0: Int, srcX1: Int, srcY1: Int, dstX0: Int, dstY0: Int, dstX1: Int, dstY1: Int, mask: Int, filter: Int) = glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter)
     override fun bufferData(target: Int, size: Int, usage: Int) = nglBufferData(target, size.toLong(), 0L, usage)
     override fun bufferData(target: Int, buffer: Uint8Buffer, usage: Int) = buffer.useRaw { glBufferData(target, it, usage) }
@@ -220,7 +220,7 @@ object MCGlApi: GlApi {
     override fun deleteShader(shader: GlShader) = glDeleteShader(shader.handle)
     override fun deleteTexture(texture: GlTexture) = glDeleteTextures(texture.handle)
     override fun deleteVertexArray(vao: GlVertexArrayObject) = glDeleteVertexArrays(vao.handle)
-    override fun depthFunc(func: Int) = glDepthFunc(func)
+    override fun depthFunc(func: Int) = RenderSystem.depthFunc(func)
     override fun depthMask(flag: Boolean) = glDepthMask(flag)
     override fun disable(cap: Int) {
         when(cap) {
@@ -351,7 +351,7 @@ object MCGlApi: GlApi {
             maxTexUnits = maxTexUnits,
             maxAnisotropy = maxAnisotropy,
             canFastCopyTextures = canFastCopyTextures,
-            hasClipControl = hasClipControl,
+            hasClipControl = false, // Для совместимости с рендерингом игры (она использует GL_LOWER_LEFT и GL_NEGATIVE_ONE_TO_ONE)
             hasTimestampQuery = true,
             hasComputeShaders = hasComputeShaders,
             maxWorkGroupCount = workGroupCount,

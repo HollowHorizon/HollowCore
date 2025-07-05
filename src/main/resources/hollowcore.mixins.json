@@ -48,7 +48,6 @@
     "client.MultiplayerGameModeMixin",
     "client.ParticleEngineMixin",
     "client.PlayerRendererMixin",
-    "client.RenderSystemMixin",
     "client.ScreenMixin",
     "client.ShaderInstanceAccessor",
     "client.SkullBlockRendererMixin",

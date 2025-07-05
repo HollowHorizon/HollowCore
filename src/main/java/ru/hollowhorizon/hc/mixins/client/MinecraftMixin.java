@@ -39,6 +39,9 @@ import ru.hollowhorizon.hc.client.kool.KoolBuffersKt;
 import ru.hollowhorizon.hc.client.kool.KoolManager;
 import ru.hollowhorizon.hc.common.coroutines.ClientDispatcher;
 import ru.hollowhorizon.hc.common.coroutines.SingleThreadDispatcher;
+import ru.hollowhorizon.hc.common.events.EventBus;
+import ru.hollowhorizon.hc.common.events.client.render.RenderTickEvent;
+import ru.hollowhorizon.hc.common.utils.JavaHacks;
 
 import static kotlinx.coroutines.SupervisorKt.SupervisorJob;
 
@@ -56,8 +59,18 @@ public class MinecraftMixin implements ClientDispatcher {
     }
 
     @Inject(method = "runTick", at = @At("HEAD"))
-    protected void essential$runTasks(CallbackInfo ci) {
+    protected void hollowcore$runTasks(CallbackInfo ci) {
         hollowcore$dispatcher.runTasks();
+    }
+
+    @Inject(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;render(FJZ)V"))
+    protected void hollowcore$renderTick$before(CallbackInfo ci) {
+        EventBus.post(new RenderTickEvent.Pre(JavaHacks.forceCast(this)));
+    }
+
+    @Inject(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;render(FJZ)V", shift = At.Shift.AFTER))
+    protected void hollowcore$renderTick$after(CallbackInfo ci) {
+        EventBus.post(new RenderTickEvent.Post(JavaHacks.forceCast(this)));
     }
 
     @Inject(method = "stop", at = @At("HEAD"))

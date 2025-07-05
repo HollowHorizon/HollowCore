@@ -7,6 +7,7 @@ import de.fabmax.kool.pipeline.backend.GpuTexture;
 import de.fabmax.kool.pipeline.backend.gl.RenderBackendGl;
 import de.fabmax.kool.pipeline.backend.gl.ShaderManager;
 import de.fabmax.kool.util.RenderLoopCoroutineDispatcher;
+import de.fabmax.kool.util.Time;
 
 /**
  * Bypasses internal modificators
@@ -50,5 +51,17 @@ public class KoolHooks {
     }
     public static void setGpuTexture(Texture<?> tex, GpuTexture gpu) {
         tex.setGpuTexture$kool_core(gpu);
+    }
+
+    public static void setDeltaT(float deltaT) {
+        Time.INSTANCE.setDeltaT$kool_core(deltaT);
+    }
+
+    public static void addGameTime(double gameTime) {
+        Time.INSTANCE.setGameTime$kool_core(Time.INSTANCE.getGameTime()+gameTime);
+    }
+
+    public static void incrementFrameCount() {
+        Time.INSTANCE.setFrameCount$kool_core(Time.INSTANCE.getFrameCount() + 1);
     }
 }

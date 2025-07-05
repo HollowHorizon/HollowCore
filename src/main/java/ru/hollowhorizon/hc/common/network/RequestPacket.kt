@@ -6,7 +6,7 @@ import ru.hollowhorizon.hc.common.events.Event
 import ru.hollowhorizon.hc.common.events.awaitEvent
 import ru.hollowhorizon.hc.common.events.post
 
-abstract class RequestPacket<T : RequestPacket<T>> : HollowPacket, Event {
+abstract class RequestPacket : HollowPacket, Event {
     override fun handle(player: Player) {
         if (player.level().isClientSide) handleClient(player)
         else handleServer(player)
@@ -24,7 +24,7 @@ abstract class RequestPacket<T : RequestPacket<T>> : HollowPacket, Event {
     protected abstract fun retrieveValue(player: ServerPlayer)
 }
 
-suspend inline fun <reified T : RequestPacket<T>> T.request(): T {
+suspend inline fun <reified T : RequestPacket> T.request(): T {
     send()
     return awaitEvent<T>()
 }

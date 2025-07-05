@@ -61,13 +61,7 @@ class MCKoolContext : KoolContext() {
     override fun run() {}
 
     fun renderFrame() {
-        KoolHooks.resetShaders(this)
-        KoolHooks.executeCoroutineTasks()
-
-        // setup draw queues for all scenes / render passes
-        render(Minecraft.getInstance().deltaFrameTime.toDouble() / 20f)
-
-        // execute draw queues
+        render(0.0)
         backend.renderFrame(this)
     }
 }

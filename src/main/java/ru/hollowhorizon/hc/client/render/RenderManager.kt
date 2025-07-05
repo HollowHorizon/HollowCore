@@ -29,7 +29,6 @@ import net.minecraft.client.Minecraft
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
 import ru.hollowhorizon.hc.client.gui.DebugOverlay
-import ru.hollowhorizon.hc.client.kool.KoolDrawer
 import ru.hollowhorizon.hc.client.kool.KoolManager
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
