@@ -115,32 +115,6 @@ fun RenderTickEvent.Pre.handle() {
     KoolHooks.executeCoroutineTasks()
 }
 
-val uiScene by lazy {
-    Scene("Overlay").apply {
-        setupUiScene()
-        clearColor = ClearColorDontCare
-        clearDepth = ClearDepthDontCare
-
-        addPanelSurface {
-            modifier.align(AlignmentX.End, AlignmentY.Top)
-                .background(null)
-                .size(Grow.Std, Grow.Std)
-                .layout(CellLayout)
-
-            Text("There is text overlay!") {
-                modifier.textAlign(AlignmentX.End, AlignmentY.Top)
-                    .align(AlignmentX.End, AlignmentY.Top)
-            }
-        }
-    }
-}
-
-@SubscribeEvent
-fun RenderOverlayEvent.Pre.handleOverlay() {
-    if(overlay != GuiOverlay.VIGNETTE) return
-    uiScene.render()
-}
-
 fun Scene.render(recordState: Boolean = true) {
     if (recordState) GlContext.setupState()
 
