@@ -36,6 +36,7 @@ import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.HollowCapability
 import ru.hollowhorizon.hc.common.coroutines.coroutineScope
+import ru.hollowhorizon.hc.common.utils.isPhysicalClient
 import ru.hollowhorizon.hc.common.utils.rl
 
 @HollowCapability(IAnimated::class)
@@ -50,6 +51,7 @@ class AnimatedEntityCapability : CapabilityInstance() {
             head("Head")
         }
     ) { new, old ->
+        if(!isPhysicalClient) return@syncable
         Minecraft.getInstance().coroutineScope.launch {
             var recompile = false
             new.layers.find { it.name == Controller.AUTOMATIC_LAYER }?.let {
