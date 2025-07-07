@@ -35,6 +35,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import ru.hollowhorizon.hc.HollowLoggerKt;
 import ru.hollowhorizon.hc.api.AutoScaled;
 import ru.hollowhorizon.hc.client.utils.HollowCoreLoader;
 import ru.hollowhorizon.hc.common.utils.JavaHacks;
@@ -42,18 +43,20 @@ import ru.hollowhorizon.hc.common.utils.JavaHacks;
 
 @Mixin(Window.class)
 public class WindowMixin {
-    //? if fabric {
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J"), remap = false)
+
+    @Inject(method = "<init>", at = @At(
+            value = "INVOKE",
+            target = "Lorg/lwjgl/glfw/GLFW;glfwWindowHint(II)V",
+            ordinal = 5,
+            unsafe = true), remap = false)
     public void onInit(WindowEventHandler eventHandler, ScreenManager screenManager, DisplayData displayData, String preferredFullscreenVideoMode, String title, CallbackInfo ci) {
         var version = HollowCoreLoader.INSTANCE.getConfig().getOpenGlVersion().split("\\.", 2);
         var major = Integer.parseInt(version[0]);
         var minor = Integer.parseInt(version[1]);
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, major);
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, minor);
+        HollowLoggerKt.getLOGGER().info("Setting OpenGL version to {}.{}", major, minor);
     }
-    //?}
-
-    // На Forge ничего делать не надо, там по умолчанию используется последняя версия OpenGL
 
     @Inject(method = "getGuiScale", at = @At("HEAD"), cancellable = true)
     public void getGuiScale(CallbackInfoReturnable<Double> cir) {
