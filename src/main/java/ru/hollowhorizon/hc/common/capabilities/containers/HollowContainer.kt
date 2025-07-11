@@ -82,7 +82,7 @@ fun onRemove(event: BlockEvent.Break) {
     if (event.level.isClientSide) return
     val state = event.state
     if (state.block !is EntityBlock) return
-    val dispatcher = event.level.getBlockEntity(event.pos) as ICapabilityDispatcher
+    val dispatcher = event.level.getBlockEntity(event.pos) as? ICapabilityDispatcher ?: return
     dispatcher.capabilities.values.forEach {
         it.containers.forEach { container ->
             Containers.dropContents(event.level, event.pos, container)
