@@ -24,23 +24,25 @@ import ru.hollowhorizon.hc.common.events.post
 object KoolManager {
     val LOGGER: Logger = LogManager.getLogger()
 
+    val MONOCRAFT: MsdfFontData
+    val context: MCKoolContext
+
     init {
         Log.printer = LogPrinter { level, tag, message ->
             LOGGER.info("[$level] $tag: $message")
         }
         KoolSystem.initialize(KoolConfigJvm(defaultAssetLoader = MCAssetLoader))
 
-        KoolInitEvent().post()
-    }
+        context = MCKoolContext()
 
-    val context = MCKoolContext()
-    val MONOCRAFT by lazy {
         val fontInfo = JsonFormat.decodeFromStream<MsdfMeta>("hollowcore:fonts/monocraft.json".rl.stream)
         val msdfMap = Texture2d(TexFormat.RGBA, MipMapping.Off, SamplerSettings(), "MsdfFont:${fontInfo.name}") {
             Assets.loadImage2d("fonts/monocraft.png")
                 .getOrDefault(SingleColorTexture.getColorTextureData(Color.BLACK))
         }
-        MsdfFontData(msdfMap, fontInfo)
+        MONOCRAFT = MsdfFontData(msdfMap, fontInfo)
+
+        KoolInitEvent().post()
     }
 }
 

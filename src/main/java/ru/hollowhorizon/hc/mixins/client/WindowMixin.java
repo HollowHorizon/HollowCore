@@ -24,16 +24,13 @@
 
 package ru.hollowhorizon.hc.mixins.client;
 
-import com.mojang.blaze3d.platform.DisplayData;
-import com.mojang.blaze3d.platform.ScreenManager;
 import com.mojang.blaze3d.platform.Window;
-import com.mojang.blaze3d.platform.WindowEventHandler;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.HollowLoggerKt;
 import ru.hollowhorizon.hc.api.AutoScaled;
@@ -44,18 +41,31 @@ import ru.hollowhorizon.hc.common.utils.JavaHacks;
 @Mixin(Window.class)
 public class WindowMixin {
 
-    @Inject(method = "<init>", at = @At(
-            value = "INVOKE",
-            target = "Lorg/lwjgl/glfw/GLFW;glfwWindowHint(II)V",
-            ordinal = 5,
-            unsafe = true), remap = false)
-    public void onInit(WindowEventHandler eventHandler, ScreenManager screenManager, DisplayData displayData, String preferredFullscreenVideoMode, String title, CallbackInfo ci) {
-        var version = HollowCoreLoader.INSTANCE.getConfig().getOpenGlVersion().split("\\.", 2);
-        var major = Integer.parseInt(version[0]);
-        var minor = Integer.parseInt(version[1]);
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, major);
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, minor);
-        HollowLoggerKt.getLOGGER().info("Setting OpenGL version to {}.{}", major, minor);
+    @Redirect(
+            method = "<init>",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lorg/lwjgl/glfw/GLFW;glfwWindowHint(II)V"
+            ),
+            remap = false
+    )
+    private void redirectGlfwWindowHint(int target, int value) {
+        if (target == GLFW.GLFW_CONTEXT_VERSION_MAJOR || target == GLFW.GLFW_CONTEXT_VERSION_MINOR) {
+            var version = HollowCoreLoader.INSTANCE.getConfig().getOpenGlVersion().split("\\.", 2);
+            int major = Integer.parseInt(version[0]);
+            int minor = Integer.parseInt(version[1]);
+
+            var type = "unknown";
+            if (target == GLFW.GLFW_CONTEXT_VERSION_MAJOR) {
+                value = major;
+                type = "major";
+            } else if (target == GLFW.GLFW_CONTEXT_VERSION_MINOR) {
+                value = minor;
+                type = "minor";
+            }
+            HollowLoggerKt.getLOGGER().info("Setting OpenGL {} version to {}", type, value);
+        }
+        GLFW.glfwWindowHint(target, value);
     }
 
     @Inject(method = "getGuiScale", at = @At("HEAD"), cancellable = true)

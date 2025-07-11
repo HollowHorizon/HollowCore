@@ -77,7 +77,7 @@ fun DependencyHandlerScope.setupLoader(loom: LoomGradleExtensionAPI, loader: Str
             when (version) {
                 "1.21" -> "forge"("net.minecraftforge:forge:$version-51.0.8")
                 "1.20.1" -> {
-                    "forge"("net.minecraftforge:forge:$version-47.3.6")
+                    "forge"("net.minecraftforge:forge:$version-47.4.3")
                     "compileOnly"("mods:oculus-mc1.20.1:1.7.0")
                     "compileOnly"("mods:embeddium:0.3.31+mc1.20.1")
                 }
