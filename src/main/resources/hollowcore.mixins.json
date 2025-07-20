@@ -37,9 +37,11 @@
     "tags.TagLoaderMixin"
   ],
   "client": [
+    "client.CameraInvoker",
     "client.ClientLevelMixin",
     "client.DebugMainMixin",
     "client.EntityRenderDispatcherMixin",
+    "client.GameRendererMixin",
     "client.GuiMixin",
     "client.ItemRendererMixin",
     "client.LayerDefinitionsMixin",

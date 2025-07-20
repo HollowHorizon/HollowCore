@@ -31,6 +31,7 @@ object ForgeClientEvents {
         MinecraftForge.EVENT_BUS.addListener(ForgeClientEvents::onRenderTooltips)
         MinecraftForge.EVENT_BUS.addListener(ForgeClientEvents::onRenderOverlayPre)
         MinecraftForge.EVENT_BUS.addListener(ForgeClientEvents::onRenderOverlayPost)
+        MinecraftForge.EVENT_BUS.addListener(ForgeClientEvents::onCameraSetup)
     }
 
     private fun onEntityRenderers(event: EntityRenderersEvent.RegisterRenderers) {
@@ -90,6 +91,14 @@ object ForgeClientEvents {
         val hcEvent =
             RenderOverlayEvent.Post(event.window, event.guiGraphics, event.partialTick, GuiOverlay[event.overlay.id] ?: return)
         hcEvent.post()
+    }
+
+    private fun onCameraSetup(event: net.minecraftforge.client.event.ViewportEvent.ComputeCameraAngles) {
+        val hcEvent = ru.hollowhorizon.hc.common.events.client.CameraSetupEvent(event.renderer, event.camera, event.partialTick.toFloat(), event.yaw, event.pitch, event.roll)
+        hcEvent.post()
+        event.yaw = hcEvent.yaw
+        event.pitch = hcEvent.pitch
+        event.roll = hcEvent.roll
     }
 }
 *///?}
