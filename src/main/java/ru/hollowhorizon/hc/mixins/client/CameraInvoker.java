@@ -7,8 +7,8 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(Camera.class)
 public interface CameraInvoker {
     @Invoker("setRotation")
-    void rotate(float yaw, float pitch); // Method to rotate the camera by specified yaw and pitch angles
+    void hollowcore$rotate(float yaw, float pitch); // Method to rotate the camera by specified yaw and pitch angles
 
     @Invoker("setPosition")
-    void position(double x, double y, double z); // Method to set the camera position in the world
+    void hollowcore$setPosition(double x, double y, double z); // Method to set the camera position in the world
 }

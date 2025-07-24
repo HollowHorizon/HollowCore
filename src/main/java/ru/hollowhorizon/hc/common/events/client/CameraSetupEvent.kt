@@ -18,5 +18,5 @@ class CameraSetupEvent(
 var Camera.pos: Vec3
     get() = this.position
     set(value) {
-        (this as CameraInvoker).setPosition(value.x, value.y, value.z)
+        (this as CameraInvoker).`hollowcore$setPosition`(value.x, value.y, value.z)
     }

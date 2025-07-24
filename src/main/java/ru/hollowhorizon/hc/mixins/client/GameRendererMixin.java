@@ -21,7 +21,7 @@ public abstract class GameRendererMixin {
         var event = new CameraSetupEvent((GameRenderer) (Object) this, camera, partialTicks, camera.getYRot(), camera.getXRot(), 0);
         EventBus.post(event);
 
-        ((CameraInvoker) camera).rotate(event.getYaw(), event.getPitch());
+        ((CameraInvoker) camera).hollowcore$rotate(event.getYaw(), event.getPitch());
 
         poseStack.mulPose(Axis.ZP.rotationDegrees(event.getRoll()));
     }
