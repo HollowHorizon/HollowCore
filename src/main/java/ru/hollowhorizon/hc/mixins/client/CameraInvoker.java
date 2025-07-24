@@ -10,5 +10,5 @@ public interface CameraInvoker {
     void rotate(float yaw, float pitch); // Method to rotate the camera by specified yaw and pitch angles
 
     @Invoker("setPosition")
-    void setPosition(double x, double y, double z); // Method to set the camera position in the world
+    void position(double x, double y, double z); // Method to set the camera position in the world
 }
