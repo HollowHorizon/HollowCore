@@ -2,7 +2,9 @@ package ru.hollowhorizon.hc.common.events.client
 
 import net.minecraft.client.Camera
 import net.minecraft.client.renderer.GameRenderer
+import net.minecraft.world.phys.Vec3
 import ru.hollowhorizon.hc.common.events.Event
+import ru.hollowhorizon.hc.mixins.client.CameraInvoker
 
 class CameraSetupEvent(
     val gameRenderer: GameRenderer,
@@ -12,3 +14,9 @@ class CameraSetupEvent(
     var pitch: Float,
     var roll: Float
 ) : Event
+
+var Camera.pos: Vec3
+    get() = this.position
+    set(value) {
+        (this as CameraInvoker).setPosition(value.x, value.y, value.z)
+    }

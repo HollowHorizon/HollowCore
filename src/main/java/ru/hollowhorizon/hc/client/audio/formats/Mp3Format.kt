@@ -14,7 +14,7 @@ object Mp3Format {
     const val UNSUPPORTED_LAYER: Int = DECODER_ERROR + 1
     const val ILLEGAL_SUBBAND_ALLOCATION: Int = DECODER_ERROR + 2
 
-    private class Decode {
+    class Decode {
         lateinit var output: OutputBuffer
         private lateinit var filter1: SynthesisFilter
         private lateinit var filter2: SynthesisFilter
@@ -75,7 +75,6 @@ object Mp3Format {
     }
 
     fun read(stream: InputStream): Wave {
-
         val bitstream = Bitstream(stream)
         var header: Header? = bitstream.readFrame()
             ?: throw IllegalStateException("Empty mp3 file!")

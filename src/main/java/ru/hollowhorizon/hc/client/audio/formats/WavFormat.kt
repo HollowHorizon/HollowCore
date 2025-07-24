@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream
 import java.io.EOFException
 import java.io.InputStream
 
+// TODO: read(size: Int) not working properly
 object WavFormat : BinaryReader() {
     @Throws(Exception::class)
     fun read(stream: InputStream): Wave {
