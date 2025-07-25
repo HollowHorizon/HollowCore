@@ -89,13 +89,13 @@ class AnimatedModel(val model: Model) {
             scene.nodes.forEach { node -> node.renderDecorations(stack, visuals, modelData, source, light) }
         }
 
-        transformSkinning()
-
         val activeTexture = GlStateManager._getActiveTexture()
 
         //Получение текущих VAO и IBO
         val currentVAO = GL33.glGetInteger(GL33.GL_VERTEX_ARRAY_BINDING)
         val currentElementArrayBuffer = GL33.glGetInteger(GL33.GL_ELEMENT_ARRAY_BUFFER_BINDING)
+
+        transformSkinning()
 
         GL33.glVertexAttrib4f(1, 1.0F, 1.0F, 1.0F, 1.0F) // Цвет
         GL33.glVertexAttribI2i(

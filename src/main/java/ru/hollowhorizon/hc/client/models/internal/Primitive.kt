@@ -451,7 +451,6 @@ class Primitive(
     }
 
     fun transformSkinning(node: Node) {
-        val texBind = GL33.glGetInteger(GL33.GL_ACTIVE_TEXTURE)
 
         GL13.glActiveTexture(GL13.GL_TEXTURE0)
         GL33.glBindBuffer(GL33.GL_TEXTURE_BUFFER, jointMatrixBuffer)
@@ -475,9 +474,7 @@ class Primitive(
         GL33.glDisableVertexAttribArray(2)
         GL33.glDisableVertexAttribArray(3)
 
-        GL30.glBindVertexArray(0)
         GL30.glEndTransformFeedback()
-        GL13.glActiveTexture(texBind)
     }
 
     private fun computeMatrices(node: Node): FloatBuffer {
