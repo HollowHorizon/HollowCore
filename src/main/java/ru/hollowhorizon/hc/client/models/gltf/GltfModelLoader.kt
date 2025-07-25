@@ -33,11 +33,21 @@ import kotlinx.coroutines.coroutineScope
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore.MODID
 import ru.hollowhorizon.hc.client.models.internal.*
+import ru.hollowhorizon.hc.client.models.internal.manager.ModelLoader
 import ru.hollowhorizon.hc.client.utils.exists
 import ru.hollowhorizon.hc.common.utils.rl
 
 
-object GltfModelLoader {
+object GltfModelLoader: ModelLoader {
+    override val supportedFormats = setOf("gltf", "glb")
+
+    override suspend fun load(model: ResourceLocation): Model {
+        val location = if (!model.exists()) "$MODID:models/error.gltf".rl else model
+
+        val gltf = loadGltf(location)
+        return load(gltf.getOrThrow(), location)
+    }
+
     suspend fun load(file: GltfFile, location: ResourceLocation): Model {
         val skins = parseSkins(file)
         val materials = file.materials.map { material ->
@@ -62,13 +72,6 @@ object GltfModelLoader {
                 }
             }
         }
-    }
-
-    suspend fun parse(resource: ResourceLocation): Model {
-        val location = if (!resource.exists()) "$MODID:models/error.gltf".rl else resource
-
-        val gltf = loadGltf(location)
-        return load(gltf.getOrThrow(), location)
     }
 
 
@@ -103,10 +106,18 @@ object GltfModelLoader {
                 val children = node.children.map { parseNode(file, it, file.nodes[it], skins, materials) }
                 val mesh = node.meshRef?.let { mesh ->
                     val primitives = mesh.primitives.map { prim ->
+                        val attributes = prim.attributes.map { it.key to file.accessors[it.value] }.toMap()
+                        val positions = attributes[GltfMesh.Primitive.ATTRIBUTE_POSITION]?.let { Vec3fAccessor(it) }?.list
+                        val normals = attributes[GltfMesh.Primitive.ATTRIBUTE_NORMAL]?.let { Vec3fAccessor(it) }?.list
+                        val texCoord0 = attributes[GltfMesh.Primitive.ATTRIBUTE_TEXCOORD_0]?.let { Vec2fAccessor(it) }?.list
+                        val texCoord1 = attributes[GltfMesh.Primitive.ATTRIBUTE_TEXCOORD_1]?.let { Vec2fAccessor(it) }?.list
+                        val tangents = attributes[GltfMesh.Primitive.ATTRIBUTE_TANGENT]?.let { Vec4fAccessor(it) }?.list
+                        val joints = attributes[GltfMesh.Primitive.ATTRIBUTE_JOINTS_0]?.let { Vec4iAccessor(it) }?.list
+                        val weights = attributes[GltfMesh.Primitive.ATTRIBUTE_WEIGHTS_0]?.let { Vec4fAccessor(it) }?.list
+
                         Primitive(
-                            prim.attributes.map { it.key to file.accessors[it.value] }.toMap(),
+                            positions, normals, texCoord0, texCoord1, tangents, joints, weights,
                             if (prim.indices != -1) file.accessors[prim.indices] else null,
-                            prim.mode,
                             if (prim.material != -1) materials[prim.material] else Material(),
                             prim.targets.map { map ->
                                 map.map { entry ->

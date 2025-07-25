@@ -26,9 +26,16 @@ package ru.hollowhorizon.hc.client
 
 import com.mojang.blaze3d.systems.RenderSystem
 import de.fabmax.kool.math.Vec2f
+import de.fabmax.kool.modules.ksl.KslShader
+import de.fabmax.kool.modules.ksl.lang.KslProgram
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.modules.ui2.docking.UiDockable
+import de.fabmax.kool.pipeline.FullscreenShaderUtil.fullscreenQuadVertexStage
+import de.fabmax.kool.pipeline.FullscreenShaderUtil.generateFullscreenQuad
+import de.fabmax.kool.pipeline.shading.BlurShader
+import de.fabmax.kool.pipeline.shading.BlurShaderConfig
 import de.fabmax.kool.scene.Scene
+import de.fabmax.kool.scene.addTextureMesh
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
 import net.minecraft.world.item.Items
@@ -82,12 +89,27 @@ object HollowCoreClient {
         if (HollowCore.config.debugMode) event.registerKeyMapping(KEY_V)
     }
 
+    val img by lazy {
+        createFramebufferTexture(Minecraft.getInstance().mainRenderTarget)
+    }
+
     @SubscribeEvent
     fun onClientTick(event: TickEvent.Client) {
         if(HollowCore.config.debugMode && KEY_V.isDown) {
             object: KoolScreen() {
                 override fun Scene.setup() {
                     setupUiScene()
+
+                    addTextureMesh {
+                        generateFullscreenQuad()
+
+                        shader = BlurShader(BlurShaderConfig()).apply {
+                            blurInput = img
+                            direction = Vec2f(0.002f, 0.002f)
+                            strength = 1f
+                        }
+
+                    }
 
                     val window = UiDockable("Example")
                     val w2 = UiDockable("W2")

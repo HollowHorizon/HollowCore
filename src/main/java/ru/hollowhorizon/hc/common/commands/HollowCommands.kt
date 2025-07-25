@@ -119,8 +119,9 @@ object HollowCommands {
                             player.sendSystemMessage(it.literal)
                         }
                         player.sendSystemMessage("Textures:".literal)
-                        model.model.walkNodes().mapNotNull { it.mesh?.primitives?.map { it.material.texture } }
-                            .flatten().distinct().forEach {
+
+                        model.model.materials.map { it.texture }
+                            .forEach {
                                 player.sendSystemMessage(it.toString().literal)
                             }
                     }

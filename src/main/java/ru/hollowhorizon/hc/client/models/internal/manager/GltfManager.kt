@@ -41,8 +41,12 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.gltf.GltfModelLoader
 import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
 import ru.hollowhorizon.hc.client.models.internal.Model
+import ru.hollowhorizon.hc.client.models.obj.ObjModelLoader
 import ru.hollowhorizon.hc.client.textures.GlTexture
 import ru.hollowhorizon.hc.client.utils.resource
+import ru.hollowhorizon.hc.common.events.Event
+import ru.hollowhorizon.hc.common.events.SubscribeEvent
+import ru.hollowhorizon.hc.common.events.post
 import ru.hollowhorizon.hc.common.utils.rl
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -51,14 +55,20 @@ import kotlin.time.measureTime
 
 object GltfManager : ResourceManagerReloadListener {
     lateinit var lightTexture: AbstractTexture
-    var lightTextureId: Int = 0
-    var blockAtlasId: Int = 0
     private val models = HashMap<ResourceLocation, AnimatedModel>()
     var glProgramSkinning = -1
 
-    fun getOrCreate(location: ResourceLocation) = models.computeIfAbsent(location) { model ->
-        AnimatedModel(runBlocking { GltfModelLoader.parse(model) }.apply(Model::initGl))
+    private val loaders = mutableListOf<ModelLoader>().apply {
+        RegisterModelLoaderEvent(this).post()
     }
+
+    fun getOrCreate(location: ResourceLocation) = models.computeIfAbsent(location) { model ->
+        AnimatedModel(runBlocking { loadModel(model) }.apply(Model::initGl))
+    }
+
+    suspend fun loadModel(location: ResourceLocation): Model =
+        loaders.find { location.path.substringAfter('.') in it.supportedFormats }?.load(location)
+            ?: error("No suitable model loader found for ${location.path}")
 
     private fun createSkinningProgramGL33() {
         val glShader = GL20.glCreateShader(GL20.GL_VERTEX_SHADER)
@@ -69,9 +79,7 @@ object GltfManager : ResourceManagerReloadListener {
         GL20.glAttachShader(glProgramSkinning, glShader)
         GL20.glDeleteShader(glShader)
         GL30.glTransformFeedbackVaryings(
-            glProgramSkinning,
-            arrayOf<CharSequence>("outPosition", "outNormal"),
-            GL30.GL_SEPARATE_ATTRIBS
+            glProgramSkinning, arrayOf<CharSequence>("outPosition", "outNormal"), GL30.GL_SEPARATE_ATTRIBS
         )
         GL20.glLinkProgram(glProgramSkinning)
     }
@@ -82,14 +90,13 @@ object GltfManager : ResourceManagerReloadListener {
 
         runBlocking {
             val time = measureTime {
+                val supportedFormats = loaders.flatMap { it.supportedFormats }.toSet()
                 val loaded =
-                    manager.listResources("models") { it.path.endsWith(".gltf") or it.path.endsWith(".glb") }.keys
-                        .map { location ->
+                    manager.listResources("models") { it.path.substringAfterLast('.') in supportedFormats }.keys.map { location ->
                             async {
-                                location to AnimatedModel(GltfModelLoader.parse(location))
+                                location to AnimatedModel(loadModel(location))
                             }
-                        }.awaitAll()
-                        .toMap()
+                        }.awaitAll().toMap()
 
                 models.putAll(loaded)
             }
@@ -105,8 +112,6 @@ object GltfManager : ResourceManagerReloadListener {
         val textureManager = Minecraft.getInstance().textureManager
 
         lightTexture = textureManager.getTexture("dynamic/light_map_1".rl)
-        lightTextureId = lightTexture.id
-        blockAtlasId = Minecraft.getInstance().modelManager.getAtlas(TextureAtlas.LOCATION_BLOCKS).id
 
         val currentTexture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D)
 
@@ -140,6 +145,33 @@ object GltfManager : ResourceManagerReloadListener {
     }
 
     val allModels get() = models.keys
+
+}
+
+interface ModelLoader {
+    val supportedFormats: Set<String>
+
+    suspend fun load(location: ResourceLocation): Model
+}
+
+class RegisterModelLoaderEvent(private val loaders: MutableList<ModelLoader>) : Event {
+    fun register(loader: ModelLoader) {
+        loaders.add(loader)
+    }
+
+    fun unregister(loader: ModelLoader) = loaders.removeIf { it == loader }
+
+    fun clear() {
+        loaders.clear()
+    }
+
+    fun getLoaders(): List<ModelLoader> = loaders.toList()
+}
+
+@SubscribeEvent
+fun registerModelLoaders(event: RegisterModelLoaderEvent) {
+    event.register(GltfModelLoader)
+    event.register(ObjModelLoader)
 }
 
 fun create(data: ByteArray) = create(data, 0, data.size)

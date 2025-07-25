@@ -33,6 +33,8 @@ import de.fabmax.kool.pipeline.Texture2d
 import de.fabmax.kool.pipeline.backend.gl.GlTexture
 import de.fabmax.kool.pipeline.backend.gl.LoadedTextureGl
 import net.minecraft.client.Minecraft
+import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.HollowCoreClient
 import ru.hollowhorizon.hc.client.kool.gl.MCGlApi
 
 internal val guiFramebuffer = TextureTarget(512, 512, true, Minecraft.ON_OSX)
@@ -58,6 +60,10 @@ fun createFramebufferTexture(texture: RenderTarget) = Texture2d(
 
 fun onResize(width: Int, height: Int) {
     (WINDOW_BUFFER.gpuTexture as? LoadedTextureGl)?.apply {
+        this.width = width
+        this.height = height
+    }
+    (HollowCoreClient.img.gpuTexture as? LoadedTextureGl)?.apply {
         this.width = width
         this.height = height
     }

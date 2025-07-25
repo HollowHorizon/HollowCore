@@ -2,9 +2,7 @@ package ru.hollowhorizon.hc.client.models.internal
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
-import de.fabmax.kool.math.MutableMat4f
-import de.fabmax.kool.math.Vec3f
-import de.fabmax.kool.math.Vec4f
+import de.fabmax.kool.math.*
 import net.minecraft.client.renderer.ShaderInstance
 import net.minecraft.resources.ResourceLocation
 import org.joml.Matrix3f
@@ -20,19 +18,23 @@ import ru.hollowhorizon.hc.client.utils.toTexture
 import java.nio.FloatBuffer
 
 class Primitive(
-    val attributes: Map<String, GltfAccessor>,
-    val indices: GltfAccessor? = null,
-    val mode: Int,
-    val material: Material,
-    private val morphTargets: List<Map<String, FloatArray>>,
-    private var weights: FloatArray,
+    private var positions: Array<Vec3f>? = null,
+    private var normals: Array<Vec3f>? = null,
+    private var texCoords: Array<Vec2f>? = null,
+    private var midCoords: Array<Vec2f>? = null,
+    private var tangents: Array<Vec4f>? = null,
+    private var joints: Array<Vec4i>? = null,
+    private var jointWeights: Array<Vec4f>? = null,
+    private val indices: GltfAccessor? = null,
+    private val material: Material,
+    private val morphTargets: List<Map<String, FloatArray>> = listOf(),
+    private var weights: FloatArray = floatArrayOf(),
 ) {
-    val hasSkinning = attributes[GltfMesh.Primitive.ATTRIBUTE_JOINTS_0] != null
-            && attributes[GltfMesh.Primitive.ATTRIBUTE_WEIGHTS_0] != null
+    val hasSkinning = joints != null && jointWeights != null
     private val indexCount = indices?.count ?: 0
-    private val positionsCount = (attributes[GltfMesh.Primitive.ATTRIBUTE_POSITION]?.count ?: 0) * 3
+    private val positionsCount = (positions?.size ?: 0) * 3
     var jointCount = 0
-    val morphCommands = ArrayList<(FloatArray) -> Unit>()
+    private val morphCommands = ArrayList<(FloatArray) -> Unit>()
 
     private var vao = -1
     private var skinningVao = -1
@@ -67,20 +69,17 @@ class Primitive(
         GL33.glBindVertexArray(currentVAO)
         GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, currentArrayBuffer)
         GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer)
+
+        releaseCpu()
     }
 
     private fun initBuffers() {
-        val positions = attributes[GltfMesh.Primitive.ATTRIBUTE_POSITION]?.let { Vec3fAccessor(it) }?.list
-        val normals = attributes[GltfMesh.Primitive.ATTRIBUTE_NORMAL]?.let { Vec3fAccessor(it) }?.list
-        val texCoord0 = attributes[GltfMesh.Primitive.ATTRIBUTE_TEXCOORD_0]?.let { Vec2fAccessor(it) }?.list
-        val texCoord1 = attributes[GltfMesh.Primitive.ATTRIBUTE_TEXCOORD_1]?.let { Vec2fAccessor(it) }?.list
-        val tangents = attributes[GltfMesh.Primitive.ATTRIBUTE_TANGENT]?.let { Vec4fAccessor(it) }?.list
 
         vao = GL33.glGenVertexArrays()
         GL33.glBindVertexArray(vao)
 
         if (skinningVao == -1) {
-            if (positions != null) {
+            positions?.let { positions ->
                 val buffer = BufferUtils.createFloatBuffer(positions.size * 3)
 
                 positions.forEach { buffer.put(it.x).put(it.y).put(it.z) }
@@ -107,7 +106,7 @@ class Primitive(
                 GL33.glVertexAttribPointer(0, 3, GL33.GL_FLOAT, false, 0, 0)
 
             }
-            if (normals != null) {
+            normals?.let { normals ->
                 val buffer = BufferUtils.createFloatBuffer(normals.size * 3)
                 for (n in normals) buffer.put(n.x).put(n.y).put(n.z)
                 buffer.flip()
@@ -131,7 +130,7 @@ class Primitive(
                 GL33.glBufferData(GL33.GL_ARRAY_BUFFER, buffer, GL33.GL_STATIC_DRAW)
                 GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
 
-                if (GltfMesh.Primitive.ATTRIBUTE_TANGENT !in attributes && positions != null) {
+                if (tangents == null) positions?.let { positions ->
                     val tangents = BufferUtils.createFloatBuffer(normals.size * 4)
 
                     MikktspaceTangentGenerator.genTangSpaceDefault(object : MikkTSpaceContext {
@@ -159,8 +158,8 @@ class Primitive(
 
                         override fun getTexCoord(texOut: FloatArray, face: Int, vert: Int) {
                             val index = (face * 3) + vert
-                            texOut[0] = texCoord0?.get(index)?.x ?: 0f
-                            texOut[1] = texCoord0?.get(index)?.y ?: 0f
+                            texOut[0] = texCoords?.get(index)?.x ?: 0f
+                            texOut[1] = texCoords?.get(index)?.y ?: 0f
                         }
 
                         override fun setTSpaceBasic(tangent: FloatArray, sign: Float, face: Int, vert: Int) {
@@ -191,7 +190,7 @@ class Primitive(
                 }
             }
 
-            if (tangents != null) {
+            tangents?.let { tangents ->
                 val buffer = BufferUtils.createFloatBuffer(tangents.size * 4)
                 for (t in tangents) {
                     buffer.put(t.x).put(t.y).put(t.z).put(1f)
@@ -225,23 +224,23 @@ class Primitive(
             GL33.glVertexAttribPointer(5, 3, GL33.GL_FLOAT, false, 0, 0)
         }
 
-        if (texCoord0 != null) {
-            val buffer = BufferUtils.createFloatBuffer(texCoord0.size * 2)
-            for (t in texCoord0) buffer.put(t.x).put(t.y)
+        texCoords?.let { texCoords ->
+            val buffer = BufferUtils.createFloatBuffer(texCoords.size * 2)
+            for (t in texCoords) buffer.put(t.x).put(t.y)
             buffer.flip()
 
             texCoordsBuffer = GL33.glGenBuffers()
             GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, texCoordsBuffer)
             GL33.glBufferData(GL33.GL_ARRAY_BUFFER, buffer, GL33.GL_STATIC_DRAW)
             GL33.glVertexAttribPointer(2, 2, GL33.GL_FLOAT, false, 0, 0)
-            if (texCoord1 == null) {
+            if (midCoords == null) {
                 GL33.glVertexAttribPointer(8, 2, GL33.GL_FLOAT, false, 0, 0)
             }
         }
 
-        if (texCoord1 != null) {
-            val buffer = BufferUtils.createFloatBuffer(texCoord1.size * 2)
-            for (t in texCoord1) buffer.put(t.x).put(t.y)
+        midCoords?.let { midCoords ->
+            val buffer = BufferUtils.createFloatBuffer(midCoords.size * 2)
+            for (t in midCoords) buffer.put(t.x).put(t.y)
             buffer.flip()
 
             midCoordsBuffer = GL33.glGenBuffers()
@@ -265,37 +264,35 @@ class Primitive(
     }
 
     private fun initTransformFeedback() {
-        val weights = attributes[GltfMesh.Primitive.ATTRIBUTE_WEIGHTS_0]?.let { Vec4fAccessor(it) }?.list ?: return
-        val joints = attributes[GltfMesh.Primitive.ATTRIBUTE_JOINTS_0]?.let { Vec4iAccessor(it) }?.list ?: return
-        val positions = attributes[GltfMesh.Primitive.ATTRIBUTE_POSITION]?.let { Vec3fAccessor(it) }?.list
-        val normals = attributes[GltfMesh.Primitive.ATTRIBUTE_NORMAL]?.let { Vec3fAccessor(it) }?.list
-
         skinningVao = GL30.glGenVertexArrays()
         GL30.glBindVertexArray(skinningVao)
 
         var posSize = -1L
         var norSize = -1L
 
+        joints?.let { joints ->
+            val jointBuffer = BufferUtils.createIntBuffer(joints.size * 4)
+            for (n in joints) jointBuffer.put(n.x).put(n.y).put(n.z).put(n.w)
+            jointBuffer.flip()
 
-        val jointBuffer = BufferUtils.createIntBuffer(joints.size * 4)
-        for (n in joints) jointBuffer.put(n.x).put(n.y).put(n.z).put(n.w)
-        jointBuffer.flip()
+            this.jointBuffer = GL33.glGenBuffers()
+            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, this.jointBuffer)
+            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, jointBuffer, GL33.GL_STATIC_DRAW)
+            GL33.glVertexAttribPointer(0, 4, GL33.GL_INT, false, 0, 0)
+        }
 
-        this.jointBuffer = GL33.glGenBuffers()
-        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, this.jointBuffer)
-        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, jointBuffer, GL33.GL_STATIC_DRAW)
-        GL33.glVertexAttribPointer(0, 4, GL33.GL_INT, false, 0, 0)
+        jointWeights?.let { weights ->
+            val weightsBuffer = BufferUtils.createFloatBuffer(weights.size * 4)
+            for (n in weights) weightsBuffer.put(n.x).put(n.y).put(n.z).put(n.w)
+            weightsBuffer.flip()
 
-        val weightsBuffer = BufferUtils.createFloatBuffer(weights.size * 4)
-        for (n in weights) weightsBuffer.put(n.x).put(n.y).put(n.z).put(n.w)
-        weightsBuffer.flip()
+            this.weightsBuffer = GL33.glGenBuffers()
+            GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, this.weightsBuffer)
+            GL33.glBufferData(GL33.GL_ARRAY_BUFFER, weightsBuffer, GL33.GL_STATIC_DRAW)
+            GL33.glVertexAttribPointer(1, 4, GL33.GL_FLOAT, false, 0, 0)
+        }
 
-        this.weightsBuffer = GL33.glGenBuffers()
-        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, this.weightsBuffer)
-        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, weightsBuffer, GL33.GL_STATIC_DRAW)
-        GL33.glVertexAttribPointer(1, 4, GL33.GL_FLOAT, false, 0, 0)
-
-        if (positions != null) {
+        positions?.let { positions ->
             posSize = positions.size * 12L //bytes size
             val buffer = BufferUtils.createFloatBuffer(positions.size * 3)
             for (n in positions) buffer.put(n.x).put(n.y).put(n.z)
@@ -305,9 +302,9 @@ class Primitive(
             GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, skinVertexBuffer)
             GL33.glBufferData(GL33.GL_ARRAY_BUFFER, buffer, GL33.GL_STATIC_DRAW)
             GL33.glVertexAttribPointer(2, 3, GL33.GL_FLOAT, false, 0, 0)
-
         }
-        if (normals != null) {
+
+        normals?.let { normals ->
             norSize = normals.size * 12L //bytes size
             val buffer = BufferUtils.createFloatBuffer(normals.size * 3)
             for (n in normals) buffer.put(n.x).put(n.y).put(n.z)
@@ -338,6 +335,16 @@ class Primitive(
 
         GL15.glBindBuffer(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 0)
         GL15.glBindBuffer(GL31.GL_TEXTURE_BUFFER, 0)
+    }
+
+    private fun releaseCpu() {
+        positions = null
+        normals = null
+        texCoords = null
+        midCoords = null
+        tangents = null
+        joints = null
+        jointWeights = null
     }
 
     fun render(
