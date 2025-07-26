@@ -38,6 +38,7 @@ import org.lwjgl.opengl.GL12
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.models.bedrock.BedrockModelLoader
 import ru.hollowhorizon.hc.client.models.fbx.FbxModelLoader
 import ru.hollowhorizon.hc.client.models.gltf.GltfModelLoader
 import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
@@ -93,7 +94,7 @@ object GltfManager : ResourceManagerReloadListener {
             val time = measureTime {
                 val supportedFormats = loaders.flatMap { it.supportedFormats }.toSet()
                 val loaded =
-                    manager.listResources("models") { it.path.substringAfterLast('.') in supportedFormats }.keys.map { location ->
+                    manager.listResources("models") { it.path.substringAfter('.') in supportedFormats }.keys.map { location ->
                             async {
                                 location to AnimatedModel(loadModel(location))
                             }
@@ -172,8 +173,9 @@ class RegisterModelLoaderEvent(private val loaders: MutableList<ModelLoader>) : 
 @SubscribeEvent
 fun registerModelLoaders(event: RegisterModelLoaderEvent) {
     event.register(GltfModelLoader)
-    event.register(ObjModelLoader)
-    event.register(FbxModelLoader)
+    //event.register(ObjModelLoader)
+    //event.register(FbxModelLoader)
+    //event.register(BedrockModelLoader)
 }
 
 fun create(data: ByteArray) = create(data, 0, data.size)
