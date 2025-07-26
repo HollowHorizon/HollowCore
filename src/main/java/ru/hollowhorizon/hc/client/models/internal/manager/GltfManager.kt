@@ -173,7 +173,7 @@ class RegisterModelLoaderEvent(private val loaders: MutableList<ModelLoader>) : 
 fun registerModelLoaders(event: RegisterModelLoaderEvent) {
     event.register(GltfModelLoader)
     event.register(ObjModelLoader)
-    //event.register(FbxModelLoader)
+    event.register(FbxModelLoader)
 }
 
 fun create(data: ByteArray) = create(data, 0, data.size)

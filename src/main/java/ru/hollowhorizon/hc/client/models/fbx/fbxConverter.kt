@@ -202,9 +202,9 @@ fun convertMesh(mesh: MeshGeometry, model: Model, location: ResourceLocation): P
     return Primitive(
         positions = mesh.vertices.toTypedArray(),
         normals = mesh.normals.toTypedArray(),
-        texCoords = mesh.getTextureCoords(0).map { Vec2f(it.x, it.y) }.toTypedArray(),
+        texCoords = mesh.getTextureCoords(0).map { Vec2f(it.x, 1f-it.y) }.toTypedArray(),
         tangents = mesh.tangents.map { Vec4f(it.x, it.y, it.z, 1f) }.toTypedArray(),
-        indices = mesh.triangles.toIntArray(),
+        indices = mesh.indices.toIntArray(),
         material = model.materials[mesh.materials[0]].convert(
             location,
             mesh.colors.getOrNull(0)?.getOrNull(0) ?: Vec4f(1f, 1f, 1f, 1f)
@@ -226,7 +226,11 @@ fun Material.convert(model: ResourceLocation, color: Vec4f): InternalMaterial {
 
     return InternalMaterial(
         color = Color(color.x, color.y, color.z, color.w),
-        texture = location
+        texture = location,
+        // Судя по всему fbx такие параметры не поддерживает,
+        // так что включим их по умолчанию, хоть это и хуже скажется на производительности
+        blend = InternalMaterial.Blend.BLEND,
+        doubleSided = true
     )
 }
 
@@ -258,7 +262,7 @@ fun getRotationMatrix(mode: Model.RotOrder, rotation: Vec3f): Mat4f {
         isId[2] = false
     }
     if (abs(rotation.y) > angleEpsilon) {
-        temp[2].rotate(rotation.y.deg, Vec3f.Y_AXIS)
+        temp[1].rotate(rotation.y.deg, Vec3f.Y_AXIS)
         isId[1] = false
     }
     if (abs(rotation.x) > angleEpsilon) {
