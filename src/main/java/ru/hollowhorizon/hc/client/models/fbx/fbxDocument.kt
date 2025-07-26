@@ -456,8 +456,14 @@ class Video(id: Long, element: Element, doc: Document, name: String) : Object(id
                         contentLength = len
 
                         content = ByteArray(len, { buffer.get(data + 5 + it) })
+
+                        val modifiedPngSignature = byteArrayOf(-3, 80, 78, 71, 13, 10, 26, 10)
+                        if(content.copyOf(8).contentEquals(modifiedPngSignature)) {
+                            content[0] = -119 // BlockBench, WTF?!
+                        }
                     }
                 }
+
             } catch (runtimeError: Exception) {
                 //we don´t need the content data for contents that has already been loaded
             }

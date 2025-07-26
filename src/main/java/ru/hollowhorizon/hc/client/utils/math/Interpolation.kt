@@ -24,6 +24,7 @@
 
 package ru.hollowhorizon.hc.client.utils.math
 
+import de.fabmax.kool.math.Vec3f
 import net.minecraft.util.Mth
 import kotlin.math.pow
 
@@ -51,7 +52,11 @@ enum class Interpolation(private val function: (Float) -> Float) {
     QUINT_IN_OUT({ if (it < 0.5f) it.pow(5) * 16 else 1 - (-2 * it + 2).pow(5) / 2 }),
     EXPO_IN({ if (it == 0f) 0f else 2f.pow(10 * it - 10) }),
     EXPO_OUT({ if (it == 1f) 1f else 1f - 2f.pow(-10 * it) }),
-    EXPO_IN_OUT({ if (it == 0f) 0f else if (it == 1f) 1f else if (it < 0.5f) 2f.pow(20 * it - 10) / 2 else (2f - 2f.pow(-20 * it + 10)) / 2 }),
+    EXPO_IN_OUT({
+        if (it == 0f) 0f else if (it == 1f) 1f else if (it < 0.5f) 2f.pow(20 * it - 10) / 2 else (2f - 2f.pow(
+            -20 * it + 10
+        )) / 2
+    }),
     CIRC_IN({ 1f - Mth.sqrt(1 - it * it) }),
     CIRC_OUT({ Mth.sqrt(1 - (it - 1).pow(2)) }),
     CIRC_IN_OUT({ if (it < 0.5f) (1 - Mth.sqrt(1 - (2 * it).pow(2))) / 2 else (Mth.sqrt(1 - (-2 * it + 2).pow(2)) + 1) / 2 }),
@@ -70,9 +75,42 @@ enum class Interpolation(private val function: (Float) -> Float) {
     }),
     BOUNCE_IN({ bounceIn(it) }),
     BOUNCE_OUT({ bounceOut(it) }),
-    BOUNCE_IN_OUT({ bounceInOut(it) });
+    BOUNCE_IN_OUT({ bounceInOut(it) }),
+    STEP({ if (it > 0.5) 1f else 0f }),
+    CATMULLROM({ 1f }) // TODO: Надо придумать, как её использовать вместе с остальными, поскольку для неё больше данных нужно
+    ;
 
     operator fun invoke(float: Float) = function(float)
+
+    companion object {
+        fun catmullRom(
+            t: Float,
+            a: Vec3f,
+            b: Vec3f,
+            c: Vec3f,
+            d: Vec3f,
+        ): Vec3f {
+            return Vec3f(
+                catmullRom(t, a.x, b.x, c.x, d.x),
+                catmullRom(t, a.y, b.y, c.y, d.y),
+                catmullRom(t, a.z, b.z, c.z, d.z),
+            )
+        }
+
+        fun catmullRom(
+            t: Float,
+            a: Float,
+            b: Float,
+            c: Float,
+            d: Float,
+        ): Float {
+            val v0 = -0.5f * a + 1.5f * b - 1.5f * c + 0.5f * d
+            val v1 = a - 2.5f * b + 2 * c - 0.5f * d
+            val v2 = -0.5f * a + 0.5f * c
+            val tt = t * t
+            return v0 * t * tt + v1 * tt + v2 * t + b
+        }
+    }
 }
 
 private fun bounceIn(x: Float): Float {

@@ -24,6 +24,7 @@
 
 package ru.hollowhorizon.hc.common.utils.nbt
 
+import de.fabmax.kool.math.Vec3f
 import io.netty.buffer.Unpooled
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ByteArraySerializer
@@ -540,6 +541,71 @@ object ForVec3 : KSerializer<Vec3> {
         if (!zExists) z = missingField("z", "Vec3d") { 0.0 }
 
         return Vec3(x, y, z)
+    }
+}
+
+object ForVec3f : KSerializer<Vec3f> {
+    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Vector3d") {
+        element("x", Float.serializer().descriptor)
+        element("y", Float.serializer().descriptor)
+        element("z", Float.serializer().descriptor)
+    }
+
+    override fun serialize(encoder: Encoder, value: Vec3f) {
+        val compositeOutput = encoder.beginStructure(descriptor)
+        compositeOutput.encodeFloatElement(descriptor, 0, value.x)
+        compositeOutput.encodeFloatElement(descriptor, 1, value.y)
+        compositeOutput.encodeFloatElement(descriptor, 2, value.z)
+        compositeOutput.endStructure(descriptor)
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun deserialize(decoder: Decoder): Vec3f {
+        val dec: CompositeDecoder = decoder.beginStructure(descriptor)
+
+        var x = 0.0f
+        var y = 0.0f
+        var z = 0.0f
+        var xExists = false
+        var yExists = false
+        var zExists = false
+        if (dec.decodeSequentially()) {
+            x = dec.decodeFloatElement(descriptor, 0)
+            y = dec.decodeFloatElement(descriptor, 1)
+            z = dec.decodeFloatElement(descriptor, 2)
+            xExists = true
+            yExists = true
+            zExists = true
+        } else {
+            loop@ while (true) {
+                when (val i = dec.decodeElementIndex(descriptor)) {
+                    CompositeDecoder.DECODE_DONE -> break@loop
+                    0 -> {
+                        x = dec.decodeFloatElement(descriptor, i)
+                        xExists = true
+                    }
+
+                    1 -> {
+                        y = dec.decodeFloatElement(descriptor, i)
+                        yExists = true
+                    }
+
+                    2 -> {
+                        z = dec.decodeFloatElement(descriptor, i)
+                        zExists = true
+                    }
+
+                    else -> throw SerializationException("Unknown index $i")
+                }
+            }
+        }
+
+        dec.endStructure(descriptor)
+        if (!xExists) x = missingField("x", "Vec3f") { 0.0f }
+        if (!yExists) y = missingField("y", "Vec3f") { 0.0f }
+        if (!zExists) z = missingField("z", "Vec3f") { 0.0f }
+
+        return Vec3f(x, y, z)
     }
 }
 

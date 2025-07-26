@@ -16,6 +16,7 @@ import ru.hollowhorizon.hc.client.models.internal.Primitive
 import ru.hollowhorizon.hc.client.models.internal.Scene
 import ru.hollowhorizon.hc.client.models.internal.animations.Animation
 import ru.hollowhorizon.hc.common.utils.rl
+import java.io.IOException
 import kotlin.math.abs
 import ru.hollowhorizon.hc.client.models.fbx.FileGlobalSettings.FrameRate as Fr
 import ru.hollowhorizon.hc.client.models.fbx.TransformationComp as Tc
@@ -55,12 +56,12 @@ operator fun Array<Mat4f>.set(transf: Tc, mat: Mat4f) = set(transf.i, mat)
 
 fun Document.convert(location: ResourceLocation): InternalModel {
     return InternalModel(0, listOf(Scene(convertNodes(0L, location))), listOf(), setOf()).apply {
-        isBlockBench = creator.contains("BlockBench")
+        isBlockBench = creator.contains("blockbench", ignoreCase = true)
         if(isBlockBench) {
             scenes[scene].nodes.forEach {
                 // BlockBench зачем-то скейлит модели
-                it.transform.scale(0.01f)
-                it.baseTransform.scale(0.01f)
+                it.transform.scale(0.01)
+                it.baseTransform.scale(0.01)
             }
         }
     }
@@ -227,8 +228,12 @@ fun Material.convert(model: ResourceLocation, color: Vec4f): InternalMaterial {
         location = model.withPath(model.path.substringBefore('.')+'/'+media.name.lowercase().filter(ResourceLocation::validPathChar)+".png")
         if (media.content.isNotEmpty()) {
             RenderSystem.recordRenderCall {
-                val texture = DynamicTexture(NativeImage.read(media.content))
-                Minecraft.getInstance().textureManager.register(location, texture)
+                try {
+                    val texture = DynamicTexture(NativeImage.read(media.content))
+                    Minecraft.getInstance().textureManager.register(location, texture)
+                } catch (e: IOException) {
+                    HollowCore.LOGGER.error("Invalid texture $location!")
+                }
             }
         }
     }
