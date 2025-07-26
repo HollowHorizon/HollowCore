@@ -54,7 +54,16 @@ operator fun Array<Mat4f>.get(transf: Tc) = get(transf.i)
 operator fun Array<Mat4f>.set(transf: Tc, mat: Mat4f) = set(transf.i, mat)
 
 fun Document.convert(location: ResourceLocation): InternalModel {
-    return InternalModel(0, listOf(Scene(convertNodes(0L, location))), listOf(), setOf())
+    return InternalModel(0, listOf(Scene(convertNodes(0L, location))), listOf(), setOf()).apply {
+        isBlockBench = creator.contains("BlockBench")
+        if(isBlockBench) {
+            scenes[scene].nodes.forEach {
+                // BlockBench зачем-то скейлит модели
+                it.transform.scale(0.01f)
+                it.baseTransform.scale(0.01f)
+            }
+        }
+    }
 }
 
 fun Document.convertNodes(parentId: Long, location: ResourceLocation): List<Node> {
