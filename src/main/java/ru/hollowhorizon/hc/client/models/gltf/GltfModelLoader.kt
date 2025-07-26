@@ -117,7 +117,7 @@ object GltfModelLoader: ModelLoader {
 
                         Primitive(
                             positions, normals, texCoord0, texCoord1, tangents, joints, weights,
-                            if (prim.indices != -1) file.accessors[prim.indices] else null,
+                            if (prim.indices != -1) IntAccessor(file.accessors[prim.indices]).list.toIntArray() else null,
                             if (prim.material != -1) materials[prim.material] else Material(),
                             prim.targets.map { map ->
                                 map.map { entry ->

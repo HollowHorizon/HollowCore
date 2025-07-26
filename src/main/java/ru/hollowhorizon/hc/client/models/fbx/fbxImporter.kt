@@ -13,7 +13,7 @@ object FbxModelLoader: ModelLoader {
     override val supportedFormats = setOf("fbx")
 
     override suspend fun load(location: ResourceLocation): Model {
-        return import(location).convert()
+        return import(location).convert(location)
     }
 
     fun import(location: ResourceLocation): Document {
@@ -37,7 +37,7 @@ object FbxModelLoader: ModelLoader {
 lateinit var buffer: ByteBuffer
 
 suspend fun main() {
-    val model = FbxModelLoader.import("hollowcore:models/entity/fbx/frogech.fbx".rl)
-
+    val model = FbxModelLoader.import("hollowcore:models/entity/fbx/frogech_ascii.fbx".rl)
+        .convert("hollowcore:models/entity/fbx/frogech_ascii.fbx".rl)
     println(model)
 }

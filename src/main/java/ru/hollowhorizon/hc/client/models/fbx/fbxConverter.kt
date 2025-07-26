@@ -1,8 +1,13 @@
 package ru.hollowhorizon.hc.client.models.fbx
 
+import com.mojang.blaze3d.platform.NativeImage
+import com.mojang.blaze3d.systems.RenderSystem
 import de.fabmax.kool.math.*
 import de.fabmax.kool.scene.TrsTransformF
 import de.fabmax.kool.util.Color
+import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.texture.DynamicTexture
+import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.fbx.TransformationComp
 import ru.hollowhorizon.hc.client.models.internal.Mesh
@@ -10,13 +15,15 @@ import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.Primitive
 import ru.hollowhorizon.hc.client.models.internal.Scene
 import ru.hollowhorizon.hc.client.models.internal.animations.Animation
+import ru.hollowhorizon.hc.common.utils.rl
 import kotlin.math.abs
 import ru.hollowhorizon.hc.client.models.fbx.FileGlobalSettings.FrameRate as Fr
 import ru.hollowhorizon.hc.client.models.fbx.TransformationComp as Tc
 import ru.hollowhorizon.hc.client.models.internal.Material as InternalMaterial
 import ru.hollowhorizon.hc.client.models.internal.Model as InternalModel
 
-enum class TransformationComp { Translation, RotationOffset, RotationPivot, PreRotation, Rotation, PostRotation,
+enum class TransformationComp {
+    Translation, RotationOffset, RotationPivot, PreRotation, Rotation, PostRotation,
     RotationPivotInverse, ScalingOffset, ScalingPivot, Scaling, ScalingPivotInverse, GeometricTranslation,
     GeometricRotation, GeometricScaling;
 
@@ -46,11 +53,11 @@ enum class TransformationComp { Translation, RotationOffset, RotationPivot, PreR
 operator fun Array<Mat4f>.get(transf: Tc) = get(transf.i)
 operator fun Array<Mat4f>.set(transf: Tc, mat: Mat4f) = set(transf.i, mat)
 
-fun Document.convert(): InternalModel {
-    return InternalModel(0, listOf(Scene(convertNodes(0L))), listOf(), setOf())
+fun Document.convert(location: ResourceLocation): InternalModel {
+    return InternalModel(0, listOf(Scene(convertNodes(0L, location))), listOf(), setOf())
 }
 
-fun Document.convertNodes(parentId: Long): List<Node> {
+fun Document.convertNodes(parentId: Long, location: ResourceLocation): List<Node> {
     val connections = getConnectionsByDestinationSequenced(parentId, "Model")
 
     val nodes = ArrayList<Node>()
@@ -66,11 +73,11 @@ fun Document.convertNodes(parentId: Long): List<Node> {
 
         val model = `object` as? Model
 
-        if(model != null) {
+        if (model != null) {
             val nodeTransform = generateTransformationNodeChain(model)
-            val node = convertModel(model, nodeTransform)
+            val node = convertModel(model, nodeTransform, location)
 
-            node.children.addAll(convertNodes(model.id))
+            node.children.addAll(convertNodes(model.id, location))
 
             nodes.add(node)
         }
@@ -177,27 +184,49 @@ fun generateTransformationNodeChain(model: Model): TrsTransformF {
     }
 }
 
-fun convertModel(model: Model, transform: TrsTransformF): Node {
+fun convertModel(model: Model, transform: TrsTransformF, location: ResourceLocation): Node {
     val primitives = model.geometry.mapNotNull {
-        (it as? MeshGeometry)?.let { convertMesh(it, model) }
+        (it as? MeshGeometry)?.let { convertMesh(it, model, location) }
     }
 
-    return Node(model.id.toInt(), mutableListOf(), transform, Mesh(primitives, floatArrayOf()), name = model.name.substringAfter("::"))
-}
-
-fun convertMesh(mesh: MeshGeometry, model: Model): Primitive {
-    return Primitive(
-        positions = mesh.vertices.toTypedArray(),
-        normals = mesh.normals.toTypedArray(),
-        texCoords = mesh.getTextureCoords(0).toTypedArray(),
-        tangents = mesh.tangents.map { Vec4f(it.x, it.y, it.z, 1f) }.toTypedArray(),
-        material = model.materials[mesh.materials[0]].convert(mesh.colors.getOrNull(0)?.getOrNull(0) ?: Vec4f(1f, 1f, 1f, 1f))
+    return Node(
+        model.id.toInt(),
+        mutableListOf(),
+        transform,
+        Mesh(primitives, floatArrayOf()),
+        name = model.name.substringAfter("::")
     )
 }
 
-fun Material.convert(color: Vec4f): InternalMaterial {
+fun convertMesh(mesh: MeshGeometry, model: Model, location: ResourceLocation): Primitive {
+    return Primitive(
+        positions = mesh.vertices.toTypedArray(),
+        normals = mesh.normals.toTypedArray(),
+        texCoords = mesh.getTextureCoords(0).map { Vec2f(it.x, it.y) }.toTypedArray(),
+        tangents = mesh.tangents.map { Vec4f(it.x, it.y, it.z, 1f) }.toTypedArray(),
+        indices = mesh.triangles.toIntArray(),
+        material = model.materials[mesh.materials[0]].convert(
+            location,
+            mesh.colors.getOrNull(0)?.getOrNull(0) ?: Vec4f(1f, 1f, 1f, 1f)
+        )
+    )
+}
+
+fun Material.convert(model: ResourceLocation, color: Vec4f): InternalMaterial {
+    var location = InternalMaterial.MISSING_TEXTURE
+    textures["DiffuseColor"]?.media?.let { media ->
+        location = model.withPath(model.path.substringBefore('.')+'/'+media.name.lowercase().filter(ResourceLocation::validPathChar)+".png")
+        if (media.content.isNotEmpty()) {
+            RenderSystem.recordRenderCall {
+                val texture = DynamicTexture(NativeImage.read(media.content))
+                Minecraft.getInstance().textureManager.register(location, texture)
+            }
+        }
+    }
+
     return InternalMaterial(
-        color = Color(color.x, color.y, color.z, color.w)
+        color = Color(color.x, color.y, color.z, color.w),
+        texture = location
     )
 }
 
@@ -246,31 +275,37 @@ fun getRotationMatrix(mode: Model.RotOrder, rotation: Vec3f): Mat4f {
             order[1] = 1
             order[2] = 0
         }
+
         Model.RotOrder.EulerXZY -> {
             order[0] = 1
             order[1] = 2
             order[2] = 0
         }
+
         Model.RotOrder.EulerYZX -> {
             order[0] = 0
             order[1] = 2
             order[2] = 1
         }
+
         Model.RotOrder.EulerYXZ -> {
             order[0] = 2
             order[1] = 0
             order[2] = 1
         }
+
         Model.RotOrder.EulerZXY -> {
             order[0] = 1
             order[1] = 0
             order[2] = 2
         }
+
         Model.RotOrder.EulerZYX -> {
             order[0] = 0
             order[1] = 1
             order[2] = 2
         }
+
         else -> throw Exception()
     }
 

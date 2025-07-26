@@ -8,6 +8,9 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.util.bool
 import ru.hollowhorizon.hc.client.models.util.strncmp
 import ru.hollowhorizon.hc.client.models.util.trimNUL
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 class LazyObject(val id: Long, val element: Element, val doc: Document) {
 
@@ -366,7 +369,6 @@ class Texture(id: Long, element: Element, doc: Document, name: String) : Object(
 
     val type = element.scope["Type"]?.get(0)?.parseAsString ?: ""
     val relativeFileName = element.scope["RelativeFileName"]?.get(0)?.parseAsString ?: ""
-    val content = element.scope["Content"]?.get(0)?.parseAsString ?: ""
     val fileName = element.scope["FileName"]?.get(0)?.parseAsString ?: ""
     val alphaSource = element.scope["Texture_Alpha_Source"]?.get(0)?.parseAsString ?: ""
     val props = getPropertyTable(doc, "Texture.FbxFileTexture", element, element.scope)
@@ -440,7 +442,11 @@ class Video(id: Long, element: Element, doc: Document, name: String) : Object(id
                 val token = it[0]
                 val data = token.begin
                 when {
-                    !token.isBinary -> domWarning("video content is not binary data, ignoring", element)
+                    !token.isBinary -> {
+                        val data = token.parseAsString
+                        content = Base64.getDecoder().wrap(data.byteInputStream()).readBytes()
+                        contentLength = content.size
+                    }
                     token.end - data < 5 -> domError("binary data array is too short, need five (5) bytes for type signature and element count", element)
                     buffer[data].toInt().toChar() != 'R' -> domWarning("video content is not raw binary data, ignoring", element)
                     else -> {

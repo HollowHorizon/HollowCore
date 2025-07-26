@@ -51,7 +51,7 @@ object HollowCore {
 
         HollowCoreIngredientInitializer.init()
 
-        //initMod()
+        initMod()
 
         HollowSoundHandler.MODS.add("hollowcore")
         HollowSoundHandler.MODS.add("hollowengine")

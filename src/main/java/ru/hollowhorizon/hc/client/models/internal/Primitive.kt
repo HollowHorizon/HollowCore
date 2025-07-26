@@ -25,13 +25,13 @@ class Primitive(
     private var tangents: Array<Vec4f>? = null,
     private var joints: Array<Vec4i>? = null,
     private var jointWeights: Array<Vec4f>? = null,
-    private val indices: GltfAccessor? = null,
+    private val indices: IntArray? = null,
     private val material: Material,
     private val morphTargets: List<Map<String, FloatArray>> = listOf(),
     private var weights: FloatArray = floatArrayOf(),
 ) {
     val hasSkinning = joints != null && jointWeights != null
-    private val indexCount = indices?.count ?: 0
+    private val indexCount = indices?.size ?: 0
     private val positionsCount = (positions?.size ?: 0) * 3
     var jointCount = 0
     private val morphCommands = ArrayList<(FloatArray) -> Unit>()
@@ -252,9 +252,8 @@ class Primitive(
         GL20.glVertexAttribPointer(1, 4, GL33.GL_FLOAT, false, 0, 0)
 
         if (indices != null) {
-            val values = IntAccessor(indices).list
-            val buffer = BufferUtils.createIntBuffer(values.size)
-            for (n in values) buffer.put(n)
+            val buffer = BufferUtils.createIntBuffer(indexCount)
+            for (n in indices) buffer.put(n)
             buffer.flip()
 
             indexBuffer = GL33.glGenBuffers()

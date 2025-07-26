@@ -38,6 +38,7 @@ import org.lwjgl.opengl.GL12
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.models.fbx.FbxModelLoader
 import ru.hollowhorizon.hc.client.models.gltf.GltfModelLoader
 import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
 import ru.hollowhorizon.hc.client.models.internal.Model
@@ -172,6 +173,7 @@ class RegisterModelLoaderEvent(private val loaders: MutableList<ModelLoader>) : 
 fun registerModelLoaders(event: RegisterModelLoaderEvent) {
     event.register(GltfModelLoader)
     event.register(ObjModelLoader)
+    //event.register(FbxModelLoader)
 }
 
 fun create(data: ByteArray) = create(data, 0, data.size)

@@ -43,6 +43,8 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
     val binormals = ArrayList<Vec3f>()
     val normals = ArrayList<Vec3f>()
 
+    val indeces = ArrayList<Int>()
+
     val uvNames = Array(AI_MAX_NUMBER_OF_TEXTURECOORDS) { "" }
     val uvs = Array(AI_MAX_NUMBER_OF_TEXTURECOORDS) { ArrayList<Vec2f>() }
     val colors = Array(AI_MAX_NUMBER_OF_COLOR_SETS) { ArrayList<Vec4f>() }
@@ -50,6 +52,9 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
     var mappingCounts = intArrayOf()
     var mappingOffsets = intArrayOf()
     var mappings = intArrayOf()
+
+    val triangles = ArrayList<Int>()
+
 
     init {
         val sc = element.compound ?: domError("failed to read Geometry object (class: Mesh), no data scope found")
@@ -126,6 +131,26 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
                     readLayer(it.scope)
                 }
             }
+        }
+
+        generateTriangles()
+    }
+
+    private fun generateTriangles() {
+        var vertexIndex = 0
+        for (faceVertexCount in faces) {
+            if (faceVertexCount < 3) {
+                HollowCore.LOGGER.warn("skipping face with < 3 vertices")
+                vertexIndex += faceVertexCount
+                continue
+            }
+
+            for (i in 0 until faceVertexCount - 2) {
+                triangles.add(vertexIndex)
+                triangles.add(vertexIndex + i + 1)
+                triangles.add(vertexIndex + i + 2)
+            }
+            vertexIndex += faceVertexCount
         }
     }
 
@@ -420,7 +445,42 @@ class MeshGeometry(id: Long, element: Element, name: String, doc: Document) : Ge
                 }
             }
             dataOut.addAll(tempData2.filterNotNull())
-        } else
+        } else if (mappingInformationType == "ByPolygon" && referenceInformationType == "IndexToDirect") {
+            val tempData = ArrayList<T>()
+            getRequiredElement(source, dataElementName).parseVectorDataArray(tempData)
+
+            val indices = ArrayList<Int>()
+            getRequiredElement(source, indexDataElementName).parseIntsDataArray(indices)
+
+            if (indices.size != faces.size) {
+                HollowCore.LOGGER.error("length of index data unexpected for ByPolygon mapping: ${indices.size}, expected ${faces.size}")
+                return
+            }
+
+            // Precompute face start indices
+            val faceStartIndices = IntArray(faces.size)
+            var start = 0
+            for (i in faces.indices) {
+                faceStartIndices[i] = start
+                start += faces[i]
+            }
+
+            val tempData2 = arrayOfNulls<T>(vertexCount)
+            for (i in faces.indices) {
+                val index = indices[i]
+                if (index < 0 || index >= tempData.size) {
+                    HollowCore.LOGGER.error("index out of range in ByPolygon/IndexToDirect mapping: $index, data array size ${tempData.size}")
+                    continue
+                }
+                val faceValue = tempData[index]
+                val vertexStart = faceStartIndices[i]
+                for (j in 0 until faces[i]) {
+                    tempData2[vertexStart + j] = faceValue
+                }
+            }
+            dataOut.addAll(tempData2.filterNotNull())
+        }
+        else
             HollowCore.LOGGER.error("ignoring vertex data channel, access type not implemented: $mappingInformationType, $referenceInformationType")
     }
 }

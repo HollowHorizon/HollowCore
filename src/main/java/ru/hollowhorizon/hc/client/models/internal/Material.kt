@@ -19,5 +19,7 @@ data class Material(
         val MISSING_TEXTURE = "${HollowCore.MODID}:default_color_map".rl
         val MISSING_NORMAL = "${HollowCore.MODID}:default_normal_map".rl
         val MISSING_SPECULAR = "${HollowCore.MODID}:default_specular_map".rl
+
+
     }
 }
