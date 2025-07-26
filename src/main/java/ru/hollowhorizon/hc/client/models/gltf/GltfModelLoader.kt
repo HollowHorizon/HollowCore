@@ -161,7 +161,7 @@ object GltfModelLoader: ModelLoader {
                 transform.rotate(node.rotation?.let { QuatF(it[0], it[1], it[2], it[3]) } ?: MutableQuatF())
                 transform.scale(node.scale?.let { Vec3f(it[0], it[1], it[2]) } ?: MutableVec3f(1f, 1f, 1f))
 
-                Node(nodeIndex, children.awaitAll(), transform, mesh, skin, node.name).apply {
+                Node(nodeIndex, children.awaitAll().toMutableList(), transform, mesh, skin, node.name).apply {
                     this.children.forEach { it.parent = this }
                 }
             }

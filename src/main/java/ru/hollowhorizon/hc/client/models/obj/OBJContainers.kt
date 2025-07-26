@@ -22,7 +22,7 @@ class OBJDataMesh {
     ): Node {
         return Node(
             index,
-            emptyList(),
+            mutableListOf(),
             TrsTransformF(),
             Mesh(groups.map { (material, faces) ->
                 createPrimitive(

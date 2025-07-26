@@ -16,7 +16,7 @@ import java.util.*
 
 class Node(
     val index: Int,
-    val children: List<Node>,
+    val children: MutableList<Node>,
     val transform: TrsTransformF,
     val mesh: Mesh? = null,
     val skin: Skin? = null,
@@ -142,6 +142,10 @@ class Node(
 
     fun allBones(): Set<Node> = setOf(this) + children.flatMap { it.allBones() }
     val path: String get() = parent?.let { it.name + "/" + name } ?: name ?: "Unnamed Bone"
+
+    override fun toString(): String {
+        return "Node $name [Mesh: $mesh, Skin: $skin]"
+    }
 }
 
 val NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE = IdentityHashMap<Node, Mat4f>()
