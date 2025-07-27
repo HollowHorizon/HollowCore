@@ -1,5 +1,7 @@
 package ru.hollowhorizon.hc.common.utils.molang.runtime
 
+import de.fabmax.kool.math.Vec3f
+
 interface Query {
     val ground_speed: Float get() = 0f
     val is_moving: Boolean get() = false
@@ -18,6 +20,14 @@ interface Query {
     val is_swinging: Boolean get() = false
     val is_alive: Boolean get() = true
     val is_on_ground: Boolean get() = true
-    val head_rot: Float get() = 0f
+    val head_x_rotation: Float get() = 0f
+    val head_y_rotation: Float get() = 0f
     val anim_time: Float get() = 0f
+    val life_time: Float get() = 0f
+    val modified_distance_moved: Float get() = 0f
+    val modified_move_speed: Float get() = 0f
+
+    companion object {
+        val EMPTY = object : Query {}
+    }
 }

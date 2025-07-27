@@ -42,7 +42,6 @@ import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
-import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
 import ru.hollowhorizon.hc.common.utils.rl
 import ru.hollowhorizon.hc.fabric.internal.IrisHelper
 
@@ -78,7 +77,7 @@ object GLTFPlayerRenderer {
         val controller = capability.controller
         controller.uploadAnimations(model.animations)
         model.update(
-            controller, EntityQuery(entity),
+            controller, capability.molangContext,
             (entity.tickCount + partialTick) / 20f
         )
         IrisHelper.bypassShadow = false

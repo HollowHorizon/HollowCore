@@ -29,13 +29,11 @@ public class TagLoaderMixin {
             at = @At(value = "HEAD")
     )
     private void hollowcore$load(Map<ResourceLocation, List<TagLoader.EntryWithSource>> value, CallbackInfoReturnable<Map<ResourceLocation, Collection>> cir) {
-        var reg = BuiltInRegistries.REGISTRY
+        BuiltInRegistries.REGISTRY
                 .stream()
                 .filter(t -> TagManager.getTagDir(t.key()).equals(directory))
                 .findFirst()
-                .orElse(null);
+                .ifPresent(reg -> EventBus.post(new RegisterTagsEvent(reg, value)));
 
-        if (reg != null) EventBus.post(new RegisterTagsEvent(reg, value));
-        else HollowCore.LOGGER.warn("Registry tag for {} not found!", directory);
     }
 }

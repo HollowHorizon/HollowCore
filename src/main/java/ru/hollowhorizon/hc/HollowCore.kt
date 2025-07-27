@@ -30,6 +30,7 @@ import ru.hollowhorizon.hc.common.config.HollowCoreConfig
 import ru.hollowhorizon.hc.common.config.hollowConfig
 import ru.hollowhorizon.hc.common.objects.recipe.HollowCoreIngredientInitializer
 import ru.hollowhorizon.hc.common.registry.HollowModProcessor.initMod
+import ru.hollowhorizon.hc.common.utils.molang.compiler.MolangCompiler
 
 object HollowCore {
     const val MODID: String = "hollowcore"
@@ -52,6 +53,8 @@ object HollowCore {
         HollowCoreIngredientInitializer.init()
 
         initMod()
+
+        MolangCompiler
 
         HollowSoundHandler.MODS.add("hollowcore")
         HollowSoundHandler.MODS.add("hollowengine")

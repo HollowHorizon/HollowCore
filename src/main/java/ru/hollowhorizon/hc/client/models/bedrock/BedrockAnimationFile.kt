@@ -9,20 +9,13 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
 import kotlinx.serialization.serializer
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
-import ru.hollowhorizon.hc.client.utils.stream
-import ru.hollowhorizon.hc.common.objects.molang.MolangExpression
-import ru.hollowhorizon.hc.common.objects.molang.MolangVec3
-import ru.hollowhorizon.hc.common.objects.molang.parseMolangExpression
-import ru.hollowhorizon.hc.common.utils.json.JsonFormat
+import ru.hollowhorizon.hc.common.utils.molang.compiler.MolangExpression
+import ru.hollowhorizon.hc.common.utils.molang.compiler.MolangVec3
+import ru.hollowhorizon.hc.common.utils.molang.compiler.parseMolangExpression
 import ru.hollowhorizon.hc.common.utils.nbt.ListOrSingle
 import ru.hollowhorizon.hc.common.utils.nbt.TreeMap
-import ru.hollowhorizon.hc.common.utils.rl
 
-fun main() {
-    val animation =
-        JsonFormat.decodeFromStream<BedrockAnimationFile>("hollowcore:models/entity/bedrock/model.animation.json".rl.stream)
-    println(animation)
-}
+
 
 @Serializable
 data class BedrockAnimationFile(

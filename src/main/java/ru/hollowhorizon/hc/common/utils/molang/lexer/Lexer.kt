@@ -68,6 +68,10 @@ class Lexer(private val input: String) {
                     append(advance())
                 }
             }
+
+            if(peek()?.lowercaseChar() in setOf('f', 'l', 'd')) {
+                advance() // Выражения вроде 1f или 1.0d можно сделать допустимыми
+            }
         }
         return Token(Token.Type.NUMBER, value, start)
     }

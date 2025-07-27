@@ -3,7 +3,6 @@ package ru.hollowhorizon.hc.client.models.internal.controller
 import de.fabmax.kool.math.QuatF
 import de.fabmax.kool.math.Vec3f
 import de.fabmax.kool.scene.TrsTransformF
-import kotlinx.coroutines.async
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import ru.hollowhorizon.hc.HollowCore
@@ -14,9 +13,9 @@ import ru.hollowhorizon.hc.client.models.internal.controller.BlendMode.Additive
 import ru.hollowhorizon.hc.client.models.internal.controller.BlendMode.Override
 import ru.hollowhorizon.hc.client.models.internal.controller.Controller.Companion.AUTOMATIC_LAYER
 import ru.hollowhorizon.hc.client.models.internal.controller.WrapMode.*
-import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
-import ru.hollowhorizon.hc.common.utils.molang.Molang
-import ru.hollowhorizon.hc.common.utils.molang.MolangCompilerScope
+import ru.hollowhorizon.hc.common.utils.molang.compiler.BoolExpr
+import ru.hollowhorizon.hc.common.utils.molang.compiler.MolangCompiler
+import ru.hollowhorizon.hc.common.utils.molang.runtime.MolangContext
 import java.util.*
 
 private fun Float.modPositive(divisor: Float): Float =
@@ -107,12 +106,9 @@ data class Controller(var layers: MutableList<Layer>) {
         layers.sortBy { it.priority }
     }
 
-    @Transient
-    internal var initDeferred = MolangCompilerScope.async { init() }
-
     suspend fun init() {
         try {
-            layers.forEach { it.stateMachine.init(); it.mask.reset() }
+            layers.forEach { it.mask.reset() }
         } catch (e: Exception) {
             HollowCore.LOGGER.error("Error while compiling math expressions!", e)
         }
@@ -127,12 +123,11 @@ data class Controller(var layers: MutableList<Layer>) {
         }
     }
 
-    fun update(node: Node, query: EntityQuery, time: Float) {
-        if (!initDeferred.isCompleted) return
+    fun update(node: Node, context: MolangContext, time: Float) {
         layers.removeIf { layer ->
             if (node !in layer.mask.bake(node.root)) return@removeIf false
 
-            layer.update(node, query, time)?.let { transform ->
+            layer.update(node, context, time)?.let { transform ->
                 node.transform.apply {
                     when (layer.blendMode) {
                         Additive -> applyAdditiveLayer(layer, node, transform, time)
@@ -179,13 +174,6 @@ data class Controller(var layers: MutableList<Layer>) {
         scale.set(base.scale * Vec3f.ONES.mix(transform.scale, layer.weight))
     }
 
-    fun updateProcedural(model: AnimatedModel, query: EntityQuery) {
-        if (!initDeferred.isCompleted || initDeferred.isCancelled) return
-        layers.forEach {
-            it.updateProcedural(model, query)
-        }
-    }
-
     fun transferFrom(old: Controller?) {
         if (old == null) return
         val oldLayers = old.layers.associateBy { it.name }
@@ -194,10 +182,6 @@ data class Controller(var layers: MutableList<Layer>) {
 
             layer.stateMachine.transferStateFrom(oldLayer.stateMachine)
         }
-    }
-
-    fun recompile() {
-        initDeferred = MolangCompilerScope.async { init() }
     }
 }
 
@@ -263,12 +247,8 @@ data class Layer(
     @Transient
     lateinit var referencePoseRef: (Node) -> TrsTransformF?
 
-    fun update(node: Node, query: EntityQuery, time: Float): TrsTransformF? {
-        return stateMachine.update(node, query, time)
-    }
-
-    fun updateProcedural(model: AnimatedModel, query: EntityQuery) {
-        stateMachine.updateProcedural(model, query)
+    fun update(node: Node, context: MolangContext, time: Float): TrsTransformF? {
+        return stateMachine.update(node, context, time)
     }
 }
 
@@ -293,17 +273,16 @@ data class State(
     val name: String,
     val clip: ClipNode?,
     val blendTree: BlendTree?,
-    val procedural: ProceduralNode?,
 ) {
     @Transient
     var animations: Map<String, Animation> = mutableMapOf()
 
-    fun reset(query: EntityQuery, time: Float) {
+    fun reset(query: MolangContext, time: Float) {
         clip?.reset(query, time)
         blendTree?.reset(query, time)
     }
 
-    fun update(node: Node, query: EntityQuery, time: Float): TrsTransformF? {
+    fun update(node: Node, query: MolangContext, time: Float): TrsTransformF? {
         clip?.let { clip ->
             return clip.update(animations, query, node, time)
         }
@@ -311,12 +290,6 @@ data class State(
             return it.update(animations, query, node, time)
         }
         return null
-    }
-
-    suspend fun init() {
-        clip?.init()
-        blendTree?.init()
-        procedural?.init()
     }
 
     fun transferStateFrom(oldState: State) {
@@ -337,7 +310,7 @@ data class Transition(
     var exitTime: Float,
 ) {
     @Transient
-    lateinit var condition: (EntityQuery) -> Boolean
+    val condition: BoolExpr = MolangCompiler.compileBoolean(function)
 
     @Transient
     var fromRef: State? = null
@@ -345,25 +318,16 @@ data class Transition(
     @Transient
     var toRef: State? = null
 
-    @Transient
-    private val conditionDeferred = MolangCompilerScope.async {
-        Molang.compileBoolean(function)
-    }
-
-    suspend fun init() {
-        condition = conditionDeferred.await()
-    }
-
     var startTime = 0f
     var isFinished = false
 
-    fun start(query: EntityQuery, time: Float) {
+    fun start(query: MolangContext, time: Float) {
         startTime = time
         isFinished = false
         toRef?.reset(query, time)
     }
 
-    fun update(node: Node, query: EntityQuery, time: Float): TrsTransformF? {
+    fun update(node: Node, query: MolangContext, time: Float): TrsTransformF? {
         val from = fromRef?.update(node, query, time)
         val to = toRef?.update(node, query, time)
 
@@ -373,7 +337,7 @@ data class Transition(
         return from.mix(to, factor)
     }
 
-    fun canExit(currentState: State?, query: EntityQuery, time: Float): Boolean {
+    fun canExit(currentState: State?, query: MolangContext, time: Float): Boolean {
         currentState?.clip?.let {
             if (it.wrap != WrapMode.Once) return true
 
@@ -423,21 +387,16 @@ data class StateMachine(
         currentState = states.firstOrNull { it.name == initialState }
     }
 
-    suspend fun init() {
-        states.forEach { it.init() }
-        transitions.forEach { it.init() }
-    }
-
-    fun update(node: Node, query: EntityQuery, time: Float): TrsTransformF? {
+    fun update(node: Node, context: MolangContext, time: Float): TrsTransformF? {
         if (currentTransition == null) {
             transitions.firstOrNull {
                 (it.from == currentState?.name || (it.from == "*" && it.to != currentState?.name)) &&
-                        it.condition(query) && it.canExit(currentState, query, time)
+                        it.condition.getBoolean(context.query, context.variables) && it.canExit(currentState, context, time)
             }?.let { transition ->
                 transition.fromRef = states.firstOrNull { it.name == transition.from } ?: currentState
                 transition.toRef = states.firstOrNull { it.name == transition.to }
                 currentTransition = transition
-                transition.start(query, time)
+                transition.start(context, time)
             }
 
             if (transitions.isEmpty() && currentState == null) currentState = states.firstOrNull()
@@ -453,18 +412,10 @@ data class StateMachine(
                 }
                 return@let
             }
-            return transition.update(node, query, time)
+            return transition.update(node, context, time)
         }
 
-        return currentState?.update(node, query, time)
-    }
-
-    fun updateProcedural(model: AnimatedModel, query: EntityQuery) {
-        if (currentState == null) currentState = states.firstOrNull { it.procedural != null }
-
-        currentState?.let { state ->
-            state.procedural?.evaluate(model, query)
-        }
+        return currentState?.update(node, context, time)
     }
 
     fun transferStateFrom(old: StateMachine) {
@@ -516,7 +467,6 @@ class StateMachineBuilder {
 class StateBuilder(val name: String) {
     private var clip: ClipNode? = null
     private var blendTree: BlendTree? = null
-    private var procedural: ProceduralNode? = null
 
     fun clip(
         name: String,
@@ -530,11 +480,7 @@ class StateBuilder(val name: String) {
         blendTree = BlendTreeBuilder().apply(block).build()
     }
 
-    fun procedural(block: ProceduralBuilder.() -> Unit) {
-        procedural = ProceduralBuilder().apply(block).build()
-    }
-
-    fun build() = State(name, clip, blendTree, procedural)
+    fun build() = State(name, clip, blendTree)
 }
 
 // BlendTree
@@ -546,33 +492,22 @@ data class BlendTree(
     val nodes: List<BlendNode>,
     private val smoothingTime: Float = 0f,
 ) {
-    @Transient
-    private lateinit var factor: (EntityQuery) -> Float
-
-    @Transient
-    private val factorDeferred = MolangCompilerScope.async {
-        Molang.compileFloat(function)
-    }
-
-    suspend fun init() {
-        factor = factorDeferred.await()
-        nodes.forEach { it.clip.init() }
-    }
+    private val factor = MolangCompiler.compileFloat(function)
 
     private val keys = nodes.map { it.threshold }.toFloatArray()
     private var lastFiltered: Float = 0f
     private var lastTime: Float = 0f
 
-    fun reset(query: EntityQuery, time: Float) {
-        nodes.forEach { it.reset(query, time) }
+    fun reset(context: MolangContext, time: Float) {
+        nodes.forEach { it.reset(context, time) }
         lastTime = time
-        lastFiltered = factor(query)
+        lastFiltered = factor.getFloat(context.query, context.variables)
     }
 
-    fun update(animations: Map<String, Animation>, query: EntityQuery, node: Node, time: Float): TrsTransformF? {
+    fun update(animations: Map<String, Animation>, context: MolangContext, node: Node, time: Float): TrsTransformF? {
         if (nodes.isEmpty()) return null
         // Сглаживание фактора
-        val raw = factor(query)
+        val raw = factor.getFloat(context.query, context.variables)
         val filtered = if (smoothingTime > 0f && lastTime != 0f) {
             val dt = (time - lastTime).coerceAtLeast(0f)
             val alpha = (dt / smoothingTime).coerceIn(0f..1f)
@@ -583,8 +518,8 @@ data class BlendTree(
 
         // Поиск узлов
         return when {
-            filtered <= keys.first() || keys.size == 1 -> nodes.first().update(animations, query, node, time)
-            filtered >= keys.last() -> nodes.last().update(animations, query, node, time)
+            filtered <= keys.first() || keys.size == 1 -> nodes.first().update(animations, context, node, time)
+            filtered >= keys.last() -> nodes.last().update(animations, context, node, time)
             else -> {
                 val idx = Arrays.binarySearch(keys, filtered).let { if (it >= 0) it else (-it - 2) }
                 val prev = nodes[idx]
@@ -592,8 +527,8 @@ data class BlendTree(
                 val local = filtered - prev.threshold
                 val delta = next.threshold - prev.threshold
                 val t = (local / delta).coerceIn(0f..1f)
-                val first = prev.update(animations, query, node, time)
-                val second = next.update(animations, query, node, time)
+                val first = prev.update(animations, context, node, time)
+                val second = next.update(animations, context, node, time)
                 first.mix(second, t)
             }
         }
@@ -635,11 +570,11 @@ class BlendTreeBuilder {
 
 @Serializable
 data class BlendNode(val clip: ClipNode, val threshold: Float) {
-    fun update(animations: Map<String, Animation>, query: EntityQuery, node: Node, time: Float): TrsTransformF? {
+    fun update(animations: Map<String, Animation>, query: MolangContext, node: Node, time: Float): TrsTransformF? {
         return clip.update(animations, query, node, time)
     }
 
-    fun reset(query: EntityQuery, time: Float) {
+    fun reset(query: MolangContext, time: Float) {
         clip.reset(query, time)
     }
 
@@ -647,52 +582,6 @@ data class BlendNode(val clip: ClipNode, val threshold: Float) {
         clip.transferFrom(oldNode.clip)
     }
 
-}
-
-@Serializable
-data class ProceduralNode(val functions: HashMap<String, ProceduralTransformer>) {
-    @Transient
-    val commands = HashMap<String, MutableList<(AnimatedModel, EntityQuery) -> Unit>>()
-
-    @Transient
-    val commandsDeferred = MolangCompilerScope.async {
-        functions.forEach { (node, command) ->
-            val nodeCommands = commands.computeIfAbsent(node) { ArrayList() }
-            if (command.translation.isNotEmpty()) {
-                Molang.compileVec3f(command.translation).let { exec ->
-                    nodeCommands.add { model, query ->
-                        model.nodes.firstOrNull { it.path.endsWith(node) }
-                            ?.transform?.translation?.set(exec(query))
-                    }
-                }
-            }
-            if (command.rotation.isNotEmpty()) {
-                Molang.compileQuatF(command.rotation).let { exec ->
-                    nodeCommands.add { model, query ->
-                        model.nodes.firstOrNull { it.path.endsWith(node) }
-                            ?.transform?.rotation?.set(exec(query))
-                    }
-                }
-            }
-            if (command.scale.isNotEmpty()) {
-                Molang.compileVec3f(command.scale).let { exec ->
-                    nodeCommands.add { model, query ->
-                        model.nodes.firstOrNull { it.path.endsWith(node) }
-                            ?.transform?.scale?.set(exec(query))
-                    }
-                }
-            }
-        }
-    }
-
-    suspend fun init() {
-        commandsDeferred.await()
-    }
-
-
-    fun evaluate(model: AnimatedModel, query: EntityQuery) {
-        commands.values.forEach { command -> command.forEach { it(model, query) } }
-    }
 }
 
 class ModelContext(private val proceduralCommands: HashMap<String, ProceduralTransformer>) {
@@ -709,16 +598,6 @@ class ModelContext(private val proceduralCommands: HashMap<String, ProceduralTra
     }
 }
 
-class ProceduralBuilder {
-    private val proceduralCommands = HashMap<String, ProceduralTransformer>()
-
-    fun onEvaluate(block: (context: ModelContext) -> Unit) {
-        block(ModelContext(proceduralCommands))
-    }
-
-    fun build() = ProceduralNode(proceduralCommands)
-}
-
 @Serializable
 class ProceduralTransformer {
     var translation = ""
@@ -732,31 +611,21 @@ data class ClipNode(
     val wrap: WrapMode,
     private val function: String,
 ) {
-    @Transient
-    private lateinit var speed: (EntityQuery) -> Float
-
-    @Transient
-    private val speedDeferred = MolangCompilerScope.async {
-        Molang.compileFloat(function)
-    }
-
-    suspend fun init() {
-        speed = speedDeferred.await()
-    }
+    private val speed = MolangCompiler.compileFloat(function)
 
     private var pausedAnimTime: Float = 0f
     private var startTime = 0f
     private var oldSpeed = 0f
 
 
-    fun reset(query: EntityQuery, time: Float) {
+    fun reset(context: MolangContext, time: Float) {
         pausedAnimTime = 0f
         startTime = time
-        oldSpeed = speed(query)
+        oldSpeed = speed.getFloat(context.query, context.variables)
     }
 
-    fun rawTime(query: EntityQuery, time: Float): Float {
-        val newSpeed = speed(query)
+    fun rawTime(context: MolangContext, time: Float): Float {
+        val newSpeed = speed.getFloat(context.query, context.variables)
 
         if (newSpeed != oldSpeed) {
             val currentRaw = (time - startTime) * oldSpeed
@@ -774,7 +643,7 @@ data class ClipNode(
         else (time - startTime) * oldSpeed
     }
 
-    fun update(animations: Map<String, Animation>, query: EntityQuery, node: Node, time: Float): TrsTransformF? {
+    fun update(animations: Map<String, Animation>, query: MolangContext, node: Node, time: Float): TrsTransformF? {
         val rawTime = rawTime(query, time)
 
         val animation = animations[name] ?: return null

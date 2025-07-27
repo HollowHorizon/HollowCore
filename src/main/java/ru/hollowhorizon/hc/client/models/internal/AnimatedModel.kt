@@ -43,7 +43,7 @@ import ru.hollowhorizon.hc.client.models.internal.controller.Controller
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.utils.shouldOverrideShaders
 import ru.hollowhorizon.hc.common.registry.ModShaders
-import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
+import ru.hollowhorizon.hc.common.utils.molang.runtime.MolangContext
 
 
 typealias NodeRenderer = (LivingEntity, PoseStack, Node, MultiBufferSource, Int) -> Unit
@@ -62,13 +62,12 @@ class AnimatedModel(val model: Model) {
     val nodes = model.walkNodes()
     var visuals: NodeRenderer = { _, _, _, _, _ -> }
 
-    fun update(controller: Controller, query: EntityQuery, time: Float) {
+    fun update(controller: Controller, query: MolangContext, time: Float) {
         try {
             nodes.forEach {
                 it.transform.set(it.baseTransform)
                 controller.update(it, query, time)
             }
-            controller.updateProcedural(this, query)
         } catch (e: Exception) {
             HollowCore.LOGGER.error("Error while updating animations!", e)
             controller.layers.clear()

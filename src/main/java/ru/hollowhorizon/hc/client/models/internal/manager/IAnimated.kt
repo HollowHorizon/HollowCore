@@ -137,7 +137,6 @@ class AddOnceLayerPacket(
 
             exit(animState.name, transition)
         }.build(), referencePose))
-        controller.recompile()
     }
 }
 

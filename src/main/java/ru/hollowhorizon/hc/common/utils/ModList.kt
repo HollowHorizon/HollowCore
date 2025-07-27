@@ -70,7 +70,7 @@ object ModList {
         //? if fabric {
         return FabricLoader.getInstance().getModFile(modId)
         //?} elif forge || neoforge {
-        /*// Не уже ли так сложно просто дать нормальный путь к файлу...
+        /*// Неужели так сложно просто дать нормальный путь к файлу...
         val path = ModList.get().getModFileById(modId).file.filePath
         return getAsFile(path, modId).first()
         *///?}

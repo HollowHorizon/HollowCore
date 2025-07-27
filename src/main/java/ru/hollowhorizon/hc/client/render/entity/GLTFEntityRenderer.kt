@@ -45,7 +45,6 @@ import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
-import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
 import ru.hollowhorizon.hc.common.utils.rl
 
 open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
@@ -86,7 +85,7 @@ open class GLTFEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         val controller = capability.controller
         controller.uploadAnimations(model.animations)
         model.update(
-            controller, EntityQuery(entity),
+            controller, capability.molangContext,
             (entity.tickCount + partialTick) / 20f
         )
 

@@ -37,6 +37,7 @@ import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.HollowCapability
 import ru.hollowhorizon.hc.common.coroutines.coroutineScope
 import ru.hollowhorizon.hc.common.utils.isPhysicalClient
+import ru.hollowhorizon.hc.common.utils.molang.runtime.MolangContext
 import ru.hollowhorizon.hc.common.utils.rl
 
 @HollowCapability(IAnimated::class)
@@ -53,33 +54,17 @@ class AnimatedEntityCapability : CapabilityInstance() {
     ) { new, old ->
         if(!isPhysicalClient) return@syncable
         Minecraft.getInstance().coroutineScope.launch {
-            var recompile = false
             new.layers.find { it.name == Controller.AUTOMATIC_LAYER }?.let {
                 if (model == GLTFEntityRenderer.NO_MODEL) return@let
                 val model = GltfManager.getOrCreate(model.rl)
                 val stateMachine = AutoController.create(StateMachineBuilder(), AnimationType.load(model.model))
                 it.stateMachine = stateMachine.build()
-                recompile = true
             }
-            new.layers.find { it.name == "__HeadLayer__" }?.let { layer ->
-                layer.stateMachine = StateMachineBuilder().apply {
-                    state("HeadState") {
-                        procedural {
-                            onEvaluate {
-                                it.setBoneRotation(layer.mask.includes.first(), "q.head_rot")
-                            }
-                        }
-                    }
 
-                    transition("*", "HeadState") {
-                        duration(0.25f)
-                    }
-                }.build()
-                recompile = true
-            }
-            if (recompile) new.recompile()
             new.transferFrom(old)
         }
     }
+
+    val molangContext by lazy { MolangContext(provider) }
 }
 

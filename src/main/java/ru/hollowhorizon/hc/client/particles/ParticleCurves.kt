@@ -1,11 +1,11 @@
 package ru.hollowhorizon.hc.client.particles
 
-import ru.hollowhorizon.hc.common.objects.molang.MolangContext
-import ru.hollowhorizon.hc.common.objects.molang.Variables
 import ru.hollowhorizon.hc.client.particles.file.BedrockParticleFile
 import ru.hollowhorizon.hc.client.utils.math.bezier
 import ru.hollowhorizon.hc.client.utils.math.catmullRom
 import ru.hollowhorizon.hc.client.utils.math.lerp
+import ru.hollowhorizon.hc.common.objects.molang.MolangContext
+import ru.hollowhorizon.hc.common.objects.molang.Variables
 
 class CurveVariables(
     private val context: () -> MolangContext,

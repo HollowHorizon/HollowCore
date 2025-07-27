@@ -10,21 +10,42 @@ internal fun optimizeConstants(ast: AstFloat): AstFloat {
             val left = optimizeConstants(ast.left)
             val right = optimizeConstants(ast.right)
 
-            if (left is NumberLiteral && right is NumberLiteral) {
-                when (ast.op) {
-                    Token.Type.ADD -> NumberLiteral(left.value + right.value)
-                    Token.Type.SUB -> NumberLiteral(left.value - right.value)
-                    Token.Type.MUL -> NumberLiteral(left.value * right.value)
-                    Token.Type.DIV -> if (right.value != 0f) NumberLiteral(left.value / right.value) else error("Division by zero!")
-                    Token.Type.MOD -> if (right.value != 0f) NumberLiteral(left.value % right.value) else error("Division by zero!")
-                    else -> error("Unsupported operation ${ast.op}!")
+            when {
+                left is NumberLiteral && right is NumberLiteral -> {
+                    when (ast.op) {
+                        Token.Type.ADD -> NumberLiteral(left.value + right.value)
+                        Token.Type.SUB -> NumberLiteral(left.value - right.value)
+                        Token.Type.MUL -> NumberLiteral(left.value * right.value)
+                        Token.Type.DIV -> if (right.value != 0f) NumberLiteral(left.value / right.value) else error("Division by zero!")
+                        Token.Type.MOD -> if (right.value != 0f) NumberLiteral(left.value % right.value) else error("Division by zero!")
+                        else -> error("Unsupported operation ${ast.op}!")
+                    }
                 }
-            } else {
-                BinaryOp(left, ast.op, right)
+                left is NumberLiteral && left.value == 0f -> {
+                    when (ast.op) {
+                        Token.Type.ADD -> right
+                        Token.Type.SUB -> BinaryOp(left, ast.op, right)
+                        Token.Type.MUL -> NumberLiteral(0f)
+                        Token.Type.DIV -> NumberLiteral(0f)
+                        Token.Type.MOD -> NumberLiteral(0f)
+                        else -> error("Unsupported operation ${ast.op}!")
+                    }
+                }
+                right is NumberLiteral && right.value == 0f -> {
+                    when (ast.op) {
+                        Token.Type.ADD -> left
+                        Token.Type.SUB -> left
+                        Token.Type.MUL -> NumberLiteral(0f)
+                        Token.Type.DIV -> error("Division by zero!")
+                        Token.Type.MOD -> error("Division by zero!")
+                        else -> error("Unsupported operation ${ast.op}!")
+                    }
+                }
+                else -> BinaryOp(left, ast.op, right)
             }
         }
 
-        is FunctionCall -> optimizeConstants(MolangFuntions.resolve(ast.name, ast.args))
+        is FunctionCall -> FunctionCall(ast.name, ast.args.map { optimizeConstants(it) })
         is Conditional -> {
             val condition = optimizeBooleanConstants(ast.condition)
 
@@ -39,26 +60,12 @@ internal fun optimizeConstants(ast: AstFloat): AstFloat {
                 )
             }
         }
-
-        is RuntimeCall -> {
-            val optimizedArgs = ast.args.map(::optimizeConstants)
-            if (optimizedArgs.all { it is NumberLiteral }) {
-                try {
-                    val values = optimizedArgs.map { (it as NumberLiteral).value }
-                    NumberLiteral(ast.impl(values))
-                } catch (e: Exception) {
-                    RuntimeCall(ast.name, optimizedArgs, ast.impl)
-                }
-            } else {
-                RuntimeCall(ast.name, optimizedArgs, ast.impl)
-            }
-        }
     }
 }
 
 internal fun optimizeBooleanConstants(ast: AstBoolean): AstBoolean {
     return when (ast) {
-        is BoolLiteral -> ast
+        is BoolLiteral, is VariableAccess -> ast
         is CompareOp -> {
             val left = optimizeConstants(ast.left)
             val right = optimizeConstants(ast.right)

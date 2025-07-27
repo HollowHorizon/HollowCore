@@ -46,7 +46,7 @@ import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
-import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
+import ru.hollowhorizon.hc.common.utils.molang.runtime.MolangContext
 import ru.hollowhorizon.hc.common.utils.rl
 
 
@@ -85,7 +85,7 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
 
         model.update(
             capability.controller,
-            EntityQuery(Minecraft.getInstance().player!!),
+            capability.molangContext,
             TickHandler.time / 20f
         )
 
