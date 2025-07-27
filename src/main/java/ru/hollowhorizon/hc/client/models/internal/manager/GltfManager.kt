@@ -24,12 +24,9 @@
 
 package ru.hollowhorizon.hc.client.models.internal.manager
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.texture.AbstractTexture
-import net.minecraft.client.renderer.texture.TextureAtlas
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.resources.ResourceManager
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener
@@ -65,12 +62,20 @@ object GltfManager : ResourceManagerReloadListener {
     }
 
     fun getOrCreate(location: ResourceLocation) = models.computeIfAbsent(location) { model ->
-        AnimatedModel(runBlocking { loadModel(model) }.apply(Model::initGl))
+        AnimatedModel(runBlocking { loadModel(model) }?.apply(Model::initGl) ?: error("Failed to load $location!"))
     }
 
-    suspend fun loadModel(location: ResourceLocation): Model =
-        loaders.find { location.path.substringAfter('.') in it.supportedFormats }?.load(location)
+    suspend fun loadModel(location: ResourceLocation): Model? {
+        val loader = loaders.find { location.path.substringAfter('.') in it.supportedFormats }
             ?: error("No suitable model loader found for ${location.path}")
+
+        try {
+            return loader.load(location)
+        } catch (e: Exception) {
+            HollowCore.LOGGER.warn("Model $location failed to load!", e)
+            return null
+        }
+    }
 
     private fun createSkinningProgramGL33() {
         val glShader = GL20.glCreateShader(GL20.GL_VERTEX_SHADER)
@@ -94,11 +99,9 @@ object GltfManager : ResourceManagerReloadListener {
             val time = measureTime {
                 val supportedFormats = loaders.flatMap { it.supportedFormats }.toSet()
                 val loaded =
-                    manager.listResources("models") { it.path.substringAfter('.') in supportedFormats }.keys.map { location ->
-                            async {
-                                location to AnimatedModel(loadModel(location))
-                            }
-                        }.awaitAll().toMap()
+                    manager.listResources("models") { it.path.substringAfter('.') in supportedFormats }.keys.mapNotNull { location ->
+                        loadModel(location)?.let { location to AnimatedModel(it) }
+                    }.toMap()
 
                 models.putAll(loaded)
             }
@@ -173,9 +176,9 @@ class RegisterModelLoaderEvent(private val loaders: MutableList<ModelLoader>) : 
 @SubscribeEvent
 fun registerModelLoaders(event: RegisterModelLoaderEvent) {
     event.register(GltfModelLoader)
-    //event.register(ObjModelLoader)
-    //event.register(FbxModelLoader)
-    //event.register(BedrockModelLoader)
+    event.register(ObjModelLoader)
+    event.register(FbxModelLoader)
+    event.register(BedrockModelLoader)
 }
 
 fun create(data: ByteArray) = create(data, 0, data.size)
