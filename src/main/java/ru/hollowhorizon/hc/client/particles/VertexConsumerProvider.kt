@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.GameRenderer
 import net.minecraft.client.renderer.RenderType
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL33
-import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.HollowModelManager
 import ru.hollowhorizon.hc.client.particles.file.BedrockParticleFile
 
 interface VertexConsumerProvider {
@@ -20,7 +20,7 @@ object ParticleVertexConsumerProvider : VertexConsumerProvider {
 
         val prevCull = GL11.glIsEnabled(GL11.GL_CULL_FACE)
         RenderSystem.setShaderTexture(0, texture.id)
-        RenderSystem.setShaderTexture(2, GltfManager.lightTexture.id)
+        RenderSystem.setShaderTexture(2, HollowModelManager.lightTexture.id)
         val old = RenderSystem.getShader()
         RenderSystem.setShader(GameRenderer::getParticleShader)
 

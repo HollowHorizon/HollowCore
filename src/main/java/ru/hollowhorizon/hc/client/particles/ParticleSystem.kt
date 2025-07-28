@@ -2,20 +2,19 @@ package ru.hollowhorizon.hc.client.particles
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
+import de.fabmax.kool.math.QuatF
+import de.fabmax.kool.math.Vec3f
 import net.minecraft.world.level.Level
 import org.joml.Matrix4f
-import org.joml.Vector3f
-import ru.hollowhorizon.hc.common.objects.molang.MolangQueryEntity
-import ru.hollowhorizon.hc.common.objects.molang.MolangQueryTime
 import ru.hollowhorizon.hc.client.particles.collision.CollisionProvider
 import ru.hollowhorizon.hc.client.particles.collision.WorldCollisionProvider
 import ru.hollowhorizon.hc.client.particles.file.BedrockParticleFile
 import ru.hollowhorizon.hc.client.particles.light.LightProvider
 import ru.hollowhorizon.hc.client.particles.light.WorldLightProvider
-import ru.hollowhorizon.hc.client.utils.math.Quaternion
 import ru.hollowhorizon.hc.client.utils.math.rotateBy
 import ru.hollowhorizon.hc.client.utils.math.rotateSelfBy
 import ru.hollowhorizon.hc.client.utils.use
+import ru.hollowhorizon.hc.common.utils.molang.runtime.Query
 import java.util.*
 
 class ParticleSystem(
@@ -23,8 +22,8 @@ class ParticleSystem(
     val collisionProvider: CollisionProvider,
     val lightProvider: LightProvider,
 ) {
-    private val timeSource = MolangQueryTime.GLFW_TIME
-    private var lastUpdate = timeSource.time
+    private val timeSource = Query.GLFW_TIME
+    private var lastUpdate = timeSource.anim_time
 
     internal val emitters = mutableListOf<ParticleEmitter>()
     val billboardRenderPasses = mutableMapOf<ParticleEffect.RenderPass, MutableSet<BedrockParticle>>()
@@ -48,20 +47,20 @@ class ParticleSystem(
 
     fun spawn(
         effect: BedrockParticleFile,
-        entity: MolangQueryEntity = MolangQueryEntity.EMPTY,
-        transform: Transform = entity.transform,
+        entity: Query = Query.EMPTY,
+        transform: Transform = Transform.Zero,
     ) = spawn(ParticleEffect.fromFile(effect), entity, transform)
 
     fun spawn(
         effect: ParticleEffect,
-        entity: MolangQueryEntity = MolangQueryEntity.EMPTY,
-        transform: Transform = entity.transform,
+        query: Query = Query.EMPTY,
+        transform: Transform = Transform.Zero,
     ): ParticleEmitter {
         val emitter =
-            ParticleEmitter(this, effect, entity, transform.position, transform.rotation, transform.velocity, transform)
+            ParticleEmitter(this, effect, query, transform.position, transform.rotation, transform.velocity, transform)
         emitters.add(emitter)
 
-        val dt = (lastUpdate - timeSource.time).coerceAtLeast(0f)
+        val dt = (lastUpdate - timeSource.anim_time).coerceAtLeast(0f)
         emitter.startLoop(dt)
 
         emitter.update(dt)
@@ -70,7 +69,7 @@ class ParticleSystem(
     }
 
     fun update() {
-        val now = timeSource.time
+        val now = timeSource.anim_time
         val dt = now - lastUpdate
         lastUpdate = now
 
@@ -82,16 +81,15 @@ class ParticleSystem(
 
     fun render(
         stack: PoseStack,
-        cameraPos: Vector3f,
-        cameraRot: Quaternion,
+        cameraPos: Vec3f,
+        cameraRot: QuatF,
         particleVertexConsumerProvider: VertexConsumerProvider,
         cameraUuid: UUID,
         isFirstPerson: Boolean,
     ) = stack.use {
         mulPoseMatrix(Matrix4f().translate(-cameraPos.x, -cameraPos.y, -cameraPos.z))
-        //translate(-cameraPos.x, -cameraPos.y, -cameraPos.z)
 
-        val cameraFacing = Vector3f(0f, 0f, -1f).rotateBy(cameraRot)
+        val cameraFacing = Vec3f(0f, 0f, -1f).rotateBy(cameraRot)
         for ((renderPass, particles) in billboardRenderPasses.entries.sortedBy { it.key.material.needsSorting }) {
             particleVertexConsumerProvider.provide(renderPass) { vertexConsumer ->
                 drawParticles(
@@ -114,9 +112,9 @@ class ParticleSystem(
         particles: MutableSet<BedrockParticle>,
         stack: PoseStack,
         vertexConsumer: VertexConsumer,
-        cameraPos: Vector3f,
-        cameraRot: Quaternion,
-        facing: Vector3f,
+        cameraPos: Vec3f,
+        cameraRot: QuatF,
+        facing: Vec3f,
         uuid: UUID,
         isFirstPersion: Boolean,
         sort: Boolean = false,
@@ -131,14 +129,14 @@ class ParticleSystem(
 
     private fun calculateDistance(
         particles: MutableSet<BedrockParticle>,
-        cameraPos: Vector3f,
-        cameraRot: Quaternion,
+        cameraPos: Vec3f,
+        cameraRot: QuatF,
     ) {
         particles.forEach { particle ->
             particle.prepareBillboard(cameraPos, cameraRot)
 
-            val billboardNormal = Vector3f(0f, 0f, -1f).rotateSelfBy(particle.billboardRotation)
-            particle.distance = cameraPos.sub(particle.billboardPosition).dot(billboardNormal)
+            val billboardNormal = Vec3f(0f, 0f, -1f).rotateSelfBy(particle.billboardRotation)
+            particle.distance = cameraPos.minus(particle.billboardPosition).dot(billboardNormal)
         }
     }
 

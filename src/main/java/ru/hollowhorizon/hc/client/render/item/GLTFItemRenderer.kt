@@ -38,12 +38,10 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.EntityBlock
 import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.models.internal.ModelData
-import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.internal.controller.Controller
-import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.HollowModelManager
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
-import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
+import ru.hollowhorizon.hc.client.render.entity.HollowEntityRenderer
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
@@ -74,9 +72,9 @@ object GLTFItemRenderer : BlockEntityWithoutLevelRenderer(
 
         val capability = state[AnimatedEntityCapability::class]
         val modelPath = capability.model
-        if (modelPath == GLTFEntityRenderer.NO_MODEL) return
+        if (modelPath == HollowEntityRenderer.NO_MODEL) return
 
-        val model = GltfManager.getOrCreate(modelPath.rl)
+        val model = HollowModelManager.getOrCreate(modelPath.rl)
 
         stack.pushPose()
 

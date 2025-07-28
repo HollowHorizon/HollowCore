@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.client.particles.light
 
-import org.joml.Vector3f
+import de.fabmax.kool.math.Vec3f
 
 fun interface LightProvider {
-    fun query(pos: Vector3f): Int
+    fun query(pos: Vec3f): Int
 }

@@ -38,19 +38,17 @@ import net.minecraft.world.level.block.entity.BlockEntity
 import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.internal.ModelData
-import ru.hollowhorizon.hc.client.models.internal.animations.AnimationType
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.HollowModelManager
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
-import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
+import ru.hollowhorizon.hc.client.render.entity.HollowEntityRenderer
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
-import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
 import ru.hollowhorizon.hc.common.utils.rl
 
 
-class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Context) :
+class HollowBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Context) :
     BlockEntityRenderer<T> where T : BlockEntity, T : IAnimated {
     override fun render(
         entity: T,
@@ -64,9 +62,9 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
         if (entity.isRemoved) return
         val capability = entity[AnimatedEntityCapability::class]
         val modelPath = capability.model
-        if (modelPath == GLTFEntityRenderer.NO_MODEL) return
+        if (modelPath == HollowEntityRenderer.NO_MODEL) return
 
-        val model = GltfManager.getOrCreate(modelPath.rl)
+        val model = HollowModelManager.getOrCreate(modelPath.rl)
 
         stack.pushPose()
 
@@ -85,7 +83,7 @@ class GLTFBlockEntityRenderer<T>(val pContext: BlockEntityRendererProvider.Conte
 
         model.update(
             capability.controller,
-            EntityQuery(Minecraft.getInstance().player!!),
+            capability.molangContext,
             TickHandler.time / 20f
         )
 

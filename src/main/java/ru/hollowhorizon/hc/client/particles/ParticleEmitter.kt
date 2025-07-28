@@ -1,32 +1,34 @@
 package ru.hollowhorizon.hc.client.particles
 
-import org.joml.Vector3f
+import de.fabmax.kool.math.MutableVec3f
+import de.fabmax.kool.math.QuatF
+import de.fabmax.kool.math.Vec3f
 import ru.hollowhorizon.hc.client.audio.SoundBuffer
 import ru.hollowhorizon.hc.client.audio.SoundPlayer
-import ru.hollowhorizon.hc.common.objects.molang.MolangContext
-import ru.hollowhorizon.hc.common.objects.molang.MolangQuery
-import ru.hollowhorizon.hc.common.objects.molang.MolangQueryEntity
-import ru.hollowhorizon.hc.common.objects.molang.VariablesMap
 import ru.hollowhorizon.hc.client.particles.file.BedrockParticleFile
-import ru.hollowhorizon.hc.client.utils.math.Quaternion
 import ru.hollowhorizon.hc.client.utils.math.rotateBy
 import ru.hollowhorizon.hc.client.utils.math.rotateSelfBy
+import ru.hollowhorizon.hc.common.utils.molang.compiler.eval
+import ru.hollowhorizon.hc.common.utils.molang.runtime.MolangContext
+import ru.hollowhorizon.hc.common.utils.molang.runtime.Query
+import ru.hollowhorizon.hc.common.utils.molang.runtime.Variables
+import ru.hollowhorizon.hc.common.utils.molang.runtime.VariablesMap
 
 class ParticleEmitter(
     val system: ParticleSystem,
     val effect: ParticleEffect,
-    val sourceEntity: MolangQueryEntity,
-    var position: Vector3f,
-    var rotation: Quaternion,
-    var velocity: Vector3f,
+    val sourceEntity: Query,
+    var position: Vec3f,
+    var rotation: QuatF,
+    var velocity: Vec3f,
     val transform: Transform?,
-    val offset: Vector3f? = null,
+    val offset: Vec3f? = null,
 ) {
     val particles = arrayListOf<BedrockParticle>()
     private val components = effect.components
     private val curveVariables = CurveVariables({ context }, effect.curves)
     private val variables = VariablesMap().fallbackBackTo(curveVariables)
-    val context: MolangContext = MolangContext(MolangQuery.Empty, variables)
+    val context: MolangContext = MolangContext(Query.EMPTY, variables)
 
     init {
         variables["entity_scale"] = 1f
@@ -94,7 +96,7 @@ class ParticleEmitter(
         components.emitterInitialization?.perUpdateExpression?.eval(context)
 
         transform?.let {
-            position = it.position.add(offset?.rotateBy(rotation) ?: Vector3f())
+            position = it.position.add(offset?.rotateBy(rotation) ?: Vec3f.ZERO, MutableVec3f())
             rotation = it.rotation
             velocity = it.velocity
 
@@ -220,7 +222,7 @@ class ParticleEmitter(
                     rotation,
                     particle?.globalVelocity ?: velocity,
                     transform,
-                    particle?.globalPosition?.sub(transform.position)?.rotateSelfBy(transform.rotation.invert())
+                    particle?.globalPosition?.minus(transform.position)?.rotateSelfBy(transform.rotation.inverted())
                         ?: offset,
                 )
             } else {
@@ -229,7 +231,7 @@ class ParticleEmitter(
                     targetEffect,
                     sourceEntity,
                     particle?.globalPosition ?: position,
-                    Quaternion.Identity,
+                    QuatF.IDENTITY,
                     particle?.globalVelocity ?: velocity,
                     null,
                     null,

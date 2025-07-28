@@ -40,10 +40,10 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.internal.animations.Animation
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationLoader
 import ru.hollowhorizon.hc.client.models.internal.controller.Controller
-import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.HollowModelManager
 import ru.hollowhorizon.hc.client.utils.shouldOverrideShaders
 import ru.hollowhorizon.hc.common.registry.ModShaders
-import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
+import ru.hollowhorizon.hc.common.utils.molang.runtime.MolangContext
 
 
 typealias NodeRenderer = (LivingEntity, PoseStack, Node, MultiBufferSource, Int) -> Unit
@@ -62,13 +62,12 @@ class AnimatedModel(val model: Model) {
     val nodes = model.walkNodes()
     var visuals: NodeRenderer = { _, _, _, _, _ -> }
 
-    fun update(controller: Controller, query: EntityQuery, time: Float) {
+    fun update(controller: Controller, query: MolangContext, time: Float) {
         try {
             nodes.forEach {
                 it.transform.set(it.baseTransform)
                 controller.update(it, query, time)
             }
-            controller.updateProcedural(this, query)
         } catch (e: Exception) {
             HollowCore.LOGGER.error("Error while updating animations!", e)
             controller.layers.clear()
@@ -111,7 +110,7 @@ class AnimatedModel(val model: Model) {
 
         GlStateManager._activeTexture(GL33.GL_TEXTURE2)
         val texture2 = GlStateManager.TEXTURES[GlStateManager.activeTexture].binding
-        GlStateManager._bindTexture(GltfManager.lightTexture.id)
+        GlStateManager._bindTexture(HollowModelManager.lightTexture.id)
         GlStateManager._activeTexture(GL33.GL_TEXTURE1)
         val texture1 = GlStateManager.TEXTURES[GlStateManager.activeTexture].binding
         Minecraft.getInstance().gameRenderer.overlayTexture().setupOverlayColor()
@@ -142,7 +141,7 @@ class AnimatedModel(val model: Model) {
     }
 
     private fun transformSkinning() {
-        GL33.glUseProgram(GltfManager.glProgramSkinning)
+        GL33.glUseProgram(HollowModelManager.glProgramSkinning)
         GL33.glEnable(GL33.GL_RASTERIZER_DISCARD)
         model.scenes.forEach { it.transformSkinning() }
         GL33.glBindBuffer(GL33.GL_TEXTURE_BUFFER, 0)

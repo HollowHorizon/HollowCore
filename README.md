@@ -15,23 +15,43 @@ HollowCore is a minecraft modding library by <a href="https://github.com/HollowH
 ## Features
 
 ### Integration with ModLoaders
+
 - [x] Universal Registration system to register blocks, items, block entities, etc. using kotlin delegates.
 - [x] Universal Packet system with automatic serialization and registration using annotations.
-- [x] Universal Capabilities system to storing nbt in entities, block entities and worlds. 
+- [x] Universal Capabilities system to storing nbt in entities, block entities and worlds.
 - [x] Universal EventBus system for all modloaders and basic events.
 
 ### Easier development
+
 - [x] Automatic models generation for blocks and items using embed resourcepack.
-- [x] NBT serialization and deserialization of any objects using Kotlinx.Serialization.
+- [x] KotlinX Serializers
+    - [x] NBT Format Support
+    - [x] FriendlyByteBuf Format Support
+    - [x] Json Format Support
+    - [x] Cbor Format Support
 - [x] Toml Config system based on KotlinX Serialization.
 - [x] HollowCore bypass forge's module system, that allow to use identical libraries in different mods.
+- [x] Multiblocks patterns support.
 
 ### Graphics
-- [x] Kool-based Gui gramework with support for slots, containers, etc. 
-- [x] GLTF model loader with skeletal animations, skinning, morph targets, PBR materials with Iris/Oculus support.
+
+- [x] Kool-based Gui gramework with support for slots, containers, etc.
+- [x] Universal Model Loader with Iris / Oculus support.
+    - [x] glTF (Skeletal Animations, Skinning, Morph Targets, PBR Materials)
+    - [x] Wavefront .obj (Basic Mesh, MTL Materials)
+    - [x] ASII + Binary FBX (Only geometry & materials for now)
+    - [x] Bedrock Json (Only geometry & materials for now)
+- [x] Molang Compiler for animation controllers.
 - [x] Bedrock particles support.
 - [x] MP3, OGG, WAV Sound formats support.
-- [ ] FBX models support.
-- [ ] BlockBench models + Molang animations format support.
-- [ ] OBJ models support.
 - [ ] Particles instancing.
+
+### Miscellaneous
+
+- [x] Attaching your own annotation processors.
+- [x] Interpolations, Splines, Math, etc.
+- [x] VoxelShape generation and rotation by block's json model.
+- [x] Basic Command DSL.
+- [x] Kotlin Coroutines linked to the game world.
+- [x] Binding items and blocks to tags.
+- [x] Configuring loot tables in code.

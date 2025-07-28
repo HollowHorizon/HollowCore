@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability;
-import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer;
+import ru.hollowhorizon.hc.client.render.entity.HollowEntityRenderer;
 import ru.hollowhorizon.hc.common.events.EventBus;
 import ru.hollowhorizon.hc.common.events.client.render.RenderPlayerEvent;
 import ru.hollowhorizon.hc.common.utils.ForgeKotlinKt;
@@ -34,7 +34,7 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
 
     @Inject(method = "getRenderOffset(Lnet/minecraft/client/player/AbstractClientPlayer;F)Lnet/minecraft/world/phys/Vec3;", at = @At("HEAD"), cancellable = true)
     private void onRenderOffset(AbstractClientPlayer entity, float partialTicks, CallbackInfoReturnable<Vec3> cir) {
-        if (!ForgeKotlinKt.get(entity, AnimatedEntityCapability.class).getModel().equals(GLTFEntityRenderer.NO_MODEL)) {
+        if (!ForgeKotlinKt.get(entity, AnimatedEntityCapability.class).getModel().equals(HollowEntityRenderer.NO_MODEL)) {
             cir.setReturnValue(super.getRenderOffset(entity, partialTicks));
         }
     }

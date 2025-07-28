@@ -9,20 +9,13 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
 import kotlinx.serialization.serializer
 import ru.hollowhorizon.hc.client.utils.math.Interpolation
-import ru.hollowhorizon.hc.client.utils.stream
-import ru.hollowhorizon.hc.common.objects.molang.MolangExpression
-import ru.hollowhorizon.hc.common.objects.molang.MolangVec3
-import ru.hollowhorizon.hc.common.objects.molang.parseMolangExpression
-import ru.hollowhorizon.hc.common.utils.json.JsonFormat
+import ru.hollowhorizon.hc.common.utils.molang.compiler.FloatExpr
+import ru.hollowhorizon.hc.common.utils.molang.compiler.FloatVec3Expr
+import ru.hollowhorizon.hc.common.utils.molang.compiler.parseMolangExpression
 import ru.hollowhorizon.hc.common.utils.nbt.ListOrSingle
 import ru.hollowhorizon.hc.common.utils.nbt.TreeMap
-import ru.hollowhorizon.hc.common.utils.rl
 
-fun main() {
-    val animation =
-        JsonFormat.decodeFromStream<BedrockAnimationFile>("hollowcore:models/entity/bedrock/model.animation.json".rl.stream)
-    println(animation)
-}
+
 
 @Serializable
 data class BedrockAnimationFile(
@@ -47,7 +40,7 @@ data class BedrockAnimationFile(
             val effect: String,
             val locator: String? = null,
             @SerialName("pre_effect_script")
-            val preEffectScript: MolangExpression? = null,
+            val preEffectScript: FloatExpr? = null,
         )
 
         @Serializable
@@ -120,8 +113,8 @@ data class Keyframes(
 
 @Serializable(with = KeyframeSerializer::class)
 data class Keyframe(
-    val pre: MolangVec3,
-    val post: MolangVec3,
+    val pre: FloatVec3Expr,
+    val post: FloatVec3Expr,
     /** Sections around the keyframe are interpolated using Catmull-Rom splines instead of linear interpolation. */
     val smooth: Interpolation,
 )
@@ -143,18 +136,18 @@ internal object KeyframeSerializer : KSerializer<Keyframe> {
     override fun serialize(encoder: Encoder, value: Keyframe) = throw UnsupportedOperationException()
 
     private fun parse(json: JsonElement): Keyframe = with(json) {
-        fun JsonElement.parseMolangVector(): MolangVec3 = if (this is JsonArray) {
+        fun JsonElement.parseMolangVector(): FloatVec3Expr = if (this is JsonArray) {
             if (size == 3) {
-                MolangVec3(
+                FloatVec3Expr(
                     (get(0) as JsonPrimitive).parseMolangExpression(),
                     (get(1) as JsonPrimitive).parseMolangExpression(),
                     (get(2) as JsonPrimitive).parseMolangExpression()
                 )
             } else {
-                (get(0) as JsonPrimitive).parseMolangExpression().let { MolangVec3(it, it, it) }
+                (get(0) as JsonPrimitive).parseMolangExpression().let { FloatVec3Expr(it, it, it) }
             }
         } else {
-            (this as JsonPrimitive).parseMolangExpression().let { MolangVec3(it, it, it) }
+            (this as JsonPrimitive).parseMolangExpression().let { FloatVec3Expr(it, it, it) }
         }
         if (this is JsonObject) {
             val pre = get("pre")?.parseMolangVector()

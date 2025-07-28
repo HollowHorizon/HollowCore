@@ -27,62 +27,68 @@ package ru.hollowhorizon.hc.client.render.entity
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.MultiBufferSource
+import net.minecraft.client.renderer.entity.EntityRenderer
+import net.minecraft.client.renderer.entity.EntityRendererProvider
 import net.minecraft.client.renderer.texture.OverlayTexture
+import net.minecraft.client.renderer.texture.TextureManager
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.util.Mth
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemDisplayContext
 import org.joml.Quaternionf
 import ru.hollowhorizon.hc.client.models.internal.ModelData
 import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.HollowModelManager
+import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
-import ru.hollowhorizon.hc.common.utils.molang.EntityQuery
 import ru.hollowhorizon.hc.common.utils.rl
-import ru.hollowhorizon.hc.fabric.internal.IrisHelper
 
-object GLTFPlayerRenderer {
-    private val itemInHandRenderer = Minecraft.getInstance().gameRenderer.itemInHandRenderer
+open class HollowEntityRenderer<T>(manager: EntityRendererProvider.Context) :
+    EntityRenderer<T>(manager) where T : LivingEntity, T : IAnimated {
+    private val itemInHandRenderer = manager.itemInHandRenderer
 
-    fun render(
-        entity: Player,
+    override fun getTextureLocation(entity: T): ResourceLocation {
+        return TextureManager.INTENTIONAL_MISSING_TEXTURE
+    }
+
+    @Suppress("DEPRECATION")
+    override fun render(
+        entity: T,
+        yaw: Float,
         partialTick: Float,
         stack: PoseStack,
         source: MultiBufferSource,
         packedLight: Int,
     ) {
+        super.render(entity, yaw, partialTick, stack, source, packedLight)
+
         val capability = entity[AnimatedEntityCapability::class]
         val modelPath = capability.model
-        if (modelPath == GLTFEntityRenderer.NO_MODEL) return
+        if (modelPath == NO_MODEL) return
 
-        val model = GltfManager.getOrCreate(modelPath.rl)
+        val model = HollowModelManager.getOrCreate(modelPath.rl)
 
         stack.pushPose()
-
         stack.mulPoseMatrix(capability.transform.matrix)
         stack.last().normal().mul(capability.transform.normalMatrix)
         if(model.model.isBlockBench) stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
+
 
         val lerpBodyRot = Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot)
         stack.mulPose(Quaternionf().rotateY(-lerpBodyRot * Mth.DEG_TO_RAD))
 
         model.visuals = ::drawVisuals
-
-        // Без этого от 1 лица не будет обновляться тень
-        IrisHelper.bypassShadow = Minecraft.getInstance().options.cameraType.isFirstPerson
         val controller = capability.controller
         controller.uploadAnimations(model.animations)
         model.update(
-            controller, EntityQuery(entity),
+            controller, capability.molangContext,
             (entity.tickCount + partialTick) / 20f
         )
-        IrisHelper.bypassShadow = false
-    
+
         model.render(
             stack,
             ModelData(entity.offhandItem, entity.mainHandItem, itemInHandRenderer, entity),
@@ -98,20 +104,11 @@ object GLTFPlayerRenderer {
             packedLight,
             OverlayTexture.pack(0, if (entity.hurtTime > 0 || !entity.isAlive) 3 else 10)
         )
-//
-//        capability.subModels.forEach { (node, child) ->
-//            model.nodes[node]?.let {
-//                stack.use {
-//                    stack.mulPoseMatrix(it.globalMatrix)
-//                    GltfEntityUtil.render(entity, child, entity.tickCount, partialTick, stack, source, packedLight)
-//                }
-//            }
-//        }
 
         stack.popPose()
     }
 
-    private fun drawVisuals(
+    protected open fun drawVisuals(
         entity: LivingEntity,
         stack: PoseStack,
         node: Node,
@@ -145,5 +142,10 @@ object GLTFPlayerRenderer {
 
             stack.popPose()
         }
+    }
+
+    companion object {
+        const val NO_MODEL = "%NO_MODEL%"
+        const val MOVEMENT_FACTOR = (1 / 256f)
     }
 }

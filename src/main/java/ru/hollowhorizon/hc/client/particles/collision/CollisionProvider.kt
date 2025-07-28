@@ -1,11 +1,11 @@
 package ru.hollowhorizon.hc.client.particles.collision
 
-import org.joml.Vector3f
+import de.fabmax.kool.math.Vec3f
 
 fun interface CollisionProvider {
-    fun query(pos: Vector3f, size: Float, offset: Vector3f): Pair<Vector3f, Vector3f>?
+    fun query(pos: Vec3f, size: Float, offset: Vec3f): Pair<Vec3f, Vec3f>?
 
     object None : CollisionProvider {
-        override fun query(pos: Vector3f, size: Float, offset: Vector3f): Pair<Vector3f, Vector3f>? = null
+        override fun query(pos: Vec3f, size: Float, offset: Vec3f): Pair<Vec3f, Vec3f>? = null
     }
 }

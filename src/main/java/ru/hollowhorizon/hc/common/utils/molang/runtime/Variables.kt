@@ -1,59 +1,6 @@
-package ru.hollowhorizon.hc.common.objects.molang
+package ru.hollowhorizon.hc.common.utils.molang.runtime
 
-import org.lwjgl.glfw.GLFW
-import ru.hollowhorizon.hc.client.particles.Transform
-import java.util.*
-import kotlin.random.Random
 import kotlin.reflect.KProperty
-
-class MolangContext(
-    val query: MolangQuery,
-    val variables: Variables = VariablesMap(),
-)
-
-interface MolangQuery {
-    object Empty : MolangQuery
-}
-
-interface MolangQueryRandom : MolangQuery {
-    val random: Random
-}
-
-interface MolangQueryAnimation : MolangQuery {
-    val animTime: Float
-    val animLoopTime: Float
-}
-
-interface MolangQueryTime : MolangQuery {
-    val time: Float
-
-    companion object {
-        val GLFW_TIME = object : MolangQueryTime {
-            override val time: Float get() = GLFW.glfwGetTime().toFloat()
-        }
-    }
-}
-
-interface MolangQueryEntity : MolangQuery, MolangQueryTime {
-    val lifeTime: Float
-    val modifiedDistanceMoved: Float
-    val modifiedMoveSpeed: Float
-    val transform: Transform
-    val uuid: UUID?
-
-    override val time: Float
-        get() = lifeTime
-
-    companion object {
-        val EMPTY = object : MolangQueryEntity {
-            override val lifeTime = 0f
-            override val modifiedDistanceMoved = 0f
-            override val modifiedMoveSpeed: Float = 0f
-            override val transform = Transform.Zero
-            override val uuid: UUID? = null
-        }
-    }
-}
 
 interface Variables {
     fun getOrNull(name: String): Variable?

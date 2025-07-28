@@ -1,21 +1,20 @@
 package ru.hollowhorizon.hc.client.particles.collision
 
+import de.fabmax.kool.math.Vec3f
 import net.minecraft.core.Direction
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.AABB
-import org.joml.Vector3f
-import ru.hollowhorizon.hc.client.utils.math.times
 import kotlin.math.abs
 
 class WorldCollisionProvider(private val world: Level) : CollisionProvider {
-    override fun query(pos: Vector3f, size: Float, offset: Vector3f): Pair<Vector3f, Vector3f>? = query(
+    override fun query(pos: Vec3f, size: Float, offset: Vec3f): Pair<Vec3f, Vec3f>? = query(
         AABB(
             (pos.x - size).toDouble(), (pos.y - size).toDouble(), (pos.z - size).toDouble(),
             (pos.x + size).toDouble(), (pos.y + size).toDouble(), (pos.z + size).toDouble(),
         ), offset
     )
 
-    private fun query(inputBB: AABB, offset: Vector3f): Pair<Vector3f, Vector3f>? {
+    private fun query(inputBB: AABB, offset: Vec3f): Pair<Vec3f, Vec3f>? {
         val expandedBB = inputBB.expandTowards(offset.x.toDouble(), offset.y.toDouble(), offset.z.toDouble())
         val collisions = world.getCollisions(null, expandedBB)
         if (collisions.any()) return null
@@ -83,11 +82,11 @@ class WorldCollisionProvider(private val world: Level) : CollisionProvider {
             if (minFraction <= 0.001 || iteration > 3) {
                 val axisVec = minAxis.vec
                 val normal = if (minAxis.get(offset) > 0) axisVec.times(-1f) else axisVec
-                return offset.sub(remaining) to normal
+                return offset.minus(remaining) to normal
             }
 
             val safeOffset = remaining.times(minFraction - 0.0001f)
-            remaining = remaining.sub(safeOffset)
+            remaining = remaining.minus(safeOffset)
             currentBB = currentBB.move(safeOffset.x.toDouble(), safeOffset.y.toDouble(), safeOffset.z.toDouble())
             primaryAxis = minAxis
             iteration++
@@ -95,7 +94,7 @@ class WorldCollisionProvider(private val world: Level) : CollisionProvider {
         return null
     }
 
-    private fun selectPrimaryAxis(offset: Vector3f): Axis {
+    private fun selectPrimaryAxis(offset: Vec3f): Axis {
         return when {
             abs(offset.x) > abs(offset.y) && abs(offset.x) > abs(offset.z) -> Axis.X
             abs(offset.y) > abs(offset.z) -> Axis.Y
@@ -103,7 +102,7 @@ class WorldCollisionProvider(private val world: Level) : CollisionProvider {
         }
     }
 
-    private fun calculateSafeFraction(x: Double, y: Double, z: Double, offset: Vector3f): Pair<Float, Axis> {
+    private fun calculateSafeFraction(x: Double, y: Double, z: Double, offset: Vec3f): Pair<Float, Axis> {
         val xFraction = x.toFloat() / offset.x.safe()
         val yFraction = y.toFloat() / offset.y.safe()
         val zFraction = z.toFloat() / offset.z.safe()
@@ -120,14 +119,14 @@ class WorldCollisionProvider(private val world: Level) : CollisionProvider {
     private enum class Axis {
         X, Y, Z;
 
-        val vec: Vector3f
+        val vec: Vec3f
             get() = when (this) {
-                X -> Vector3f(1f, 0f, 0f)
-                Y -> Vector3f(0f, 1f, 0f)
-                Z -> Vector3f(0f, 0f, 1f)
+                X -> Vec3f(1f, 0f, 0f)
+                Y -> Vec3f(0f, 1f, 0f)
+                Z -> Vec3f(0f, 0f, 1f)
             }
 
-        fun get(vec: Vector3f): Float = get(vec.x, vec.y, vec.z)
+        fun get(vec: Vec3f): Float = get(vec.x, vec.y, vec.z)
 
         fun get(x: Float, y: Float, z: Float): Float =
             when (this) {

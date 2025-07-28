@@ -24,18 +24,18 @@
 
 package ru.hollowhorizon.hc.client.render
 
+import de.fabmax.kool.math.QuatF
+import de.fabmax.kool.math.Vec3f
 import net.minecraft.client.CameraType
 import net.minecraft.client.Minecraft
-import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
 import ru.hollowhorizon.hc.client.gui.DebugOverlay
 import ru.hollowhorizon.hc.client.kool.KoolManager
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.HollowModelManager
 import ru.hollowhorizon.hc.client.particles.ParticleVertexConsumerProvider
-import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
-import ru.hollowhorizon.hc.client.render.entity.GLTFPlayerRenderer
-import ru.hollowhorizon.hc.client.utils.math.Quaternion
+import ru.hollowhorizon.hc.client.render.entity.HollowEntityRenderer
+import ru.hollowhorizon.hc.client.render.entity.CustomPlayerRenderer
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.client.render.RenderLevelStageEvent
 import ru.hollowhorizon.hc.common.events.client.render.RenderPlayerEvent
@@ -44,7 +44,7 @@ import ru.hollowhorizon.hc.common.utils.get
 
 object RenderManager {
     fun onInitialize() {
-        GltfManager.initialize()
+        HollowModelManager.initialize()
         KoolManager
         DebugOverlay.init()
     }
@@ -70,8 +70,8 @@ object RenderManager {
         val isFirstPerson = Minecraft.getInstance().options.cameraType == CameraType.FIRST_PERSON
         system.render(
             event.poseStack,
-            Vector3f(position.x.toFloat(), position.y.toFloat(), position.z.toFloat()),
-            Quaternion(cameraRotMc.x(), cameraRotMc.y(), cameraRotMc.z(), cameraRotMc.w()),
+            Vec3f(position.x.toFloat(), position.y.toFloat(), position.z.toFloat()),
+            QuatF(cameraRotMc.x(), cameraRotMc.y(), cameraRotMc.z(), cameraRotMc.w()),
             ParticleVertexConsumerProvider,
             cameraUuid,
             isFirstPerson
@@ -80,9 +80,9 @@ object RenderManager {
 
     @SubscribeEvent
     fun onRenderPlayer(event: RenderPlayerEvent) {
-        if(event.player[AnimatedEntityCapability::class].model != GLTFEntityRenderer.NO_MODEL) {
+        if(event.player[AnimatedEntityCapability::class].model != HollowEntityRenderer.NO_MODEL) {
             event.isCanceled = true
-            GLTFPlayerRenderer.render(event.player, event.partialTicks, event.poseStack, event.buffer, event.packedLight)
+            CustomPlayerRenderer.render(event.player, event.partialTicks, event.poseStack, event.buffer, event.packedLight)
         }
     }
 }
