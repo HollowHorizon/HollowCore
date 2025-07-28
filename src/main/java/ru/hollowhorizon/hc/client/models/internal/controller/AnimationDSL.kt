@@ -492,6 +492,7 @@ data class BlendTree(
     val nodes: List<BlendNode>,
     private val smoothingTime: Float = 0f,
 ) {
+    @Transient
     private val factor = MolangCompiler.compileFloat(function)
 
     private val keys = nodes.map { it.threshold }.toFloatArray()
@@ -611,6 +612,7 @@ data class ClipNode(
     val wrap: WrapMode,
     private val function: String,
 ) {
+    @Transient
     private val speed = MolangCompiler.compileFloat(function)
 
     private var pausedAnimTime: Float = 0f
