@@ -10,9 +10,9 @@ object Math {
     val pi = Mth.PI
 
     @JvmStatic
-    fun cos(value: Float) = Mth.cos(value)
+    fun cos(value: Float) = Mth.cos(value* Mth.DEG_TO_RAD)
     @JvmStatic
-    fun sin(value: Float) = Mth.sin(value)
+    fun sin(value: Float) = Mth.sin(value* Mth.DEG_TO_RAD)
     @JvmStatic
     fun floor(value: Float) = Mth.floor(value)
     @JvmStatic

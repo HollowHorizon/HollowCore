@@ -52,7 +52,7 @@ import java.nio.ByteOrder
 import kotlin.time.measureTime
 
 
-object GltfManager : ResourceManagerReloadListener {
+object HollowModelManager : ResourceManagerReloadListener {
     lateinit var lightTexture: AbstractTexture
     private val models = HashMap<ResourceLocation, AnimatedModel>()
     var glProgramSkinning = -1

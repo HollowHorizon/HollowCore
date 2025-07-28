@@ -26,11 +26,8 @@ package ru.hollowhorizon.hc.client
 
 import com.mojang.blaze3d.systems.RenderSystem
 import de.fabmax.kool.math.Vec2f
-import de.fabmax.kool.modules.ksl.KslShader
-import de.fabmax.kool.modules.ksl.lang.KslProgram
 import de.fabmax.kool.modules.ui2.*
 import de.fabmax.kool.modules.ui2.docking.UiDockable
-import de.fabmax.kool.pipeline.FullscreenShaderUtil.fullscreenQuadVertexStage
 import de.fabmax.kool.pipeline.FullscreenShaderUtil.generateFullscreenQuad
 import de.fabmax.kool.pipeline.shading.BlurShader
 import de.fabmax.kool.pipeline.shading.BlurShaderConfig
@@ -44,10 +41,10 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.kool.*
 import ru.hollowhorizon.hc.client.kool.minecraft.Image
 import ru.hollowhorizon.hc.client.kool.minecraft.ImageManager
-import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.HollowModelManager
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.render.RenderManager
-import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
+import ru.hollowhorizon.hc.client.render.entity.HollowEntityRenderer
 import ru.hollowhorizon.hc.client.utils.HollowPack
 import ru.hollowhorizon.hc.client.utils.open
 import ru.hollowhorizon.hc.common.events.ClientOnly
@@ -72,7 +69,7 @@ object HollowCoreClient {
 
     @SubscribeEvent
     fun onRegisterReloadListener(event: RegisterReloadListenersEvent.Client) {
-        event.register(GltfManager)
+        event.register(HollowModelManager)
         event.register(BedrockParticles)
         event.register(ImageManager)
     }
@@ -143,6 +140,6 @@ object HollowCoreClient {
 
     @SubscribeEvent
     fun onEntityRegister(event: RegisterEntityRenderersEvent) {
-        event.registerEntity(ModEntities.TEST_ENTITY, ::GLTFEntityRenderer)
+        event.registerEntity(ModEntities.TEST_ENTITY, ::HollowEntityRenderer)
     }
 }

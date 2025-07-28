@@ -198,8 +198,8 @@ class BedrockParticle(
         }
 
         components.particleMotionDynamic?.let { config ->
-            val linearAcceleration = config.linearAcceleration.eval(molang)
-            linearAcceleration.add(Vec3f(velocity).mul(-config.linearDragCoefficient.eval(molang), MutableVec3f()), MutableVec3f())
+            var linearAcceleration = config.linearAcceleration.eval(molang)
+            linearAcceleration = linearAcceleration.add(Vec3f(velocity).mul(-config.linearDragCoefficient.eval(molang), MutableVec3f()), MutableVec3f())
             if (!move(dt, linearAcceleration)) return false
 
             var rotAcceleration = config.rotationAcceleration.eval(molang)
@@ -235,9 +235,9 @@ class BedrockParticle(
     }
 
     private fun move(dt: Float, acceleration: Vec3f, iteration: Int = 0, sliding: Boolean = false): Boolean {
-        val offset = Vec3f(velocity)
-        offset.add(Vec3f(acceleration).mul(0.5f * dt, MutableVec3f()), MutableVec3f())
-        offset.mul(dt, MutableVec3f())
+        var offset = Vec3f(velocity)
+        offset = offset.add(Vec3f(acceleration).mul(0.5f * dt, MutableVec3f()), MutableVec3f())
+        offset = offset.mul(dt, MutableVec3f())
 
         val config = components.particleMotionCollision
         if (config == null) {

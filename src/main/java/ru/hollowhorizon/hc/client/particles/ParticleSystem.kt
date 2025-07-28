@@ -22,7 +22,7 @@ class ParticleSystem(
     val collisionProvider: CollisionProvider,
     val lightProvider: LightProvider,
 ) {
-    private val timeSource = Query.EMPTY
+    private val timeSource = Query.GLFW_TIME
     private var lastUpdate = timeSource.anim_time
 
     internal val emitters = mutableListOf<ParticleEmitter>()

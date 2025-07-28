@@ -44,7 +44,8 @@ class Parser(private val tokens: List<Token>) {
 
             FunctionCall(path.joinToString("."), args)
         } else {
-            VariableAccess(path)
+            if(path[0]=="variable" || path[0] == "v") VariableAccess(path.drop(1))
+            else VariableAccess(path)
         }
     }
 

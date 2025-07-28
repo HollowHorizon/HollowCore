@@ -1,13 +1,13 @@
 package ru.hollowhorizon.hc.common.utils.molang.runtime
 
-import de.fabmax.kool.math.Vec3f
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.animal.FlyingAnimal
 import net.minecraft.world.level.block.entity.BlockEntity
+import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.models.internal.controller.calculateSpeedViaDeltaMovement
-import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer.Companion.MOVEMENT_FACTOR
+import ru.hollowhorizon.hc.client.render.entity.HollowEntityRenderer.Companion.MOVEMENT_FACTOR
 import ru.hollowhorizon.hc.common.utils.molang.runtime.Math.abs
 
 interface Query {
@@ -30,13 +30,17 @@ interface Query {
     val is_on_ground: Boolean get() = true
     val head_x_rotation: Float get() = 0f
     val head_y_rotation: Float get() = 0f
-    val anim_time: Float get() = TickHandler.time
+    val anim_time: Float get() = 0f
     val life_time: Float get() = 0f
     val modified_distance_moved: Float get() = 0f
     val modified_move_speed: Float get() = 0f
 
     companion object {
         val EMPTY = object : Query {}
+        val GLFW_TIME = object: Query {
+            override val anim_time: Float
+                get() = GLFW.glfwGetTime().toFloat()
+        }
     }
 }
 

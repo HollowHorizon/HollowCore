@@ -32,7 +32,7 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import net.minecraft.world.entity.LivingEntity
 import ru.hollowhorizon.hc.api.ParticlesProvider
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
-import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.HollowModelManager
 import ru.hollowhorizon.hc.client.particles.BedrockParticles
 import ru.hollowhorizon.hc.client.particles.ParticleEffect
 import ru.hollowhorizon.hc.client.particles.Transform
@@ -98,7 +98,7 @@ object HollowCommands {
 
                 "player-model"(
                     arg("model", StringArgumentType.string()) {
-                        (GltfManager.allModels.map { it.toString() } + "%NO_MODEL%").map { '"' + it + '"' }
+                        (HollowModelManager.allModels.map { it.toString() } + "%NO_MODEL%").map { '"' + it + '"' }
                     }
                 ) {
                     source.player?.let {
@@ -108,10 +108,10 @@ object HollowCommands {
 
                 "model"(
                     arg("model", StringArgumentType.string()) {
-                        (GltfManager.allModels.map { it.toString() }).map { '"' + it + '"' }
+                        (HollowModelManager.allModels.map { it.toString() }).map { '"' + it + '"' }
                     }
                 ) {
-                    val model = GltfManager.getOrCreate(StringArgumentType.getString(this, "model").rl)
+                    val model = HollowModelManager.getOrCreate(StringArgumentType.getString(this, "model").rl)
 
                     source.player?.let { player ->
                         player.sendSystemMessage("Animations:".literal)

@@ -96,7 +96,7 @@ fun QuatF.Companion.fromRotationMatrix(m: Mat3f): QuatF = with(m) {
 inline fun <T> Vec3f.rotateBy(q: QuatF, out: (Float, Float, Float) -> T): T =
     with(q * QuatF(x, y, z, 0f) * q.conjugate()) { out(x, y, z) }
 
-fun QuatF.conjugate() = QuatF(-x, -y, -z, -w)
+fun QuatF.conjugate() = QuatF(-x, -y, -z, w)
 
 fun Vec3f.floor() = Vec3f(kotlin.math.floor(x), kotlin.math.floor(y), kotlin.math.floor(z))
 fun Vec3f.rotateBy(q: QuatF) = rotateBy(q, ::Vec3f)

@@ -32,7 +32,7 @@ import ru.hollowhorizon.hc.client.models.internal.controller.AutoController
 import ru.hollowhorizon.hc.client.models.internal.controller.Controller
 import ru.hollowhorizon.hc.client.models.internal.controller.StateMachineBuilder
 import ru.hollowhorizon.hc.client.models.internal.controller.animationController
-import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
+import ru.hollowhorizon.hc.client.render.entity.HollowEntityRenderer
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.capabilities.HollowCapability
 import ru.hollowhorizon.hc.common.coroutines.coroutineScope
@@ -55,8 +55,8 @@ class AnimatedEntityCapability : CapabilityInstance() {
         if(!isPhysicalClient) return@syncable
         Minecraft.getInstance().coroutineScope.launch {
             new.layers.find { it.name == Controller.AUTOMATIC_LAYER }?.let {
-                if (model == GLTFEntityRenderer.NO_MODEL) return@let
-                val model = GltfManager.getOrCreate(model.rl)
+                if (model == HollowEntityRenderer.NO_MODEL) return@let
+                val model = HollowModelManager.getOrCreate(model.rl)
                 val stateMachine = AutoController.create(StateMachineBuilder(), AnimationType.load(model.model))
                 it.stateMachine = stateMachine.build()
             }

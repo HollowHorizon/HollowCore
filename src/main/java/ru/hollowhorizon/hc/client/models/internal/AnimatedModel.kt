@@ -40,7 +40,7 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.internal.animations.Animation
 import ru.hollowhorizon.hc.client.models.internal.animations.AnimationLoader
 import ru.hollowhorizon.hc.client.models.internal.controller.Controller
-import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
+import ru.hollowhorizon.hc.client.models.internal.manager.HollowModelManager
 import ru.hollowhorizon.hc.client.utils.shouldOverrideShaders
 import ru.hollowhorizon.hc.common.registry.ModShaders
 import ru.hollowhorizon.hc.common.utils.molang.runtime.MolangContext
@@ -110,7 +110,7 @@ class AnimatedModel(val model: Model) {
 
         GlStateManager._activeTexture(GL33.GL_TEXTURE2)
         val texture2 = GlStateManager.TEXTURES[GlStateManager.activeTexture].binding
-        GlStateManager._bindTexture(GltfManager.lightTexture.id)
+        GlStateManager._bindTexture(HollowModelManager.lightTexture.id)
         GlStateManager._activeTexture(GL33.GL_TEXTURE1)
         val texture1 = GlStateManager.TEXTURES[GlStateManager.activeTexture].binding
         Minecraft.getInstance().gameRenderer.overlayTexture().setupOverlayColor()
@@ -141,7 +141,7 @@ class AnimatedModel(val model: Model) {
     }
 
     private fun transformSkinning() {
-        GL33.glUseProgram(GltfManager.glProgramSkinning)
+        GL33.glUseProgram(HollowModelManager.glProgramSkinning)
         GL33.glEnable(GL33.GL_RASTERIZER_DISCARD)
         model.scenes.forEach { it.transformSkinning() }
         GL33.glBindBuffer(GL33.GL_TEXTURE_BUFFER, 0)
