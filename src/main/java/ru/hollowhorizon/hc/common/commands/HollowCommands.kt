@@ -25,11 +25,11 @@
 package ru.hollowhorizon.hc.common.commands
 
 import com.mojang.brigadier.arguments.StringArgumentType
+import de.fabmax.kool.math.Vec3f
 import net.minecraft.client.Minecraft
 import net.minecraft.commands.arguments.EntityArgument
 import net.minecraft.commands.arguments.coordinates.Vec3Argument
 import net.minecraft.world.entity.LivingEntity
-import org.joml.Vector3f
 import ru.hollowhorizon.hc.api.ParticlesProvider
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
@@ -38,9 +38,9 @@ import ru.hollowhorizon.hc.client.particles.ParticleEffect
 import ru.hollowhorizon.hc.client.particles.Transform
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.registry.RegisterCommandsEvent
-import ru.hollowhorizon.hc.common.objects.molang.asMolang
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.literal
+import ru.hollowhorizon.hc.common.utils.molang.runtime.LivingEntityQuery
 import ru.hollowhorizon.hc.common.utils.rl
 
 object HollowCommands {
@@ -62,7 +62,7 @@ object HollowCommands {
 
                     (Minecraft.getInstance().level as ParticlesProvider).system.spawn(
                         ParticleEffect.fromFile(BedrockParticles.PARTICLES[particle.rl] ?: error("Particle not found")),
-                        transform = Transform.create(Vector3f(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())),
+                        transform = Transform.create(Vec3f(pos.x.toFloat(), pos.y.toFloat(), pos.z.toFloat())),
                     )
                 }
 
@@ -78,7 +78,7 @@ object HollowCommands {
 
                     (Minecraft.getInstance().level as ParticlesProvider).system.spawn(
                         ParticleEffect.fromFile(BedrockParticles.PARTICLES[particle.rl] ?: error("Particle not found")),
-                        entity = (entity as LivingEntity).asMolang(),
+                        query = LivingEntityQuery(entity as LivingEntity),
                     )
                 }
 

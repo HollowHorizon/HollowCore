@@ -59,7 +59,8 @@ fun Project.setupEnviroment(
             maven("https://maven.parchmentmc.org")
             maven("https://maven.architectury.dev/")
             maven("https://jitpack.io")
-            maven("https://maven.neoforged.net/releases")
+            //maven("https://maven.neoforged.net/releases") 
+            maven("https://maven.nanite.dev/static/mirror/")
             maven("https://maven.fabricmc.net/")
             maven("https://cursemaven.com")
         }

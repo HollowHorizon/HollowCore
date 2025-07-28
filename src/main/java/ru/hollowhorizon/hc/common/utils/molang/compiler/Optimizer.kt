@@ -6,6 +6,9 @@ import ru.hollowhorizon.hc.common.utils.molang.parser.*
 internal fun optimizeConstants(ast: AstFloat): AstFloat {
     return when (ast) {
         is NumberLiteral, is VariableAccess -> ast
+        is Assignment -> {
+            Assignment(ast.variable, optimizeConstants(ast.expr))
+        }
         is BinaryOp -> {
             val left = optimizeConstants(ast.left)
             val right = optimizeConstants(ast.right)

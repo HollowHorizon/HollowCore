@@ -2,7 +2,7 @@ package ru.hollowhorizon.hc.common.utils.molang.lexer
 
 data class Token(val type: Type, val value: String, val position: Int) {
     enum class Type {
-        IDENTIFIER, NUMBER, BOOLEAN,
+        IDENTIFIER, ASSIGN, NUMBER, BOOLEAN,
         LPAREN, RPAREN, EOF,
         ADD, SUB, MUL, DIV, MOD,
         NOT, AND, OR, EQ, NEQ,

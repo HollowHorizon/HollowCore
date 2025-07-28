@@ -1,9 +1,10 @@
 package ru.hollowhorizon.hc.client.utils.math
 
-import org.joml.Matrix3f
-import org.joml.Matrix4f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import de.fabmax.kool.math.Mat3f
+import de.fabmax.kool.math.MutableVec3f
+import de.fabmax.kool.math.QuatF
+import de.fabmax.kool.math.Vec3f
+import kotlin.math.sqrt
 
 fun Float.lerp(other: Float, alpha: Float) = this + (other - this) * alpha
 
@@ -36,29 +37,83 @@ fun bezier(
     return abc.lerp(bcd, t)
 }
 
-inline fun <T> Vector3f.times(mat: Matrix3f, out: (Float, Float, Float) -> T) = out(
-    x * mat.m00 + y * mat.m01 + z * mat.m02,
-    x * mat.m10 + y * mat.m11 + z * mat.m12,
-    x * mat.m20 + y * mat.m21 + z * mat.m22,
-)
+fun QuatF.Companion.fromLookAt(lookAt: Vec3f, up: Vec3f): QuatF {
+    val z = MutableVec3f(0f, 0f, 0f).minus(lookAt).normed()
+    val x = up.cross(z, MutableVec3f()).norm()
+    val y = z.cross(x, MutableVec3f())
+    return fromRotationMatrix(
+        Mat3f(
+            x.x, y.x, z.x,
+            x.y, y.y, z.y,
+            x.z, y.z, z.z,
+        )
+    )
+}
 
-inline fun <T> Vector4f.times(mat: Matrix4f, out: (Float, Float, Float, Float) -> T) = out(
-    x * mat.m00() + y * mat.m01() + z * mat.m02() + w * mat.m03(),
-    x * mat.m10() + y * mat.m11() + z * mat.m12() + w * mat.m13(),
-    x * mat.m20() + y * mat.m21() + z * mat.m22() + w * mat.m23(),
-    x * mat.m30() + y * mat.m31() + z * mat.m32() + w * mat.m33(),
-)
+fun QuatF.Companion.fromRotationMatrix(m: Mat3f): QuatF = with(m) {
+    val trace = m00 + m11 + m22
+    if (trace >= 0) {
+        val r = sqrt(trace + 1f)
+        val s = 0.5f / r
+        return QuatF(
+            (m21 - m12) * s,
+            (m02 - m20) * s,
+            (m10 - m01) * s,
+            0.5f * r,
+        )
+    } else {
+        if (m00 >= m11 && m00 >= m22) {
+            val r = sqrt(m00 - (m11 + m22) + 1f)
+            val s = 0.5f / r
+            return QuatF(
+                0.5f * r,
+                (m10 + m01) * s,
+                (m02 + m20) * s,
+                (m21 - m12) * s,
+            )
+        } else if (m11 > m22) {
+            val r = sqrt(m11 - (m22 + m00) + 1f)
+            val s = 0.5f / r
+            return QuatF(
+                (m10 + m01) * s,
+                0.5f * r,
+                (m21 + m12) * s,
+                (m02 - m20) * s,
+            )
+        } else {
+            val r = sqrt(m22 - (m00 + m11) + 1f)
+            val s = 0.5f / r
+            return QuatF(
+                (m02 + m20) * s,
+                (m21 + m12) * s,
+                0.5f * r,
+                (m10 - m01) * s,
+            )
+        }
+    }
+}
 
-fun Vector3f.times(mat: Matrix3f) = times(mat, ::vec3)
-fun Vector3f.times(value: Float): Vector3f = mul(value)
-fun Vector4f.times(mat: Matrix4f) = times(mat, ::vec4)
+inline fun <T> Vec3f.rotateBy(q: QuatF, out: (Float, Float, Float) -> T): T =
+    with(q * QuatF(x, y, z, 0f) * q.conjugate()) { out(x, y, z) }
 
-fun vec3(x: Float, y: Float, z: Float) = Vector3f(x, y, z)
-fun vec4(x: Float, y: Float, z: Float, w: Float) = Vector4f(x, y, z, w)
+fun QuatF.conjugate() = QuatF(-x, -y, -z, -w)
 
-inline fun <T> Vector3f.rotateBy(q: Quaternion, out: (Float, Float, Float) -> T): T =
-    with(q * Quaternion(x, y, z, 0f) * q.conjugate()) { out(x, y, z) }
+fun Vec3f.floor() = Vec3f(kotlin.math.floor(x), kotlin.math.floor(y), kotlin.math.floor(z))
+fun Vec3f.rotateBy(q: QuatF) = rotateBy(q, ::Vec3f)
+fun Vec3f.rotateSelfBy(q: QuatF) = rotateBy(q, ::Vec3f)
+fun Vec3f.negate() = Vec3f(-x, -y, -z)
 
-fun Vector3f.rotateBy(q: Quaternion) = rotateBy(q, ::vec3)
-fun Vector3f.rotateSelfBy(q: Quaternion) = rotateBy(q, ::set)
+val QuatF.Companion.Y180: QuatF
+    get() = QuatF(0f, 1f, 0f, 0f)
 
+fun QuatF.opposite() = this * QuatF.Y180
+fun QuatF.projectAroundAxis(axis: Vec3f): QuatF {
+    val rotationAxis = Vec3f(x, y, z)
+    val projectedLength = axis.dot(rotationAxis)
+    val projectedAxis = axis.times(projectedLength)
+    return if (projectedLength > 0) {
+        QuatF(projectedAxis.x, projectedAxis.y, projectedAxis.z, w).normed()
+    } else {
+        QuatF(-projectedAxis.x, -projectedAxis.y, -projectedAxis.z, -w).normed()
+    }
+}

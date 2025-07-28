@@ -31,6 +31,14 @@ data class VariableAccess(val path: List<String>) : AstFloat, AstBoolean {
     }
 }
 
+data class Assignment(val variable: VariableAccess, val expr: AstFloat) : AstFloat {
+    override fun getFloat(query: Query, variables: Variables): Float {
+        val value = expr.getFloat(query, variables)
+        variables[variable.path.joinToString(".")] = value
+        return value
+    }
+}
+
 data class BinaryOp(val left: AstFloat, val op: Token.Type, val right: AstFloat) : AstFloat {
     val action: (Query, Variables) -> Float = when (op) {
         Token.Type.ADD -> { query, variables ->

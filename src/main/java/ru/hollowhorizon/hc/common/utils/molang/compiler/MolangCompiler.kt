@@ -1,8 +1,16 @@
 package ru.hollowhorizon.hc.common.utils.molang.compiler
 
+import de.fabmax.kool.math.Vec3f
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Label
@@ -12,8 +20,10 @@ import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.common.utils.molang.lexer.Lexer
 import ru.hollowhorizon.hc.common.utils.molang.lexer.Token
 import ru.hollowhorizon.hc.common.utils.molang.parser.*
+import ru.hollowhorizon.hc.common.utils.molang.runtime.MolangContext
 import ru.hollowhorizon.hc.common.utils.molang.runtime.Query
 import ru.hollowhorizon.hc.common.utils.molang.runtime.Variables
+import ru.hollowhorizon.hc.common.utils.molang.runtime.VariablesMap
 import java.beans.Introspector
 import java.beans.PropertyDescriptor
 import java.io.File
@@ -22,32 +32,63 @@ import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaGetter
 
-fun JsonPrimitive.parseMolangExpression() = MolangExpression(content)
+fun FloatExpr.eval(context: MolangContext) = getFloat(context.query, context.variables)
 
-@Serializable
-class MolangVec3(
-    private val expressionX: MolangExpression,
-    private val expressionY: MolangExpression,
-    private val expressionZ: MolangExpression,
-) {
+@Serializable(FloatExprSerializer::class)
+fun interface FloatExpr {
+    fun getFloat(query: Query, variables: Variables): Float
 
-    fun getX(query: Query, variables: Variables) = expressionX.getFloat(query, variables)
-    fun getY(query: Query, variables: Variables) = expressionY.getFloat(query, variables)
-    fun getZ(query: Query, variables: Variables) = expressionZ.getFloat(query, variables)
-}
-
-@Serializable
-class MolangExpression(private val expression: String) : FloatExpr {
-    @Transient
-    private val compiled = MolangCompiler.compileFloat(expression)
-
-    override fun getFloat(query: Query, variables: Variables): Float {
-        return compiled.getFloat(query, variables)
+    companion object {
+        fun literal(value: Float): FloatExpr = FloatExpr { _, _ -> value }
+        val ZERO = FloatExpr { _, _ -> 0f }
+        val ONE = FloatExpr { _, _ -> 1f }
     }
 }
 
-fun interface FloatExpr {
-    fun getFloat(query: Query, variables: Variables): Float
+@Serializable(FloatVec3ExprSerializer::class)
+class FloatVec3Expr(val x: FloatExpr, val y: FloatExpr, val z: FloatExpr) {
+    fun eval(context: MolangContext) = Vec3f(x.eval(context), y.eval(context), z.eval(context))
+
+    companion object {
+        val ZERO = FloatVec3Expr(FloatExpr.ZERO, FloatExpr.ZERO, FloatExpr.ZERO)
+        val UNIT_X = FloatVec3Expr(FloatExpr.ONE, FloatExpr.ZERO, FloatExpr.ZERO)
+        val UNIT_Y = FloatVec3Expr(FloatExpr.ZERO, FloatExpr.ONE, FloatExpr.ZERO)
+        val UNIT_Z = FloatVec3Expr(FloatExpr.ZERO, FloatExpr.ZERO, FloatExpr.ONE)
+    }
+}
+
+object FloatVec3ExprSerializer : KSerializer<FloatVec3Expr> {
+    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor
+    override fun deserialize(decoder: Decoder): FloatVec3Expr = parse((decoder as JsonDecoder).decodeJsonElement())
+    override fun serialize(encoder: Encoder, value: FloatVec3Expr) = throw UnsupportedOperationException()
+
+    private fun parse(json: JsonElement): FloatVec3Expr = when (json) {
+        is JsonArray -> {
+            val first = (json[0] as JsonPrimitive).parseMolangExpression()
+            val second = (json.getOrNull(1) as JsonPrimitive?)?.parseMolangExpression() ?: first
+            val third = (json.getOrNull(2) as JsonPrimitive?)?.parseMolangExpression() ?: second
+            FloatVec3Expr(first, second, third)
+        }
+        is JsonPrimitive -> when (json.content) {
+            "x" -> FloatVec3Expr.UNIT_X
+            "y" -> FloatVec3Expr.UNIT_Y
+            "z" -> FloatVec3Expr.UNIT_Z
+            else -> json.parseMolangExpression().let { FloatVec3Expr(it, it, it) }
+        }
+        else -> throw SerializationException("Expected array or primitive, got $json")
+    }
+}
+
+fun JsonPrimitive.parseMolangExpression() = MolangCompiler.compileFloat(content)
+
+object FloatExprSerializer: KSerializer<FloatExpr> {
+    override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor
+
+    override fun deserialize(decoder: Decoder): FloatExpr = parse((decoder as JsonDecoder).decodeJsonElement())
+    override fun serialize(encoder: Encoder, value: FloatExpr) =
+        throw UnsupportedOperationException("Molang serialization not supported yet!")
+
+    private fun parse(json: JsonElement): FloatExpr = (json as JsonPrimitive).parseMolangExpression()
 }
 
 fun interface BoolExpr {
@@ -85,11 +126,11 @@ object MolangCompiler {
         compile(Parser(Lexer(expression).tokenize()).parseFloatExpr())
     }
 
-    private fun compile(ast: AstBoolean): BoolExpr {
+    internal fun compile(ast: AstBoolean): BoolExpr {
         return ast as? BoolLiteral ?: codegenBoolean(ast)
     }
 
-    private fun compile(ast: AstFloat): FloatExpr {
+    internal fun compile(ast: AstFloat): FloatExpr {
         return ast as? NumberLiteral ?: codegenFloat(ast)
     }
 
@@ -154,6 +195,7 @@ object MolangCompiler {
 
         val bytecode = cw.toByteArray()
 
+        File("test.class").writeBytes(bytecode)
 
         val clazz = classLoader.defineClass(className, bytecode)
         val instance = clazz.getDeclaredConstructor().newInstance()
@@ -164,7 +206,21 @@ object MolangCompiler {
         when (ast) {
             is NumberLiteral -> mv.visitLdcInsn(ast.value)
             is VariableAccess -> generateVariableAccess(ast, mv, false)
-
+            is Assignment -> {
+                generateFloatExpression(mv, ast.expr)
+                mv.visitInsn(DUP)
+                mv.visitVarInsn(ALOAD, 2) // Загружаем variables
+                mv.visitInsn(SWAP)
+                mv.visitLdcInsn(ast.variable.path.joinToString("."))
+                mv.visitInsn(SWAP)
+                mv.visitMethodInsn(
+                    INVOKEINTERFACE,
+                    VARIABLES.internalName,
+                    "set",
+                    "(Ljava/lang/String;F)V",
+                    true
+                )
+            }
             is BinaryOp -> {
                 generateFloatExpression(mv, ast.left)
                 generateFloatExpression(mv, ast.right)
@@ -262,11 +318,11 @@ object MolangCompiler {
             mv.visitVarInsn(ALOAD, 2)
             mv.visitLdcInsn(ast.path.joinToString("."))
             mv.visitMethodInsn(
-                INVOKEVIRTUAL,
+                INVOKEINTERFACE,
                 VARIABLES.internalName,
                 "get",
                 "(Ljava/lang/String;)F",
-                false
+                true
             )
 
             if (isBoolean) {

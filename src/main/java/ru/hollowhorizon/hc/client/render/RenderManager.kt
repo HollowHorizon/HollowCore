@@ -24,6 +24,8 @@
 
 package ru.hollowhorizon.hc.client.render
 
+import de.fabmax.kool.math.QuatF
+import de.fabmax.kool.math.Vec3f
 import net.minecraft.client.CameraType
 import net.minecraft.client.Minecraft
 import org.joml.Vector3f
@@ -35,7 +37,6 @@ import ru.hollowhorizon.hc.client.models.internal.manager.GltfManager
 import ru.hollowhorizon.hc.client.particles.ParticleVertexConsumerProvider
 import ru.hollowhorizon.hc.client.render.entity.GLTFEntityRenderer
 import ru.hollowhorizon.hc.client.render.entity.GLTFPlayerRenderer
-import ru.hollowhorizon.hc.client.utils.math.Quaternion
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.client.render.RenderLevelStageEvent
 import ru.hollowhorizon.hc.common.events.client.render.RenderPlayerEvent
@@ -70,8 +71,8 @@ object RenderManager {
         val isFirstPerson = Minecraft.getInstance().options.cameraType == CameraType.FIRST_PERSON
         system.render(
             event.poseStack,
-            Vector3f(position.x.toFloat(), position.y.toFloat(), position.z.toFloat()),
-            Quaternion(cameraRotMc.x(), cameraRotMc.y(), cameraRotMc.z(), cameraRotMc.w()),
+            Vec3f(position.x.toFloat(), position.y.toFloat(), position.z.toFloat()),
+            QuatF(cameraRotMc.x(), cameraRotMc.y(), cameraRotMc.z(), cameraRotMc.w()),
             ParticleVertexConsumerProvider,
             cameraUuid,
             isFirstPerson

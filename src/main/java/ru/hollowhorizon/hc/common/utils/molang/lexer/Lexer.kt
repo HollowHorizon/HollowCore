@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.common.utils.molang.lexer
 
-class Lexer(private val input: String) {
+class Lexer(input: String) {
+    private val input = input.filter { it.isLetterOrDigit() || it in "._()+-*/%=<>!&|,?:" }
     private var position = 0
 
     private fun peek(offset: Int = 0): Char? = input.getOrNull(position + offset)
@@ -79,6 +80,7 @@ class Lexer(private val input: String) {
     private fun lexSymbol(): Token {
         val start = position
         return when (val first = advance()) {
+            '=' -> lexNextOrSingle(first, '=', Token.Type.EQ, Token.Type.ASSIGN, start)
             '+' -> Token(Token.Type.ADD, first.toString(), start)
             '-' -> Token(Token.Type.SUB, first.toString(), start)
             '*' -> Token(Token.Type.MUL, first.toString(), start)
@@ -119,7 +121,7 @@ class Lexer(private val input: String) {
             Token(doubleType, "$first$second", start)
         } else {
             if (singleType == null) {
-                error("Unexpected character after '$first' at position $position")
+                error("Unexpected character after '$first' at position $position in '$input'")
             }
             Token(singleType, first.toString(), start)
         }

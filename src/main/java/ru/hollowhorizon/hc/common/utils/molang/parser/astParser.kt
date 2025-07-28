@@ -159,13 +159,25 @@ class Parser(private val tokens: List<Token>) {
     }
 
     fun parseFloatExpr(): AstFloat {
-        val expr = parseLogicalOr()
-        return if (match(Token.Type.QUESTION)) {
+        var expr = parseLogicalOr()
+        expr = if (match(Token.Type.QUESTION)) {
             val thenExpr = parseFloatExpr()
             expect(Token.Type.COLON)
             val elseExpr = parseFloatExpr()
             Conditional(FloatToBool(expr), thenExpr, elseExpr)
-        } else optimizeConstants(expr)
+        } else expr
+
+        expr = if(peek()?.type == Token.Type.ASSIGN) {
+            if (expr is VariableAccess) {
+                advance() // Съедаем ASSIGN
+                val value = parseFloatExpr()
+                Assignment(expr, value)
+            } else {
+                error("Left-hand side of assignment must be a variable")
+            }
+        } else expr
+
+        return optimizeConstants(expr)
     }
 
     fun parseBooleanExpr(): AstBoolean {

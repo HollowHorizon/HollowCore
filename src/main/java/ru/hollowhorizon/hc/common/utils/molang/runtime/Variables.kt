@@ -1,27 +1,42 @@
 package ru.hollowhorizon.hc.common.utils.molang.runtime
 
-class Variables {
-    private val values = mutableMapOf<String, Float>()
+import kotlin.reflect.KProperty
 
-    init {
-        values["math.pi"] = Math.pi
-        values["pi"] = Math.pi
+interface Variables {
+    fun getOrNull(name: String): Variable?
+    fun getOrPut(name: String, initialValue: Float = 0f): Variable
+    operator fun get(name: String): Float = getOrNull(name)?.get() ?: Float.NaN
+    operator fun set(name: String, value: Float) = getOrPut(name).set(value)
+    fun fallbackBackTo(fallback: Variables): Variables = VariablesWithFallback(this, fallback)
+
+    interface Variable {
+        fun get(): Float
+        fun set(value: Float)
+
+        operator fun getValue(thisRef: Any?, property: KProperty<*>): Float = get()
+        operator fun setValue(thisRef: Any?, property: KProperty<*>, value: Float) = set(value)
     }
+}
 
-    operator fun get(name: String): Float = values[name.lowercase()] ?: error("Variable '$name' not found")
+class VariablesMap : Variables {
+    private val map = mutableMapOf<String, Variable>()
 
-    operator fun set(name: String, value: Float) {
-        values[name] = value
+    override fun getOrNull(name: String): Variables.Variable? = map[name]
+
+    override fun getOrPut(name: String, initialValue: Float): Variables.Variable =
+        map.getOrPut(name) { Variable(initialValue) }
+
+    private class Variable(var field: Float) : Variables.Variable {
+        override fun get(): Float = field
+        override fun set(value: Float) {
+            field = value
+        }
     }
+}
 
-    operator fun contains(name: String): Boolean =
-        values.containsKey(name)
+private class VariablesWithFallback(val primary: Variables, val fallback: Variables) : Variables {
+    override fun getOrNull(name: String): Variables.Variable? = primary.getOrNull(name) ?: fallback.getOrNull(name)
 
-    fun names(): Set<String> =
-        values.keys
-
-    override fun toString(): String =
-        values.entries.joinToString(
-            prefix = "Variables [", postfix = "]", separator = ", "
-        ) { "${it.key}=${it.value}" }
+    override fun getOrPut(name: String, initialValue: Float): Variables.Variable =
+        getOrNull(name) ?: primary.getOrPut(name, initialValue)
 }
