@@ -80,6 +80,7 @@ jobs:
             -d "$(jq -n \
               --arg title "✅ Новый релиз HollowCore v$VERSION опубликован!" \
               --arg url "${{ github.server_url }}/${{ github.repository }}/releases/tag/v$VERSION" \
+              --arg VERSION "$VERSION" \
               --arg commit "${{ github.sha }}" \
               --arg commitTitle "$COMMIT_TITLE" \
               --arg commitBody "$COMMIT_BODY" \
