@@ -22,7 +22,6 @@ data class BedrockAnimationFile(
     @SerialName("format_version")
     val formatVersion: String,
     val animations: Map<String, Animation> = emptyMap(),
-    val triggers: List<AnimationEvent> = emptyList(),
 ) {
     @Serializable
     data class Animation(
@@ -78,19 +77,6 @@ internal class LoopSerializer : KSerializer<BedrockAnimationFile.Loop> {
             }
         )
 }
-
-@Serializable
-data class AnimationEvent(
-    val type: AnimationEventType? = null,
-    val target: AnimationTarget? = null,
-    val name: String,
-    @SerialName("on_complete")
-    val onComplete: AnimationEvent? = null,
-    val probability: Float = 1f,
-    val skips: Int = 0,
-    val loops: Int = 0,
-    val priority: Int = 0,
-)
 
 @Serializable
 data class Channels(
@@ -164,33 +150,4 @@ internal object KeyframeSerializer : KSerializer<Keyframe> {
             parseMolangVector().let { Keyframe(it, it, Interpolation.LINEAR) }
         }
     }
-}
-
-enum class AnimationTarget {
-    SELF,
-    OTHERS,
-    ALL,
-}
-
-enum class AnimationEventType {
-    EQUIP,
-    JOIN_WORLD,
-    LEAVE_WORLD,
-    JUMP_START,
-    JUMP_END,
-    WALK_START,
-    WALK_END,
-    SWING,
-    SNEAK_START,
-    SNEAK_END,
-    FLY_ON,
-    FLY_OFF,
-    FLY_MOVE_START,
-    FLY_MOVE_END,
-    ON_DAMAGE,
-    TICK,
-    IDLE,
-    TEXTURE_ANIMATION_START,
-    EMOTE,
-    BY_OTHER, // triggered by other cosmetic animation event
 }

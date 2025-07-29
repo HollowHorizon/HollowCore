@@ -55,10 +55,8 @@ class ModelData(
     val entity: LivingEntity?,
 )
 
-class AnimatedModel(val model: Model) {
-    val animations: Map<String, Animation> = model.animations.associate {
-        (it.name ?: "Unnamed animation") to AnimationLoader.createAnimation(model, it)
-    }
+class AnimatedModel(val model: Model, val animations: Map<String, Animation> = mapOf()) {
+
     val nodes = model.walkNodes()
     var visuals: NodeRenderer = { _, _, _, _, _ -> }
 

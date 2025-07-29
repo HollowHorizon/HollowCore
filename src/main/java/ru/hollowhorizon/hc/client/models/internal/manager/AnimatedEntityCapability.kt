@@ -57,7 +57,7 @@ class AnimatedEntityCapability : CapabilityInstance() {
             new.layers.find { it.name == Controller.AUTOMATIC_LAYER }?.let {
                 if (model == HollowEntityRenderer.NO_MODEL) return@let
                 val model = HollowModelManager.getOrCreate(model.rl)
-                val stateMachine = AutoController.create(StateMachineBuilder(), AnimationType.load(model.model))
+                val stateMachine = AutoController.create(StateMachineBuilder(), AnimationType.load(model))
                 it.stateMachine = stateMachine.build()
             }
 

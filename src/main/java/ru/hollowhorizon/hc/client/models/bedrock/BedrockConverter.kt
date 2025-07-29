@@ -17,15 +17,19 @@ object BedrockModelLoader : ModelLoader {
 
     override val supportedFormats = setOf("geo.json")
 
-    override suspend fun load(location: ResourceLocation): Model {
-        return convert(JsonFormat.decodeFromStream<BedrockFile>(location.stream), location)
+    override suspend fun load(location: ResourceLocation): AnimatedModel {
+        val model = convert(JsonFormat.decodeFromStream<BedrockFile>(location.stream), location)
+
+        val animationFile = location.withPath(location.path.substringBefore('.')+".animation.json")
+        val animations = JsonFormat.decodeFromStream<BedrockAnimationFile>(animationFile.stream)
+        return AnimatedModel(model, BedrockAnimationConverter.convert(model, animations).associate { it.name to it })
     }
 
     fun convert(file: BedrockFile, location: ResourceLocation): Model {
 
 
-        return Model(0, file.geometries.map { Scene(it.convertNodes(location)) }, listOf(), setOf()).apply {
-            isBlockBench = true // Как бы это абсурдно не звучало, но Bedrock модели фиксить не надо...
+        return Model(0, file.geometries.map { Scene(it.convertNodes(location)) }, setOf()).apply {
+            isBlockBench = true
         }
     }
 

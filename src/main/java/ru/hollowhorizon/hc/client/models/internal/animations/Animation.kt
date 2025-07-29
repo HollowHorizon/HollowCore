@@ -29,13 +29,15 @@ import de.fabmax.kool.math.Vec3f
 import de.fabmax.kool.math.Vec4f
 import de.fabmax.kool.scene.TrsTransformF
 import kotlinx.serialization.Serializable
-import ru.hollowhorizon.hc.client.models.internal.Model
+import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
 import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.animations.interpolations.Interpolator
 
-class Animation(val name: String, private val animationData: Map<Node, AnimationData>) {
-    val duration = animationData.values.maxOf { it.duration }
-
+class Animation(
+    val name: String,
+    private val animationData: Map<Node, AnimationData>,
+    val duration: Float = animationData.values.maxOf { it.duration },
+) {
     val temp = TrsTransformF()
 
     fun compute(node: Node, currentTime: Float): TrsTransformF? {
@@ -97,8 +99,8 @@ enum class AnimationType {
         // @formatter:on
 
         @JvmStatic
-        fun load(model: Model): HashMap<AnimationType, String> {
-            val names = model.animations.mapNotNull { it.name }.toMutableList()
+        fun load(model: AnimatedModel): HashMap<AnimationType, String> {
+            val names = model.animations.keys.toMutableList()
             val result = hashMapOf<AnimationType, String>()
 
             // Утилиты поиска

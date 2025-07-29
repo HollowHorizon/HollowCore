@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.client.models.fbx
 
 import net.minecraft.resources.ResourceLocation
+import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
 import ru.hollowhorizon.hc.client.models.internal.Model
 import ru.hollowhorizon.hc.client.models.internal.manager.ModelLoader
 import ru.hollowhorizon.hc.client.models.util.startsWith
@@ -12,8 +13,8 @@ import java.nio.ByteOrder
 object FbxModelLoader: ModelLoader {
     override val supportedFormats = setOf("fbx")
 
-    override suspend fun load(location: ResourceLocation): Model {
-        return import(location).convert(location)
+    override suspend fun load(location: ResourceLocation): AnimatedModel {
+        return AnimatedModel(import(location).convert(location))
     }
 
     fun import(location: ResourceLocation): Document {

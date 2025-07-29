@@ -195,7 +195,6 @@ class OBJModel(private var location: ResourceLocation, private var mtlLocation: 
         val model = Model(
             scene = 0,
             scenes = listOf(Scene(objects.mapIndexed { i, it -> it.toNode(materials, vertices, normals, textures, i) })),
-            animations = listOf(),
             materials = materials.values.toSet()
         )
 

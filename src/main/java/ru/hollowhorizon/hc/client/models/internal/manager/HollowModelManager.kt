@@ -40,6 +40,7 @@ import ru.hollowhorizon.hc.client.models.fbx.FbxModelLoader
 import ru.hollowhorizon.hc.client.models.gltf.GltfModelLoader
 import ru.hollowhorizon.hc.client.models.internal.AnimatedModel
 import ru.hollowhorizon.hc.client.models.internal.Model
+import ru.hollowhorizon.hc.client.models.internal.animations.Animation
 import ru.hollowhorizon.hc.client.models.obj.ObjModelLoader
 import ru.hollowhorizon.hc.client.textures.GlTexture
 import ru.hollowhorizon.hc.client.utils.resource
@@ -62,10 +63,10 @@ object HollowModelManager : ResourceManagerReloadListener {
     }
 
     fun getOrCreate(location: ResourceLocation) = models.computeIfAbsent(location) { model ->
-        AnimatedModel(runBlocking { loadModel(model) }?.apply(Model::initGl) ?: error("Failed to load $location!"))
+        runBlocking { loadModel(model) }?.apply { this.model.initGl() } ?: error("Failed to load $location!")
     }
 
-    suspend fun loadModel(location: ResourceLocation): Model? {
+    suspend fun loadModel(location: ResourceLocation): AnimatedModel? {
         val loader = loaders.find { location.path.substringAfter('.') in it.supportedFormats }
             ?: error("No suitable model loader found for ${location.path}")
 
@@ -100,7 +101,7 @@ object HollowModelManager : ResourceManagerReloadListener {
                 val supportedFormats = loaders.flatMap { it.supportedFormats }.toSet()
                 val loaded =
                     manager.listResources("models") { it.path.substringAfter('.') in supportedFormats }.keys.mapNotNull { location ->
-                        loadModel(location)?.let { location to AnimatedModel(it) }
+                        loadModel(location)?.let { location to it }
                     }.toMap()
 
                 models.putAll(loaded)
@@ -156,7 +157,7 @@ object HollowModelManager : ResourceManagerReloadListener {
 interface ModelLoader {
     val supportedFormats: Set<String>
 
-    suspend fun load(location: ResourceLocation): Model
+    suspend fun load(location: ResourceLocation): AnimatedModel
 }
 
 class RegisterModelLoaderEvent(private val loaders: MutableList<ModelLoader>) : Event {

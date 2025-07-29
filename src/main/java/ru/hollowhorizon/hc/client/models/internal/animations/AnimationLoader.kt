@@ -34,10 +34,6 @@ import ru.hollowhorizon.hc.client.models.internal.animations.interpolations.*
 
 object AnimationLoader {
 
-    fun createAnimation(model: Model, name: String): Animation? {
-        return createAnimation(model, model.animations.find { it.name == name } ?: return null)
-    }
-
     @JvmStatic
     @Suppress("UNCHECKED_CAST")
     fun createAnimation(model: Model, animationModel: ru.hollowhorizon.hc.client.models.internal.Animation): Animation {
