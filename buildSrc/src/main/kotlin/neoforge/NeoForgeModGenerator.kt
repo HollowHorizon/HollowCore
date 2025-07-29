@@ -7,15 +7,14 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.register
-import stonecutter
 import java.io.File
 
 object NeoForgeModGenerator {
     fun generate(project: Project, modProject: ModProject) = project.tasks.register<Task>("generateFabricModJson") {
         val outputDir = project.layout.buildDirectory.dir("generated/resources/META-INF").get().asFile
-        val outputFile = File(outputDir, "mods.toml")
+        val outputFile = File(outputDir, "neoforge.mods.toml")
 
-        val minecraftVersion = project.stonecutter.minecraftVersion
+        val minecraftVersion = (project.extensions["stonecutter"] as StonecutterBuildExtension).minecraftVersion
 
         outputs.file(outputFile)
 

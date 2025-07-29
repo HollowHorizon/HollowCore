@@ -43,6 +43,5 @@ fun DependencyHandlerScope.modImplementation(dependency: String) = "modImplement
 
 val SourceSetContainer.main get() = named<SourceSet>("main")
 
-internal val Project.stonecutter get() = extensions["stonecutter"] as StonecutterBuildExtension
 val StonecutterBuildExtension.modPlatform get() = current.project.substringAfterLast('-')
 val StonecutterBuildExtension.minecraftVersion get() = current.project.substringBeforeLast('-')

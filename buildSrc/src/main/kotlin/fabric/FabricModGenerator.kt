@@ -1,6 +1,7 @@
 package fabric
 
 import ModProject
+import dev.kikugie.stonecutter.build.StonecutterBuildExtension
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -9,8 +10,8 @@ import kotlinx.serialization.json.encodeToStream
 import minecraftVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.register
-import stonecutter
 import java.io.File
 
 
@@ -25,7 +26,7 @@ object FabricModGenerator {
         val outputDir = project.layout.buildDirectory.dir("generated/resources").get().asFile
         val outputFile = File(outputDir, "fabric.mod.json")
 
-        val minecraftVersion = project.stonecutter.minecraftVersion
+        val minecraftVersion = (project.extensions["stonecutter"] as StonecutterBuildExtension).minecraftVersion
 
         outputs.file(outputFile)
 
