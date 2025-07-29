@@ -31,14 +31,6 @@ val container = ModProject(
 val kotlinVersion: String by properties
 val publications = ArrayList<Publication>()
 
-if (System.getenv("MAVEN_PASSWORD") != null) publications.add(
-    Publication(
-        "GitHubPackages",
-        "https://maven.pkg.github.com/HollowHorizon/$modName",
-        System.getenv("MAVEN_USER"),
-        System.getenv("MAVEN_PASSWORD")
-    )
-)
 if (System.getenv("MAVEN_PASSWORD_ZM") != null) publications.add(
     Publication(
         "ZeroModsMaven",
