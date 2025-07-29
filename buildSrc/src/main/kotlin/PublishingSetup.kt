@@ -41,24 +41,6 @@ object PublishingSetup {
                         }
                     }
                 }
-                if (System.getenv("MAVEN_PASSWORD") != null) maven {
-                    name = "GitHubPackages"
-                    url = project.uri("https://maven.pkg.github.com/HollowHorizon/${modProject.modName}")
-
-                    credentials {
-                        username = System.getenv("MAVEN_USER") // Имя пользователя
-                        password = System.getenv("MAVEN_PASSWORD") // Токен
-                    }
-                }
-                if (System.getenv("MAVEN_PASSWORD_ZM") != null) maven {
-                    name = "ZeroModsMaven"
-                    url = project.uri("https://maven.0mods.team/releases")
-
-                    credentials {
-                        username = System.getenv("MAVEN_USER_ZM") // Имя пользователя
-                        password = System.getenv("MAVEN_PASSWORD_ZM") // Токен
-                    }
-                }
                 mavenLocal()
             }
 
