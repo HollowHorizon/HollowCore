@@ -1,15 +1,7 @@
 package ru.hollowhorizon.hc.forge.internal
 
 //? if forge {
-
-/*//? if >=1.21 {
-/^import net.minecraft.core.component.DataComponentType
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.core.registries.Registries
-import net.minecraft.world.level.chunk.status.ChunkStatus
-^///?} elif >=1.20.1 {
-import net.minecraft.world.level.chunk.ChunkStatus
-//?}
+/*import net.minecraft.world.level.chunk.ChunkStatus
 import net.minecraft.commands.synchronization.ArgumentTypeInfo
 import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleType

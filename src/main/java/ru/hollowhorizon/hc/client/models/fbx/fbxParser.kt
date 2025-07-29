@@ -428,7 +428,7 @@ class Scope(parser: Parser, topLevel: Boolean = false) {
     operator fun get(index: String) = elements[index]?.get(0)
     fun getArray(index: String) = elements[index]!!
 
-    fun findElementCaseInsensitive(elementName: String) = elements[elementName.toLowerCase()]
+    fun findElementCaseInsensitive(elementName: String) = elements[elementName.lowercase()]
 
     fun getCollection(index: String) = elements[index] ?: arrayListOf()
 

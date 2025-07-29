@@ -23,7 +23,9 @@ fun calculateSpeedViaDeltaMovement(entity: LivingEntity): Float {
 
     // 3) проекция вектора скорости на вектор «вперед» (чтобы знать направленную скорость)
     val dot = dx * forwardX + dz * forwardZ
-
+    
+    val deltaRot = entity.yBodyRot - entity.yBodyRotO
+    
     // 4) переводим блоки/тик → блоки/сек
-    return dot * 20f
+    return dot * 20f + deltaRot / 10f
 }

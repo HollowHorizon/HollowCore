@@ -1,12 +1,7 @@
 //? if fabric {
 package ru.hollowhorizon.hc.fabric.internal
 
-//? if >=1.21 {
-/*import net.minecraft.core.component.DataComponentType
-import net.minecraft.world.level.chunk.status.ChunkStatus
-*///?} elif >=1.20.1 {
 import net.minecraft.world.level.chunk.ChunkStatus
-//?}
 import net.minecraft.commands.synchronization.ArgumentTypeInfo
 import net.minecraft.core.Registry
 import net.minecraft.core.particles.ParticleType

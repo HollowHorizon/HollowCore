@@ -14,19 +14,41 @@ val modName: String by properties
 val modVersion: String by properties
 val license: String by properties
 
-val container = ModContainer(
-    minecraftVersion = stonecutter.current.project.substringBeforeLast('-'),
-    modPlatform = stonecutter.current.project.substringAfterLast('-'),
-    modId = modId, modName = modName, license = license, modVersion = modVersion,
+
+val container = ModProject(
+    modId = modId,
+    modName = modName,
+    modVersion = modVersion,
+    license = license,
+
+    entryPoints = mapOf(
+        "main" to listOf("ru.hollowhorizon.hc.fabric.HCFabric::onCommonInitialize"),
+        "client" to listOf("ru.hollowhorizon.hc.fabric.HCFabric::onClientInitialize")
+    ),
+    dependencies = mapOf()
 )
 
 val kotlinVersion: String by properties
+val publications = ArrayList<Publication>()
 
-group = properties["mod_group"].toString()
-version = modVersion
-base.archivesName = "$modName-${container.modPlatform}-${container.minecraftVersion}"
+if (System.getenv("MAVEN_PASSWORD") != null) publications.add(
+    Publication(
+        "GitHubPackages",
+        "https://maven.pkg.github.com/HollowHorizon/$modName",
+        System.getenv("MAVEN_USER"),
+        System.getenv("MAVEN_PASSWORD")
+    )
+)
+if (System.getenv("MAVEN_PASSWORD_ZM") != null) publications.add(
+    Publication(
+        "ZeroModsMaven",
+        "https://maven.0mods.team/releases",
+        System.getenv("MAVEN_USER_ZM"),
+        System.getenv("MAVEN_PASSWORD_ZM")
+    )
+)
 
-setupEnviroment(container, kotlinVersion, "TheHollowHorizon", includeKotlin = true, enablePublishing = true)
+setupEnviroment(container, kotlinVersion, "TheHollowHorizon", includeKotlin = true, *publications.toTypedArray())
 
 dependencies {
     // CONFIG //

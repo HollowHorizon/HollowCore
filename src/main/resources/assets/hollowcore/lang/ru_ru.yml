@@ -6,3 +6,4 @@ hollowcore:
     animations:
       item_rotations: Поворот предметов
       multiple_items: Отображение нескольких предметов в стеке
+      test: "Пример {$FFFFFF} текста"
