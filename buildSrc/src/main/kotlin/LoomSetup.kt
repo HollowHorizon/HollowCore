@@ -14,7 +14,6 @@ object LoomSetup {
     fun setup(
         project: Project,
         modProject: ModProject,
-        userName: String,
         minecraftVersion: String,
         modPlatform: String
     ) {
@@ -42,7 +41,7 @@ object LoomSetup {
             }
 
             runConfigs.all {
-                if (environment == "client") programArgs("--username=$userName")
+                if (environment == "client") programArgs("--username=${modProject.username}")
                 val javaVendor = System.getProperty("java.vendor")
                 project.logger.info("Java vendor: $javaVendor")
                 if (javaVendor.contains("JetBrains")) programArgs("-XX:+AllowEnhancedClassRedefinition")

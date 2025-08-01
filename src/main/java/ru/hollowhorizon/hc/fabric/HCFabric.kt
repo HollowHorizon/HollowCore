@@ -8,7 +8,6 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.HollowCoreClient
 import ru.hollowhorizon.hc.client.utils.areShadersEnabled_
 import ru.hollowhorizon.hc.client.utils.shouldOverrideShaders
-import ru.hollowhorizon.hc.common.objects.recipe.packet.HollowIngredientPacketHandler
 import ru.hollowhorizon.hc.common.registry.createRegistry
 import ru.hollowhorizon.hc.common.utils.JavaHacks
 import ru.hollowhorizon.hc.fabric.internal.IrisHelper
@@ -27,7 +26,6 @@ object HCFabric {
         FabricEvents
 
         NetworkHelper.register()
-        HollowIngredientPacketHandler.onServerReceiver()
     }
 
     @JvmStatic
@@ -43,7 +41,6 @@ object HCFabric {
         FabricClientEvents
         HollowCoreClient
 
-        HollowIngredientPacketHandler.onClientReceiver()
     }
 }
 //?}

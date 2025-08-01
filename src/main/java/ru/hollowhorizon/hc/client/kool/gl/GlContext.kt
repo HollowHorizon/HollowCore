@@ -14,6 +14,7 @@ import de.fabmax.kool.util.Color
 import net.minecraft.client.Minecraft
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL33
+import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.kool.KoolHooks
 import ru.hollowhorizon.hc.client.kool.KoolManager
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
@@ -106,8 +107,8 @@ object GlContext {
 
 @SubscribeEvent
 fun RenderTickEvent.Pre.handle() {
-    KoolHooks.setDeltaT(minecraft.deltaFrameTime / 20f)
-    KoolHooks.addGameTime(minecraft.deltaFrameTime / 20.0)
+    KoolHooks.setDeltaT(TickHandler.deltaFrameTime / 20f)
+    KoolHooks.addGameTime(TickHandler.deltaFrameTime / 20.0)
     KoolHooks.incrementFrameCount()
 
     Input.poll(KoolManager.context)

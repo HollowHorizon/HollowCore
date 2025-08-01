@@ -1,6 +1,5 @@
 package ru.hollowhorizon.hc.mixins.client;
 
-import com.mojang.blaze3d.audio.OggAudioStream;
 import com.mojang.blaze3d.audio.SoundBuffer;
 import net.minecraft.Util;
 import net.minecraft.client.sounds.AudioStream;

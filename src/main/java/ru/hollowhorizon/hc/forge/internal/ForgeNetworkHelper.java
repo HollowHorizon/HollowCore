@@ -16,7 +16,6 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import ru.hollowhorizon.hc.common.utils.ForgeKotlinKt;
 import ru.hollowhorizon.hc.common.utils.JavaHacks;
 import ru.hollowhorizon.hc.common.network.HollowPacketKt;
-import ru.hollowhorizon.hc.common.objects.recipe.packet.HollowIngredientPacketHandler;
 
 public class ForgeNetworkHelper {
     public static SimpleChannel hollowCoreChannel = ChannelBuilder
@@ -35,20 +34,6 @@ public class ForgeNetworkHelper {
             .simpleChannel();
 
     public static void register() {
-        hollowCoreChannel.registerMessage(
-                ForgeNetworkKt.idPlPl(),
-                HollowIngredientPacketHandler.ClientSync.class,
-                HollowIngredientPacketHandler.ClientSync::encode,
-                HollowIngredientPacketHandler.ClientSync::new,
-                HollowIngredientPacketHandler.ClientSync::handle
-        );
-        hollowCoreChannel.registerMessage(
-                ForgeNetworkKt.idPlPl(),
-                HollowIngredientPacketHandler.ServerSync.class,
-                HollowIngredientPacketHandler.ServerSync::encode,
-                HollowIngredientPacketHandler.ServerSync::new,
-                HollowIngredientPacketHandler.ServerSync::handle
-        );
 
         HollowPacketKt.registerPacket = (type) -> {
             ForgeNetworkKt.registerPacket(JavaHacks.forceCast(type));

@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.LightTexture
 import net.minecraft.util.Mth
 import ru.hollowhorizon.hc.client.particles.file.ParticleComponents
 import ru.hollowhorizon.hc.client.utils.math.*
+import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.utils.molang.compiler.FloatExpr
 import ru.hollowhorizon.hc.common.utils.molang.compiler.eval
 import ru.hollowhorizon.hc.common.utils.molang.runtime.*
@@ -444,8 +445,8 @@ class BedrockParticle(
                     position.y + pos.y,
                     position.z + pos.z
                 )
-                .uv(u, v)
                 .color(color.r, color.g, color.b, color.a)
+                .uv(u, v)
                 .uv2(light)
                 .endVertex()
         }

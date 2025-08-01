@@ -34,7 +34,20 @@ object TickHandler {
     private var serverTicks = 0
 
     val currentTicks get() = if (isLogicalClient) clientTicks else serverTicks
-    val partialTick get() = Minecraft.getInstance().frameTime
+    val partialTick
+        get() =
+            //? if >=1.21 {
+            Minecraft.getInstance().timer.getGameTimeDeltaPartialTick(false)
+            //?} else {
+            /*Minecraft.getInstance().frameTime
+            *///?}
+    val deltaFrameTime
+        get() =
+            //? if >=1.21 {
+            Minecraft.getInstance().timer.realtimeDeltaTicks
+            //?} else {
+            /*Minecraft.getInstance().deltaFrameTime
+            *///?}
     val time get() = currentTicks + partialTick
 
     @SubscribeEvent

@@ -12,6 +12,7 @@ import net.minecraft.util.Mth
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
+import ru.hollowhorizon.hc.client.handlers.TickHandler
 import java.io.File
 import kotlin.math.abs
 import kotlin.math.min
@@ -22,9 +23,9 @@ class MinecraftCamera : PerspectiveCamera() {
 
         if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null) return
 
-        bobHurt(proj, Minecraft.getInstance().frameTime)
+        bobHurt(proj, TickHandler.partialTick)
         if (Minecraft.getInstance().options.bobView().get()) {
-            bobView(proj, Minecraft.getInstance().frameTime)
+            bobView(proj, TickHandler.partialTick)
         }
     }
 }
@@ -38,7 +39,7 @@ fun Scene.mcCamera() {
         camera.clipNear = 0.05f
         camera.clipFar = gameRenderer.depthFar
         camera.fovY =
-            gameRenderer.getFov(gameRenderer.mainCamera, Minecraft.getInstance().frameTime, true).toFloat().deg
+            gameRenderer.getFov(gameRenderer.mainCamera, TickHandler.partialTick, true).toFloat().deg
         val pos = gameRenderer.mainCamera.position
         val scaleFactor = 1f
 

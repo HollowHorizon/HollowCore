@@ -55,7 +55,7 @@ object NeoForgeModGenerator {
                     [[dependencies.${modProject.modId}]]
                     modId = "$modId"
                     type="required"
-                    versionRange="[${version},)"
+                    versionRange="[${version.removePrefix(">=")},)"
                     ordering = "NONE"
                     side = "BOTH"
                 """.trimIndent()

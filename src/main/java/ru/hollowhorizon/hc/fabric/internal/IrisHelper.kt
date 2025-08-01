@@ -1,10 +1,10 @@
 package ru.hollowhorizon.hc.fabric.internal
 
+import ru.hollowhorizon.hc.common.utils.ModList
 
 import net.irisshaders.iris.Iris
 import net.irisshaders.iris.api.v0.IrisApi
 import net.irisshaders.iris.pipeline.ShaderRenderingPipeline
-import ru.hollowhorizon.hc.common.utils.ModList
 
 object IrisHelper {
     @JvmStatic
@@ -13,7 +13,5 @@ object IrisHelper {
 
     val hasIris = ModList.isLoaded("iris") || ModList.isLoaded("oculus")
 
-    var bypassShadow = false
-
-    fun isShadowRendering() = (hasIris && IrisApi.getInstance().isRenderingShadowPass) && !bypassShadow
+    fun isShadowRendering() = (hasIris && IrisApi.getInstance().isRenderingShadowPass)
 }

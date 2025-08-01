@@ -1,7 +1,11 @@
 package ru.hollowhorizon.hc.client.utils
 
-//? if forge
+//? if forge {
 /*import net.minecraftforge.fml.loading.FMLConfig*/
+//?} else if neoforge {
+/*import net.neoforged.fml.loading.FMLConfig
+*///?}
+
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import ru.hollowhorizon.hc.common.config.HollowConfig
@@ -24,6 +28,7 @@ object HollowCoreLoader {
     @Serializable
     class Config : HollowConfig() {
         var enableRenderDoc = false
+
         @SerialName("opengl_version")
         var openGlVersion = "3.3"
     }

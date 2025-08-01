@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.common.objects.blocks
 
 import net.minecraft.core.BlockPos
+import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.game.ClientGamePacketListener
@@ -11,7 +12,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
 import kotlin.math.hypot
 
-open class HollowBlockEntity(type: BlockEntityType<*>, pos: BlockPos, blockState: BlockState) : BlockEntity(type, pos, blockState) {
+open class HollowBlockEntity(type: BlockEntityType<*>, pos: BlockPos, blockState: BlockState) :
+    BlockEntity(type, pos, blockState) {
     override fun setChanged() {
         super.setChanged()
         syncForNearbyPlayers()
@@ -19,7 +21,15 @@ open class HollowBlockEntity(type: BlockEntityType<*>, pos: BlockPos, blockState
 
     override fun getUpdatePacket(): Packet<ClientGamePacketListener>? = ClientboundBlockEntityDataPacket.create(this)
 
-    override fun getUpdateTag(): CompoundTag = this.saveWithFullMetadata()
+    //? if >= 1.21 {
+    override fun getUpdateTag(registries: HolderLookup.Provider): CompoundTag {
+        return saveWithFullMetadata(registries)
+    }
+    //?} else {
+    
+
+    /*override fun getUpdateTag(): CompoundTag = this.saveWithFullMetadata()
+    *///?}
 
     private fun syncForNearbyPlayers() {
         val level = this.level ?: return // check nonnull

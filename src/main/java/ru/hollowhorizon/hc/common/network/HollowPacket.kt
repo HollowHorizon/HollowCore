@@ -31,11 +31,14 @@ import ru.hollowhorizon.hc.forge.internal.ForgeNetworkHelper
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
 import io.netty.buffer.Unpooled
-import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.FriendlyByteBuf
+//?}
 import net.minecraft.network.protocol.Packet
-import ru.hollowhorizon.hc.common.utils.nbt.NBTFormat
-import ru.hollowhorizon.hc.common.utils.nbt.serializeNoInline
+
+//? if >= 1.21 {
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket
 //?}
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerChunkCache
@@ -48,7 +51,9 @@ import ru.hollowhorizon.hc.common.utils.bytebuf.ByteBufFormat
 import ru.hollowhorizon.hc.common.utils.bytebuf.serializeNoInline
 import ru.hollowhorizon.hc.common.utils.rl
 
-interface HollowPacket {
+interface CustomPacketPayload
+
+interface HollowPacket : CustomPacketPayload {
     fun handle(player: Player)
 
     fun send() {
@@ -60,6 +65,16 @@ interface HollowPacket {
             sendPacketToClient(it, this)
         }
     }
+
+    //? if >= 1.21 {
+    override fun type(): CustomPacketPayload.Type<HollowPacket> {
+        return CustomPacketPayload.Type("hollowcore:${this::class.java.name.lowercase().filter { ResourceLocation.validPathChar(it) }}".rl)
+    }
+    //?}
+}
+
+fun HollowPacket.send(players: Iterable<ServerPlayer>) {
+    send(*players.toList().toTypedArray())
 }
 
 val HollowPacket.packetName: ResourceLocation
@@ -74,8 +89,7 @@ fun HollowPacket.sendTrackingEntity(entity: Entity) {
         /*ForgeNetworkHelper.hollowCoreChannel.send(PacketDistributor.TRACKING_ENTITY.with { entity }, this)
         *///?} else {
         chunkCache.broadcastAndSend(
-            entity,
-            this.asVanillaPacket(true)
+            entity, this.asVanillaPacket(true)
         )
         //?}
     } else {
@@ -90,22 +104,21 @@ fun HollowPacket.sendTrackingEntityAndSelf(entity: Entity) {
 
 fun HollowPacket.sendAllInDimension(level: Level) {
     val server = level.server ?: return
-    //? if forge {
-    /*ForgeNetworkHelper.hollowCoreChannel.send(PacketDistributor.DIMENSION.with { level.dimension() }, this)
-    *///?} else {
-    server.playerList.broadcastAll(this.asVanillaPacket(true), level.dimension())
-    //?}
+    send(server.playerList.players)
 }
 
-//? if fabric {
-fun HollowPacket.asVanillaPacket(toClient: Boolean): Packet<*> {
+//? if fabric && <= 1.21 {
+/*fun HollowPacket.asVanillaPacket(toClient: Boolean): Packet<*> {
     val byteBuf = FriendlyByteBuf(Unpooled.buffer())
     ByteBufFormat.serializeNoInline(this, javaClass, byteBuf)
     return if (!toClient) ClientPlayNetworking.createC2SPacket(packetName, byteBuf)
     else ServerPlayNetworking.createS2CPacket(packetName, byteBuf)
 
     throw NotImplementedError("AsVanillaPacket method is not implemented for this platform")
-}//?}
+}*///?} elif >= 1.21 {
+fun HollowPacket.asVanillaPacket(toClient: Boolean): Packet<*> =
+    if (toClient) ClientboundCustomPayloadPacket(this) else ServerboundCustomPayloadPacket(this)
+//?}
 
 lateinit var sendPacketToServer: (HollowPacket) -> Unit
 lateinit var sendPacketToClient: (ServerPlayer, HollowPacket) -> Unit

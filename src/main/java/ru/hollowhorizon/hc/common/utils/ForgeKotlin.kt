@@ -38,6 +38,7 @@ import net.minecraft.util.RandomSource
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.item.ItemStack
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
+import ru.hollowhorizon.hc.client.utils.registryAccess
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import kotlin.reflect.KClass
 
@@ -103,7 +104,12 @@ operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T = when (
 /**
  * Converts a string to a Minecraft resource location.
  */
-val String.rl get() = ResourceLocation(this)
+val String.rl: ResourceLocation get() =
+    //? if >= 1.21 {
+    ResourceLocation.parse(this)
+    //?} else {
+    /*ResourceLocation.tryParse(this) ?: error("Unsupported string format: $this")
+    *///?}
 
 /**
  * Converts a string to a literal Minecraft text component.
@@ -176,12 +182,22 @@ fun <A, B> ((A) -> B).memoize(): (A) -> B {
  *
  * @return A CompoundTag representing the saved ItemStack.
  */
-fun ItemStack.save() = CompoundTag().apply(::save)
+fun ItemStack.save() = CompoundTag().apply {
+    //? if >= 1.21 {
+    if(!isEmpty) save(registryAccess)
+    //?} else {
+    /*this@save.save(this)
+    *///?}
+}
 
 /**
  * Reads an ItemStack from a CompoundTag.
  *
  * @return An ItemStack instance loaded from the CompoundTag.
  */
-fun CompoundTag.readItem() = ItemStack.of(this)
-
+fun CompoundTag.readItem() =
+    //? if >= 1.21 {
+    if(isEmpty) ItemStack.EMPTY else ItemStack.parse(registryAccess, this).orElseThrow()
+    //?} else {
+    /*ItemStack.of(this)
+    *///?}

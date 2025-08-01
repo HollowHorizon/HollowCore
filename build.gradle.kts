@@ -25,7 +25,9 @@ val container = ModProject(
         "main" to listOf("ru.hollowhorizon.hc.fabric.HCFabric::onCommonInitialize"),
         "client" to listOf("ru.hollowhorizon.hc.fabric.HCFabric::onClientInitialize")
     ),
-    dependencies = mapOf()
+    dependencies = mapOf(),
+
+    username = "TheHollowHorizon"
 )
 
 val kotlinVersion: String by properties
@@ -40,7 +42,7 @@ if (System.getenv("MAVEN_PASSWORD_ZM") != null) publications.add(
     )
 )
 
-setupEnviroment(container, kotlinVersion, "TheHollowHorizon", includeKotlin = true, *publications.toTypedArray())
+setupEnviroment(container, kotlinVersion, includeKotlin = true, *publications.toTypedArray())
 
 dependencies {
     // CONFIG //

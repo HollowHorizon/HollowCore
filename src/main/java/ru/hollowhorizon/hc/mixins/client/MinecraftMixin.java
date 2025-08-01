@@ -63,12 +63,19 @@ public class MinecraftMixin implements ClientDispatcher {
         hollowcore$dispatcher.runTasks();
     }
 
-    @Inject(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;render(FJZ)V"))
+    //? if >= 1.21 {
+    @Inject(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;render(Lnet/minecraft/client/DeltaTracker;Z)V"))
+    //?} else {
+    /*@Inject(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;render(FJZ)V"))
+    *///?}
     protected void hollowcore$renderTick$before(CallbackInfo ci) {
         EventBus.post(new RenderTickEvent.Pre(JavaHacks.forceCast(this)));
     }
-
-    @Inject(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;render(FJZ)V", shift = At.Shift.AFTER))
+    //? if >= 1.21 {
+    @Inject(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;render(Lnet/minecraft/client/DeltaTracker;Z)V", shift = At.Shift.AFTER))
+    //?} else {
+    /*@Inject(method = "runTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;render(FJZ)V", shift = At.Shift.AFTER))
+    *///?}
     protected void hollowcore$renderTick$after(CallbackInfo ci) {
         EventBus.post(new RenderTickEvent.Post(JavaHacks.forceCast(this)));
     }

@@ -50,6 +50,8 @@ import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.HollowCore
+import ru.hollowhorizon.hc.client.utils.registryAccess
+import ru.hollowhorizon.hc.common.utils.literal
 import ru.hollowhorizon.hc.common.utils.mcText
 import ru.hollowhorizon.hc.common.utils.readItem
 import ru.hollowhorizon.hc.common.utils.rl
@@ -139,10 +141,18 @@ object ForStringNBT : KSerializer<StringTag> {
 object ForTextComponent : KSerializer<Component> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("StringNBT", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: Component) =
-        encoder.encodeString(Component.Serializer.toJson(value))
+        //? if >= 1.21 {
+        encoder.encodeString(Component.Serializer.toJson(value, registryAccess))
+        //?} else {
+        /*encoder.encodeString(Component.Serializer.toJson(value))
+        *///?}
 
     override fun deserialize(decoder: Decoder) =
-        Component.Serializer.fromJson(decoder.decodeString()) ?: "".mcText
+        //? if >= 1.21 {
+        Component.Serializer.fromJson(decoder.decodeString(), registryAccess) ?: "".literal
+        //?} else {
+        /*Component.Serializer.fromJson(decoder.decodeString()) ?: "".literal
+        *///?}
 }
 
 object ForNbtNull : KSerializer<EndTag> {

@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.mixins.capabilities;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.NotNull;
@@ -40,8 +41,13 @@ public class BlockEntityMixin implements ICapabilityDispatcher {
         ICapabilityDispatcherKt.serializeCapabilities(this, cir.getReturnValue());
     }
 
-    @Inject(method = "load", at = @At("TAIL"))
+    //? if >= 1.21 {
+    @Inject(method = "loadAdditional", at= @At("TAIL"))
+    private void serializeExtra(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
+    //?} else {
+    /*@Inject(method = "load", at = @At("TAIL"))
     private void serializeExtra(CompoundTag tag, CallbackInfo ci) {
+    *///?}
         ICapabilityDispatcherKt.deserializeCapabilities(this, tag);
     }
 }

@@ -6,9 +6,15 @@ import de.fabmax.kool.util.MsdfFont
 import net.minecraft.locale.Language
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.ComponentContents
-import net.minecraft.network.chat.contents.LiteralContents
+
 import net.minecraft.network.chat.contents.TranslatableContents
 import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT
+
+//? if >=1.21 {
+import net.minecraft.network.chat.contents.PlainTextContents.LiteralContents
+//?} else {
+/*import net.minecraft.network.chat.contents.LiteralContents
+*///?}
 
 fun UiScope.Component(
     vararg components: Component,
@@ -51,7 +57,9 @@ private fun Component.attributes(parentColor: Int): Pair<String, TextAttributes>
             )
         }
 
-        ComponentContents.EMPTY -> ""
+        //? if <=1.20.5 {
+        /*ComponentContents.EMPTY -> ""
+        *///?}
         else -> error("Unknown text component: $content")
     }
 

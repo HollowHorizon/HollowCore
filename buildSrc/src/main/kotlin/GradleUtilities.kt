@@ -7,7 +7,6 @@ import org.gradle.kotlin.dsl.*
 fun Project.setupEnviroment(
     container: ModProject,
     kotlinVersion: String,
-    userName: String = "Dev",
     includeKotlin: Boolean = false,
     vararg publications: Publication
 ) {
@@ -26,7 +25,7 @@ fun Project.setupEnviroment(
 
         isForgelike = modPlatform == "forge" || modPlatform == "neoforge"
 
-        LoomSetup.setup(project, container, userName, minecraftVersion, modPlatform)
+        LoomSetup.setup(project, container, minecraftVersion, modPlatform)
         StonecutterSetup.setup(this@setupEnviroment, this)
         ResourcesSetup.setupResources(this@setupEnviroment, this, minecraftVersion, modPlatform)
         if(publications.isNotEmpty()) PublishingSetup.setupPublishing(this@setupEnviroment, this, minecraftVersion, modPlatform, *publications)

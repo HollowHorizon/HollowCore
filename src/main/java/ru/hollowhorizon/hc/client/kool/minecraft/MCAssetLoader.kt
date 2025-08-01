@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.minecraft.resources.ResourceLocation
 import ru.hollowhorizon.hc.client.utils.stream
+import ru.hollowhorizon.hc.common.utils.rl
 import java.io.ByteArrayInputStream
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -23,8 +24,8 @@ import java.util.*
  * Allows to use resource paths like resource packs: `minecraft:textures/block/dirt.png`
  */
 object MCAssetLoader : AssetLoader() {
-    private fun resource(path: String) = if (path.contains(":")) ResourceLocation(path)
-    else ResourceLocation("hollowcore", path)
+    private fun resource(path: String) = if (path.contains(":")) path.rl
+    else "hollowcore:$path".rl
 
     override suspend fun loadBlob(ref: AssetRef.Blob): LoadedAsset.Blob {
         val result = withContext(Dispatchers.IO) {

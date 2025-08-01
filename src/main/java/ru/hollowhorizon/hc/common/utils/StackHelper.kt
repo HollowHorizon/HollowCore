@@ -50,7 +50,12 @@ fun ItemStack.areItemsEqual(with: ItemStack): Boolean {
  * @return `true` if both stacks are identical, otherwise `false`.
  */
 fun ItemStack.areStacksEqual(with: ItemStack): Boolean {
-    return this.areItemsEqual(with) && ItemStack.isSameItemSameTags(this, with)
+    return this.areItemsEqual(with) &&
+            //? if >= 1.21 {
+            ItemStack.isSameItemSameComponents(this, with)
+            //?} else {
+            /*ItemStack.isSameItemSameTags(this, with)
+            *///?}
 }
 
 /**
@@ -116,7 +121,7 @@ fun ItemStack.shrink(amount: Int, container: Boolean): ItemStack {
  */
 val ItemStack.hasCraftingRemainder get() = //? if fabric {
     this.recipeRemainder != ItemStack.EMPTY
- //?} elif forge {
+ //?} elif forge || neoforge {
     /*this.hasCraftingRemainingItem()
 *///?}
 
@@ -126,6 +131,6 @@ val ItemStack.hasCraftingRemainder get() = //? if fabric {
 val ItemStack.craftingRemainder
 get() = //? if fabric {
     this.recipeRemainder
-//?} elif forge {
+//?} elif forge || neoforge {
     /*this.craftingRemainingItem
 *///?}

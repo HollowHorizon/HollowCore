@@ -45,6 +45,7 @@ object ForgeModGenerator {
                 versionRange = "[${(project.extensions["stonecutter"] as StonecutterBuildExtension).minecraftVersion},)"
                 ordering = "NONE"
                 side = "BOTH"
+                
             """.trimIndent()
 
 
@@ -53,7 +54,7 @@ object ForgeModGenerator {
                     [[dependencies.${modProject.modId}]]
                     modId = "$modId"
                     mandatory = true
-                    versionRange="[${version},)"
+                    versionRange="[${version.removePrefix(">=")},)"
                     ordering = "NONE"
                     side = "BOTH"
                 """.trimIndent()

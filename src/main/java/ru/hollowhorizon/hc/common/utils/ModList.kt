@@ -35,6 +35,11 @@ import kotlin.jvm.optionals.getOrNull
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
+*///?} elif neoforge {
+/*import net.neoforged.fml.ModList
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 *///?}
 import java.io.File
 import java.io.FileOutputStream

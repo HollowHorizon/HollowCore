@@ -4,8 +4,8 @@
         "srcrgb": "srcalpha",
         "dstrgb": "1-srcalpha"
     },
-    "vertex": "hollowcore:gltf_entity-1.21",
-    "fragment": "hollowcore:gltf_entity-1.21",
+    "vertex": "hollowcore:gltf_entity-1.21.1",
+    "fragment": "hollowcore:gltf_entity-1.21.1",
     "attributes": [
         "Position",
         "Color",

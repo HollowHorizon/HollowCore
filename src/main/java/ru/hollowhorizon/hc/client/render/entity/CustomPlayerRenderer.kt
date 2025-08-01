@@ -40,6 +40,7 @@ import ru.hollowhorizon.hc.client.models.internal.Node
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.HollowModelManager
 import ru.hollowhorizon.hc.client.utils.SkinDownloader
+import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.utils.get
 import ru.hollowhorizon.hc.common.utils.memoize
 import ru.hollowhorizon.hc.common.utils.rl
@@ -72,16 +73,13 @@ object CustomPlayerRenderer {
 
         model.visuals = ::drawVisuals
 
-        // Без этого от 1 лица не будет обновляться тень
-        IrisHelper.bypassShadow = Minecraft.getInstance().options.cameraType.isFirstPerson
         val controller = capability.controller
         controller.uploadAnimations(model.animations)
         model.update(
             controller, capability.molangContext,
             (entity.tickCount + partialTick) / 20f
         )
-        IrisHelper.bypassShadow = false
-    
+
         model.render(
             stack,
             ModelData(entity.offhandItem, entity.mainHandItem, itemInHandRenderer, entity),

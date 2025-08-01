@@ -50,21 +50,21 @@ class OBJModel(private var location: ResourceLocation, private var mtlLocation: 
                     "map_Kd" -> {
                         currentMaterial?.hasTexture = true
                         val path = tokens[1]
-                        currentMaterial?.texture = if (path.contains(":")) ResourceLocation(path)
+                        currentMaterial?.texture = if (path.contains(":")) path.rl
                         else mtlLocation?.withPath(mtlLocation!!.path.substringBeforeLast("/") + "/" + path)
                             ?: error("MTL location is not set")
                     }
 
                     "map_Bump", "map_bump", "bump" -> {
                         val path = tokens[1]
-                        currentMaterial?.normalTexture = if (path.contains(":")) ResourceLocation(path)
+                        currentMaterial?.normalTexture = if (path.contains(":")) path.rl
                         else mtlLocation?.withPath(mtlLocation!!.path.substringBeforeLast("/") + "/" + path)
                             ?: error("MTL location is not set")
                     }
 
                     "map_Ks", "map_specular", "refl" -> {
                         val path = tokens[1]
-                        currentMaterial?.specularTexture = if (path.contains(":")) ResourceLocation(path)
+                        currentMaterial?.specularTexture = if (path.contains(":")) path.rl
                         else mtlLocation?.withPath(mtlLocation!!.path.substringBeforeLast("/") + "/" + path)
                             ?: error("MTL location is not set")
                     }
@@ -97,7 +97,7 @@ class OBJModel(private var location: ResourceLocation, private var mtlLocation: 
 
                     "mtllib" -> {
                         val path = tokens[1]
-                        mtlLocation = if (path.contains(":")) ResourceLocation(path)
+                        mtlLocation = if (path.contains(":")) path.rl
                         else location.withPath(location.path.substringBeforeLast("/") + "/" + path)
                     }
 

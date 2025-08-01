@@ -14,11 +14,7 @@ import ru.hollowhorizon.hc.common.events.brew.BrewedPlayerPotionEvent;
 public class BrewingStandMenuMixin {
     @Inject(
             method = "onTake",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/item/alchemy/PotionUtils;getPotion(Lnet/minecraft/world/item/ItemStack;)Lnet/minecraft/world/item/alchemy/Potion;",
-                    shift = At.Shift.AFTER
-            )
+            at = @At(value = "RETURN")
     )
     public void onTake(Player player, ItemStack stack, CallbackInfo ci) {
         if (player instanceof ServerPlayer)

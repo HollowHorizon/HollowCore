@@ -23,6 +23,11 @@
  */
 package ru.hollowhorizon.hc.client.utils
 
+//? if >= 1.21 {
+import net.minecraft.server.packs.PackLocationInfo
+import net.minecraft.server.packs.PackSelectionConfig
+//?}
+
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import net.minecraft.resources.ResourceLocation
@@ -155,6 +160,12 @@ object HollowPack : PackResources {
         return null
     }
 
+    //? if >= 1.21 {
+    override fun location(): PackLocationInfo {
+        return PackLocationInfo(packId(), packId().literal, PackSource.BUILT_IN, Optional.empty())
+    }
+    //?}
+
     override fun packId() = "HollowCore Resources"
     override fun close() {}
 
@@ -162,7 +173,25 @@ object HollowPack : PackResources {
 }
 
 fun PackResources.asPack() =
+    //? if >= 1.21 {
     Pack.readMetaAndCreate(
+        location(), object: Pack.ResourcesSupplier {
+            override fun openPrimary(location: PackLocationInfo): PackResources {
+                return this@asPack
+            }
+
+            override fun openFull(
+                location: PackLocationInfo,
+                metadata: Pack.Metadata,
+            ): PackResources {
+                return this@asPack
+            }
+
+        }, PackType.CLIENT_RESOURCES, PackSelectionConfig(true, Pack.Position.TOP, true)
+    )
+    //?} else {
+    /*Pack.readMetaAndCreate(
         packId(), packId().literal, true, { this }, PackType.CLIENT_RESOURCES,
         Pack.Position.TOP, PackSource.BUILT_IN
     ) ?: throw FileNotFoundException("Could not find the pack resource $this")
+    *///?}

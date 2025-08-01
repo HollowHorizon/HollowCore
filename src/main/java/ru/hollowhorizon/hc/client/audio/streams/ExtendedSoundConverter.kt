@@ -4,6 +4,7 @@ import net.minecraft.resources.FileToIdConverter
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.packs.resources.Resource
 import net.minecraft.server.packs.resources.ResourceManager
+import ru.hollowhorizon.hc.common.utils.rl
 
 object ExtendedSoundConverter : FileToIdConverter("sounds", ".ogg") {
     override fun idToFile(id: ResourceLocation): ResourceLocation {
@@ -15,7 +16,7 @@ object ExtendedSoundConverter : FileToIdConverter("sounds", ".ogg") {
 
     override fun fileToId(file: ResourceLocation): ResourceLocation {
         if (file.path.let { it.endsWith(".mp3") || it.endsWith(".wav") || it.endsWith(".ogg") }) {
-            return ResourceLocation(file.namespace, file.path.substringAfter("sounds/"))
+            return "${file.namespace}:${file.path.substringAfter("sounds/")}".rl
         }
         return super.fileToId(file)
     }

@@ -8,6 +8,6 @@ import java.util.function.Consumer
 
 class RegisterResourcePacksEvent(private val resourcePacks: Consumer<Pack>) : Event {
     fun addPack(pack: PackResources) {
-        resourcePacks.accept(pack.asPack())
+        resourcePacks.accept(pack.asPack() ?: error("Resource packs not found!"))
     }
 }

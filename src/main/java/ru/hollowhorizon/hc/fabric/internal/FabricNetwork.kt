@@ -1,7 +1,75 @@
 package ru.hollowhorizon.hc.fabric.internal
 
-//? if fabric {
+//? if fabric && >= 1.21 {
+import net.fabricmc.api.EnvType
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
+import net.fabricmc.loader.api.FabricLoader
+import net.minecraft.network.RegistryFriendlyByteBuf
+import net.minecraft.network.codec.StreamCodec
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+import net.minecraft.resources.ResourceLocation
+import ru.hollowhorizon.hc.common.network.HollowPacket
+import ru.hollowhorizon.hc.common.network.HollowPacketHandler
+import ru.hollowhorizon.hc.common.utils.bytebuf.ByteBufFormat
+import ru.hollowhorizon.hc.common.utils.bytebuf.deserializeNoInline
+import ru.hollowhorizon.hc.common.utils.bytebuf.serializeNoInline
+import ru.hollowhorizon.hc.common.utils.rl
 
+fun <T : HollowPacket> registerPacket(type: Class<T>) {
+    val annotation = type.getAnnotation(HollowPacketHandler::class.java)
+    val location = CustomPacketPayload.Type<T>(
+        "hollowcore:${
+            type.name.lowercase().filter { ResourceLocation.validPathChar(it) }
+        }".rl
+    )
+
+    val codec: StreamCodec<RegistryFriendlyByteBuf, T> = CustomPacketPayload.codec(
+        { packet, buffer ->
+            ByteBufFormat.serializeNoInline(packet, type, buffer)
+        },
+        { buffer ->
+            ByteBufFormat.deserializeNoInline(buffer, type)
+        }
+    )
+
+    val isClient = FabricLoader.getInstance().environmentType == EnvType.CLIENT
+
+    when (annotation.toTarget) {
+        HollowPacketHandler.Direction.TO_CLIENT -> {
+            PayloadTypeRegistry.playS2C()
+                .register(location, codec)
+            if (isClient) ClientPlayNetworking.registerGlobalReceiver(location) { payload: T, context: ClientPlayNetworking.Context ->
+                payload.handle(context.player())
+            }
+        }
+
+        HollowPacketHandler.Direction.TO_SERVER -> {
+            PayloadTypeRegistry.playC2S()
+                .register(location, codec)
+            ServerPlayNetworking.registerGlobalReceiver(location) { payload: T, context: ServerPlayNetworking.Context ->
+                payload.handle(context.player())
+            }
+        }
+
+        HollowPacketHandler.Direction.ANY -> {
+            PayloadTypeRegistry.playC2S()
+                .register(location, codec)
+            PayloadTypeRegistry.playS2C()
+                .register(location, codec)
+            ServerPlayNetworking.registerGlobalReceiver(location) { payload: T, context: ServerPlayNetworking.Context ->
+                payload.handle(context.player())
+            }
+            if (isClient) ClientPlayNetworking.registerGlobalReceiver(location) { payload: T, context: ClientPlayNetworking.Context ->
+                payload.handle(context.player())
+            }
+        }
+    }
+}
+
+//?} elif fabric {
+/*
 import net.fabricmc.api.EnvType
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
@@ -72,4 +140,4 @@ fun <T : HollowPacket> registerPacket(type: Class<T>) {
         }
     }
 }
-//?}
+*///?}

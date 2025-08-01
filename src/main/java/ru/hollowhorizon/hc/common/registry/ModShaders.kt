@@ -39,8 +39,16 @@ object ModShaders {
 
     @SubscribeEvent
     fun onShaderRegistry(event: RegisterShadersEvent) {
+        val version =
+            //? if >= 1.21 {
+            "1.21.1"
+            //?} elif >= 1.20.1 {
+            /*"1.20.1"
+            *///?} else {
+            /*"1.19.2"
+            *///?}
         event.register(
-            "$MODID:gltf_entity-${SharedConstants.getCurrentVersion().name}".rl,
+            "$MODID:gltf_entity-$version".rl,
             DefaultVertexFormat.NEW_ENTITY
         ) {
             GLTF_ENTITY = it

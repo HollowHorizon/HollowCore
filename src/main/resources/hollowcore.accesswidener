@@ -11,9 +11,6 @@ accessible class net/minecraft/client/renderer/RenderStateShard$OutputStateShard
 accessible field net/minecraft/client/renderer/RenderStateShard PARTICLES_TARGET Lnet/minecraft/client/renderer/RenderStateShard$OutputStateShard;
 
 accessible method net/minecraft/client/renderer/GameRenderer getFov (Lnet/minecraft/client/Camera;FZ)D
-accessible field net/minecraft/client/renderer/LevelRenderer renderChunksInFrustum Lit/unimi/dsi/fastutil/objects/ObjectArrayList;
-accessible class net/minecraft/client/renderer/LevelRenderer$RenderChunkInfo
-accessible field net/minecraft/client/renderer/LevelRenderer$RenderChunkInfo chunk Lnet/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk;
 
 accessible class net/minecraft/client/particle/ParticleEngine$SpriteParticleRegistration
 accessible method net/minecraft/client/particle/ParticleEngine register (Lnet/minecraft/core/particles/ParticleType;Lnet/minecraft/client/particle/ParticleProvider;)V
@@ -23,29 +20,12 @@ accessible method net/minecraft/client/particle/ParticleEngine register (Lnet/mi
 accessible class net/minecraft/world/item/CreativeModeTab$ItemDisplayBuilder
 accessible field net/minecraft/world/item/ItemStackLinkedSet TYPE_AND_TAG Lit/unimi/dsi/fastutil/Hash$Strategy;
 
-accessible class net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$RebuildTask
-accessible class net/minecraft/client/renderer/chunk/ChunkRenderDispatcher$RenderChunk$RebuildTask$CompileResults
-accessible field net/minecraft/client/renderer/chunk/RenderChunkRegion centerZ I
-accessible field net/minecraft/client/renderer/chunk/RenderChunkRegion centerX I
-
 accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen imageWidth I
 accessible field net/minecraft/client/gui/screens/inventory/AbstractContainerScreen imageHeight I
-
-extendable class net/minecraft/world/item/crafting/Ingredient
-accessible class net/minecraft/world/item/crafting/Ingredient$Value
-accessible class net/minecraft/world/item/crafting/Ingredient$TagValue
-accessible class net/minecraft/world/item/crafting/Ingredient$ItemValue
-accessible field net/minecraft/world/item/crafting/Ingredient itemStacks [Lnet/minecraft/world/item/ItemStack;
-accessible method net/minecraft/world/item/crafting/Ingredient <init> (Ljava/util/stream/Stream;)V
-accessible method net/minecraft/world/item/crafting/Ingredient valueFromJson (Lcom/google/gson/JsonObject;)Lnet/minecraft/world/item/crafting/Ingredient$Value;
 
 accessible field net/minecraft/server/network/ServerLoginPacketListenerImpl connection Lnet/minecraft/network/Connection;
 
 accessible field net/minecraft/network/Connection channel Lio/netty/channel/Channel;
-
-accessible field net/minecraft/world/item/crafting/RecipeManager hasErrors Z
-accessible field net/minecraft/world/item/crafting/RecipeManager recipes Ljava/util/Map;
-accessible field net/minecraft/world/item/crafting/RecipeManager byName Ljava/util/Map;
 
 accessible method net/minecraft/data/loot/BlockLootSubProvider createSilkTouchOnlyTable (Lnet/minecraft/world/level/ItemLike;)Lnet/minecraft/world/level/storage/loot/LootTable$Builder;
 accessible method net/minecraft/data/loot/BlockLootSubProvider createSilkTouchDispatchTable (Lnet/minecraft/world/level/block/Block;Lnet/minecraft/world/level/storage/loot/entries/LootPoolEntryContainer$Builder;)Lnet/minecraft/world/level/storage/loot/LootTable$Builder;

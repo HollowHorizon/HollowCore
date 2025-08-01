@@ -1,6 +1,15 @@
 package ru.hollowhorizon.hc.mixins.loot;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.client.particle.ParticleEngine;
+import net.minecraft.server.commands.LootCommand;
+import org.spongepowered.asm.mixin.Mixin;
+
+//? if >= 1.21 {
+@Mixin(LootCommand.class)
+public class LootDataManagerMixin {}
+//?} else {
+
+/*import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.storage.loot.LootDataId;
 import net.minecraft.world.level.storage.loot.LootDataManager;
@@ -27,3 +36,5 @@ public class LootDataManagerMixin {
         EventBus.post(new RegisterLootEvent(elements));
     }
 }
+
+*///?}

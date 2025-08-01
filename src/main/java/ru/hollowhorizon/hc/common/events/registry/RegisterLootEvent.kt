@@ -1,6 +1,8 @@
 package ru.hollowhorizon.hc.common.events.registry
 
-import net.minecraft.core.registries.BuiltInRegistries
+//? if < 1.21 {
+
+/*import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.block.Block
@@ -11,6 +13,7 @@ import ru.hollowhorizon.hc.common.events.Event
 import ru.hollowhorizon.hc.common.utils.JavaHacks
 
 class RegisterLootEvent(private val elements: MutableMap<LootDataId<*>, *>) : Event {
+
     fun addLoot(block: Block, table: LootTable) {
         val blockId = BuiltInRegistries.BLOCK.getKey(block)
         val location = LootDataId(LootDataType.TABLE, ResourceLocation(blockId.namespace, "blocks/${blockId.path}"))
@@ -28,9 +31,12 @@ class RegisterLootEvent(private val elements: MutableMap<LootDataId<*>, *>) : Ev
         val location = ResourceLocation(blockId.namespace, "blocks/${blockId.path}")
         elements.keys.removeIf { it.location == location }
     }
+
     fun removeLoot(block: EntityType<*>) {
         val blockId = BuiltInRegistries.ENTITY_TYPE.getKey(block)
         val location = ResourceLocation(blockId.namespace, "entity/${blockId.path}")
         elements.keys.removeIf { it.location == location }
     }
 }
+
+*///?}

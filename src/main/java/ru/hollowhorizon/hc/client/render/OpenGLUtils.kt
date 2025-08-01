@@ -45,6 +45,7 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import ru.hollowhorizon.hc.client.handlers.TickHandler
 import ru.hollowhorizon.hc.client.kool.EntityModifier
+import ru.hollowhorizon.hc.client.utils.*
 import java.io.File
 import kotlin.math.min
 

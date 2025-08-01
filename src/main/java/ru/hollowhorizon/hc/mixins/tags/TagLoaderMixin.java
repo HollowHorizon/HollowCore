@@ -1,6 +1,7 @@
 package ru.hollowhorizon.hc.mixins.tags;
 
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagLoader;
 import net.minecraft.tags.TagManager;
@@ -31,7 +32,11 @@ public class TagLoaderMixin {
     private void hollowcore$load(Map<ResourceLocation, List<TagLoader.EntryWithSource>> value, CallbackInfoReturnable<Map<ResourceLocation, Collection>> cir) {
         BuiltInRegistries.REGISTRY
                 .stream()
-                .filter(t -> TagManager.getTagDir(t.key()).equals(directory))
+                //? if >= 1.21 {
+                .filter(t -> Registries.tagsDirPath(t.key()).equals(directory))
+                //?} else {
+                /*.filter(t -> TagManager.getTagDir(t.key()).equals(directory))
+                *///?}
                 .findFirst()
                 .ifPresent(reg -> EventBus.post(new RegisterTagsEvent(reg, value)));
 

@@ -10,6 +10,7 @@ import net.minecraft.world.item.TooltipFlag
 import org.lwjgl.glfw.GLFW
 import ru.hollowhorizon.hc.client.kool.KoolManager.MONOCRAFT
 import ru.hollowhorizon.hc.client.render.render
+import ru.hollowhorizon.hc.client.utils.*
 import ru.hollowhorizon.hc.common.containers.ClientContainerManager
 
 fun UiScope.DragStackTooltip() {
