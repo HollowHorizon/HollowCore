@@ -26,4 +26,6 @@ package ru.hollowhorizon.hc.api
 
 interface AutoScaled
 
-interface HudHideable
+interface HudHideable {
+    fun needToHideHud(): Boolean = true
+}
