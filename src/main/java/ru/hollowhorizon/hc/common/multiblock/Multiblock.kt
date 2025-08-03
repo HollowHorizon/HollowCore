@@ -31,8 +31,7 @@ import ru.hollowhorizon.hc.client.utils.registryAccess
  * ```kotlin
  * object ExampleMultiblocks: HollowRegistry {
  *     val obsidianFrame by register("obsidian_frame") {
- *         Multiblock {
- *             size(3, 3, 3)
+ *         Multiblock(3, 3, 3) {
  *             val o = block(Blocks.OBSIDIAN.defaultBlockState())
  *             val d = block(Blocks.DIAMOND_BLOCK.defaultBlockState())
  *             val e = block(Blocks.EMERALD_BLOCK.defaultBlockState())
@@ -63,28 +62,12 @@ import ru.hollowhorizon.hc.client.utils.registryAccess
  *
  * @param block A lambda function used to configure the multiblock.
  */
-class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
+class Multiblock(val xSize: Int, val ySize: Int, val zSize: Int, block: Multiblock.() -> Unit) : BlockAndTintGetter {
     private val tileEntities = hashMapOf<BlockPos, BlockEntity>()
-    var xSize: Int = 0
-    var ySize: Int = 0
-    var zSize: Int = 0
     val blocks = ArrayList<Matcher>()
 
     init {
         block()
-    }
-
-    /**
-     * Sets the size of the multiblock structure.
-     *
-     * @param xSize The width of the structure.
-     * @param zSize The depth of the structure.
-     * @param ySize The height of the structure.
-     */
-    fun size(xSize: Int, zSize: Int, ySize: Int) {
-        this.xSize = xSize
-        this.zSize = zSize
-        this.ySize = ySize
     }
 
     /**
@@ -113,9 +96,9 @@ class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
 
     private fun checkStructureForDirection(level: Level, basePos: BlockPos, direction: Direction): Boolean {
         // We check all possible initial positions within the structure
-        for (offsetX in 0..<xSize) {
-            for (offsetY in 0..<ySize) {
-                for (offsetZ in 0..<zSize) {
+        for (offsetX in 0..< xSize) {
+            for (offsetY in 0..< ySize) {
+                for (offsetZ in 0..< zSize) {
                     if (checkFromBase(level, basePos, direction, offsetX, offsetY, offsetZ)) {
                         return true
                     }
@@ -133,9 +116,9 @@ class Multiblock(block: Multiblock.() -> Unit) : BlockAndTintGetter {
         startY: Int,
         startZ: Int,
     ): Boolean {
-        for (y in 0..<ySize) {
-            for (z in 0..<zSize) {
-                for (x in 0..<xSize) {
+        for (y in 0..< ySize) {
+            for (z in 0..< zSize) {
+                for (x in 0..< xSize) {
                     val expectedBlock = blocks[x + z * zSize + y * zSize * xSize]
                     if (expectedBlock.default().isAir) continue
 
