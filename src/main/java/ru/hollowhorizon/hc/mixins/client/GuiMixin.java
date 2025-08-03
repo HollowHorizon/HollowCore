@@ -43,7 +43,7 @@ public class GuiMixin {
     //?} else {
     /*@Inject(method = "render", at = @At("HEAD"), cancellable = true)
     public void hideScreen(GuiGraphics guiGraphics, float partialTick, CallbackInfo ci) {
-        if (Minecraft.getInstance().screen instanceof HudHideable hideable && hideable.needToHideHud()) ci.cancel();
+        if (Minecraft.getInstance().screen instanceof HudHideable hideable && hideable.canHideHud()) ci.cancel();
     }
     *///?}
 }

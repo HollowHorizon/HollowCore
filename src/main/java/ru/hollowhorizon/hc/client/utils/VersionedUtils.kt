@@ -4,7 +4,6 @@ package ru.hollowhorizon.hc.client.utils
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
-import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.world.item.Item.TooltipContext
 import net.minecraft.world.item.ItemStack
