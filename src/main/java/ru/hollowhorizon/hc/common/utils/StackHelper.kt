@@ -52,10 +52,10 @@ fun ItemStack.areItemsEqual(with: ItemStack): Boolean {
 fun ItemStack.areStacksEqual(with: ItemStack): Boolean {
     return this.areItemsEqual(with) &&
             //? if >= 1.21 {
-            ItemStack.isSameItemSameComponents(this, with)
-            //?} else {
-            /*ItemStack.isSameItemSameTags(this, with)
-            *///?}
+            /*ItemStack.isSameItemSameComponents(this, with)
+            *///?} else {
+            ItemStack.isSameItemSameTags(this, with)
+            //?}
 }
 
 /**

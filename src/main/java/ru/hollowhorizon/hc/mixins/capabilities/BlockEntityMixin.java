@@ -42,12 +42,12 @@ public class BlockEntityMixin implements ICapabilityDispatcher {
     }
 
     //? if >= 1.21 {
-    @Inject(method = "loadAdditional", at= @At("TAIL"))
+    /*@Inject(method = "loadAdditional", at= @At("TAIL"))
     private void serializeExtra(CompoundTag tag, HolderLookup.Provider registries, CallbackInfo ci) {
-    //?} else {
-    /*@Inject(method = "load", at = @At("TAIL"))
+    *///?} else {
+    @Inject(method = "load", at = @At("TAIL"))
     private void serializeExtra(CompoundTag tag, CallbackInfo ci) {
-    *///?}
+    //?}
         ICapabilityDispatcherKt.deserializeCapabilities(this, tag);
     }
 }

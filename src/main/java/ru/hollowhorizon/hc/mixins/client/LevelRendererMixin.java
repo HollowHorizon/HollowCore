@@ -27,7 +27,7 @@ package ru.hollowhorizon.hc.mixins.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
 //? if >= 1.21
-import net.minecraft.client.DeltaTracker;
+/*import net.minecraft.client.DeltaTracker;*/
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
@@ -57,7 +57,7 @@ public class LevelRendererMixin {
     private int ticks;
 
     //? if >= 1.21 {
-    @Inject(method = "renderLevel", at = @At("RETURN"), locals = LocalCapture.CAPTURE_FAILHARD)
+    /*@Inject(method = "renderLevel", at = @At("RETURN"), locals = LocalCapture.CAPTURE_FAILHARD)
     private void onRenderLevelLast(DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f frustumMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         EventBus.post(new RenderLevelStageEvent((LevelRenderer) (Object) this, new PoseStack(), projectionMatrix, ticks, TickHandler.INSTANCE.getPartialTick(), camera, capturedFrustum, RenderStage.AFTER_LEVEL));
     }
@@ -83,11 +83,11 @@ public class LevelRendererMixin {
         EventBus.post(new RenderLevelStageEvent((LevelRenderer) (Object) this, new PoseStack(), projectionMatrix, ticks, TickHandler.INSTANCE.getPartialTick(), camera, capturedFrustum, RenderStage.AFTER_PARTICLES));
     }
     //?} else {
-    /*@Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/particle/ParticleEngine;render(Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/culling/Frustum;Ljava/util/function/Predicate;)V", shift = At.Shift.AFTER))
+    /^@Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/particle/ParticleEngine;render(Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/culling/Frustum;Ljava/util/function/Predicate;)V", shift = At.Shift.AFTER))
     private void afterRenderParticles(DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f frustumMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         EventBus.post(new RenderLevelStageEvent((LevelRenderer) (Object) this, new PoseStack(), projectionMatrix, ticks, TickHandler.INSTANCE.getPartialTick(), camera, capturedFrustum, RenderStage.AFTER_PARTICLES));
     }
-    *///?}
+    ^///?}
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;renderSnowAndRain(Lnet/minecraft/client/renderer/LightTexture;FDDD)V", shift = At.Shift.AFTER))
     private void afterRenderWeather(DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f frustumMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
@@ -128,9 +128,9 @@ public class LevelRendererMixin {
     private void afterRenderTripwireElse(DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f frustumMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         EventBus.post(new RenderLevelStageEvent((LevelRenderer) (Object) this, new PoseStack(), projectionMatrix, ticks, TickHandler.INSTANCE.getPartialTick(), camera, capturedFrustum, RenderStage.AFTER_TRIPWIRE_BLOCKS));
     }
-    //?} else {
+    *///?} else {
     
-    /*@Inject(method = "renderLevel", at = @At("RETURN"))
+    @Inject(method = "renderLevel", at = @At("RETURN"))
     private void onRenderLevelLast(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f projectionMatrix, CallbackInfo ci) {
         EventBus.post(new RenderLevelStageEvent((LevelRenderer) (Object) this, poseStack, projectionMatrix, ticks, partialTick, camera, capturedFrustum, RenderStage.AFTER_LEVEL));
     }
@@ -151,16 +151,16 @@ public class LevelRendererMixin {
     }
 
     //? if fabric {
-    /^@Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/particle/ParticleEngine;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/Camera;F)V", shift = At.Shift.AFTER))
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/particle/ParticleEngine;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/Camera;F)V", shift = At.Shift.AFTER))
     private void afterRenderParticles(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f projectionMatrix, CallbackInfo ci) {
         EventBus.post(new RenderLevelStageEvent((LevelRenderer) (Object) this, poseStack, projectionMatrix, ticks, partialTick, camera, capturedFrustum, RenderStage.AFTER_PARTICLES));
     }
-    ^///?} else {
-    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/particle/ParticleEngine;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/culling/Frustum;)V", shift = At.Shift.AFTER))
+    //?} else {
+    /*@Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/particle/ParticleEngine;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/culling/Frustum;)V", shift = At.Shift.AFTER))
     private void afterRenderParticles(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f projectionMatrix, CallbackInfo ci) {
         EventBus.post(new RenderLevelStageEvent((LevelRenderer) (Object) this, poseStack, projectionMatrix, ticks, partialTick, camera, capturedFrustum, RenderStage.AFTER_PARTICLES));
     }
-    //?}
+    *///?}
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;renderSnowAndRain(Lnet/minecraft/client/renderer/LightTexture;FDDD)V", shift = At.Shift.AFTER))
     private void afterRenderWeather(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f projectionMatrix, CallbackInfo ci) {
@@ -201,5 +201,5 @@ public class LevelRendererMixin {
     private void afterRenderTripwireElse(PoseStack poseStack, float partialTick, long finishNanoTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f projectionMatrix, CallbackInfo ci) {
         EventBus.post(new RenderLevelStageEvent((LevelRenderer) (Object) this, poseStack, projectionMatrix, ticks, partialTick, camera, capturedFrustum, RenderStage.AFTER_TRIPWIRE_BLOCKS));
     }
-    *///?}
+    //?}
 }

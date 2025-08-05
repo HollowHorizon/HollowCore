@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Camera;
 //? if >= 1.21
-import net.minecraft.client.DeltaTracker;
+/*import net.minecraft.client.DeltaTracker;*/
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.entity.Entity;
 import org.joml.Matrix4f;
@@ -20,7 +20,7 @@ import ru.hollowhorizon.hc.common.events.client.CameraSetupEvent;
 @Mixin(GameRenderer.class)
 public abstract class GameRendererMixin {
     //? if fabric && >= 1.21 {
-    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
+    /*@Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
     public void hollowcore$callCameraMove(DeltaTracker deltaTracker, CallbackInfo ci, float f, boolean bl, Camera camera, Entity entity, float g) {
         var event = new CameraSetupEvent((GameRenderer) (Object) this, camera, TickHandler.INSTANCE.getPartialTick(), camera.getYRot(), camera.getXRot(), 0);
         EventBus.post(event);
@@ -30,8 +30,8 @@ public abstract class GameRendererMixin {
         //TODO: А как roll?...
         //poseStack.mulPose(Axis.ZP.rotationDegrees(event.getRoll()));
     }
-    //?} elif fabric {
-    /*@Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
+    *///?} elif fabric {
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
     public void hollowcore$callCameraMove(float partialTicks, long finishTimeNano, PoseStack poseStack, CallbackInfo ci, boolean bl, Camera camera, PoseStack poseStack2, double d, float f, float g, Matrix4f matrix4f) {
         var event = new CameraSetupEvent((GameRenderer) (Object) this, camera, partialTicks, camera.getYRot(), camera.getXRot(), 0);
         EventBus.post(event);
@@ -40,5 +40,5 @@ public abstract class GameRendererMixin {
 
         poseStack.mulPose(Axis.ZP.rotationDegrees(event.getRoll()));
     }
-    *///?}
+    //?}
 }

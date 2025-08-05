@@ -36,10 +36,10 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.protocol.Packet
 
 //? if >= 1.21 {
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload
+/*import net.minecraft.network.protocol.common.custom.CustomPacketPayload
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket
-//?}
+*///?}
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerChunkCache
 import net.minecraft.server.level.ServerPlayer
@@ -67,10 +67,10 @@ interface HollowPacket : CustomPacketPayload {
     }
 
     //? if >= 1.21 {
-    override fun type(): CustomPacketPayload.Type<HollowPacket> {
+    /*override fun type(): CustomPacketPayload.Type<HollowPacket> {
         return CustomPacketPayload.Type("hollowcore:${this::class.java.name.lowercase().filter { ResourceLocation.validPathChar(it) }}".rl)
     }
-    //?}
+    *///?}
 }
 
 fun HollowPacket.send(players: Iterable<ServerPlayer>) {
@@ -108,17 +108,17 @@ fun HollowPacket.sendAllInDimension(level: Level) {
 }
 
 //? if fabric && <= 1.21 {
-/*fun HollowPacket.asVanillaPacket(toClient: Boolean): Packet<*> {
+fun HollowPacket.asVanillaPacket(toClient: Boolean): Packet<*> {
     val byteBuf = FriendlyByteBuf(Unpooled.buffer())
     ByteBufFormat.serializeNoInline(this, javaClass, byteBuf)
     return if (!toClient) ClientPlayNetworking.createC2SPacket(packetName, byteBuf)
     else ServerPlayNetworking.createS2CPacket(packetName, byteBuf)
 
     throw NotImplementedError("AsVanillaPacket method is not implemented for this platform")
-}*///?} elif >= 1.21 {
-fun HollowPacket.asVanillaPacket(toClient: Boolean): Packet<*> =
+}//?} elif >= 1.21 {
+/*fun HollowPacket.asVanillaPacket(toClient: Boolean): Packet<*> =
     if (toClient) ClientboundCustomPayloadPacket(this) else ServerboundCustomPayloadPacket(this)
-//?}
+*///?}
 
 lateinit var sendPacketToServer: (HollowPacket) -> Unit
 lateinit var sendPacketToClient: (ServerPlayer, HollowPacket) -> Unit

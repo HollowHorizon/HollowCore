@@ -33,10 +33,10 @@ public class TagLoaderMixin {
         BuiltInRegistries.REGISTRY
                 .stream()
                 //? if >= 1.21 {
-                .filter(t -> Registries.tagsDirPath(t.key()).equals(directory))
-                //?} else {
-                /*.filter(t -> TagManager.getTagDir(t.key()).equals(directory))
-                *///?}
+                /*.filter(t -> Registries.tagsDirPath(t.key()).equals(directory))
+                *///?} else {
+                .filter(t -> TagManager.getTagDir(t.key()).equals(directory))
+                //?}
                 .findFirst()
                 .ifPresent(reg -> EventBus.post(new RegisterTagsEvent(reg, value)));
 

@@ -1,8 +1,8 @@
 package ru.hollowhorizon.hc.client.utils
 
 //? if forge {
-/*import net.minecraftforge.fml.loading.FMLConfig*/
-//?} else if neoforge {
+/*import net.minecraftforge.fml.loading.FMLConfig
+*///?} else if neoforge {
 /*import net.neoforged.fml.loading.FMLConfig
 *///?}
 

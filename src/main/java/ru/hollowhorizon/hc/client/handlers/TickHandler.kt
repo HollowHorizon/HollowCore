@@ -37,17 +37,17 @@ object TickHandler {
     val partialTick
         get() =
             //? if >=1.21 {
-            Minecraft.getInstance().timer.getGameTimeDeltaPartialTick(false)
-            //?} else {
-            /*Minecraft.getInstance().frameTime
-            *///?}
+            /*Minecraft.getInstance().timer.getGameTimeDeltaPartialTick(false)
+            *///?} else {
+            Minecraft.getInstance().frameTime
+            //?}
     val deltaFrameTime
         get() =
             //? if >=1.21 {
-            Minecraft.getInstance().timer.realtimeDeltaTicks
-            //?} else {
-            /*Minecraft.getInstance().deltaFrameTime
-            *///?}
+            /*Minecraft.getInstance().timer.realtimeDeltaTicks
+            *///?} else {
+            Minecraft.getInstance().deltaFrameTime
+            //?}
     val time get() = currentTicks + partialTick
 
     @SubscribeEvent

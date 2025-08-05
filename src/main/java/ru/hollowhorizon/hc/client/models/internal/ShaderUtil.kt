@@ -26,11 +26,11 @@ package ru.hollowhorizon.hc.client.models.internal
 
 //? if >= 1.21 {
 
-import com.mojang.blaze3d.vertex.VertexFormat
+/*import com.mojang.blaze3d.vertex.VertexFormat
 import net.minecraft.client.Minecraft
-//?} else {
-/*import org.joml.Matrix4f
-*///?}
+*///?} else {
+import org.joml.Matrix4f
+//?}
 
 import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.client.renderer.GameRenderer
@@ -51,14 +51,14 @@ inline fun drawWithShader(
 
     state.setupRenderState()
     //? if >= 1.21 {
-    shader.setDefaultUniforms(
+    /*shader.setDefaultUniforms(
         VertexFormat.Mode.TRIANGLES,
         RenderSystem.getModelViewMatrix(),
         RenderSystem.getProjectionMatrix(),
         Minecraft.getInstance().window
     )
-    //?} else {
-    /*shader.PROJECTION_MATRIX?.set(RenderSystem.getProjectionMatrix())
+    *///?} else {
+    shader.PROJECTION_MATRIX?.set(RenderSystem.getProjectionMatrix())
     shader.MODEL_VIEW_MATRIX?.set(RenderSystem.getModelViewMatrix())
     shader.INVERSE_VIEW_ROTATION_MATRIX?.set(RenderSystem.getInverseViewRotationMatrix())
     shader.FOG_START?.set(RenderSystem.getShaderFogStart())
@@ -70,7 +70,7 @@ inline fun drawWithShader(
     RenderSystem.setupShaderLights(shader)
 
     shader.TEXTURE_MATRIX?.set(Matrix4f(RenderSystem.getTextureMatrix()).apply { transpose() })
-    *///?}
+    //?}
     shader.apply()
 
     accessor.samplerLocations().forEachIndexed { texture, index ->

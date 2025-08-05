@@ -106,10 +106,10 @@ operator fun <O, T : CapabilityInstance> O.get(capability: Class<T>): T = when (
  */
 val String.rl: ResourceLocation get() =
     //? if >= 1.21 {
-    ResourceLocation.parse(this)
-    //?} else {
-    /*ResourceLocation.tryParse(this) ?: error("Unsupported string format: $this")
-    *///?}
+    /*ResourceLocation.parse(this)
+    *///?} else {
+    ResourceLocation.tryParse(this) ?: error("Unsupported string format: $this")
+    //?}
 
 /**
  * Converts a string to a literal Minecraft text component.
@@ -184,10 +184,10 @@ fun <A, B> ((A) -> B).memoize(): (A) -> B {
  */
 fun ItemStack.save() = CompoundTag().apply {
     //? if >= 1.21 {
-    if(!isEmpty) save(registryAccess)
-    //?} else {
-    /*this@save.save(this)
-    *///?}
+    /*if(!isEmpty) save(registryAccess)
+    *///?} else {
+    this@save.save(this)
+    //?}
 }
 
 /**
@@ -197,7 +197,7 @@ fun ItemStack.save() = CompoundTag().apply {
  */
 fun CompoundTag.readItem() =
     //? if >= 1.21 {
-    if(isEmpty) ItemStack.EMPTY else ItemStack.parse(registryAccess, this).orElseThrow()
-    //?} else {
-    /*ItemStack.of(this)
-    *///?}
+    /*if(isEmpty) ItemStack.EMPTY else ItemStack.parse(registryAccess, this).orElseThrow()
+    *///?} else {
+    ItemStack.of(this)
+    //?}

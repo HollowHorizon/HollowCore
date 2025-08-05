@@ -42,13 +42,7 @@ import java.lang.reflect.Modifier
 import java.lang.reflect.ParameterizedType
 
 object HollowModProcessor {
-    private var isInitialized = false
-
-    @JvmStatic
-    fun initMod() {
-        if (isInitialized) return
-        isInitialized = true
-
+    init {
         val handles = MethodHandles.lookup()
 
         registerMethodHandler<SubscribeEvent> { method, _ ->

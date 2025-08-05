@@ -8,6 +8,7 @@ import net.minecraftforge.forgespi.language.ModFileScanData
 import org.objectweb.asm.Type
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.common.events.ClientOnly
+import ru.hollowhorizon.hc.common.registry.HollowModProcessor
 import ru.hollowhorizon.hc.common.registry.getAnnotatedClasses
 import ru.hollowhorizon.hc.common.registry.getAnnotatedMethods
 import ru.hollowhorizon.hc.common.registry.getSubTypes
@@ -46,6 +47,12 @@ object CoreInitializationForge {
                 .safeMethods()
                 .toSet()
         }
+
+        HollowModProcessor
+
+        getSubTypes = { emptySet() }
+        getAnnotatedClasses = { emptySet() }
+        getAnnotatedMethods = { emptySet() }
     }
 
     fun Collection<ModFileScanData.AnnotationData>.safeMethods(): List<Method> = mapNotNull {

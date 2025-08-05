@@ -142,17 +142,17 @@ object ForTextComponent : KSerializer<Component> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("StringNBT", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: Component) =
         //? if >= 1.21 {
-        encoder.encodeString(Component.Serializer.toJson(value, registryAccess))
-        //?} else {
-        /*encoder.encodeString(Component.Serializer.toJson(value))
-        *///?}
+        /*encoder.encodeString(Component.Serializer.toJson(value, registryAccess))
+        *///?} else {
+        encoder.encodeString(Component.Serializer.toJson(value))
+        //?}
 
     override fun deserialize(decoder: Decoder) =
         //? if >= 1.21 {
-        Component.Serializer.fromJson(decoder.decodeString(), registryAccess) ?: "".literal
-        //?} else {
-        /*Component.Serializer.fromJson(decoder.decodeString()) ?: "".literal
-        *///?}
+        /*Component.Serializer.fromJson(decoder.decodeString(), registryAccess) ?: "".literal
+        *///?} else {
+        Component.Serializer.fromJson(decoder.decodeString()) ?: "".literal
+        //?}
 }
 
 object ForNbtNull : KSerializer<EndTag> {

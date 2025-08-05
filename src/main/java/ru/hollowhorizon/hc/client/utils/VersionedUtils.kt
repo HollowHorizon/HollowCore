@@ -2,7 +2,7 @@ package ru.hollowhorizon.hc.client.utils
 
 //? if >=1.21 {
 
-import com.mojang.blaze3d.vertex.PoseStack
+/*import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.world.item.Item.TooltipContext
@@ -28,4 +28,4 @@ fun PoseStack.mulPoseMatrix(matrix: Matrix4f) {
     mulPose(matrix)
 }
 
-//?}
+*///?}

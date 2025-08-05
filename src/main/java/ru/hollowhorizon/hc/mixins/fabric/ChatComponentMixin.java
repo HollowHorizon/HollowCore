@@ -19,7 +19,7 @@ import ru.hollowhorizon.hc.common.events.client.render.RenderOverlayEvent;
 @Mixin(ChatComponent.class)
 public class ChatComponentMixin {
     //? if fabric && >= 1.21 {
-    @Shadow @Final private Minecraft minecraft;
+    /*@Shadow @Final private Minecraft minecraft;
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     private void onRenderPre(GuiGraphics guiGraphics, int tickCount, int mouseX, int mouseY, boolean focused, CallbackInfo ci) {
@@ -36,8 +36,8 @@ public class ChatComponentMixin {
         EventBus.post(event);
     }
 
-    //?} elif fabric {
-/*
+    *///?} elif fabric {
+
     @Shadow @Final private Minecraft minecraft;
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
@@ -54,6 +54,6 @@ public class ChatComponentMixin {
         RenderOverlayEvent.Post event = new RenderOverlayEvent.Post(window, guiGraphics, TickHandler.INSTANCE.getPartialTick(), GuiOverlay.CHAT_PANEL);
         EventBus.post(event);
     }
-*/
+
     //?}
 }

@@ -1,7 +1,7 @@
 package ru.hollowhorizon.hc.mixins.fabric;
 
 //? if >= 1.21
-import net.minecraft.core.registries.Registries;
+/*import net.minecraft.core.registries.Registries;*/
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
@@ -33,11 +33,11 @@ public class BowItemMixin {
         if (!(entity instanceof Player player)) return BowItem.getPowerForTime(charge);
 
         //? >= 1.21 {
-        var enchantment = level.registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.INFINITY);
+        /*var enchantment = level.registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.INFINITY);
         boolean flag = player.getAbilities().instabuild || EnchantmentHelper.getItemEnchantmentLevel(enchantment, stack) > 0;
-        //?} else {
-        /*boolean flag = player.getAbilities().instabuild || EnchantmentHelper.getItemEnchantmentLevel(Enchantments.INFINITY_ARROWS, stack) > 0;
-        *///?}
+        *///?} else {
+        boolean flag = player.getAbilities().instabuild || EnchantmentHelper.getItemEnchantmentLevel(Enchantments.INFINITY_ARROWS, stack) > 0;
+        //?}
 
         var event = new ArrowEvent.Loose(stack, level, player, charge, !stack.isEmpty() || flag);
         EventBus.post(event);

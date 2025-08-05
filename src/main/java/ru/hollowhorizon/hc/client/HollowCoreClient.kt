@@ -62,8 +62,6 @@ import ru.hollowhorizon.hc.common.registry.ModEntities
 object HollowCoreClient {
 
     init {
-        HollowModProcessor.initMod()
-
         RenderSystem.recordRenderCall(RenderManager::onInitialize)
     }
 

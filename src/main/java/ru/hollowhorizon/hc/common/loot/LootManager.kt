@@ -22,7 +22,7 @@ import ru.hollowhorizon.hc.common.events.SubscribeEvent
 
 //? if < 1.21 {
 
-/*import ru.hollowhorizon.hc.common.events.registry.RegisterLootEvent
+import ru.hollowhorizon.hc.common.events.registry.RegisterLootEvent
 
 object LootManager {
     val BLOCK_DROPS = HashMap<Block, () -> LootTable>()
@@ -51,7 +51,7 @@ fun Block.addDrop(table: () -> LootTable) {
 fun Block.addDrop(item: Item? = null, silkTouch: Boolean = false) {
     LootManager.BLOCK_DROPS[this] = {
         //? if >= 1.21 {
-        LootTable.lootTable()
+        /*LootTable.lootTable()
             .setParamSet(LootContextParamSets.BLOCK)
             .withPool(
                 LootPool.lootPool().let { if(silkTouch) it.`when`(hasSilkTouch()); it }
@@ -60,8 +60,8 @@ fun Block.addDrop(item: Item? = null, silkTouch: Boolean = false) {
                     .add(LootItem.lootTableItem { item ?: this.asItem() })
             )
             .build()
-        //?} else {
-        /^if(silkTouch) BlockLootSubProvider.createSilkTouchOnlyTable(item ?: this.asItem()).build()
+        *///?} else {
+        if(silkTouch) BlockLootSubProvider.createSilkTouchOnlyTable(item ?: this.asItem()).build()
         else LootTable.lootTable()
             .setParamSet(LootContextParamSets.BLOCK)
             .withPool(
@@ -71,14 +71,14 @@ fun Block.addDrop(item: Item? = null, silkTouch: Boolean = false) {
                     .add(LootItem.lootTableItem { item ?: this.asItem() })
             )
             .build()
-        ^///?}
+        //?}
     }
 }
 
 fun Block.addOreDrop(item: Item, explosionResistant: Boolean = false) {
     LootManager.BLOCK_DROPS[this] = {
         //? if >= 1.21 {
-        val loot = LootItem.lootTableItem(item)
+        /*val loot = LootItem.lootTableItem(item)
             .apply(ApplyBonusCount.addOreBonusCount(registryAccess.holderOrThrow(Enchantments.FORTUNE)))
         if (explosionResistant) loot.apply(ApplyExplosionDecay.explosionDecay())
 
@@ -88,8 +88,8 @@ fun Block.addOreDrop(item: Item, explosionResistant: Boolean = false) {
                     .`when`(hasSilkTouch()) as LootPoolSingletonContainer.Builder<*>).otherwise(loot)
             )
         ).build()
-        //?} else {
-        /^val loot = LootItem.lootTableItem(item).apply(ApplyBonusCount.addOreBonusCount(Enchantments.BLOCK_FORTUNE))
+        *///?} else {
+        val loot = LootItem.lootTableItem(item).apply(ApplyBonusCount.addOreBonusCount(Enchantments.BLOCK_FORTUNE))
 
         if (explosionResistant) loot.apply(ApplyExplosionDecay.explosionDecay())
 
@@ -97,14 +97,14 @@ fun Block.addOreDrop(item: Item, explosionResistant: Boolean = false) {
             this,
             loot
         ).build()
-        ^///?}
+        //?}
 
     }
 }
-*///?}
+//?}
 
 //? if >= 1.21 {
-private fun hasSilkTouch(): LootItemCondition.Builder {
+/*private fun hasSilkTouch(): LootItemCondition.Builder {
     val registrylookup = registryAccess.lookupOrThrow(Registries.ENCHANTMENT)
     return MatchTool.toolMatches(
         ItemPredicate.Builder.item().withSubPredicate(
@@ -120,4 +120,4 @@ private fun hasSilkTouch(): LootItemCondition.Builder {
         )
     )
 }
-//?}
+*///?}

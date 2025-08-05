@@ -153,8 +153,8 @@ class RegistryHolderForge<T : Any>(
             Instrument::class.isAssigned() -> liteRegister(Registries.INSTRUMENT)
             CreativeModeTab::class.isAssigned() -> liteRegister(Registries.CREATIVE_MODE_TAB)
             //? if >=1.21 {
-            /^DataComponentType::class.isAssigned() -> liteRegister(BuiltInRegistries.DATA_COMPONENT_TYPE.key())
-            ^///?}
+            DataComponentType::class.isAssigned() -> liteRegister(BuiltInRegistries.DATA_COMPONENT_TYPE.key())
+            //?}
 
             registry != null -> liteRegister(registry.key())
 

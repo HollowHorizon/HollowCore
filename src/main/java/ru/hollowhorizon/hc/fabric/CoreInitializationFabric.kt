@@ -8,6 +8,7 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.loader.api.FabricLoader
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.common.events.ClientOnly
+import ru.hollowhorizon.hc.common.registry.HollowModProcessor
 import ru.hollowhorizon.hc.common.registry.getAnnotatedClasses
 import ru.hollowhorizon.hc.common.registry.getAnnotatedMethods
 import ru.hollowhorizon.hc.common.registry.getSubTypes
@@ -60,6 +61,12 @@ object CoreInitializationFabric {
                     .toSet()
             }
 
+        HollowModProcessor
+
+        // Очищаем старые результаты сканирования, они в среднем жрут 500мб памяти, так что регистрация аннотаций должна быть одноразовой
+        getSubTypes = { emptySet() }
+        getAnnotatedClasses = { emptySet() }
+        getAnnotatedMethods = { emptySet() }
     }
 
     fun Collection<MethodInfo>.safeMethods(annotation: Class<*>): List<Method> = mapNotNull {

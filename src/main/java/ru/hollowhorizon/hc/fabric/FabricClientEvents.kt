@@ -66,14 +66,14 @@ object FabricClientEvents {
     private fun renderTooltips() {
         //? if >= 1.21 {
 
-        ItemTooltipCallback.EVENT.register(ItemTooltipCallback { stack, context, flags, tooltip ->
+        /*ItemTooltipCallback.EVENT.register(ItemTooltipCallback { stack, context, flags, tooltip ->
             ItemTooltipEvent(flags, stack, tooltip, context).post()
         })
-        //?} else {
-        /*
+        *///?} else {
+        
         ItemTooltipCallback.EVENT.register(ItemTooltipCallback { stack, tooltipFlag, lines ->
             ItemTooltipEvent(tooltipFlag, stack, lines).post()
-        })*/
+        })
         //?}
 
     }

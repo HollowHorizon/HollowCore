@@ -2,7 +2,7 @@ package ru.hollowhorizon.hc.common.events.registry
 
 //? if < 1.21 {
 
-/*import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.level.block.Block
@@ -39,4 +39,4 @@ class RegisterLootEvent(private val elements: MutableMap<LootDataId<*>, *>) : Ev
     }
 }
 
-*///?}
+//?}
