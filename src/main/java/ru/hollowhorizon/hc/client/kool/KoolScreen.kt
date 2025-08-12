@@ -5,13 +5,17 @@ import de.fabmax.kool.modules.ui2.UiScale
 import de.fabmax.kool.modules.ui2.setupUiScene
 import de.fabmax.kool.pipeline.ClearColorDontCare
 import de.fabmax.kool.pipeline.ClearDepthDontCare
-import de.fabmax.kool.pipeline.ClearDepthLoad
 import de.fabmax.kool.scene.OrthographicCamera
 import de.fabmax.kool.scene.Scene
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import ru.hollowhorizon.hc.api.HudHideable
 import ru.hollowhorizon.hc.client.kool.gl.render
+import ru.hollowhorizon.hc.common.coroutines.coroutineScope
 import ru.hollowhorizon.hc.common.utils.literal
 import kotlin.math.min
 
@@ -22,9 +26,14 @@ open class KoolScreen : Screen("".literal), HudHideable {
         clearDepth = ClearDepthDontCare
     }
 
+    private lateinit var screenScope: CoroutineScope
+
     private var isLoaded = false
 
     override fun init() {
+
+        screenScope = CoroutineScope(SupervisorJob() + Minecraft.getInstance().coroutineScope.coroutineContext)
+
         if(!isLoaded) {
             scene.setup()
             isLoaded = true
@@ -47,6 +56,7 @@ open class KoolScreen : Screen("".literal), HudHideable {
     open fun Scene.setup() {}
 
     override fun removed() {
+        screenScope.cancel()
         scene.release()
     }
 
