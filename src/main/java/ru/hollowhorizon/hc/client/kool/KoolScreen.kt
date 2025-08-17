@@ -5,7 +5,6 @@ import de.fabmax.kool.modules.ui2.UiScale
 import de.fabmax.kool.modules.ui2.setupUiScene
 import de.fabmax.kool.pipeline.ClearColorDontCare
 import de.fabmax.kool.pipeline.ClearDepthDontCare
-import de.fabmax.kool.pipeline.ClearDepthLoad
 import de.fabmax.kool.scene.OrthographicCamera
 import de.fabmax.kool.scene.Scene
 import net.minecraft.client.gui.GuiGraphics
@@ -22,9 +21,12 @@ open class KoolScreen : Screen("".literal), HudHideable {
         clearDepth = ClearDepthDontCare
     }
 
+
     private var isLoaded = false
 
     override fun init() {
+
+
         if(!isLoaded) {
             scene.setup()
             isLoaded = true

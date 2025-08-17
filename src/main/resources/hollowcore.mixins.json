@@ -28,6 +28,7 @@
     "fabric.BowItemMixin",
     "kool.ClipboardMixin",
     "kool.PlatformInputJvmMixin",
+    "kool.RenderLoopCoroutineDispatcherMixin",
     "loot.LootDataManagerMixin",
     "tags.TagEntryAccessor",
     "tags.TagLoaderMixin"
