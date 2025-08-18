@@ -12,7 +12,7 @@ class BabySpawnEvent(
     val parentB: Mob?,
     var child: AgeableMob?
 ): Event, Cancelable {
-    val causedByPlayer: Player
+    private val causedByPlayer: Player?
 
     init {
         var caused: Player? = null
@@ -22,7 +22,7 @@ class BabySpawnEvent(
         if ((caused as Any?) == null && parentB is Animal)
             caused = parentB.loveCause
 
-        causedByPlayer = caused!!
+        causedByPlayer = caused
     }
 
     override var isCanceled: Boolean = false
