@@ -25,6 +25,10 @@ object EventBus {
         list.sortBy { it.priority }
     }
 
+    fun unregisterNoInline(type: KClass<out Event>, listener: EventListener<out Event>) {
+        listeners[type]?.remove(listener)
+    }
+
     inline fun <reified T : Event> unregister(listener: EventListener<T>) {
         listeners[T::class]?.remove(listener)
     }
