@@ -28,6 +28,7 @@ import net.minecraft.locale.Language
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
 import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.entity.player.Player
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.api.deserializeCapabilities
@@ -67,14 +68,18 @@ object HollowEventHandler {
     @SubscribeEvent
     fun onPlayerClone(event: PlayerEvent.Clone) {
         if (event.wasDeath) {
-            val oldCapabilities = (event.oldPlayer as ICapabilityDispatcher).capabilities
-            val newCapabilities = (event.player as ICapabilityDispatcher).capabilities
-            newCapabilities.clear()
-            oldCapabilities.forEach { (key, value) ->
-                newCapabilities[key] = value
-            }
-            event.player.capabilities.values.forEach(CapabilityInstance::synchronize)
+            transferCapabilities(event.oldPlayer, event.player)
         }
+    }
+
+    private fun transferCapabilities(from: Player, to: Player) {
+        val oldCapabilities = (from as ICapabilityDispatcher).capabilities
+        val newCapabilities = (to as ICapabilityDispatcher).capabilities
+        newCapabilities.clear()
+        oldCapabilities.forEach { (key, value) ->
+            newCapabilities[key] = value
+        }
+        to.capabilities.values.forEach(CapabilityInstance::synchronize)
     }
 
     @SubscribeEvent
@@ -118,6 +123,7 @@ object HollowEventHandler {
     @SubscribeEvent
     fun onChangeDimension(event: PlayerEvent.ChangeDimension) {
         (event.to as ICapabilityDispatcher).capabilities.values.forEach(CapabilityInstance::synchronize)
+        (event.player as ICapabilityDispatcher).capabilities.values.forEach(CapabilityInstance::synchronize)
     }
 
     @SubscribeEvent
