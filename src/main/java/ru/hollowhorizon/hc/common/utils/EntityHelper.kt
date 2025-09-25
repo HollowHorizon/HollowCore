@@ -31,6 +31,8 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.DoorBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf
@@ -70,7 +72,7 @@ infix fun LivingEntity.canSee(pos: BlockPos) = this angleTo pos in -60f..60f
 
 private const val headSize = 0.15
 
-fun LivingEntity.viewBlocked(other: LivingEntity): Boolean {
+fun LivingEntity.viewBlocked(other: LivingEntity, blockFilter: (Block) -> Boolean = { true }): Boolean {
     val otherBoundingBox = other.boundingBox
     val viewerPoints = arrayOf(
         Vec3(boundingBox.minX, boundingBox.minY, boundingBox.minZ),
@@ -117,7 +119,7 @@ fun LivingEntity.viewBlocked(other: LivingEntity): Boolean {
         ) return false
         if (rayTraceBlocks(this, this.level(), viewerPoints[i], otherPoints[i]) { pos ->
                 val state = this.level().getBlockState(pos)
-                !canSeeThrough(state, this.level(), pos)
+                !canSeeThrough(state, this.level(), pos, blockFilter)
             } == null) return false
     }
 
@@ -228,15 +230,12 @@ private fun rayTraceBlocks(
     return null
 }
 
-fun canSeeThrough(blockState: BlockState, world: Level, pos: BlockPos): Boolean {
+fun canSeeThrough(blockState: BlockState, world: Level, pos: BlockPos, blockFilter: (Block) -> Boolean): Boolean {
     if (!blockState.canOcclude() || !blockState.isSolidRender(world, pos)) return true
 
     val block = blockState.block
 
-    // Special Snowflakes
-    if (block is DoorBlock) return blockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER
-
-    return blockState.getCollisionShape(world, pos) == Shapes.empty()
+    return blockState.getCollisionShape(world, pos) == Shapes.empty() && blockFilter(block)
 }
 
 infix fun LivingEntity.bodyAngleTo(target: LivingEntity): Float {
