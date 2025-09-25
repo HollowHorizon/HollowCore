@@ -231,7 +231,7 @@ private fun rayTraceBlocks(
 }
 
 fun canSeeThrough(blockState: BlockState, world: Level, pos: BlockPos, blockFilter: (Block) -> Boolean): Boolean {
-    if (!blockState.canOcclude() || !blockState.isSolidRender(world, pos)) return true
+    if (!blockState.canOcclude() || !blockState.isSolidRender(world, pos)) return blockFilter(blockState.block)
 
     val block = blockState.block
 
