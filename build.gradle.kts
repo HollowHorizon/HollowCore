@@ -46,7 +46,7 @@ setupEnviroment(container, kotlinVersion, includeKotlin = true, *publications.to
 
 dependencies {
     // CONFIG //
-    install("com.akuleshov7:ktoml-core-jvm:0.5.1")
+    install("com.akuleshov7:ktoml-core-jvm:0.7.1")
     install("org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.8.1")
 
     // GRAPHICS //
