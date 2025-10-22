@@ -33,9 +33,6 @@ import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.api.ICapabilityDispatcher
 import ru.hollowhorizon.hc.api.deserializeCapabilities
 import ru.hollowhorizon.hc.api.serializeCapabilities
-import ru.hollowhorizon.hc.common.utils.mcTranslate
-import ru.hollowhorizon.hc.common.utils.nbt.loadAsNBT
-import ru.hollowhorizon.hc.common.utils.nbt.save
 import ru.hollowhorizon.hc.common.capabilities.CapabilityInstance
 import ru.hollowhorizon.hc.common.events.SubscribeEvent
 import ru.hollowhorizon.hc.common.events.client.ItemTooltipEvent
@@ -43,6 +40,9 @@ import ru.hollowhorizon.hc.common.events.entity.EntityTrackingEvent
 import ru.hollowhorizon.hc.common.events.entity.player.PlayerEvent
 import ru.hollowhorizon.hc.common.events.level.LevelEvent
 import ru.hollowhorizon.hc.common.events.tick.TickEvent
+import ru.hollowhorizon.hc.common.utils.mcTranslate
+import ru.hollowhorizon.hc.common.utils.nbt.loadAsNBT
+import ru.hollowhorizon.hc.common.utils.nbt.save
 import ru.hollowhorizon.hc.mixins.DimensionDataStorageAccessor
 import java.io.DataInputStream
 
@@ -67,9 +67,7 @@ object HollowEventHandler {
 
     @SubscribeEvent
     fun onPlayerClone(event: PlayerEvent.Clone) {
-        if (event.wasDeath) {
-            transferCapabilities(event.oldPlayer, event.player)
-        }
+        transferCapabilities(event.oldPlayer, event.player)
     }
 
     private fun transferCapabilities(from: Player, to: Player) {
