@@ -1080,8 +1080,8 @@ object GltfTree {
             if (indexBuffer != -1) GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, indexBuffer)
 
             GL33.glEnableVertexAttribArray(0) // Вершины (или цвет)
-            GL33.glEnableVertexAttribArray(2) // Текстурные координаты
-            GL33.glEnableVertexAttribArray(5) // Нормали
+            if (texCoordsBuffer != -1) GL33.glEnableVertexAttribArray(2) // Текстурные координаты
+            if (normalBuffer != -1) GL33.glEnableVertexAttribArray(5) // Нормали
             if (tangentBuffer != -1) GL33.glEnableVertexAttribArray(9) //Тангенты
             if (hasShaders) GL20.glEnableVertexAttribArray(8) //координаты для глубины (pbr)
 
@@ -1121,8 +1121,8 @@ object GltfTree {
 
             //Отключение параметров выше
             GL33.glDisableVertexAttribArray(0)
-            GL33.glDisableVertexAttribArray(2)
-            GL33.glDisableVertexAttribArray(5)
+            if (texCoordsBuffer != -1) GL33.glDisableVertexAttribArray(2)
+            if (normalBuffer != -1) GL33.glDisableVertexAttribArray(5)
             if (tangentBuffer != -1) GL33.glDisableVertexAttribArray(9)
             if (hasShaders) GL20.glDisableVertexAttribArray(8)
         }
