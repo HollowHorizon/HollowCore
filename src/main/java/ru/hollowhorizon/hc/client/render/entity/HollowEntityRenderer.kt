@@ -78,9 +78,7 @@ open class HollowEntityRenderer<T>(manager: EntityRendererProvider.Context) :
         stack.last().normal().mul(capability.transform.normalMatrix)
         if(model.model.isBlockBench) stack.mulPose(Quaternionf().rotateY(180f * Mth.DEG_TO_RAD))
 
-
-        val lerpBodyRot = Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot)
-        stack.mulPose(Quaternionf().rotateY(-lerpBodyRot * Mth.DEG_TO_RAD))
+        stack.mulPose(Quaternionf().rotateY(-yaw * Mth.DEG_TO_RAD))
 
         model.visuals = ::drawVisuals
         val controller = capability.controller
