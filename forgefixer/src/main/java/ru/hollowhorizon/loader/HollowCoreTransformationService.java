@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import zone.rong.imaginebreaker.ImagineBreaker;
 
+import java.io.File;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
@@ -23,9 +24,14 @@ public class HollowCoreTransformationService implements ITransformationService {
         ImagineBreaker.wipeFieldFilters();
         ImagineBreaker.wipeMethodFilters();
 
-        System.getProperty("net.bytebuddy.agent.attacher.dump", "true");
+        System.setProperty("jdk.attach.allowAttachSelf", "true");
+        System.getProperty("net.bytebuddy.agent.attacher.dump", "agent.log");
 
-        ByteBuddyAgent.install();
+        try {
+            ByteBuddyAgent.install();
+        } catch (Exception e) {
+            LOGGER.error("Could not install ByteBuddyAgent", e);
+        }
 
         Instrumentation instrumentation = ByteBuddyAgent.getInstrumentation();
 

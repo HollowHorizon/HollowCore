@@ -35,10 +35,10 @@ val publications = ArrayList<Publication>()
 
 if (System.getenv("MAVEN_PASSWORD_ZM") != null) publications.add(
     Publication(
-        "ZeroModsMaven",
-        "https://maven.0mods.team/releases",
-        System.getenv("MAVEN_USER_ZM"),
-        System.getenv("MAVEN_PASSWORD_ZM")
+        "GitHubPackages",
+        "https://maven.pkg.github.com/HollowHorizon/$modName",
+        System.getenv("MAVEN_USER"),
+        System.getenv("MAVEN_PASSWORD")
     )
 )
 

@@ -47,5 +47,14 @@ tasks.jar {
     manifest {
         attributes("FMLModType" to "LIBRARY")
         attributes("Agent-Class" to "ru.hollowhorizon.loader.HollowCoreAgent")
+        attributes("Premain-Class" to "ru.hollowhorizon.loader.HollowCoreAgent")
+        attributes("Can-Redefine-Classes" to "true")
+        attributes("Can-Retransform-Classes" to "true")
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
