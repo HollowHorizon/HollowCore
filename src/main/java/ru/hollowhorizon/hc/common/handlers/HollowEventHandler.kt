@@ -76,8 +76,13 @@ object HollowEventHandler {
         newCapabilities.clear()
         oldCapabilities.forEach { (key, value) ->
             newCapabilities[key] = value
+            value.provider = to
         }
-        to.capabilities.values.forEach(CapabilityInstance::synchronize)
+    }
+
+    @SubscribeEvent
+    fun onRespawn(event: PlayerEvent.Respawn) {
+        (event.player as ICapabilityDispatcher).capabilities.values.forEach(CapabilityInstance::synchronize)
     }
 
     @SubscribeEvent

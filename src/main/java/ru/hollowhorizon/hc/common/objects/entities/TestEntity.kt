@@ -44,6 +44,8 @@ import net.minecraft.world.level.pathfinder.BlockPathTypes
 import net.minecraft.world.phys.Vec3
 import ru.hollowhorizon.hc.HollowCore
 import ru.hollowhorizon.hc.client.models.internal.Transform
+import ru.hollowhorizon.hc.client.models.internal.controller.WrapMode
+import ru.hollowhorizon.hc.client.models.internal.controller.animationController
 import ru.hollowhorizon.hc.client.models.internal.manager.AnimatedEntityCapability
 import ru.hollowhorizon.hc.client.models.internal.manager.IAnimated
 import ru.hollowhorizon.hc.common.utils.get
@@ -54,8 +56,19 @@ class TestEntity(type: EntityType<TestEntity>, world: Level) : PathfinderMob(typ
 
     init {
         this[AnimatedEntityCapability::class].apply {
-            model = "${HollowCore.MODID}:models/entity/npc.gltf"
+            model = "${HollowCore.MODID}:models/entity/defiled.gltf"
             //animations[AnimationType.IDLE] = "hello"
+            controller = animationController {
+                layer("Test") {
+                    stateMachine {
+                        initialState("test")
+
+                        state("test") {
+                            clip("attack12", WrapMode.Loop)
+                        }
+                    }
+                }
+            }
             transform = Transform.create {}
         }
         setPathfindingMalus(BlockPathTypes.WATER, -1.0f)

@@ -43,7 +43,6 @@ fun Project.setupEnviroment(
             flatDir { dirs(rootDir.resolve("libs")) }
 
             maven("https://repo.spongepowered.org/repository/maven-public/")
-            maven("https://maven.0mods.team/releases")
             maven("https://maven.parchmentmc.org")
             maven("https://maven.architectury.dev/")
             maven("https://jitpack.io")

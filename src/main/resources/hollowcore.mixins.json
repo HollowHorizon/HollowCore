@@ -15,6 +15,7 @@
     "LivingEntityMixin",
     "MinecraftServerMixin",
     "PackRepositoryMixin",
+    "PlayerListMixin",
     "PlayerMixin",
     "ServerGamePacketListenerImplMixin",
     "ServerLevelMixin",
