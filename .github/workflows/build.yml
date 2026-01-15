@@ -103,6 +103,12 @@ jobs:
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
+      - name: Get the mod version from gradle.properties
+        id: get_version
+        run: |
+          MOD_VERSION=$(grep '^modVersion=' gradle.properties | cut -d'=' -f2)
+          echo "mod_version=$MOD_VERSION" >> $GITHUB_OUTPUT
+          echo "MOD_VERSION=$MOD_VERSION" >> $GITHUB_ENV
       - name: Notify Discord on success
         if: success()
         env:
