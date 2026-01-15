@@ -75,10 +75,6 @@ jobs:
 
       - name: Build Mod
         run: gradle buildAndCollect
-  capture-artifacts:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
       - name: Capture build artifacts
         if: ${{ runner.os == 'Linux' && matrix.java == '21' }}
         uses: actions/upload-artifact@v4
@@ -88,10 +84,6 @@ jobs:
             merged/*.jar
             !merged/*-dev.jar
             !merged/*-sources.jar
-  github-release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
       - name: Create GitHub Release
         id: create_release
         uses: ncipollo/release-action@v1
@@ -107,8 +99,6 @@ jobs:
   discord-notify:
     needs:
       - build
-      - capture-artifacts
-      - github-release
     runs-on: ubuntu-latest
     steps:
       - name: checkout repository
