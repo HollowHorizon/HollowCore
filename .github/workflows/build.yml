@@ -12,17 +12,47 @@ permissions:
   contents: write
 
 jobs:
+  create_tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Get the mod version from gradle.properties
+        id: get_version
+        run: |
+          MOD_VERSION=$(grep '^modVersion=' gradle.properties | cut -d'=' -f2)
+          echo "MOD_VERSION=$MOD_VERSION" >> $GITHUB_ENV
+
+      - name: Delete existing tag if it exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Удаляем тег, если он уже существует
+          git tag -d "$MOD_VERSION" || true
+          git push origin --delete "$MOD_VERSION" || true
+
+      - name: Create and push new tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Создаём новый тег с версией мода
+          git tag "$MOD_VERSION"
+          git push origin "$MOD_VERSION"
   build:
     strategy:
       matrix:
         java: [ 21 ]
         os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
+    needs: create_tag
     if: |
       !contains(github.event.head_commit.message, '[no ci]')
     steps:
       - name: checkout repository
         uses: actions/checkout@v4
+
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
@@ -38,13 +68,13 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
 
-      - name: make gradle wrapper executable
-        run: chmod +x ./gradlew
-
-      - name: Build mod
-        uses: gradle/gradle-build-action@v2
+      - name: Prepare Gradle
+        uses: gradle/actions/setup-gradle@v5
         with:
-          arguments: buildAndCollect
+          gradle-version: '8.14.2'
+
+      - name: Build Mod
+        run: gradle buildAndCollect
 
       - name: Capture build artifacts
         if: ${{ runner.os == 'Linux' && matrix.java == '21' }}
