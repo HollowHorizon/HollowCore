@@ -73,7 +73,6 @@ object HollowModelManager : ResourceManagerReloadListener {
         try {
             return loader.load(location)
         } catch (e: Exception) {
-            HollowCore.LOGGER.warn("Model $location failed to load!", e)
             return null
         }
     }
@@ -106,8 +105,6 @@ object HollowModelManager : ResourceManagerReloadListener {
 
                 models.putAll(loaded)
             }
-
-            HollowCore.LOGGER.info("Loaded ${models.size} models in $time")
         }
 
         models.forEach { it.value.model.initGl() }
